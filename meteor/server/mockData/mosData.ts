@@ -2399,9 +2399,7 @@ Meteor.methods({
 								}
 							],
 							"mosAbstract" : "nv-ungdom-israel-mgp-130518 PUBLISH_QUANTEL 00:00:42:09",
-							"ObjectSlug" : "nv-ungdom-israel-mgp-130518",
-							"Duration" : "250",
-							"TimeBase": "25"
+							"ObjectSlug" : "nv-ungdom-israel-mgp-130518"
 						}
 					},
 					{
