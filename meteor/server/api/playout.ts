@@ -1514,9 +1514,9 @@ function clearNextLineStartedPlaybackAndDuration (roId: string, nextSlId: string
 	})
 }
 
-function createSegmentLineGroup (segmentLine: SegmentLine, duration: number | string): TimelineObj {
+function createSegmentLineGroup (segmentLine: SegmentLine | SegmentLineItem, duration: number | string, idPrefix: string): TimelineObj {
 	let slGrp = literal<TimelineObjGroupSegmentLine>({
-		_id: PlayoutTimelinePrefixes.SEGMENT_LINE_GROUP_PREFIX + segmentLine._id,
+		_id: PlayoutTimelinePrefixes.SEGMENT_LINE_GROUP_PREFIX + segmentLine._id + (idPrefix ? '_' + idPrefix : ''),
 		siId: '', // added later
 		roId: '', // added later
 		deviceId: [],
@@ -1619,7 +1619,14 @@ function transformBaselineItemsIntoTimeline (items: RunningOrderBaselineItem[]):
 	return timelineObjs
 }
 
-function transformSegmentLineIntoTimeline (items: SegmentLineItem[], segmentLineGroup?: TimelineObj, allowTransition?: boolean, triggerOffsetForTransition?: string, holdState?: RunningOrderHoldState, showHoldExcept?: boolean): Array<TimelineObj> {
+function transformSegmentLineIntoTimeline (
+	items: SegmentLineItem[],
+	segmentLineGroup?: TimelineObj,
+	allowTransition?: boolean,
+	triggerOffsetForTransition?: string,
+	holdState?: RunningOrderHoldState,
+	showHoldExcept?: boolean
+): Array<TimelineObj> {
 	let timelineObjs: Array<TimelineObj> = []
 
 	const isHold = holdState === RunningOrderHoldState.ACTIVE
@@ -2016,8 +2023,8 @@ export const updateTimeline: (studioInstallationId: string, forceNowToTime?: Tim
 			if (!currentSegmentLine) throw new Meteor.Error(404, `SegmentLine "${activeRunningOrder.currentSegmentLineId}" not found!`)
 
 			const currentSegmentLineItems = currentSegmentLine.getSegmentLinesItems()
-			const currentInfiniteItems = currentSegmentLineItems.filter(l => (l.infiniteMode && l.infiniteId && l.infiniteId !== l._id))
-			const currentNormalItems = currentSegmentLineItems.filter(l => !(l.infiniteMode && l.infiniteId && l.infiniteId !== l._id))
+			const currentInfiniteItems 	= currentSegmentLineItems.filter(l => 	 (l.infiniteMode && l.infiniteId && l.infiniteId !== l._id))
+			const currentNormalItems 	= currentSegmentLineItems.filter(l => 	!(l.infiniteMode && l.infiniteId && l.infiniteId !== l._id))
 
 			let allowTransition = false
 
@@ -2037,7 +2044,7 @@ export const updateTimeline: (studioInstallationId: string, forceNowToTime?: Tim
 						: `#${PlayoutTimelinePrefixes.SEGMENT_LINE_GROUP_PREFIX + currentSegmentLine._id}.start`
 					endTrigger += ` + ${currentSegmentLine.overlapDuration || 0}`
 
-					previousSegmentLineGroup = createSegmentLineGroup(previousSegmentLine, `${endTrigger} - #.start`)
+					previousSegmentLineGroup = createSegmentLineGroup(previousSegmentLine, `${endTrigger} - #.start`, 'prev')
 					previousSegmentLineGroup.priority = -1
 					previousSegmentLineGroup.trigger = literal<ITimelineTrigger>({
 						type: TriggerType.TIME_ABSOLUTE,
@@ -2063,7 +2070,7 @@ export const updateTimeline: (studioInstallationId: string, forceNowToTime?: Tim
 			// fetch items
 			// fetch the timelineobjs in items
 			const isFollowed = nextSegmentLine && currentSegmentLine.autoNext
-			currentSegmentLineGroup = createSegmentLineGroup(currentSegmentLine, (isFollowed ? (currentSegmentLine.expectedDuration || 0) : 0))
+			currentSegmentLineGroup = createSegmentLineGroup(currentSegmentLine, (isFollowed ? (currentSegmentLine.expectedDuration || 0) : 0), '')
 			if (currentSegmentLine.startedPlayback) { // If we are recalculating the currentLine, then ensure it doesnt think it is starting now
 				currentSegmentLineGroup.trigger = literal<ITimelineTrigger>({
 					type: TriggerType.TIME_ABSOLUTE,
@@ -2073,8 +2080,8 @@ export const updateTimeline: (studioInstallationId: string, forceNowToTime?: Tim
 
 			// any continued infinite lines need to skip the group, as they need a different start trigger
 			for (let item of currentInfiniteItems) {
-				const infiniteGroup = createSegmentLineGroup(currentSegmentLine, item.expectedDuration || 0)
-				infiniteGroup._id = PlayoutTimelinePrefixes.SEGMENT_LINE_GROUP_PREFIX + item._id + '_infinite'
+				const infiniteGroup = createSegmentLineGroup(item, item.expectedDuration || 0, 'infinite')
+				// infiniteGroup._id = PlayoutTimelinePrefixes.SEGMENT_LINE_GROUP_PREFIX + item._id + '_infinite'
 
 				if (item.infiniteId) {
 					let originalItem = SegmentLineItems.findOne(item.infiniteId)
@@ -2100,7 +2107,7 @@ export const updateTimeline: (studioInstallationId: string, forceNowToTime?: Tim
 		// only add the next objects into the timeline if the next segment is autoNext
 		if (nextSegmentLine && currentSegmentLine && currentSegmentLine.autoNext) {
 			// console.log('This segment line will autonext')
-			let nextSegmentLineGroup = createSegmentLineGroup(nextSegmentLine, 0)
+			let nextSegmentLineGroup = createSegmentLineGroup(nextSegmentLine, 0,'next')
 			if (currentSegmentLineGroup) {
 				nextSegmentLineGroup.trigger = literal<ITimelineTrigger>({
 					type: TriggerType.TIME_RELATIVE,
