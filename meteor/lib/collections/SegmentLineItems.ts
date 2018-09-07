@@ -101,6 +101,7 @@ Meteor.startup(() => {
 	if (Meteor.isServer) {
 		SegmentLineItems._ensureIndex({
 			runningOrderId: 1,
+			segmentLineId: 1
 		})
 	}
 })
