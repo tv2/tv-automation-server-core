@@ -383,9 +383,7 @@ export namespace ServerPlayoutAPI {
 
 		let nextSegmentLine: DBSegmentLine | null = segmentLineAfter || null
 
-		toc('roTake', 'before beforeTake')
 		beforeTake(runningOrder, previousSegmentLine || null, takeSegmentLine)
-		toc('roTake', 'after beforeTake')
 
 		let m = {
 			previousSegmentLineId: runningOrder.currentSegmentLineId,
@@ -416,7 +414,6 @@ export namespace ServerPlayoutAPI {
 			})
 		}
 
-		toc('roTake', 'after timings')
 
 		// Setup the items for the HOLD we are starting
 		if (m.previousSegmentLineId && m.holdState === RunningOrderHoldState.ACTIVE) {
@@ -445,14 +442,11 @@ export namespace ServerPlayoutAPI {
 				SegmentLineItems.insert(i)
 			})
 		}
-		toc('roTake', 'after hold')
 
 		if (nextSegmentLine) {
 			clearNextLineStartedPlaybackAndDuration(roId, nextSegmentLine._id)
 		}
-		toc('roTake', 'before afterTake')
 		afterTake(runningOrder, takeSegmentLine, previousSegmentLine || null)
-		toc('roTake', 'after afterTake')
 	}
 	export function roSetNext (roId: string, nextSlId: string) {
 		check(roId, String)
@@ -1256,14 +1250,11 @@ function beforeTake (runningOrder: RunningOrder, currentSegmentLine: SegmentLine
 function afterTake (runningOrder: RunningOrder, takeSegmentLine: SegmentLine, previousSegmentLine: SegmentLine | null) {
 	// This function should be called at the end of a "take" event (when the SegmentLines have been updated)
 	updateTimeline(runningOrder.studioInstallationId)
-	toc('roTake', 'after updateTimeline')
 	if (takeSegmentLine.updateStoryStatus) {
 		sendStoryStatus(runningOrder, takeSegmentLine)
-		toc('roTake', 'after sendStoryStatus')
 	}
 
 	triggerExternalMessage(runningOrder, takeSegmentLine, previousSegmentLine)
-	toc('roTake', 'after triggerExternalMessage')
 }
 
 import { Resolver } from 'superfly-timeline'
@@ -2230,7 +2221,6 @@ export const updateTimeline: (studioInstallationId: string, forceNowToTime?: Tim
 				}
 			}
 		})
-		toc('roTake', 'updateTimeline: after clearing timeline')
 		// Todo: Add default objects:
 		let timelineObjs: Array<TimelineObj> = []
 
@@ -2352,7 +2342,6 @@ export const updateTimeline: (studioInstallationId: string, forceNowToTime?: Tim
 
 			timelineObjs.push(createSegmentLineGroupFirstObject(currentSegmentLine, currentSegmentLineGroup))
 		}
-		toc('roTake', 'updateTimeline: after currentSegmentLineId')
 
 		// only add the next objects into the timeline if the next segment is autoNext
 		if (nextSegmentLineItem && currentSegmentLine && currentSegmentLine.autoNext) {
@@ -2385,7 +2374,6 @@ export const updateTimeline: (studioInstallationId: string, forceNowToTime?: Tim
 			timelineObjs.push(createSegmentLineGroupFirstObject(nextSegmentLineItem, nextSegmentLineItemGroup))
 		}
 
-		toc('roTake', 'updateTimeline: after autoNext')
 
 		if (!activeRunningOrder.nextSegmentLineId && !activeRunningOrder.currentSegmentLineId) {
 			// maybe at the end of the show
@@ -2395,7 +2383,6 @@ export const updateTimeline: (studioInstallationId: string, forceNowToTime?: Tim
 		// next (on pvw (or on pgm if first))
 		addLookeaheadObjectsToTimeline(activeRunningOrder, studioInstallation, timelineObjs)
 
-		toc('roTake', 'updateTimeline: after addLookeaheadObjectsToTimeline')
 
 		_.each(timelineObjs, (o) => {
 			o.roId = activeRunningOrder._id
@@ -2405,7 +2392,6 @@ export const updateTimeline: (studioInstallationId: string, forceNowToTime?: Tim
 
 		processTimelineObjects(studioInstallation, timelineObjs)
 
-		toc('roTake', 'updateTimeline: after processTimelineObjects')
 
 		// logger.debug('timelineObjs', timelineObjs)
 
@@ -2415,7 +2401,6 @@ export const updateTimeline: (studioInstallationId: string, forceNowToTime?: Tim
 
 		setLawoObjectsTriggerValue(timelineObjs, currentSegmentLine)
 
-		toc('roTake', 'updateTimeline: before saveIntoDb')
 		saveIntoDb<TimelineObj, TimelineObj>(Timeline, {
 			roId: activeRunningOrder._id
 		}, timelineObjs, {
@@ -2428,7 +2413,6 @@ export const updateTimeline: (studioInstallationId: string, forceNowToTime?: Tim
 				return o
 			}
 		})
-		toc('roTake', 'updateTimeline: after saveIntoDb')
 	} else {
 		// remove everything:
 		Timeline.remove({
@@ -2436,7 +2420,6 @@ export const updateTimeline: (studioInstallationId: string, forceNowToTime?: Tim
 			statObject: {$ne: true}
 		})
 	}
-	toc('roTake', 'updateTimeline: before afterUpdateTimeline')
 	afterUpdateTimeline(studioInstallation)
 })
 /**
