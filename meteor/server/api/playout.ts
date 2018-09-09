@@ -1211,6 +1211,7 @@ Meteor.methods({
 function beforeTake (runningOrder: RunningOrder, currentSegmentLine: SegmentLine | null, nextSegmentLineItem: SegmentLine) {
 	if (currentSegmentLine) {
 		const adjacentSL = SegmentLines.find({
+			runningOrderId: currentSegmentLine.runningOrderId,
 			segmentId: currentSegmentLine.segmentId,
 			_rank: {
 				$gt: currentSegmentLine._rank
@@ -1416,6 +1417,7 @@ function resetSegment (segmentId: string, currentSegmentLineId: string | null) {
 	if (!segment) return
 
 	const segmentLines = SegmentLines.find(_.extend({
+		runningOrderId: segment.runningOrderId,
 		segmentId: segmentId,
 	}, currentSegmentLineId ? {
 		_id: {
