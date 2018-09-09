@@ -367,6 +367,7 @@ export namespace ServerPlayoutAPI {
 			updateTimeline(runningOrder.studioInstallationId)
 			return
 		}
+		toc('roTake', 'after hold')
 
 		let previousSegmentLine = (runningOrder.currentSegmentLineId ?
 			SegmentLines.findOne(runningOrder.currentSegmentLineId)
@@ -382,8 +383,9 @@ export namespace ServerPlayoutAPI {
 
 		let nextSegmentLine: DBSegmentLine | null = segmentLineAfter || null
 
+		toc('roTake', 'before beforeTake')
 		beforeTake(runningOrder, previousSegmentLine || null, takeSegmentLine)
-
+		toc('roTake', 'after beforeTake')
 		let m = {
 			previousSegmentLineId: runningOrder.currentSegmentLineId,
 			currentSegmentLineId: takeSegmentLine._id,
@@ -412,6 +414,7 @@ export namespace ServerPlayoutAPI {
 				}
 			})
 		}
+		toc('roTake', 'after timings')
 
 		// Setup the items for the HOLD we are starting
 		if (m.previousSegmentLineId && m.holdState === RunningOrderHoldState.ACTIVE) {
@@ -440,11 +443,14 @@ export namespace ServerPlayoutAPI {
 				SegmentLineItems.insert(i)
 			})
 		}
+		toc('roTake', 'after hold2')
 
 		if (nextSegmentLine) {
 			clearNextLineStartedPlaybackAndDuration(roId, nextSegmentLine._id)
+			toc('roTake', 'after clearNext')
 		}
 		afterTake(runningOrder, takeSegmentLine, previousSegmentLine || null)
+		toc('roTake', 'roTake Done')
 	}
 	export function roSetNext (roId: string, nextSlId: string) {
 		check(roId, String)
@@ -1248,6 +1254,7 @@ function beforeTake (runningOrder: RunningOrder, currentSegmentLine: SegmentLine
 function afterTake (runningOrder: RunningOrder, takeSegmentLine: SegmentLine, previousSegmentLine: SegmentLine | null) {
 	// This function should be called at the end of a "take" event (when the SegmentLines have been updated)
 	updateTimeline(runningOrder.studioInstallationId)
+	toc('roTake', 'after updateTimeline')
 
 	// defer these so that the playout gateway has the chance to learn about the changes
 	Meteor.setTimeout(() => {
@@ -2223,6 +2230,7 @@ export const updateTimeline: (studioInstallationId: string, forceNowToTime?: Tim
 				}
 			}
 		})
+		toc('roTake', 'updateTimeline: after remove unrelated')
 		// Todo: Add default objects:
 		let timelineObjs: Array<TimelineObj> = []
 
@@ -2239,6 +2247,7 @@ export const updateTimeline: (studioInstallationId: string, forceNowToTime?: Tim
 		if (baselineItems) {
 			timelineObjs = timelineObjs.concat(transformBaselineItemsIntoTimeline(baselineItems))
 		}
+		toc('roTake', 'updateTimeline: after baseline')
 
 		// Currently playing
 
@@ -2307,6 +2316,7 @@ export const updateTimeline: (studioInstallationId: string, forceNowToTime?: Tim
 					timelineObjs = timelineObjs.concat(prevObjs)
 				}
 			}
+			toc('roTake', 'updateTimeline: after previousSegmentLine')
 
 			// fetch items
 			// fetch the timelineobjs in items
@@ -2318,7 +2328,7 @@ export const updateTimeline: (studioInstallationId: string, forceNowToTime?: Tim
 					value: currentSegmentLine.getLastStartedPlayback() || 0
 				})
 			}
-
+			toc('roTake', 'updateTimeline: after currentSegmentLine')
 			// any continued infinite lines need to skip the group, as they need a different start trigger
 			for (let item of currentInfiniteItems) {
 				const infiniteGroup = createSegmentLineGroup(currentSegmentLine, item.expectedDuration || 0)
@@ -2339,6 +2349,7 @@ export const updateTimeline: (studioInstallationId: string, forceNowToTime?: Tim
 				const showHoldExcept = item.infiniteId !== item._id
 				timelineObjs = timelineObjs.concat(infiniteGroup, transformSegmentLineIntoTimeline([item], infiniteGroup, undefined, undefined, activeRunningOrder.holdState, showHoldExcept))
 			}
+			toc('roTake', 'updateTimeline: after currentInfinite')
 
 			timelineObjs = timelineObjs.concat(currentSegmentLineGroup, transformSegmentLineIntoTimeline(currentNormalItems, currentSegmentLineGroup, allowTransition, currentSegmentLine.transitionDelay, activeRunningOrder.holdState))
 
@@ -2375,6 +2386,7 @@ export const updateTimeline: (studioInstallationId: string, forceNowToTime?: Tim
 				transformSegmentLineIntoTimeline(nextItems, nextSegmentLineItemGroup, currentSegmentLine && !currentSegmentLine.disableOutTransition, nextSegmentLineItem.transitionDelay))
 			timelineObjs.push(createSegmentLineGroupFirstObject(nextSegmentLineItem, nextSegmentLineItemGroup))
 		}
+		toc('roTake', 'updateTimeline: after nextSegmentLine')
 
 		if (!activeRunningOrder.nextSegmentLineId && !activeRunningOrder.currentSegmentLineId) {
 			// maybe at the end of the show
@@ -2383,6 +2395,7 @@ export const updateTimeline: (studioInstallationId: string, forceNowToTime?: Tim
 
 		// next (on pvw (or on pgm if first))
 		addLookeaheadObjectsToTimeline(activeRunningOrder, studioInstallation, timelineObjs)
+		toc('roTake', 'updateTimeline: after lookahead')
 
 		_.each(timelineObjs, (o) => {
 			o.roId = activeRunningOrder._id
@@ -2391,14 +2404,18 @@ export const updateTimeline: (studioInstallationId: string, forceNowToTime?: Tim
 		// console.log(JSON.stringify(timelineObjs))
 
 		processTimelineObjects(studioInstallation, timelineObjs)
+		toc('roTake', 'updateTimeline: after processObjects')
 
 		// logger.debug('timelineObjs', timelineObjs)
 
 		if (forceNowToTime) { // used when autoNexting
 			setNowToTimeInObjects(timelineObjs, forceNowToTime)
 		}
+		toc('roTake', 'updateTimeline: after setNow')
 
 		setLawoObjectsTriggerValue(timelineObjs, currentSegmentLine)
+
+		toc('roTake', 'updateTimeline: after setLawo')
 
 		saveIntoDb<TimelineObj, TimelineObj>(Timeline, {
 			roId: activeRunningOrder._id
@@ -2412,6 +2429,7 @@ export const updateTimeline: (studioInstallationId: string, forceNowToTime?: Tim
 				return o
 			}
 		})
+		toc('roTake', 'updateTimeline: after saveIntoDb')
 	} else {
 		// remove everything:
 		Timeline.remove({
@@ -2420,6 +2438,7 @@ export const updateTimeline: (studioInstallationId: string, forceNowToTime?: Tim
 		})
 	}
 	afterUpdateTimeline(studioInstallation)
+	toc('roTake', 'updateTimeline: after afterUpdateTimeline')
 })
 /**
  * Fix the timeline objects, adds properties like deviceId and siId to the timeline objects
@@ -2565,11 +2584,12 @@ export function afterUpdateTimeline (studioInstallation: StudioInstallation) {
 			})
 		})
 	}
-
+	toc('roTake', 'afterUpdateTimeline: after fetch timelineObjs')
 	// Collect statistics, per device
 	_.each(deviceIdObjs, (objs, deviceId) => {
 		// console.log('deviceId', deviceId)
 
+		toc('roTake', 'afterUpdateTimeline: ' + deviceId + ': ' + objs.length + 'objs')
 		// Number of objects
 		let objCount = objs.length
 		// Hash of all objects
@@ -2603,6 +2623,8 @@ export function afterUpdateTimeline (studioInstallation: StudioInstallation) {
 			LLayer: '__stat'
 		}
 		// processTimelineObjects(studioInstallation, [statObj])
+
+		toc('roTake', 'afterUpdateTimeline: ' + deviceId + ': bedore upsert')
 
 		Timeline.upsert(magicId, {$set: statObj})
 	})
