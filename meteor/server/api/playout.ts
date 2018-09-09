@@ -413,7 +413,6 @@ export namespace ServerPlayoutAPI {
 			})
 		}
 
-
 		// Setup the items for the HOLD we are starting
 		if (m.previousSegmentLineId && m.holdState === RunningOrderHoldState.ACTIVE) {
 			let previousSegmentLine = SegmentLines.findOne(m.previousSegmentLineId)
@@ -1253,7 +1252,9 @@ function afterTake (runningOrder: RunningOrder, takeSegmentLine: SegmentLine, pr
 		sendStoryStatus(runningOrder, takeSegmentLine)
 	}
 
-	triggerExternalMessage(runningOrder, takeSegmentLine, previousSegmentLine)
+	Meteor.defer(() => {
+		triggerExternalMessage(runningOrder, takeSegmentLine, previousSegmentLine)
+	})
 }
 
 import { Resolver } from 'superfly-timeline'
@@ -2373,7 +2374,6 @@ export const updateTimeline: (studioInstallationId: string, forceNowToTime?: Tim
 			timelineObjs.push(createSegmentLineGroupFirstObject(nextSegmentLineItem, nextSegmentLineItemGroup))
 		}
 
-
 		if (!activeRunningOrder.nextSegmentLineId && !activeRunningOrder.currentSegmentLineId) {
 			// maybe at the end of the show
 			logger.info(`No next segmentLine and no current segment line set on running order "${activeRunningOrder._id}".`)
@@ -2382,7 +2382,6 @@ export const updateTimeline: (studioInstallationId: string, forceNowToTime?: Tim
 		// next (on pvw (or on pgm if first))
 		addLookeaheadObjectsToTimeline(activeRunningOrder, studioInstallation, timelineObjs)
 
-
 		_.each(timelineObjs, (o) => {
 			o.roId = activeRunningOrder._id
 		})
@@ -2390,7 +2389,6 @@ export const updateTimeline: (studioInstallationId: string, forceNowToTime?: Tim
 		// console.log(JSON.stringify(timelineObjs))
 
 		processTimelineObjects(studioInstallation, timelineObjs)
-
 
 		// logger.debug('timelineObjs', timelineObjs)
 
