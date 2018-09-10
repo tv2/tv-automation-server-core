@@ -18,3 +18,11 @@ export interface UserActionsLogItem {
 export const UserActionsLog: TransformedCollection<UserActionsLogItem, UserActionsLogItem>
 	= new Mongo.Collection<UserActionsLogItem>('userActionsLog')
 registerCollection('UserActionsLog', UserActionsLog)
+
+Meteor.startup(() => {
+	if (Meteor.isServer) {
+		UserActionsLog._ensureIndex({
+			timestamp: 1
+		})
+	}
+})

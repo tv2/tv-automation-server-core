@@ -148,7 +148,7 @@ export interface RemoteContent extends BaseContent {
 export interface ScriptContent extends BaseContent {
 	firstWords: string
 	lastWords: string
-	fullScript?: any
+	fullScript?: string
 	sourceDuration?: number
 }
 
@@ -162,7 +162,7 @@ export interface GraphicsContent extends BaseContent {
 }
 
 export interface NoraPayload {
-	content: { [key: string]: string }
+	content: { [key: string]: string | number | Object }
 	manifest: string
 	template: {
 		event: string

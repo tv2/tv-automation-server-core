@@ -169,6 +169,24 @@ export class RunningOrder implements DBRunningOrder {
 		}
 		return null
 	}
+	getTimings () {
+		let timings: Array<{
+			time: Time,
+			type: string,
+			segmentLine: string
+		}> = []
+		_.each(this.getSegmentLines(), (sl: SegmentLine) => {
+			_.each(sl.getTimings(), (t) => {
+
+				timings.push({
+					time: t.time,
+					type: t.type,
+					segmentLine: sl._id
+				})
+			})
+		})
+		return timings
+	}
 	fetchAllData (): RoData {
 
 		// Do fetches in parallell:

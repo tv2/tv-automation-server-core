@@ -39,6 +39,7 @@ import { SegmentLineAdLibItem, SegmentLineAdLibItems } from '../../lib/collectio
 import { ShowStyles, ShowStyle } from '../../lib/collections/ShowStyles'
 import { ServerPlayoutAPI, updateTimelineFromMosData, updateTimeline, afterUpdateTimeline } from './playout'
 import { syncFunction } from '../codeControl'
+import { CachePrefix } from '../../lib/collections/RunningOrderDataCache'
 
 // import {ServerPeripheralDeviceAPIMOS as MOS} from './peripheralDeviceMos'
 export namespace ServerPeripheralDeviceAPI {
@@ -298,7 +299,7 @@ export namespace ServerPeripheralDeviceAPI {
 		let dbRo = RunningOrders.findOne(roId(ro.ID))
 		if (!dbRo) throw new Meteor.Error(500, 'Running order not found (it should have been)')
 		// cache the Data
-		dbRo.saveCache('roCreate' + roId(ro.ID), ro)
+		dbRo.saveCache(CachePrefix.ROCREATE + roId(ro.ID), ro)
 
 		// Save Stories into database:
 		// Note: a number of X stories will result in (<=X) Segments and X SegmentLines
@@ -395,7 +396,7 @@ export namespace ServerPeripheralDeviceAPI {
 		if (!_.isEmpty(m)) {
 			RunningOrders.update(ro._id, {$set: m})
 			// update data cache:
-			const cache = ro.fetchCache('roCreate' + roId(roData.ID),)
+			const cache = ro.fetchCache(CachePrefix.ROCREATE + roId(roData.ID),)
 			if (cache) {
 				if (!cache.MosExternalMetaData) {
 					cache.MosExternalMetaData = []
@@ -413,7 +414,7 @@ export namespace ServerPeripheralDeviceAPI {
 				})
 			}
 
-			ro.saveCache('roCreate' + roId(roData.ID), cache)
+			ro.saveCache(CachePrefix.ROCREATE + roId(roData.ID), cache)
 		}
 	}
 	export function mosRoStatus (id, token, status: IMOSRunningOrderStatus) {
@@ -564,7 +565,7 @@ export namespace ServerPeripheralDeviceAPI {
 			// ok, the segmentline to replace wasn't in the inserted segment lines
 			// remove it then:
 			affectedSegmentLineIds.push(segmentLineToReplace._id)
-			removeSegmentLine(ro._id, segmentLineToReplace)
+			removeSegmentLine(ro._id, segmentLineToReplace, firstInsertedSegmentLine)
 		}
 
 		updateAffectedSegmentLines(ro, affectedSegmentLineIds)
@@ -766,7 +767,7 @@ export namespace ServerPeripheralDeviceAPI {
 		let segmentLine = getSegmentLine(story.RunningOrderId, story.ID)
 
 		// cache the Data
-		ro.saveCache('fullStory' + segmentLine._id, story)
+		ro.saveCache(CachePrefix.FULLSTORY + segmentLine._id, story)
 		const changed = updateStory(ro, segmentLine, story)
 		if (changed) {
 			updateTimelineFromMosData(segmentLine.runningOrderId, [ segmentLine._id ])
@@ -1019,7 +1020,7 @@ export function upsertSegmentLine (story: IMOSStory, runningOrderId: string, ran
 	afterInsertUpdateSegmentLine(story, runningOrderId)
 	return sl
 }
-export function removeSegmentLine (roId: string, segmentLineOrId: DBSegmentLine | string) {
+export function removeSegmentLine (roId: string, segmentLineOrId: DBSegmentLine | string, replacedBySegmentLine?: DBSegmentLine) {
 	let segmentLineToRemove: DBSegmentLine | undefined = (
 		_.isString(segmentLineOrId) ?
 			SegmentLines.findOne(segmentLineOrId) :
@@ -1029,6 +1030,24 @@ export function removeSegmentLine (roId: string, segmentLineOrId: DBSegmentLine 
 		SegmentLines.remove(segmentLineToRemove._id)
 		afterRemoveSegmentLine(segmentLineToRemove)
 		updateTimelineFromMosData(roId)
+
+		if (replacedBySegmentLine) {
+			SegmentLines.update({
+				runningOrderId: segmentLineToRemove.runningOrderId,
+				afterSegmentLine: segmentLineToRemove._id
+			}, {
+				$set: {
+					afterSegmentLine: replacedBySegmentLine._id,
+				}
+			}, {
+				multi: true
+			})
+		} else {
+			SegmentLines.remove({
+				runningOrderId: segmentLineToRemove.runningOrderId,
+				afterSegmentLine: segmentLineToRemove._id
+			})
+		}
 	}
 }
 export function afterInsertUpdateSegmentLine (story: IMOSStory, runningOrderId: string) {
@@ -1108,9 +1127,65 @@ function findDurationInfoMOSExternalMetaData (story: IMOSROFullStory): any | und
 	return undefined
 }
 
+export function updateSegmentLines (runningOrderId: string) {
+	let segmentLines0 = SegmentLines.find({runningOrderId: runningOrderId}, {sort: {_rank: 1}}).fetch()
+
+	let segmentLines: Array<SegmentLine> = []
+	let segmentLinesToInsert: {[id: string]: Array<SegmentLine>} = {}
+
+	_.each(segmentLines0, (sl) => {
+		if (sl.afterSegmentLine) {
+			if (!segmentLinesToInsert[sl.afterSegmentLine]) segmentLinesToInsert[sl.afterSegmentLine] = []
+			segmentLinesToInsert[sl.afterSegmentLine].push(sl)
+		} else {
+			segmentLines.push(sl)
+		}
+	})
+
+	let hasAddedAnything = true
+	while (hasAddedAnything) {
+		hasAddedAnything = false
+
+		_.each(segmentLinesToInsert, (sls, slId) => {
+
+			let segmentLineBefore: SegmentLine | null = null
+			let segmentLineAfter: SegmentLine | null = null
+			let insertI = -1
+			_.each(segmentLines, (sl, i) => {
+				if (sl._id === slId) {
+					segmentLineBefore = sl
+					insertI = i + 1
+				} else if (segmentLineBefore && !segmentLineAfter) {
+					segmentLineAfter = sl
+				}
+			})
+
+			if (segmentLineBefore) {
+
+				if (insertI !== -1) {
+					_.each(sls, (sl, i) => {
+						let newRank = getRank(segmentLineBefore, segmentLineAfter, i, sls.length)
+
+						if (sl._rank !== newRank) {
+							sl._rank = newRank
+							SegmentLines.update(sl._id, {$set: {_rank: sl._rank}})
+						}
+						segmentLines.splice(insertI, 0, sl)
+						insertI++
+						hasAddedAnything = true
+					})
+				}
+				delete segmentLinesToInsert[slId]
+			}
+		})
+	}
+
+	return segmentLines
+}
 function updateSegments (runningOrderId: string) {
 	// using SegmentLines, determine which segments are to be created
-	let segmentLines = SegmentLines.find({runningOrderId: runningOrderId}, {sort: {_rank: 1}}).fetch()
+	// let segmentLines = SegmentLines.find({runningOrderId: runningOrderId}, {sort: {_rank: 1}}).fetch()
+	let segmentLines = updateSegmentLines(runningOrderId)
 
 	let prevSlugParts: string[] = []
 	let segment: DBSegment
@@ -1184,7 +1259,7 @@ function updateWithinSegment (ro: RunningOrder, segmentId: string): boolean {
 
 	let changed = false
 	_.each(segmentLines, (segmentLine) => {
-		let story = ro.fetchCache('fullStory' + segmentLine._id)
+		let story = ro.fetchCache(CachePrefix.FULLSTORY + segmentLine._id)
 		if (story) {
 			changed = changed || updateStory(ro, segmentLine, story)
 		} else {
@@ -1194,24 +1269,6 @@ function updateWithinSegment (ro: RunningOrder, segmentId: string): boolean {
 	return changed
 }
 function updateStory (ro: RunningOrder, segmentLine: SegmentLine, story: IMOSROFullStory): boolean {
-
-	const durationMosMetaData = findDurationInfoMOSExternalMetaData(story) || {}
-
-	if (!durationMosMetaData.MosPayload) durationMosMetaData.MosPayload = {}
-
-	const duration = durationMosMetaData.MosPayload.Actual && parseFloat(durationMosMetaData.MosPayload.Actual) ||
-		durationMosMetaData.MosPayload.ReadTime && parseFloat(durationMosMetaData.MosPayload.ReadTime) ||
-		durationMosMetaData.MosPayload.Estimated && parseFloat(durationMosMetaData.MosPayload.Estimated) ||
-		durationMosMetaData.MosPayload.MediaTime && parseFloat(durationMosMetaData.MosPayload.MediaTime) || 0
-
-	// Note: when no duration, it should look like 3000 in the GUI, but be counted as 0
-	if (segmentLine.expectedDuration !== duration * 1000) {
-		segmentLine.expectedDuration = duration * 1000
-		SegmentLines.update(segmentLine._id, {$set: {
-			expectedDuration: segmentLine.expectedDuration
-		}})
-	}
-
 	let showStyle = ShowStyles.findOne(ro.showStyleId)
 
 	if (!showStyle) throw new Meteor.Error(404, 'ShowStyle "' + ro.showStyleId + '" not found!')
@@ -1227,7 +1284,7 @@ function updateStory (ro: RunningOrder, segmentLine: SegmentLine, story: IMOSROF
 	try {
 		tr = runTemplate(showStyle, context, story, 'story ' + story.ID.toString())
 	} catch (e) {
-		logger.error(e.toString())
+		logger.error(e.stack ? e.stack : e.toString())
 		// throw e
 		tr = {
 			templateId: '',
@@ -1264,8 +1321,8 @@ function updateStory (ro: RunningOrder, segmentLine: SegmentLine, story: IMOSROF
 		if (tr.result.segmentLine) {
 			if (!tr.result.segmentLine.typeVariant) tr.result.segmentLine.typeVariant = tr.templateId
 			SegmentLines.update(segmentLine._id, {$set: {
+				expectedDuration:		tr.result.segmentLine.expectedDuration || 0,
 				notes: 					tr.result.notes,
-				expectedDuration:		tr.result.segmentLine.expectedDuration || segmentLine.expectedDuration,
 				autoNext: 				tr.result.segmentLine.autoNext || false,
 				autoNextOverlap: 		tr.result.segmentLine.autoNextOverlap || 0,
 				overlapDuration: 		tr.result.segmentLine.overlapDuration || 0,
