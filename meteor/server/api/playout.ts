@@ -889,6 +889,10 @@ export namespace ServerPlayoutAPI {
 						'timings.startedPlayback': startedPlayback
 					}
 				})
+				// also update local object:
+				if (!segLine.timings) segLine.timings = {take: [], startedPlayback: [], takeOut: [], next: []}
+				segLine.startedPlayback = true
+				segLine.timings.startedPlayback.push(startedPlayback)
 
 				afterTake(runningOrder, segLine, previousSegmentLine || null)
 			}
