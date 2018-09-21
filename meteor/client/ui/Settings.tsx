@@ -162,9 +162,11 @@ const SettingsMenu = translateWithTracker<ISettingsMenuProps, ISettingsMenuState
 						return [
 							<NavLink activeClassName='selectable-selected' className='settings-menu__settings-menu-item selectable clickable' key={item._id} to={'/settings/studio/' + item._id}>
 								<h3>{item.name}</h3>
-								<p>
-									{t('Source layers')}: {item.sourceLayers.length.toString()} {t('Output channels')}: {item.outputLayers.length.toString()}
-								</p>
+								{ item.sourceLayers && item.outputLayers &&
+									<p>
+										{t('Source layers')}: {item.sourceLayers.length.toString()} {t('Output channels')}: {item.outputLayers.length.toString()}
+									</p>
+								}
 							</NavLink>,
 							<hr className='vsubtle man' key={item._id + '-hr'} />
 						]
@@ -178,7 +180,7 @@ const SettingsMenu = translateWithTracker<ISettingsMenuProps, ISettingsMenuState
 					</h2>
 				<hr className='vsubtle man' />
 				<ModalDialog title={t('Delete this item?')} acceptText={t('Delete')} secondaryText={t('Cancel')} show={this.state.showDeleteShowStyleConfirm} onAccept={(e) => this.handleConfirmDeleteShowStyleAccept(e)} onSecondary={(e) => this.handleConfirmDeleteShowStyleCancel(e)}>
-					<p>{t(`Are you sure you want to delete show style ${this.state.deleteConfirmItem && this.state.deleteConfirmItem.name}?`)}</p>
+					<p>{t('Are you sure you want to delete show style "{{showStyleId}}"?', { showStyleId: this.state.deleteConfirmItem && this.state.deleteConfirmItem.name })}</p>
 					<p>{t('Please note: This action is irreversible!')}</p>
 				</ModalDialog>
 				{

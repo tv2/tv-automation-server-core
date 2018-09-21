@@ -15,6 +15,7 @@ import { Random } from 'meteor/random'
 import { ClientAPI } from '../../../lib/api/client'
 import { RuntimeFunctionsAPI } from '../../../lib/api/runtimeFunctions'
 import { MeteorReactComponent } from '../../lib/MeteorReactComponent'
+import { eventContextForLog } from '../../lib/eventTargetLogHelper'
 
 interface IProps {
 	match: {
@@ -47,8 +48,8 @@ export default translateWithTracker<IProps, IState, ITrackedProps>((props: IProp
 
 		}
 	}
-	onAddLineTemplate () {
-		Meteor.call(ClientAPI.methods.execMethod, RuntimeFunctionsAPI.INSERT, this.props.match.params.showStyleId, (e) => {
+	onAddLineTemplate (e: any) {
+		Meteor.call(ClientAPI.methods.execMethod, eventContextForLog(e), RuntimeFunctionsAPI.INSERT, this.props.match.params.showStyleId, (e) => {
 			if (e) {
 				console.log(e)
 			} else {
@@ -70,7 +71,7 @@ export default translateWithTracker<IProps, IState, ITrackedProps>((props: IProp
 	}
 	handleConfirmDeleteLineTemplateAccept = (e) => {
 		if (this.state.deleteConfirmItem) {
-			Meteor.call(ClientAPI.methods.execMethod, RuntimeFunctionsAPI.REMOVE, this.state.deleteConfirmItem._id, true)
+			Meteor.call(ClientAPI.methods.execMethod, eventContextForLog(e), RuntimeFunctionsAPI.REMOVE, this.state.deleteConfirmItem._id, true)
 			// RuntimeFunctions.remove(this.state.deleteConfirmItem._id)
 		}
 		this.setState({
@@ -111,7 +112,7 @@ export default translateWithTracker<IProps, IState, ITrackedProps>((props: IProp
 					</div>
 					<div className='mod mvs mhs'>
 						<label className='field'>
-							{t('Baseline Template ID')}
+							{t('Baseline Blueprint ID')}
 							<EditAttribute
 								modifiedClassName='bghl'
 								attribute='baselineTemplate'
@@ -123,7 +124,7 @@ export default translateWithTracker<IProps, IState, ITrackedProps>((props: IProp
 					</div>
 					<div className='mod mvs mhs'>
 						<label className='field'>
-							{t('External Message Template ID')}
+							{t('External Message Blueprint ID')}
 							<EditAttribute
 								modifiedClassName='bghl'
 								attribute='messageTemplate'
@@ -145,9 +146,9 @@ export default translateWithTracker<IProps, IState, ITrackedProps>((props: IProp
 					</div>
 				</div>
 				<div>
-					<h2>{t('Templates')}</h2>
+					<h2>{t('Blueprints\' logic')}</h2>
 					<ModalDialog title={t('Delete this item?')} acceptText={t('Delete')} secondaryText={t('Cancel')} show={this.state.showDeleteLineTemplateConfirm} onAccept={(e) => this.handleConfirmDeleteLineTemplateAccept(e)} onSecondary={(e) => this.handleConfirmDeleteLineTemplateCancel(e)}>
-						<p>{t(`Are you sure you want to delete line template ${this.state.deleteConfirmItem && this.state.deleteConfirmItem._id}?`)}</p>
+						<p>{t('Are you sure you want to delete line blueprint logic "{{itemId}}"?', {itemId: this.state.deleteConfirmItem && this.state.deleteConfirmItem.templateId})}</p>
 						<p>{t('Please note: This action is irreversible!')}</p>
 					</ModalDialog>
 					<table className='expando settings-showStyle-lineTemplates'>
@@ -180,9 +181,11 @@ export default translateWithTracker<IProps, IState, ITrackedProps>((props: IProp
 							})}
 						</tbody>
 					</table>
-					<button className='action-btn right' onClick={(e) => this.onAddLineTemplate()}>
-						<FontAwesomeIcon icon={faPlus} />
-					</button>
+					<div className='mod mvm mhn'>
+						<button className='btn btn-primary right' onClick={(e) => this.onAddLineTemplate(e)}>
+							<FontAwesomeIcon icon={faPlus} />
+						</button>
+					</div>
 				</div>
 			</div>
 		)

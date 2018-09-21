@@ -371,6 +371,13 @@ Meteor.methods({
 					onPGMClean: true,
 				},
 				{
+					_id: 'studio0_gjest_mic',
+					_rank: 15000,
+					name: 'Gjest',
+					type: RundownAPI.SourceLayerType.MIC,
+					onPGMClean: true,
+				},
+				{
 					_id: 'studio0_camera0',
 					_rank: 13000,
 					name: 'Kam',
@@ -589,6 +596,20 @@ Meteor.methods({
 				mappingType: MappingLawoType.SOURCE,
 				identifier: 'AMix',
 			}),
+			'lawo_source_wl2': literal<MappingLawo>({
+				device: PlayoutDeviceType.LAWO,
+				deviceId: 'lawo0',
+				lookahead: LookaheadMode.NONE,
+				mappingType: MappingLawoType.SOURCE,
+				identifier: 'WL2',
+			}),
+			'lawo_source_wl3': literal<MappingLawo>({
+				device: PlayoutDeviceType.LAWO,
+				deviceId: 'lawo0',
+				lookahead: LookaheadMode.NONE,
+				mappingType: MappingLawoType.SOURCE,
+				identifier: 'WL3',
+			}),
 			'lawo_source_clip': literal<MappingLawo>({
 				device: PlayoutDeviceType.LAWO,
 				deviceId: 'lawo0',
@@ -644,11 +665,6 @@ Meteor.methods({
 				lookahead: LookaheadMode.NONE,
 				mappingType: MappingLawoType.SOURCE,
 				identifier: 'RM6',
-			}),
-			'nora_init': literal<Mapping>({
-				device: PlayoutDeviceType.HTTPSEND,
-				deviceId: 'http0',
-				lookahead: LookaheadMode.NONE,
 			}),
 			'nora_primary_super': literal<Mapping>({
 				device: PlayoutDeviceType.HTTPSEND,
@@ -737,7 +753,7 @@ Meteor.methods({
 				{_id: 'atemSSrcBackground', value: '/opt/playout-gateway/static/atem-mp/split_overlay.rgba'},
 				{_id: 'atemSSrcBackground2', value: '/opt/playout-gateway/static/atem-mp/teknisk_feil.rgba'},
 				{_id: 'sources_kam', value: '1:1,2:2,3:3,4:4,8:11,9:12'},
-				{_id: 'sources_rm', value: '	1:5,2:6,3:7,4:8,5:9,6:10'}
+				{_id: 'sources_rm', value: '1:5,2:6,3:7,4:8,5:9,6:10'}
 			],
 		}})
 	}

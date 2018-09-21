@@ -9,7 +9,9 @@ import { RunningOrders } from './RunningOrders'
 import { SegmentLineItem, SegmentLineItems } from './SegmentLineItems'
 import { SegmentLineAdLibItems } from './SegmentLineAdLibItems'
 import { Segments } from './Segments'
-import { applyClassToDocument, Time, registerCollection } from '../lib'
+import { applyClassToDocument, Time, registerCollection, normalizeArray } from '../lib'
+import { RundownAPI } from '../api/rundown';
+import { checkSLIContentStatus } from '../mediaObjects';
 
 /** A "Line" in NRK Lingo. */
 export interface DBSegmentLine {
@@ -53,6 +55,8 @@ export interface DBSegmentLine {
 
 	/** The type of the segmentLiene, could be the name of the template that created it */
 	typeVariant?: string
+	/** The subtype fo the segmentLine */
+	subTypeVariant?: string
 
 	/** Playout timings, in here we log times when playout happens */
 	timings?: SegmentLineTimings
@@ -62,6 +66,10 @@ export interface DBSegmentLine {
 
 	/** Holds notes (warnings / errors) thrown by the templates during creation */
 	notes?: Array<SegmentLineNote>
+	/** if the segmentLine is inserted after another (for adlibbing) */
+	afterSegmentLine?: string
+	/** if the segmentLine was dunamically inserted (adlib) */
+	dynamicallyInserted?: boolean
 }
 export interface SegmentLineTimings {
 	/** Point in time the SegmentLine was taken, (ie the time of the user action) */
@@ -119,6 +127,7 @@ export class SegmentLine implements DBSegmentLine {
 	public timings?: SegmentLineTimings
 	public holdMode?: SegmentLineHoldMode
 	public notes?: Array<SegmentLineNote>
+	public afterSegmentLine?: string
 
 	constructor (document: DBSegmentLine) {
 		_.each(_.keys(document), (key) => {
@@ -183,16 +192,35 @@ export class SegmentLine implements DBSegmentLine {
 		)
 
 	}
-	getNotes (runtimeNotes) {
+	getNotes (runtimeNotes?: boolean) {
 		let notes: Array<SegmentLineNote> = []
 		notes = notes.concat(this.notes || [])
 
-		if (runtimeNotes) {
-			// let items = this.getSegmentLinesItems()
-			// _.each(items, (item) => {
+		/* if (runtimeNotes) {
+			const items = this.getSegmentLinesItems()
+			const ro = this.getRunningOrder()
+			const si = ro && ro.getStudioInstallation()
+			const slLookup = si && normalizeArray(si.sourceLayers, '_id')
+			_.each(items, (item) => {
 				// TODO: check statuses (like media availability) here
-			// })
-		}
+
+				if (slLookup && item.sourceLayerId && slLookup[item.sourceLayerId]) {
+					const sl = slLookup[item.sourceLayerId]
+					const st = checkSLIContentStatus(item, sl)
+					if (st.status === RundownAPI.LineItemStatusCode.SOURCE_MISSING || st.status === RundownAPI.LineItemStatusCode.SOURCE_BROKEN) {
+						notes.push({
+							type: SegmentLineNoteType.ERROR,
+							origin: {
+								name: 'Media Check',
+								segmentLineId: this._id,
+								segmentLineItemId: item._id
+							},
+							message: st.message || ''
+						})
+					}
+				}
+			})
+		} */
 		return notes
 	}
 	getLastStartedPlayback () {

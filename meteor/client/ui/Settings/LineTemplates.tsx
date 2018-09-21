@@ -18,6 +18,7 @@ import * as faTrash from '@fortawesome/fontawesome-free-solid/faTrash'
 import * as faSave from '@fortawesome/fontawesome-free-solid/faSave'
 import * as FontAwesomeIcon from '@fortawesome/react-fontawesome'
 import { MomentFromNow } from '../../lib/Moment'
+import { eventContextForLog } from '../../lib/eventTargetLogHelper';
 
 interface IMonacoProps {
 	runtimeFunction: RuntimeFunction
@@ -33,6 +34,7 @@ class MonacoWrapper extends React.Component<IMonacoProps, IMonacoState> {
 	static _monacoRequire: any
 	static _requireBuffer: any
 	static _monacoRef: any
+	static _processPlatform: string
 
 	_container: HTMLDivElement
 	_editor: monaco.editor.IStandaloneCodeEditor
@@ -480,12 +482,19 @@ declare enum SegmentLineHoldMode {
 			this._editorEventListeners.push(this._editor.onDidChangeModelContent((e: monaco.editor.IModelContentChangedEvent) => {
 				this.triggerSave(this._editor.getModel().getValue())
 			}))
-			this._editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_S, () => {
-				this.saveCode()
+			this._editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_S, (e: any) => {
+				this.saveCode(e)
 			}, '')
 		}
 	}
 	componentWillUnmount () {
+		if (typeof process === 'object') {
+			// this is a workaround for broken platform (electron vs browser) detection in Microsoft Monaco
+			// this reverts the platform to proper value, in case anyone actually uses this
+			// @ts-ignore
+			process.platform = MonacoWrapper._processPlatform
+		}
+		delete process.platform
 		this._editorEventListeners.forEach((listener) => {
 			listener.dispose()
 		})
@@ -551,6 +560,12 @@ declare enum SegmentLineHoldMode {
 				this._container = el
 				MonacoWrapper._requireBuffer = window['require']
 				window['require'] = undefined
+				// this is a workaround for broken platform (electron vs browser) detection in Microsoft Monaco
+				// @ts-ignore
+				if (typeof process === 'object' && typeof process.nextTick === 'function' && typeof process.platform === 'string' && process.platform === 'browser') {
+					MonacoWrapper._processPlatform = process.platform
+					delete process.platform
+				}
 				let newScript = document.createElement('script')
 				newScript.addEventListener('load', () => {
 					MonacoWrapper._monacoRequire = MonacoWrapper._monacoRequire || window['require']
@@ -605,12 +620,12 @@ declare enum SegmentLineHoldMode {
 			})
 		}
 	}
-	saveCode () {
+	saveCode (e) {
 		this.setState({
 			saving: true
 		})
 		if (this._currentCode) {
-			Meteor.call(ClientAPI.methods.execMethod, RuntimeFunctionsAPI.UPDATECODE, this.props.runtimeFunction._id, this._currentCode, (e) => {
+			Meteor.call(ClientAPI.methods.execMethod, eventContextForLog(e), RuntimeFunctionsAPI.UPDATECODE, this.props.runtimeFunction._id, this._currentCode, (e) => {
 				if (e) {
 					this.setState({
 						message: e.toString()
@@ -638,7 +653,7 @@ declare enum SegmentLineHoldMode {
 						{this.state.unsavedChanges ? (
 							<div>
 								<b>Unsaved changes </b>
-								<button className='btn btn-primary' onClick={(e) => this.saveCode()}>
+								<button className='btn btn-primary' onClick={(e) => this.saveCode(e)}>
 									<FontAwesomeIcon icon={faSave} />
 								</button>
 							</div>
@@ -685,7 +700,7 @@ export default translateWithTracker<IProps, IState, ITrackedProps>((props: IProp
 		})
 	}
 	updateTemplateId (edit: EditAttributeBase, newValue: any) {
-		Meteor.call(ClientAPI.methods.execMethod, RuntimeFunctionsAPI.UPDATETEMPLATEID, edit.props.obj._id, newValue, (err, res) => {
+		Meteor.call(ClientAPI.methods.execMethod, '', RuntimeFunctionsAPI.UPDATETEMPLATEID, edit.props.obj._id, newValue, (err, res) => {
 			if (err) {
 				console.log(err)
 			} else {
@@ -694,7 +709,7 @@ export default translateWithTracker<IProps, IState, ITrackedProps>((props: IProp
 		})
 	}
 	updateIsHelper (edit: EditAttributeBase, newValue: any) {
-		Meteor.call(ClientAPI.methods.execMethod, RuntimeFunctionsAPI.UPDATEISHELPER, edit.props.obj._id, newValue, (err, res) => {
+		Meteor.call(ClientAPI.methods.execMethod, '', RuntimeFunctionsAPI.UPDATEISHELPER, edit.props.obj._id, newValue, (err, res) => {
 			if (err) {
 				console.log(err)
 			} else {
@@ -717,7 +732,7 @@ export default translateWithTracker<IProps, IState, ITrackedProps>((props: IProp
 				<div className='studio-edit mod mhl mvs'>
 					<div>
 						<label className='field'>
-							{t('Template ID')}
+							{t('Blueprint ID')}
 							<div className='mdi'>
 								<EditAttribute
 									modifiedClassName='bghl'

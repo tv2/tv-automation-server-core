@@ -22,15 +22,18 @@ import * as faList from '@fortawesome/fontawesome-free-solid/faList'
 import * as faTimes from '@fortawesome/fontawesome-free-solid/faTimes'
 import * as FontAwesomeIcon from '@fortawesome/react-fontawesome'
 
+import { RunningOrderViewKbdShortcuts } from '../RunningOrderView'
+
 import { Spinner } from '../../lib/Spinner'
 import { literal } from '../../../lib/lib'
 import { RundownAPI } from '../../../lib/api/rundown'
 import { MeteorReactComponent } from '../../lib/MeteorReactComponent'
+import { eventContextForLog } from '../../lib/eventTargetLogHelper'
 
 interface IListViewPropsHeader {
 	onSelectAdLib: (aSLine: SegmentLineAdLibItemUi) => void
-	onToggleSticky: (item: IAdLibListItem) => void
-	onToggleAdLib: (aSLine: SegmentLineAdLibItemUi) => void
+	onToggleSticky: (item: IAdLibListItem, e: any) => void
+	onToggleAdLib: (aSLine: SegmentLineAdLibItemUi, queue: boolean, e: any) => void
 	selectedItem: SegmentLineAdLibItemUi | undefined
 	filter: string | undefined
 	studioInstallation: StudioInstallation
@@ -371,9 +374,20 @@ export const GlobalAdLibPanel = translateWithTracker<IProps, IState, ITrackedPro
 					mousetrapHelper.bind(item.hotkey, preventDefault, 'keydown')
 					mousetrapHelper.bind(item.hotkey, (e: ExtendedKeyboardEvent) => {
 						preventDefault(e)
-						this.onToggleAdLib(item)
+						this.onToggleAdLib(item, false, e)
 					}, 'keyup')
 					this.usedHotkeys.push(item.hotkey)
+
+					const sourceLayer = this.props.sourceLayerLookup[item.sourceLayerId]
+					if (sourceLayer && sourceLayer.isQueueable) {
+						const queueHotkey = [RunningOrderViewKbdShortcuts.ADLIB_QUEUE_MODIFIER, item.hotkey].join('+')
+						mousetrapHelper.bind(queueHotkey, preventDefault, 'keydown')
+						mousetrapHelper.bind(queueHotkey, (e: ExtendedKeyboardEvent) => {
+							preventDefault(e)
+							this.onToggleAdLib(item, true, e)
+						}, 'keyup')
+						this.usedHotkeys.push(queueHotkey)
+					}
 				}
 			})
 		}
@@ -385,7 +399,7 @@ export const GlobalAdLibPanel = translateWithTracker<IProps, IState, ITrackedPro
 						mousetrapHelper.bind(element, preventDefault, 'keydown')
 						mousetrapHelper.bind(element, (e: ExtendedKeyboardEvent) => {
 							preventDefault(e)
-							this.onClearAllSourceLayer(item)
+							this.onClearAllSourceLayer(item, e)
 						}, 'keyup')
 						this.usedHotkeys.push(element)
 					})
@@ -397,7 +411,7 @@ export const GlobalAdLibPanel = translateWithTracker<IProps, IState, ITrackedPro
 						mousetrapHelper.bind(element, preventDefault, 'keydown')
 						mousetrapHelper.bind(element, (e: ExtendedKeyboardEvent) => {
 							preventDefault(e)
-							this.onToggleSticky(item._id)
+							this.onToggleSticky(item._id, e)
 						}, 'keyup')
 						this.usedHotkeys.push(element)
 					})
@@ -412,13 +426,13 @@ export const GlobalAdLibPanel = translateWithTracker<IProps, IState, ITrackedPro
 		})
 	}
 
-	onToggleStickyItem = (item: IAdLibListItem) => {
-		this.onToggleSticky(item._id)
+	onToggleStickyItem = (item: IAdLibListItem, e: any) => {
+		this.onToggleSticky(item._id, e)
 	}
 
-	onToggleSticky = (sourceLayerId: string) => {
+	onToggleSticky = (sourceLayerId: string, e: any) => {
 		if (this.props.runningOrder && this.props.runningOrder.currentSegmentLineId && this.props.runningOrder.active) {
-			Meteor.call(ClientAPI.methods.execMethod, PlayoutAPI.methods.sourceLayerStickyItemStart, this.props.runningOrder._id, sourceLayerId)
+			Meteor.call(ClientAPI.methods.execMethod, eventContextForLog(e), PlayoutAPI.methods.sourceLayerStickyItemStart, this.props.runningOrder._id, sourceLayerId)
 		}
 	}
 
@@ -429,18 +443,23 @@ export const GlobalAdLibPanel = translateWithTracker<IProps, IState, ITrackedPro
 		})
 	}
 
-	onToggleAdLib = (aSLine: SegmentLineAdLibItemUi) => {
-		// console.log(aSLine)
+	onToggleAdLib = (aSLine: SegmentLineAdLibItemUi, queue: boolean, e: any) => {
+		if (queue && this.props.sourceLayerLookup && this.props.sourceLayerLookup[aSLine.sourceLayerId] &&
+			!this.props.sourceLayerLookup[aSLine.sourceLayerId].isQueueable) {
+			console.log(`Item "${aSLine._id}" is on sourceLayer "${aSLine.sourceLayerId}" that is not queueable.`)
+			return
+		}
+
 		if (this.props.runningOrder && this.props.runningOrder.currentSegmentLineId && aSLine.isGlobal) {
-			Meteor.call(ClientAPI.methods.execMethod, PlayoutAPI.methods.runningOrderBaselineAdLibItemStart, this.props.runningOrder._id, this.props.runningOrder.currentSegmentLineId, aSLine._id)
+			Meteor.call(ClientAPI.methods.execMethod, eventContextForLog(e), PlayoutAPI.methods.runningOrderBaselineAdLibItemStart, this.props.runningOrder._id, this.props.runningOrder.currentSegmentLineId, aSLine._id, queue || false)
 		}
 	}
 
-	onClearAllSourceLayer = (sourceLayer: ISourceLayer) => {
+	onClearAllSourceLayer = (sourceLayer: ISourceLayer, e: any) => {
 		// console.log(sourceLayer)
 
 		if (this.props.runningOrder && this.props.runningOrder.currentSegmentLineId) {
-			Meteor.call(ClientAPI.methods.execMethod, PlayoutAPI.methods.sourceLayerOnLineStop, this.props.runningOrder._id, this.props.runningOrder.currentSegmentLineId, sourceLayer._id)
+			Meteor.call(ClientAPI.methods.execMethod, eventContextForLog(e), PlayoutAPI.methods.sourceLayerOnLineStop, this.props.runningOrder._id, this.props.runningOrder.currentSegmentLineId, sourceLayer._id)
 		}
 	}
 

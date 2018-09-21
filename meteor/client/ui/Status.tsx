@@ -15,6 +15,7 @@ import SystemStatus from './Status/SystemStatus'
 import { ExternalMessages } from './Status/ExternalMessages'
 import { UserActivity } from './Status/UserActivity'
 import { SnapshotView } from './Status/Snapshot'
+import { EvaluationView } from './Status/Evaluations'
 import { MeteorReactComponent } from '../lib/MeteorReactComponent'
 
 class WelcomeToStatus extends React.Component {
@@ -58,6 +59,12 @@ const StatusMenu = translate()(class StatusMenu extends React.Component<Translat
 					to={'/status/userLog'}>
 					<h3>{t('User Log')}</h3>
 				</NavLink>
+				<NavLink
+					activeClassName='selectable-selected'
+					className='status-menu__status-menu-item selectable clickable'
+					to={'/status/evaluations'}>
+					<h3>{t('Evaluations')}</h3>
+				</NavLink>
 			</div>
 		)
 	}
@@ -84,17 +91,23 @@ class Status extends MeteorReactComponent<Translated<IStatusProps>> {
 					<h1>{t('Status')}</h1>
 				</header> */ }
 				<div className='mod mvl mhs'>
-					<div className='row'>
-						<div className='col c12 rm-c1 status-menu'>
+					<div className='flex-row hide-m-up'>
+						<div className='flex-col c12 rm-c1 status-menu'>
 							<StatusMenu match={this.props.match} />
 						</div>
-						<div className='col c12 rm-c11 status-dialog'>
+					</div>
+					<div className='flex-row'>
+						<div className='flex-col c12 rm-c1 show-m-up status-menu'>
+							<StatusMenu match={this.props.match} />
+						</div>
+						<div className='flex-col c12 rm-c11 status-dialog'>
 							<Switch>
 								{/* <Route path='/status' exact component={WelcomeToStatus} /> */}
 								<Route path='/status/messages' component={ExternalMessages} />
 								<Route path='/status/system' component={SystemStatus} />
 								<Route path='/status/userLog' component={UserActivity} />
 								<Route path='/status/snapshot' component={SnapshotView} />
+								<Route path='/status/evaluations' component={EvaluationView} />
 								<Redirect to='/status/system' />
 							</Switch>
 						</div>
