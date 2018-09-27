@@ -22,7 +22,7 @@ import { SegmentLine } from '../../lib/collections/SegmentLines'
 import { ContextMenu, MenuItem, ContextMenuTrigger } from 'react-contextmenu'
 
 import { RunningOrderTimingProvider, withTiming, WithTiming } from './RunningOrderView/RunningOrderTiming'
-import { SegmentTimelineContainer } from './SegmentTimeline/SegmentTimelineContainer'
+import { SegmentTimelineContainer, SegmentLineItemUi } from './SegmentTimeline/SegmentTimelineContainer'
 import { SegmentContextMenu } from './SegmentTimeline/SegmentContextMenu'
 import { InspectorDrawer } from './InspectorDrawer/InspectorDrawer'
 import { RunningOrderOverview } from './RunningOrderView/RunningOrderOverview'
@@ -40,6 +40,9 @@ import { getStudioMode, getDeveloperMode } from '../lib/localStorage'
 import { scrollToSegmentLine } from '../lib/viewPort'
 import { AfterBroadcastForm } from './AfterBroadcastForm'
 import { eventContextForLog } from '../lib/eventTargetLogHelper'
+import { Tracker } from 'meteor/tracker'
+import { RunningOrderFullscreenMarker } from './RunningOrderView/RunningOrderFullscreenMarker'
+import { mousetrapHelper } from '../lib/mousetrapHelper'
 
 interface IKeyboardFocusMarkerState {
 	inFocus: boolean
@@ -196,7 +199,6 @@ export enum RunningOrderViewKbdShortcuts {
 	RUNNING_ORDER_NEXT_UP = 'shift+f10',
 	RUNNING_ORDER_DISABLE_NEXT_ELEMENT = 'g',
 	RUNNING_ORDER_UNDO_DISABLE_NEXT_ELEMENT = 'shift+g',
-	RUNNING_ORDER_RESET_FOCUS = 'esc'
 }
 
 const TimingDisplay = translate()(withTiming<ITimingDisplayProps, {}>()(
@@ -414,24 +416,24 @@ const RunningOrderHeader = translate()(class extends React.Component<Translated<
 			e.stopPropagation()
 		}
 		_.each(this.bindKeys, (k) => {
-			const method = k.global ? mousetrap.bindGlobal : mousetrap.bind
+			const method = k.global ? mousetrapHelper.bindGlobal : mousetrapHelper.bind
 			if (k.up) {
 				method(k.key, (e: KeyboardEvent) => {
 					if (disableInInputFields(e)) return
 					preventDefault(e)
 					if (k.up) k.up(e)
-				}, 'keyup')
+				}, 'keyup', 'RunningOrderHeader')
 				method(k.key, (e: KeyboardEvent) => {
 					if (disableInInputFields(e)) return
 					preventDefault(e)
-				}, 'keydown')
+				}, 'keydown', 'RunningOrderHeader')
 			}
 			if (k.down) {
 				method(k.key, (e: KeyboardEvent) => {
 					if (disableInInputFields(e)) return
 					preventDefault(e)
 					if (k.down) k.down(e)
-				}, 'keydown')
+				}, 'keydown', 'RunningOrderHeader')
 			}
 		})
 
@@ -443,11 +445,11 @@ const RunningOrderHeader = translate()(class extends React.Component<Translated<
 	componentWillUnmount () {
 		_.each(this.bindKeys, (k) => {
 			if (k.up) {
-				mousetrap.unbind(k.key, 'keyup')
-				mousetrap.unbind(k.key, 'keydown')
+				mousetrapHelper.unbind(k.key, 'RunningOrderHeader', 'keyup')
+				mousetrapHelper.unbind(k.key, 'RunningOrderHeader', 'keydown')
 			}
 			if (k.down) {
-				mousetrap.unbind(k.key, 'keydown')
+				mousetrapHelper.unbind(k.key, 'RunningOrderHeader', 'keydown')
 			}
 		})
 	}
@@ -1187,6 +1189,13 @@ class extends MeteorReactComponent<Translated<IProps & ITrackedProps>, IState> {
 		}
 	}
 
+	onSLItemDoubleClick = (item: SegmentLineItemUi, e: React.MouseEvent<HTMLDivElement>) => {
+		if (this.state.studioMode && item && item._id && this.props.runningOrder && this.props.runningOrder.active && this.props.runningOrder.currentSegmentLineId) {
+			Meteor.call(ClientAPI.methods.execMethod, eventContextForLog(e), PlayoutAPI.methods.segmentLineItemTakeNow, this.props.runningOrder._id, this.props.runningOrder.currentSegmentLineId, item._id)
+			console.log(item, e)
+		}
+	}
+
 	renderSegments () {
 		if (this.props.segments) {
 			return this.props.segments.map((segment, index, array) => {
@@ -1203,6 +1212,7 @@ class extends MeteorReactComponent<Translated<IProps & ITrackedProps>, IState> {
 												onContextMenu={this.onContextMenu}
 												onSegmentScroll={this.onSegmentScroll}
 												isLastSegment={index === array.length - 1}
+												onItemDoubleClick={this.onSLItemDoubleClick}
 												/>
 						</ErrorBoundary>
 				}
@@ -1270,6 +1280,9 @@ class extends MeteorReactComponent<Translated<IProps & ITrackedProps>, IState> {
 					<div className='running-order-view' style={this.getStyle()} onWheelCapture={this.onWheel} onContextMenu={this.onContextMenuTop}>
 						<ErrorBoundary>
 							<KeyboardFocusMarker />
+						</ErrorBoundary>
+						<ErrorBoundary>
+							{(getDeveloperMode() ? false : (getStudioMode() ? !this.props.runningOrder.active || this.props.runningOrder.rehearsal : true)) && <RunningOrderFullscreenMarker /> }
 						</ErrorBoundary>
 						<ErrorBoundary>
 							<RunningOrderHeader

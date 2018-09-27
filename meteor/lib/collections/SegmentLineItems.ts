@@ -10,6 +10,7 @@ import { TimelineObj } from './Timeline'
 import { TransformedCollection } from '../typings/meteor'
 import { SegmentLineTimings } from './SegmentLines'
 import { Time, registerCollection } from '../lib'
+import { Meteor } from 'meteor/meteor'
 
 /** A trigger interface compatible with that of supertimeline */
 export interface ITimelineTrigger {
@@ -42,6 +43,8 @@ export interface SegmentLineItemGeneric {
 	duration?: number
 	/** A flag to signal a given SegmentLineItem has been deactivated manually */
 	disabled?: boolean
+	/** A flag to signal that a given SegmentLineItem should be hidden from the UI */
+	hidden?: boolean
 	/** The transition used by this segment line item to transition to and from the item */
 	transitions?: {
 		/** In transition for the item */
@@ -105,6 +108,7 @@ Meteor.startup(() => {
 	if (Meteor.isServer) {
 		SegmentLineItems._ensureIndex({
 			runningOrderId: 1,
+			segmentLineId: 1
 		})
 	}
 })

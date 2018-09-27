@@ -2,7 +2,7 @@ import { Mongo } from 'meteor/mongo'
 import { PeripheralDeviceAPI } from '../api/peripheralDevice'
 import { Time, registerCollection } from '../lib'
 import { TransformedCollection } from '../typings/meteor'
-
+import { Meteor } from 'meteor/meteor'
 export interface PeripheralDevice {
 	_id: string
 
@@ -55,7 +55,8 @@ export enum PlayoutDeviceType { // to match DeviceType in TSR
 	CASPARCG = 1,
 	ATEM = 2,
 	LAWO = 3,
-	HTTPSEND = 4
+	HTTPSEND = 4,
+	PANASONIC_PTZ = 5
 }
 
 export interface PlayoutDeviceSettings {
@@ -85,6 +86,14 @@ export interface PlayoutDeviceSettingsDeviceAtem extends PlayoutDeviceSettingsDe
 	type: PlayoutDeviceType.ATEM
 	options: {
 		host: string,
+		port?: number
+	}
+}
+
+export interface PlayoutDeviceSettingsDevicePanasonicPTZ extends PlayoutDeviceSettings {
+	type: PlayoutDeviceType.PANASONIC_PTZ
+	options: {
+		host: string
 		port?: number
 	}
 }

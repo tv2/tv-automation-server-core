@@ -1,6 +1,6 @@
 import { Mongo } from 'meteor/mongo'
 import * as _ from 'underscore'
-import { Time, applyClassToDocument, getCurrentTime, registerCollection } from '../lib'
+import { Time, applyClassToDocument, getCurrentTime, registerCollection, normalizeArray, waitForPromiseAll } from '../lib'
 import { Segments, DBSegment, Segment } from './Segments'
 import { SegmentLines, SegmentLine } from './SegmentLines'
 import {
@@ -8,11 +8,12 @@ import {
 	IMOSObjectStatus,
 	IMOSObjectAirStatus
 } from 'mos-connection'
-import { FindOptions, Selector, TransformedCollection } from '../typings/meteor'
+import { FindOptions, MongoSelector, TransformedCollection } from '../typings/meteor'
 import { StudioInstallations, StudioInstallation } from './StudioInstallations'
-import { SegmentLineItems } from './SegmentLineItems'
+import { SegmentLineItems, SegmentLineItem } from './SegmentLineItems'
 import { RunningOrderDataCache } from './RunningOrderDataCache'
 import { ShowStyle, ShowStyles } from './ShowStyles'
+import { Meteor } from 'meteor/meteor'
 
 export enum RunningOrderHoldState {
 	NONE = 0,
@@ -102,7 +103,7 @@ export class RunningOrder implements DBRunningOrder {
 			return si
 		} else throw new Meteor.Error(404, 'StudioInstallation "' + this.studioInstallationId + '" not found!')
 	}
-	getSegments (selector?: Selector<DBSegment>, options?: FindOptions) {
+	getSegments (selector?: MongoSelector<DBSegment>, options?: FindOptions) {
 		selector = selector || {}
 		options = options || {}
 		return Segments.find(
@@ -114,7 +115,7 @@ export class RunningOrder implements DBRunningOrder {
 			}, options)
 		).fetch()
 	}
-	getSegmentLines (selector?: Selector<SegmentLine>, options?: FindOptions) {
+	getSegmentLines (selector?: MongoSelector<SegmentLine>, options?: FindOptions) {
 		selector = selector || {}
 		options = options || {}
 		return SegmentLines.find(
@@ -173,13 +174,15 @@ export class RunningOrder implements DBRunningOrder {
 		let timings: Array<{
 			time: Time,
 			type: string,
-			segmentLine: string
+			segmentLine: string,
+			elapsed: Time
 		}> = []
 		_.each(this.getSegmentLines(), (sl: SegmentLine) => {
 			_.each(sl.getTimings(), (t) => {
 
 				timings.push({
 					time: t.time,
+					elapsed: t.elapsed,
 					type: t.type,
 					segmentLine: sl._id
 				})
@@ -187,6 +190,78 @@ export class RunningOrder implements DBRunningOrder {
 		})
 		return timings
 	}
+	fetchAllData (): RoData {
+
+		// Do fetches in parallell:
+		let ps = [
+
+			new Promise((resolve, reject) => {
+				Meteor.defer(() => {
+					try {
+						resolve( this.getSegments())
+					} catch (e) {
+						reject(e)
+					}
+				})
+			}),
+			new Promise((resolve, reject) => {
+				Meteor.defer(() => {
+					try {
+						resolve( this.getSegmentLines())
+					} catch (e) {
+						reject(e)
+					}
+				})
+			}),
+			new Promise((resolve, reject) => {
+				Meteor.defer(() => {
+					try {
+						resolve( SegmentLineItems.find({ runningOrderId: this._id }).fetch())
+					} catch (e) {
+						reject(e)
+					}
+				})
+			})
+		]
+		let r = waitForPromiseAll(ps)
+		let segments: Segment[] 				= r[0]
+		let segmentLines: SegmentLine[] 		= r[1]
+		let segmentLineItems: SegmentLineItem[] = r[2]
+
+		segmentLines = _.map(segmentLines, (sl) => {
+			// Override member function to use cached data instead:
+			sl.getSegmentLinesItems = (selector?: MongoSelector<SegmentLineItem>, options?: FindOptions) => {
+				return _.map(_.filter(segmentLineItems, (sli) => {
+					return (
+						sli.segmentLineId === sl._id
+					)
+				}), (sl) => {
+					return _.clone(sl)
+				})
+			}
+			return sl
+		})
+
+		let segmentsMap = normalizeArray(segments, '_id')
+		let segmentLinesMap = normalizeArray(segmentLines, '_id')
+
+		return {
+			runningOrder: this,
+			segments,
+			segmentsMap,
+			segmentLines,
+			segmentLinesMap,
+			segmentLineItems
+		}
+	}
+}
+export interface RoData {
+	runningOrder: RunningOrder
+	segments: Array<Segment>
+	segmentsMap: {[id: string]: Segment}
+	segmentLines: Array<SegmentLine>
+	segmentLinesMap: {[id: string]: SegmentLine}
+	segmentLineItems: Array<SegmentLineItem>
 }
 
 // export const RunningOrders = new Mongo.Collection<RunningOrder>('rundowns', {transform: (doc) => applyClassToDocument(RunningOrder, doc) })
@@ -197,7 +272,8 @@ let c = RunningOrders
 Meteor.startup(() => {
 	if (Meteor.isServer) {
 		RunningOrders._ensureIndex({
-			studioInstallationId: 1
+			studioInstallationId: 1,
+			active: 1
 		})
 	}
 })

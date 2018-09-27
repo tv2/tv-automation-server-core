@@ -9,7 +9,7 @@ import { ContextMenuTrigger } from 'react-contextmenu'
 
 import { RunningOrder } from '../../../lib/collections/RunningOrders'
 import { StudioInstallation } from '../../../lib/collections/StudioInstallations'
-import { SegmentUi, SegmentLineUi, IOutputLayerUi } from './SegmentTimelineContainer'
+import { SegmentUi, SegmentLineUi, IOutputLayerUi, SegmentLineItemUi } from './SegmentTimelineContainer'
 import { TimelineGrid } from './TimelineGrid'
 import { SegmentTimelineLine } from './SegmentTimelineLine'
 import { SegmentTimelineZoomControls } from './SegmentTimelineZoomControls'
@@ -51,6 +51,7 @@ interface IProps {
 	onZoomChange: (newScale: number, event: any) => void
 	onFollowLiveLine: (state: boolean, event: any) => void
 	onContextMenu?: (contextMenuContext: any) => void
+	onItemDoubleClick?: (item: SegmentLineItemUi, e: React.MouseEvent<HTMLDivElement>) => void
 	segmentRef?: (el: React.ComponentClass, sId: string) => void
 	followingSegmentLine: SegmentLineUi | undefined
 	isLastSegment: boolean
@@ -376,6 +377,7 @@ class extends React.Component<Translated<IProps>, IStateHeader> {
 				return (
 					<SegmentTimelineLine key={segmentLine._id}
 						{...this.props}
+						onItemDoubleClick={this.props.onItemDoubleClick}
 						scrollWidth={this.state.timelineWidth / this.props.timeScale}
 						firstSegmentLineInSegment={this.props.segmentLines[0]}
 						isLastSegment={this.props.isLastSegment}
@@ -404,7 +406,8 @@ class extends React.Component<Translated<IProps>, IStateHeader> {
 							<div className='segment-timeline__output-layer-control__label'
 								 data-output-id={outputLayer._id}
 								 tabIndex={0}
-								 onClick={(e) => this.props.onCollapseOutputToggle && this.props.onCollapseOutputToggle(outputLayer, e)}>{outputLayer.name}
+								 onClick={(e) => this.props.onCollapseOutputToggle && this.props.onCollapseOutputToggle(outputLayer, e)}>
+								 {outputLayer.name}
 							</div>
 							{(
 								outputLayer.sourceLayers !== undefined &&
@@ -412,7 +415,7 @@ class extends React.Component<Translated<IProps>, IStateHeader> {
 								.map((sourceLayer, index, array) => {
 									return (
 										<div key={sourceLayer._id} className='segment-timeline__output-layer-control__layer' data-source-id={sourceLayer._id}>
-											{array.length === 1 ? ' ' : sourceLayer.name}
+											{(array.length === 1 || sourceLayer.name === outputLayer.name) ? ' ' : sourceLayer.name}
 										</div>
 									)
 								})
