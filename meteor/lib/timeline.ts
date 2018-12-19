@@ -13,25 +13,27 @@ export function transformTimeline (timeline: Array<TimelineObj>): Array<Timeline
 		   roId: obj['roId']
 	   }, _.omit(obj, ['_id', 'id', 'deviceId', 'siId'])))
 
-	   if (!transformedObj.content) transformedObj.content = {}
-	   if (!transformedObj.content.objects) transformedObj.content.objects = []
+		if (!transformedObj.content) transformedObj.content = {}
+		if (!transformedObj.content.objects) transformedObj.content.objects = []
 
-	   if (obj['slId']) {
-		   // Will cause a callback to be called, when the object starts to play:
-		   transformedObj.content.callBack = 'segmentLinePlaybackStarted'
-		   transformedObj.content.callBackData = {
-			   roId: obj.roId,
-			   slId: obj['slId']
-		   }
-	   }
-	   if (obj['sliId']) {
-		// Will cause a callback to be called, when the object starts to play:
-		   transformedObj.content.callBack = 'segmentLineItemPlaybackStarted'
-		   transformedObj.content.callBackData = {
-			   roId: obj.roId,
-			   sliId: obj['sliId']
-		   }
-	   }
+		if (obj['slId']) {
+			// Will cause a callback to be called, when the object starts to play:
+			transformedObj.content.callBack = 'segmentLinePlaybackStarted'
+			transformedObj.content.callBackData = {
+				roId: obj.roId,
+				slId: obj['slId']
+			}
+			transformedObj.content.callBackStop = 'segmentLinePlaybackStopped' // Also call when object stops playing
+		}
+		if (obj['sliId']) {
+			// Will cause a callback to be called, when the object starts to play:
+			transformedObj.content.callBack = 'segmentLineItemPlaybackStarted'
+			transformedObj.content.callBackData = {
+				roId: obj.roId,
+				sliId: obj['sliId']
+			}
+			transformedObj.content.callBackStop = 'segmentLinePlaybackStopped' // Also call when object stops playing
+		}
 
 	   return transformedObj
 	}
