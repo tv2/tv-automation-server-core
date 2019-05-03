@@ -13,10 +13,12 @@ import { updateExpectedMediaItemsOnRundown, updateExpectedMediaItemsOnPart } fro
 import { ExpectedMediaItems } from '../../../lib/collections/ExpectedMediaItems'
 import { testInFiber } from '../../../__mocks__/helpers/jest'
 import { runInFiber } from '../../../__mocks__/Fibers'
-import { AdLibPieces, AdLibPiece } from '../../../lib/collections/AdLibPieces';
-require('../expectedMediaItems') // include in order to create the Meteor methods needed
+import { AdLibPieces, AdLibPiece } from '../../../lib/collections/AdLibPieces'
+require('../client') // include in order to create the Meteor methods needed
 
-describe('Expected Media Items', () => {
+setLoggerLevel('info')
+
+describe('Failing describe', () => {
 	const rdId0 = 'rundown0'
 	const rdId1 = 'rundown1'
 	const mockPart0 = 'mockPart0'
@@ -35,7 +37,7 @@ describe('Expected Media Items', () => {
 	const mockFlow0 = 'mockFlow0'
 	const mockFlow1 = 'mockFlow1'
 
-	function setupRundown (rdId) {
+	function setupRundown(rdId) {
 		Rundowns.insert(literal<DBRundown>({
 			_id: rdId,
 			created: 0,
@@ -103,7 +105,7 @@ describe('Expected Media Items', () => {
 			content: literal<VTContent>({
 				fileName: mockFileName0,
 				path: mockPath0,
-				mediaFlowIds: [ mockFlow0, mockFlow1 ],
+				mediaFlowIds: [mockFlow0, mockFlow1],
 				firstWords: '',
 				lastWords: '',
 				sourceDuration: 0,
@@ -180,91 +182,33 @@ describe('Expected Media Items', () => {
 		}))
 	}
 
-	beforeAll(() => runInFiber(() => {
+	describe.only('Sub-group', () => {
+		Rundowns.remove({
+			_id: rdId0
+		})
 		setupRundown(rdId0)
-		setupRundown(rdId1)
-	}))
 
-	describe('Based on a Rundown', () => {
-		testInFiber.only('Generates ExpectedMediaItems based on a Rundown', () => {
-			updateExpectedMediaItemsOnRundown(rdId0)
+		Rundowns.find({
+			_id: rdId0
+		}).fetch()
 
-			const items = ExpectedMediaItems.find({
-				rundownId: rdId0,
-				studioId: env.studio._id,
-			}).fetch()
-			expect(items).toHaveLength(4)
-		})
-		testInFiber.only('Removes associated ExpectedMediaItems if a Rundown has been removed', () => {
-			const rd = Rundowns.findOne(rdId0)
-			if (!rd) {
-				fail()
-				return
-			}
-			rd.remove()
-
-			updateExpectedMediaItemsOnRundown(rdId0)
-
-			const items = ExpectedMediaItems.find({
-				rundownId: rdId0,
-				studioId: env.studio._id
-			}).fetch()
-			expect(items).toHaveLength(0)
+		it('Should be true', () => {
+			expect(true).toBe(true)
 		})
 	})
 
-	describe('Based on a Part', () => {
-		testInFiber.only('Generates ExpectedMediaItems based on a Part', () => {
-			expect(Rundowns.findOne(rdId1)).toBeTruthy()
-			expect(Parts.findOne(rdId1 + '_' + mockPart0)).toBeTruthy()
-			expect(Pieces.find({ partId: rdId1 + '_' + mockPart0 }).count()).toBe(1)
-
-			updateExpectedMediaItemsOnPart(rdId1, rdId1 + '_' + mockPart0)
-
-			const items = ExpectedMediaItems.find({
-				rundownId: rdId1,
-				studioId: env.studio._id
-			}).fetch()
-			expect(items).toHaveLength(2)
+	describe.only('Sub-group', () => {
+		Rundowns.remove({
+			_id: rdId0
 		})
-		testInFiber.only('Removes all ExpectedMediaItems if a Part has been deleted', () => {
-			Parts.remove({
-				_id: rdId1 + '_' + mockPart0
-			})
+		setupRundown(rdId0)
 
-			updateExpectedMediaItemsOnPart(rdId1, rdId1 + '_' + mockPart0)
+		Rundowns.find({
+			_id: rdId0
+		}).fetch()
 
-			const items = ExpectedMediaItems.find({
-				rundownId: rdId1,
-				studioId: env.studio._id
-			}).fetch()
-			expect(items).toHaveLength(0)
-		})
-		testInFiber.only('Removes all ExpectedMediaItems if a Rundown has been deleted', () => {
-			const rd = Rundowns.findOne(rdId1)
-			if (!rd) {
-				fail()
-				return
-			}
-
-			updateExpectedMediaItemsOnPart(rdId1, rdId1 + '_' + mockPart1)
-
-			let items = ExpectedMediaItems.find({
-				rundownId: rdId1,
-				studioId: env.studio._id
-			}).fetch()
-			expect(items).toHaveLength(2)
-
-			Rundowns.remove(rd._id)
-			updateExpectedMediaItemsOnPart(rdId1, rdId1 + '_' + mockPart1)
-
-			items = ExpectedMediaItems.find({
-				rundownId: rdId1,
-				studioId: env.studio._id
-			}).fetch()
-			expect(items).toHaveLength(0)
+		it('Should be true', () => {
+			expect(true).toBe(true)
 		})
 	})
-
-	return
 })
