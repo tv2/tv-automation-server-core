@@ -114,7 +114,7 @@ export function checkSLIContentStatus (sli: SegmentLineItem, sourceLayer: ISourc
 					message = t('Source is not set')
 				} else {
 					let fileName = content.fileName.toUpperCase()
-					fileName = fileName.replace(/^quantel:\??/, '')
+					fileName = fileName.replace(/^quantel:\??/i, '')
 					const mediaObject = MediaObjects.findOne({
 						mediaId: fileName
 					})
