@@ -69,6 +69,7 @@ export const SourceLayerItemContainer = class extends MeteorReactComponent<IProp
 					objId = (sli.content as LiveSpeakContent).fileName.toUpperCase()
 					break
 			}
+			objId = (objId || '').replace(/^quantel:\??/, '')
 
 			if (objId && objId !== this.objId) {
 				// if (this.mediaObjectSub) this.mediaObjectSub.stop()

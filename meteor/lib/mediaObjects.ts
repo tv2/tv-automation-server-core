@@ -113,17 +113,19 @@ export function checkSLIContentStatus (sli: SegmentLineItem, sourceLayer: ISourc
 					newStatus = RunningOrderAPI.LineItemStatusCode.SOURCE_NOT_SET
 					message = t('Source is not set')
 				} else {
+					let fileName = content.fileName.toUpperCase()
+					fileName = fileName.replace(/^quantel:\??/, '')
 					const mediaObject = MediaObjects.findOne({
-						mediaId: content.fileName.toUpperCase()
+						mediaId: fileName
 					})
 					// If media object not found, then...
-					if (!mediaObject && content.fileName) {
+					if (!mediaObject && fileName) {
 						newStatus = RunningOrderAPI.LineItemStatusCode.SOURCE_MISSING
-						message = t('Source is missing: {{fileName}}', {fileName: content.fileName})
+						message = t('Source is missing: {{fileName}}', {fileName: fileName})
 						// All VT content should have at least two streams
 					} else if (mediaObject && (mediaObject.mediainfo && mediaObject.mediainfo.streams.length < 2)) {
 						newStatus = RunningOrderAPI.LineItemStatusCode.SOURCE_BROKEN
-						message = t('Source doesn\'t have audio & video: {{fileName}}', {fileName: content.fileName})
+						message = t('Source doesn\'t have audio & video: {{fileName}}', {fileName: fileName})
 					}
 					if (mediaObject) {
 						if (!newStatus) newStatus = RunningOrderAPI.LineItemStatusCode.OK
@@ -190,7 +192,7 @@ export function checkSLIContentStatus (sli: SegmentLineItem, sourceLayer: ISourc
 								addFrameWarning(mediaObject.mediainfo.freezes, 'freeze', t)
 							}
 						} else {
-							messages.push(t('Clip is being ingested: {{fileName}}', { fileName: content.fileName }))
+							messages.push(t('Clip is being ingested: {{fileName}}', { fileName: fileName }))
 						}
 
 						if (messages.length) {
