@@ -50,7 +50,8 @@ import {
 	mappingIsOSC,
 	mappingIsQuantel,
 	mappingIsSisyfos,
-	mappingIsTCPSend
+	mappingIsTCPSend,
+	mappingIsVizMSE
 } from '../../../lib/api/studios'
 import { faExclamationTriangle } from '@fortawesome/fontawesome-free-solid'
 import { PeripheralDeviceAPI } from '../../../lib/api/peripheralDevice'
@@ -530,6 +531,12 @@ const StudioMappings = translate()(class StudioMappings extends React.Component<
 			</React.Fragment>
 		)
 	}
+	renderVizMSEMappingSettings (layerId: string) {
+		return (
+			<React.Fragment>
+			</React.Fragment>
+		)
+	}
 
 	renderMappings () {
 		const { t } = this.props
@@ -699,6 +706,8 @@ const StudioMappings = translate()(class StudioMappings extends React.Component<
 											this.renderSisyfosMappingSettings(layerId) :
 										mappingIsQuantel(mapping) ?
 											this.renderQuantelMappingSettings(layerId) :
+										mappingIsVizMSE(mapping) ?
+											this.renderVizMSEMappingSettings(layerId) :
 										null
 									}
 								</div>

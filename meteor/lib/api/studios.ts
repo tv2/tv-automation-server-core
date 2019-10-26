@@ -62,3 +62,9 @@ export function mappingIsSisyfos (mapping: Mapping): mapping is MappingSisyfos {
 export function mappingIsQuantel (mapping: Mapping): mapping is MappingQuantel {
 	return mapping.device === DeviceType.QUANTEL
 }
+export function mappingIsVizMSE (mapping: Mapping): mapping is MappingVizMSE {
+	return mapping.device === 13 // DeviceType.MIZMSE
+}
+export interface MappingVizMSE extends Mapping { // Todo: TMP!!!!!!
+	device: 13
+}

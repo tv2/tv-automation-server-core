@@ -200,6 +200,8 @@ export const PlayoutDeviceSettingsComponent = translate()(class PlayoutDeviceSet
 												this.renderSisyfosDeviceSettings(subDevice, deviceId) :
 											subDevice.type === PlayoutDeviceType.QUANTEL ?
 												this.renderQuantelDeviceSettings(subDevice, deviceId) :
+											subDevice.type === 13 ? // PlayoutDeviceType.VIZMSE
+												this.renderVizMSEDeviceSettings(subDevice, deviceId) :
 											null
 										}
 									</div>
@@ -473,6 +475,64 @@ export const PlayoutDeviceSettingsComponent = translate()(class PlayoutDeviceSet
 				<label className='field'>
 					{t('Quantel Server ID')}
 					<EditAttribute modifiedClassName='bghl' attribute={'settings.devices.' + deviceId + '.options.serverId'} obj={this.props.device} type='int' collection={PeripheralDevices} className='input text-input input-l'></EditAttribute>
+				</label>
+			</div>
+		</React.Fragment>
+	}
+	renderVizMSEDeviceSettings (_subDevice: PlayoutDeviceSettingsDevice, deviceId: string) {
+		const { t } = this.props
+		/*
+		Host name or IP adress to the MSE machine
+		host: string
+		Port number to the REST interface (optional)
+		restPort?: number
+		Port number to the web-sockets interface (optional)
+		wsPort?: number
+
+		Identifier of the "show" to use
+		showID: string
+		Identifier of the "profile" to send commands to
+		profile: string
+
+		Whether all elements should be preloaded or not
+		preloadAllElements: boolean
+		// profileName
+		*/
+		return <React.Fragment>
+			<div className='mod mvs mhs'>
+				<label className='field'>
+					{t('Host')}
+					<EditAttribute modifiedClassName='bghl' attribute={'settings.devices.' + deviceId + '.options.host'} obj={this.props.device} type='text' collection={PeripheralDevices} className='input text-input input-l'></EditAttribute>
+				</label>
+			</div>
+			<div className='mod mvs mhs'>
+				<label className='field'>
+					{t('REST port')}
+					<EditAttribute modifiedClassName='bghl' attribute={'settings.devices.' + deviceId + '.options.restPort'} obj={this.props.device} type='int' collection={PeripheralDevices} className='input text-input input-l'></EditAttribute>
+				</label>
+			</div>
+			<div className='mod mvs mhs'>
+				<label className='field'>
+					{t('Websockets port')}
+					<EditAttribute modifiedClassName='bghl' attribute={'settings.devices.' + deviceId + '.options.wsPort'} obj={this.props.device} type='int' collection={PeripheralDevices} className='input text-input input-l'></EditAttribute>
+				</label>
+			</div>
+			<div className='mod mvs mhs'>
+				<label className='field'>
+					{t('Show ID')}
+					<EditAttribute modifiedClassName='bghl' attribute={'settings.devices.' + deviceId + '.options.showID'} obj={this.props.device} type='text' collection={PeripheralDevices} className='input text-input input-l'></EditAttribute>
+				</label>
+			</div>
+			<div className='mod mvs mhs'>
+				<label className='field'>
+					{t('Profile ID')}
+					<EditAttribute modifiedClassName='bghl' attribute={'settings.devices.' + deviceId + '.options.profile'} obj={this.props.device} type='text' collection={PeripheralDevices} className='input text-input input-l'></EditAttribute>
+				</label>
+			</div>
+			<div className='mod mvs mhs'>
+				<label className='field'>
+					{t('Preload all elements')}
+					<EditAttribute modifiedClassName='bghl' attribute={'settings.devices.' + deviceId + '.options.preloadAllElements'} obj={this.props.device} type='checkbox' collection={PeripheralDevices} className='input input-l'></EditAttribute>
 				</label>
 			</div>
 		</React.Fragment>
