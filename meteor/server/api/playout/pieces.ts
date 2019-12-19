@@ -97,7 +97,7 @@ export function getOrderedPiece (part: Part): Array<PieceResolved> {
 	})
 
 	if (unresolvedCount > 0) {
-		logger.error(`Got ${unresolvedCount} unresolved timeline-objects for part #${part._id} (${unresolvedIds.join(', ')})`)
+		logger.error(`Got ${unresolvedCount} unresolved piece groups for part #${part._id} (${unresolvedIds.join(', ')})`)
 	}
 	if (pieces.length !== resolvedPieces.length) {
 		logger.error(`Got ${resolvedPieces.length} ordered pieces. Expected ${pieces.length} for part #${part._id}`)
@@ -531,7 +531,7 @@ export function resolveActivePieces (part: Part, now: number): Piece[] {
 	})
 
 	if (unresolvedCount > 0) {
-		logger.error(`Got ${unresolvedCount} unresolved timeline-objects for part #${part._id} (${unresolvedIds.join(', ')})`)
+		logger.error(`Got ${unresolvedCount} unresolved piece rgoups for part #${part._id} (${unresolvedIds.join(', ')})`)
 	}
 
 	return activePieces

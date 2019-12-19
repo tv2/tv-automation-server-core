@@ -4,7 +4,7 @@ import { check } from 'meteor/check'
 import { Random } from 'meteor/random'
 import * as _ from 'underscore'
 import { SourceLayerType, TimelineObjectCoreExt, PieceLifespan, getPieceGroupId } from 'tv-automation-sofie-blueprints-integration'
-import { extendMandadory, getCurrentTime, literal } from '../../../lib/lib'
+import { extendMandadory, getCurrentTime, literal, tic, toc } from '../../../lib/lib'
 import { logger } from '../../../lib/logging'
 import { Rundowns, RundownHoldState, Rundown } from '../../../lib/collections/Rundowns'
 import { Timeline, TimelineObjGeneric, TimelineObjType } from '../../../lib/collections/Timeline'
@@ -210,9 +210,14 @@ export namespace ServerPlayoutAdLibAPI {
 
 			ServerPlayoutAPI.setNextPartInner(rundown, partId)
 		} else {
+			tic()
 			cropInfinitesOnLayer(rundown, part, newPiece)
+			toc(undefined, 'crop')
 			stopInfinitesRunningOnLayer(rundown, part, newPiece.sourceLayerId)
+			toc(undefined, 'stop')
+			tic()
 			updateTimeline(rundown.studioId)
+			toc(undefined, 'upd8')
 		}
 	}
 	function adlibQueueInsertPart (rundown: Rundown, partId: string, adLibPiece: AdLibPiece) {

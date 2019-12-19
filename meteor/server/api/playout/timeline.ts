@@ -43,7 +43,9 @@ import {
 	extendMandadory,
 	literal,
 	clone,
-	omit
+	omit,
+	tic,
+	toc
 } from '../../../lib/lib'
 import { Rundowns, RundownData, Rundown, RundownHoldState } from '../../../lib/collections/Rundowns'
 import { RundownBaselineObj, RundownBaselineObjs } from '../../../lib/collections/RundownBaselineObjs'
@@ -79,6 +81,7 @@ export const updateTimeline: (studioId: string, forceNowToTime?: Time, activeRun
 
 	let activeRundownData: RundownData | null = null
 
+	tic('inner')
 	if (activeRundownData0 === undefined) {
 		// When activeRundownData0 is not provided:
 
@@ -89,6 +92,7 @@ export const updateTimeline: (studioId: string, forceNowToTime?: Time, activeRun
 	} else {
 		activeRundownData = activeRundownData0
 	}
+	toc('inner', 'getRundown')
 
 	const activeRundown = activeRundownData && activeRundownData.rundown
 
@@ -114,19 +118,24 @@ export const updateTimeline: (studioId: string, forceNowToTime?: Time, activeRun
 		})))
 	}
 
+	tic('inner')
 	ps.push(caught(getTimelineRundown(studio, activeRundownData).then(applyTimelineObjs)))
+	toc('inner', 'vuildRundown')
 	ps.push(caught(getTimelineRecording(studio).then(applyTimelineObjs)))
 
 	waitForPromiseAll(ps)
 
 
+	tic('inner')
 	processTimelineObjects(studio, timelineObjs)
 
 
 	if (forceNowToTime) { // used when autoNexting
 		setNowToTimeInObjects(timelineObjs, forceNowToTime)
 	}
+	toc('inner', 'process')
 
+	tic('inner')
 	let savedTimelineObjs: TimelineObjGeneric[] = []
 	saveIntoDb<TimelineObjGeneric, TimelineObjGeneric>(Timeline, {
 		studioId: studio._id,
@@ -148,8 +157,11 @@ export const updateTimeline: (studioId: string, forceNowToTime?: Time, activeRun
 			savedTimelineObjs.push(o)
 		}
 	})
+	toc('inner', 'save')
 
+	tic('inner')
 	afterUpdateTimeline(studio, savedTimelineObjs)
+	toc('inner', 'postSave')
 
 	logger.debug('updateTimeline done!')
 })
@@ -209,107 +221,103 @@ function getActiveRundown (studioId: string): Promise<Rundown | undefined> {
  */
 function getTimelineRundown (studio: Studio, activeRundownData: RundownData | null): Promise<TimelineObjRundown[]> {
 
-	return new Promise((resolve, reject) => {
-		try {
-			let timelineObjs: Array<TimelineObjGeneric & OnGenerateTimelineObj> = []
+	return makePromise(() => {
+		let timelineObjs: Array<TimelineObjGeneric & OnGenerateTimelineObj> = []
 
-			const activeRundown = activeRundownData ? activeRundownData.rundown : undefined
-			if (activeRundown) {
+		const activeRundown = activeRundownData ? activeRundownData.rundown : undefined
+		if (activeRundown) {
 
-				const rundownData = activeRundownData as RundownData
-				// Start with fetching stuff from database:
+			const rundownData = activeRundownData as RundownData
+			// Start with fetching stuff from database:
 
-				// Fetch showstyle blueprint:
-				const pshowStyleBlueprint = getBlueprintOfRundownAsync(activeRundown)
+			// Fetch showstyle blueprint:
+			const pshowStyleBlueprint = getBlueprintOfRundownAsync(activeRundown)
 
-				// Fetch baseline
-				let promiseBaselineItems: Promise<Array<RundownBaselineObj>> = asyncCollectionFindFetch(RundownBaselineObjs, {
-					rundownId: activeRundown._id
-				})
+			// Fetch baseline
+			let promiseBaselineItems: Promise<Array<RundownBaselineObj>> = asyncCollectionFindFetch(RundownBaselineObjs, {
+				rundownId: activeRundown._id
+			})
 
-				// Default timelineobjects:
-				let baselineItems = waitForPromise(promiseBaselineItems)
+			// Default timelineobjects:
+			let baselineItems = waitForPromise(promiseBaselineItems)
 
-				timelineObjs = timelineObjs.concat(buildTimelineObjsForRundown(rundownData, baselineItems))
+			tic('abc')
+			timelineObjs = timelineObjs.concat(buildTimelineObjsForRundown(rundownData, baselineItems))
+			toc('abc', 'objs')
+
+			tic('abc')
+			// next (on pvw (or on pgm if first))
+			timelineObjs = timelineObjs.concat(getLookeaheadObjects(rundownData, studio))
+			toc('abc', 'lookahead')
+
+			const showStyleBlueprint0 = waitForPromise(pshowStyleBlueprint)
+			const showStyleBlueprintManifest = showStyleBlueprint0.blueprint
 
 
-				// next (on pvw (or on pgm if first))
-				timelineObjs = timelineObjs.concat(getLookeaheadObjects(rundownData, studio))
-
-
-				const showStyleBlueprint0 = waitForPromise(pshowStyleBlueprint)
-				const showStyleBlueprintManifest = showStyleBlueprint0.blueprint
-
-
-				if (showStyleBlueprintManifest.onTimelineGenerate && rundownData.rundown.currentPartId) {
-					const currentPart = rundownData.partsMap[rundownData.rundown.currentPartId]
-					const context = new PartEventContext(activeRundown, studio, currentPart)
-					// const resolvedPieces = getResolvedPieces(currentPart)
-					const resolvedPieces = getResolvedPiecesFromFullTimeline(rundownData, timelineObjs)
-					const tlGenRes = waitForPromise(showStyleBlueprintManifest.onTimelineGenerate(context, timelineObjs, rundownData.rundown.previousPersistentState, currentPart.previousPartEndState, resolvedPieces.pieces))
-					timelineObjs = _.map(tlGenRes.timeline, (object: OnGenerateTimelineObj) => {
-						return literal<TimelineObjGeneric & OnGenerateTimelineObj>({
-							...object,
-							_id: '', // set later
-							objectType: TimelineObjType.RUNDOWN,
-							studioId: studio._id
-						})
-					})
-					// TODO - is this the best place for this save?
-					if (tlGenRes.persistentState) {
-						Rundowns.update(rundownData.rundown._id, {
-							$set: {
-								previousPersistentState: tlGenRes.persistentState
-							}
-						})
-					}
-				}
-
-				resolve(
-					_.map<TimelineObjGeneric & OnGenerateTimelineObj, TimelineObjRundown>(timelineObjs, (timelineObj) => {
-						return {
-							...omit(timelineObj, 'pieceId', 'infinitePieceId'), // temporary fields from OnGenerateTimelineObj
-							rundownId: activeRundown._id,
-							objectType: TimelineObjType.RUNDOWN
-						}
-					})
-				)
-			} else {
-				let studioBaseline: TimelineObjRundown[] = []
-
-				const studioBlueprint = loadStudioBlueprints(studio)
-				if (studioBlueprint) {
-					const blueprint = studioBlueprint.blueprint
-					const baselineObjs = blueprint.getBaseline(new StudioContext(studio))
-					studioBaseline = postProcessStudioBaselineObjects(studio, baselineObjs)
-
-					const id = `baseline_version`
-					studioBaseline.push(literal<TimelineObjRundown>({
-						id: id,
+			if (showStyleBlueprintManifest.onTimelineGenerate && rundownData.rundown.currentPartId) {
+				const currentPart = rundownData.partsMap[rundownData.rundown.currentPartId]
+				const context = new PartEventContext(activeRundown, studio, currentPart)
+				// const resolvedPieces = getResolvedPieces(currentPart)
+				const resolvedPieces = getResolvedPiecesFromFullTimeline(rundownData, timelineObjs)
+				const tlGenRes = waitForPromise(showStyleBlueprintManifest.onTimelineGenerate(context, timelineObjs, rundownData.rundown.previousPersistentState, currentPart.previousPartEndState, resolvedPieces.pieces))
+				timelineObjs = _.map(tlGenRes.timeline, (object: OnGenerateTimelineObj) => {
+					return literal<TimelineObjGeneric & OnGenerateTimelineObj>({
+						...object,
 						_id: '', // set later
-						studioId: '', // set later
-						rundownId: '',
 						objectType: TimelineObjType.RUNDOWN,
-						enable: { start: 0 },
-						layer: id,
-						metadata: {
-							versions: {
-								core: PackageInfo.version,
-								blueprintId: studio.blueprintId,
-								blueprintVersion: blueprint.blueprintVersion,
-								studio: studio._rundownVersionHash,
-							}
-						},
-						content: {
-							deviceType: DeviceType.ABSTRACT
+						studioId: studio._id
+					})
+				})
+				// TODO - is this the best place for this save?
+				if (tlGenRes.persistentState) {
+					Rundowns.update(rundownData.rundown._id, {
+						$set: {
+							previousPersistentState: tlGenRes.persistentState
 						}
-					}))
+					})
 				}
-
-				resolve(studioBaseline)
 			}
-		} catch (e) {
-			reject(e)
+
+			return _.map<TimelineObjGeneric & OnGenerateTimelineObj, TimelineObjRundown>(timelineObjs, (timelineObj) => {
+				return {
+					...omit(timelineObj, 'pieceId', 'infinitePieceId'), // temporary fields from OnGenerateTimelineObj
+					rundownId: activeRundown._id,
+					objectType: TimelineObjType.RUNDOWN
+				}
+			})
+		} else {
+			let studioBaseline: TimelineObjRundown[] = []
+
+			const studioBlueprint = loadStudioBlueprints(studio)
+			if (studioBlueprint) {
+				const blueprint = studioBlueprint.blueprint
+				const baselineObjs = blueprint.getBaseline(new StudioContext(studio))
+				studioBaseline = postProcessStudioBaselineObjects(studio, baselineObjs)
+
+				const id = `baseline_version`
+				studioBaseline.push(literal<TimelineObjRundown>({
+					id: id,
+					_id: '', // set later
+					studioId: '', // set later
+					rundownId: '',
+					objectType: TimelineObjType.RUNDOWN,
+					enable: { start: 0 },
+					layer: id,
+					metadata: {
+						versions: {
+							core: PackageInfo.version,
+							blueprintId: studio.blueprintId,
+							blueprintVersion: blueprint.blueprintVersion,
+							studio: studio._rundownVersionHash,
+						}
+					},
+					content: {
+						deviceType: DeviceType.ABSTRACT
+					}
+				}))
+			}
+
+			return studioBaseline
 		}
 	})
 

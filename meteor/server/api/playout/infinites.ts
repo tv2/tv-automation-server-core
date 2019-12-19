@@ -8,7 +8,7 @@ import { Part } from '../../../lib/collections/Parts'
 import { syncFunctionIgnore, syncFunction } from '../../codeControl'
 import { Piece, Pieces } from '../../../lib/collections/Pieces'
 import { getOrderedPiece, PieceResolved } from './pieces'
-import { asyncCollectionUpdate, waitForPromiseAll, asyncCollectionRemove, asyncCollectionInsert, normalizeArray, toc, makePromise, waitForPromise } from '../../../lib/lib'
+import { asyncCollectionUpdate, waitForPromiseAll, asyncCollectionRemove, asyncCollectionInsert, normalizeArray, toc, makePromise, waitForPromise, tic } from '../../../lib/lib'
 import { logger } from '../../../lib/logging'
 
 export const updateSourceLayerInfinitesAfterPart: (rundown: Rundown, previousPart?: Part, runUntilEnd?: boolean) => void
@@ -26,6 +26,7 @@ export function updateSourceLayerInfinitesAfterPartInner (rundown: Rundown, prev
 
 	const pPartsToProcess = makePromise(() => rundown.getParts())
 
+	tic('prev')
 	if (previousPart) {
 	   // figure out the baseline to set
 	   let prevPieces = getOrderedPiece(previousPart)
@@ -51,31 +52,34 @@ export function updateSourceLayerInfinitesAfterPartInner (rundown: Rundown, prev
 		   }
 	   })
 	}
+	toc('prev', 'prev')
 
+	tic('proc')
 	let partsToProcess = waitForPromise(pPartsToProcess)
 	waitForPromiseAll(ps)
 
 	if (previousPart) {
 	   partsToProcess = partsToProcess.filter(l => l._rank > previousPart._rank)
 	}
+	toc('proc', 'proc')
 
+	tic('prep')
    // Prepare pieces:
-	let psPopulateCache: Array<Promise<any>> = []
+	let psPopulateCache: Array<Promise<void>> = []
 	const currentItemsCache: {[partId: string]: PieceResolved[]} = {}
 	_.each(partsToProcess, (part) => {
-	   psPopulateCache.push(new Promise((resolve, reject) => {
-		   try {
-			   let currentItems = getOrderedPiece(part)
+		psPopulateCache.push(makePromise(() => {
+			// tic('order')
+			let currentItems = getOrderedPiece(part)
+			// toc('order', 'order ' + part._id)
 
-			   currentItemsCache[part._id] = currentItems
-			   resolve()
-		   } catch (e) {
-			   reject(e)
-		   }
-	   }))
+			currentItemsCache[part._id] = currentItems
+		}))
 	})
 	waitForPromiseAll(psPopulateCache)
+	toc('prep', 'prep')
 
+	tic('rem')
 	ps = []
 	for (let part of partsToProcess) {
 	   // Drop any that relate only to previous segments
@@ -89,7 +93,10 @@ export function updateSourceLayerInfinitesAfterPartInner (rundown: Rundown, prev
 	   }
 
 	   // ensure any currently defined infinites are still wanted
-	   // let currentItems = getOrderedPiece(part)
+	//    let currentItems = getOrderedPiece(part)
+	//    const waitForPs = psPopulateCache[part._id]
+	//    if (waitForPs) waitForPromise(waitForPs)
+
 	   let currentItems = currentItemsCache[part._id]
 	   if (!currentItems) throw new Meteor.Error(500, `currentItemsCache didn't contain "${part._id}", which it should have`)
 
@@ -113,6 +120,7 @@ export function updateSourceLayerInfinitesAfterPartInner (rundown: Rundown, prev
 		   // TODO - this guard is useless, as all shows have klokke and logo as infinites throughout...
 		   // This should instead do a check after each iteration to check if anything changed (even fields such as name on the piece)
 		   // If nothing changed, then it is safe to assume that it doesnt need to go further
+			toc('rem', 'rem2-' + part._id)
 		   return part._id
 	   }
 
@@ -235,6 +243,7 @@ export function updateSourceLayerInfinitesAfterPartInner (rundown: Rundown, prev
 	}
 
 	waitForPromiseAll(ps)
+	toc('rem', 'rem')
 	return ''
 }
 
@@ -249,6 +258,33 @@ export const cropInfinitesOnLayer = syncFunction(function cropInfinitesOnLayer (
 		) && i._id !== newPiece._id && i.infiniteMode
 	)
 
+	/*
+	tic('crop1')
+	let showStyleBase = rundown.getShowStyleBase()
+	toc('crop1', 'crop1')
+	const sourceLayerLookup = normalizeArray(showStyleBase.sourceLayers, '_id')
+	const newItemExclusivityGroup = sourceLayerLookup[newPiece.sourceLayerId].exclusiveGroup
+	const exclusiveLayers = newItemExclusivityGroup ? _.map(_.filter(showStyleBase.sourceLayers, sl => sl.exclusiveGroup === newItemExclusivityGroup), sl => sl._id) : [ newPiece.sourceLayerId ]
+
+	tic('crop2')
+	const pieces = part.getPieces({
+		_id: { $ne: newPiece._id },
+		infiniteMode: { $exists: true },
+		sourceLayerId: { $in: exclusiveLayers }
+	}, {
+		fields: {
+			content: 0
+		}
+	}).filter(i =>
+		// (i.sourceLayerId === newPiece.sourceLayerId
+		// 	|| (newItemExclusivityGroup && sourceLayerLookup[i.sourceLayerId] && sourceLayerLookup[i.sourceLayerId].exclusiveGroup === newItemExclusivityGroup)
+		// ) && i._id !== newPiece._id && 
+		i.infiniteMode
+	)
+	// console.log('inf pieces', pieces)
+	toc('crop2', 'crop2')
+	*/
+
 	let ps: Array<Promise<any>> = []
 	for (const piece of pieces) {
 		ps.push(asyncCollectionUpdate(Pieces, piece._id, { $set: {
@@ -261,6 +297,7 @@ export const cropInfinitesOnLayer = syncFunction(function cropInfinitesOnLayer (
 })
 
 export const stopInfinitesRunningOnLayer = syncFunction(function stopInfinitesRunningOnLayer (rundown: Rundown, part: Part, sourceLayer: string) {
+	tic('remove')
 	let remainingParts = rundown.getParts().filter(l => l._rank > part._rank)
 	for (let line of remainingParts) {
 		let continuations = line.getAllPieces().filter(i => i.infiniteMode && i.infiniteId && i.infiniteId !== i._id && i.sourceLayerId === sourceLayer)
@@ -270,7 +307,10 @@ export const stopInfinitesRunningOnLayer = syncFunction(function stopInfinitesRu
 
 		continuations.forEach(i => Pieces.remove(i._id))
 	}
+	toc('remove', 'remove')
 
 	// ensure adlib is extended correctly if infinite
+	tic('update')
 	updateSourceLayerInfinitesAfterPart(rundown, part)
+	toc('update', 'update')
 })
