@@ -312,7 +312,7 @@ export namespace ServerRundownAPI {
 
 		let rundown = Rundowns.findOne(rundownId)
 		if (!rundown) throw new Meteor.Error(404, `Rundown "${rundownId}" not found!`)
-		// if (rundown.active) throw new Meteor.Error(400,`Not allowed to resync an active Rundown "${rundownId}".`)
+
 		Rundowns.update(rundown._id, {
 			$set: {
 				unsynced: false
@@ -320,6 +320,34 @@ export namespace ServerRundownAPI {
 		})
 
 		return IngestActions.reloadRundown(rundown)
+	}
+	export function allowUnsafeUpdatesAndResyncRundown (rundownId: string): UserActionAPI.ReloadRundownResponse {
+		check(rundownId, String)
+		logger.info('allowUnsafeUpdatesAndResyncRundown ' + rundownId)
+
+		let rundown = Rundowns.findOne(rundownId)
+		if (!rundown) throw new Meteor.Error(404, `Rundown "${rundownId}" not found!`)
+
+		Rundowns.update(rundown._id, {
+			$set: {
+				allowUnsafeUpdates: true
+			}
+		})
+
+		return resyncRundown(rundownId)
+	}
+	export function resetAllowUnsafeUpdates (rundownId: string): void {
+		check(rundownId, String)
+		logger.info('resetAllowUnsafeUpdates ' + rundownId)
+
+		let rundown = Rundowns.findOne(rundownId)
+		if (!rundown) throw new Meteor.Error(404, `Rundown "${rundownId}" not found!`)
+
+		Rundowns.update(rundown._id, {
+			$unset: {
+				allowUnsafeUpdates: 1
+			}
+		})
 	}
 	export function unsyncRundown (rundownId: string): void {
 		check(rundownId, String)

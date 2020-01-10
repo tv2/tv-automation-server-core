@@ -439,10 +439,25 @@ export function removeRundown (rundownId: string) {
 export function resyncRundown (rundownId: string) {
 	let rundown = Rundowns.findOne(rundownId)
 	if (!rundown) throw new Meteor.Error(404, `Rundown "${rundownId}" not found!`)
-	// if (rundown.active) return ClientAPI.responseError(`The Rundown is currently active, you need to deactivate it before resyncing it.`)
 
 	return ClientAPI.responseSuccess(
 		ServerRundownAPI.resyncRundown(rundownId)
+	)
+}
+export function allowUnsafeUpdatesAndResyncRundown (rundownId: string) {
+	let rundown = Rundowns.findOne(rundownId)
+	if (!rundown) throw new Meteor.Error(404, `Rundown "${rundownId}" not found!`)
+
+	return ClientAPI.responseSuccess(
+		ServerRundownAPI.allowUnsafeUpdatesAndResyncRundown(rundownId)
+	)
+}
+export function resetAllowUnsafeUpdates (rundownId: string) {
+	let rundown = Rundowns.findOne(rundownId)
+	if (!rundown) throw new Meteor.Error(404, `Rundown "${rundownId}" not found!`)
+
+	return ClientAPI.responseSuccess(
+		ServerRundownAPI.resetAllowUnsafeUpdates(rundownId)
 	)
 }
 export function recordStop (studioId: string) {
@@ -606,6 +621,12 @@ methods[UserActionAPI.methods.removeRundown] = function (rundownId: string) {
 }
 methods[UserActionAPI.methods.resyncRundown] = function (rundownId: string) {
 	return resyncRundown.call(this, rundownId)
+}
+methods[UserActionAPI.methods.allowUnsafeUpdatesAndResyncRundown] = function (rundownId: string) {
+	return allowUnsafeUpdatesAndResyncRundown.call(this, rundownId)
+}
+methods[UserActionAPI.methods.resetAllowUnsafeUpdates] = function (rundownId: string) {
+	return resetAllowUnsafeUpdates.call(this, rundownId)
 }
 methods[UserActionAPI.methods.recordStop] = function (studioId: string) {
 	return recordStop.call(this, studioId)

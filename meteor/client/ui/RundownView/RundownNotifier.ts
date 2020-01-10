@@ -155,7 +155,7 @@ class RundownViewNotifier extends WithManagedTracker {
 					newNotification = new Notification(
 						unsyncedId,
 						NoticeLevel.CRITICAL,
-						t('The Rundown has been UNSYNCED from ENPS! No data updates will currently come through.'),
+						t('The Rundown has been UNSYNCED! No data updates will currently come through.'),
 						'Rundown',
 						getCurrentTime(),
 						true,
@@ -179,10 +179,46 @@ class RundownViewNotifier extends WithManagedTracker {
 									})
 								}
 							},
-							// {
-							// 	label: t('Delete'),
-							// 	type: 'delete'
-							// }
+							{
+								label: t('Re-sync (unsafe)'),
+								type: 'default',
+								action: () => {
+									doModalDialog({
+										title: t('Allow unsafe data updates'),
+										message: t('Are you sure you want to allow unsafe data updates?\nThis might help if you have a rundown that is not possible to re-sync, but be aware that if the currently playing Part is changed, this can affect the output'),
+										yes: t('Allow unsafe data, and re-sync'),
+										no: t('Cancel'),
+										onAccept: (event) => {
+											doUserAction(t, event, UserActionAPI.methods.allowUnsafeUpdatesAndResyncRundown, [rundownId], (err, response) => {
+												if (!err && response) {
+													handleRundownReloadResponse(t, rundown, response.result)
+												}
+											})
+										}
+									})
+								}
+							},
+						],
+						-1
+					)
+					newNoteIds.push(unsyncedId)
+				}
+				if (rundown.allowUnsafeUpdates) {
+					newNotification = new Notification(
+						unsyncedId,
+						NoticeLevel.WARNING,
+						t('Unsafe data updates are currently allowed!'),
+						'Rundown',
+						getCurrentTime(),
+						true,
+						[
+							{
+								label: t('Reset'),
+								type: 'primary',
+								action: () => {
+									doUserAction(t, event, UserActionAPI.methods.resetAllowUnsafeUpdates, [rundownId])
+								}
+							},
 						],
 						-1
 					)

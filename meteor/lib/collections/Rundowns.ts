@@ -78,6 +78,8 @@ export interface DBRundown extends IBlueprintRundownDB {
 	unsynced?: boolean
 	/** Timestamp of when rundown was unsynced */
 	unsyncedTime?: Time
+	/** If set to true, unsafe data operations (that otherwise would set the rundown to unsynced) will be allowed */
+	allowUnsafeUpdates?: boolean
 
 	/** Last sent storyStatus to ingestDevice (MOS) */
 	notifiedCurrentPlayingPartExternalId?: string
@@ -125,6 +127,7 @@ export class Rundown implements DBRundown {
 	public startedPlayback?: Time
 	public unsynced?: boolean
 	public unsyncedTime?: Time
+	public allowUnsafeUpdates?: boolean
 	public notifiedCurrentPlayingPartExternalId?: string
 	public holdState?: RundownHoldState
 	public dataSource: string

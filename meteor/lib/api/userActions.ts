@@ -41,6 +41,8 @@ export namespace UserActionAPI {
 
 		'removeRundown'						= 'userAction.removeRundown',
 		'resyncRundown'						= 'userAction.resyncRundown',
+		'allowUnsafeUpdatesAndResyncRundown'= 'userAction.allowUnsafeUpdatesAndresyncRundown',
+		'resetAllowUnsafeUpdates'			= 'userAction.resetAllowUnsafeUpdates',
 
 		'recordStop'							= 'userAction.recordStop',
 		'recordStart'							= 'userAction.recordStart',

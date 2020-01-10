@@ -456,9 +456,14 @@ function diffAndApplyChanges (
 		})
 		if (!currentPart) {
 			// Looks like the currently playing part has been removed.
-			logger.warn(`Currently playing part "${rundown.currentPartId}" was removed during ingestData. Unsyncing the rundown!`)
-			ServerRundownAPI.unsyncRundown(rundown._id)
-			return
+
+			if (rundown.allowUnsafeUpdates) {
+				logger.warn(`allowUnsafeUpdates is set for rundown ${rundown._id}, allowing unsafe data update through`)
+			} else {
+				logger.warn(`Currently playing part "${rundown.currentPartId}" was removed during ingestData. Unsyncing the rundown!`)
+				ServerRundownAPI.unsyncRundown(rundown._id)
+				return
+			}
 		} else {
 			// TODO: add logic for determining whether to allow changes to the currently playing Part.
 			// TODO: use isUpdateAllowed()

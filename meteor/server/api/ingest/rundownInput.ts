@@ -797,7 +797,7 @@ export function isUpdateAllowed (
 	segmentChanges: Optional<PreparedChanges<DBSegment>>,
 	partChanges: Optional<PreparedChanges<DBPart>>
 ): boolean {
-	let allowed: boolean = true
+	const notAllowedReason: string[] = []
 
 	if (!rundown) return false
 	if (rundown.unsynced) {
@@ -807,43 +807,47 @@ export function isUpdateAllowed (
 
 	if (rundown.active) {
 
-		if (allowed && rundownChanges.removed && rundownChanges.removed.length) {
+		if (rundownChanges.removed && rundownChanges.removed.length) {
 			_.each(rundownChanges.removed, rd => {
 				if (rundown._id === rd._id) {
 					// Don't allow removing an active rundown
-					logger.warn(`Not allowing removal of current active rundown "${rd._id}", making rundown unsynced instead`)
-					allowed = false
+					notAllowedReason.push(`Not allowing removal of current active rundown "${rd._id}"`)
 				}
 			})
 		}
 		if (rundown.currentPartId) {
-			if (allowed && partChanges.removed && partChanges.removed.length) {
+			if (partChanges.removed && partChanges.removed.length) {
 				_.each(partChanges.removed, part => {
 					if (rundown.currentPartId === part._id) {
 						// Don't allow removing currently playing part
-						logger.warn(`Not allowing removal of currently playing part "${part._id}", making rundown unsynced instead`)
-						allowed = false
+						notAllowedReason.push(`Not allowing removal of currently playing part "${part._id}"`)
 					}
 				})
 			}
-			if (allowed && segmentChanges.removed && segmentChanges.removed.length) {
+			if (segmentChanges.removed && segmentChanges.removed.length) {
 				const currentPart = rundown.getParts({ _id: rundown.currentPartId })[0]
 				_.each(segmentChanges.removed, segment => {
 					if (currentPart.segmentId === segment._id) {
 						// Don't allow removing segment with currently playing part
-						logger.warn(`Not allowing removal of segment "${segment._id}", containing currently playing part "${currentPart._id}", making rundown unsynced instead`)
-						allowed = false
+						notAllowedReason.push(`Not allowing removal of segment "${segment._id}", containing currently playing part "${currentPart._id}"`)
 					}
 				})
 			}
 		}
 	}
-	if (!allowed) {
+	if (notAllowedReason.length) {
+		_.each(notAllowedReason, reason => logger.warn(reason))
+
+		if (rundown.allowUnsafeUpdates) {
+			logger.warn(`allowUnsafeUpdates is set for rundown ${rundown._id}, allowing unsafe data update through`)
+			return true
+		}
+
 		logger.debug(`rundownChanges: ${printChanges(rundownChanges)}`)
 		logger.debug(`segmentChanges: ${printChanges(segmentChanges)}`)
 		logger.debug(`partChanges: ${printChanges(partChanges)}`)
-	}
-	return allowed
+		return false
+	} else return true
 }
 function printChanges (changes: Optional<PreparedChanges<{_id: string}>>): string {
 	let str = ''

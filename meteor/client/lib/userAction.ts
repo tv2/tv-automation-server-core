@@ -117,6 +117,8 @@ function userActionMethodName (
 
 		case UserActionAPI.methods.removeRundown: return t('Removing Rundown')
 		case UserActionAPI.methods.resyncRundown: return t('Re-Syncing Rundown')
+		case UserActionAPI.methods.allowUnsafeUpdatesAndResyncRundown: return t('Allow unsafe data updates and re-sync Rundown')
+		case UserActionAPI.methods.resetAllowUnsafeUpdates: return t('Reset allow unsafe data updates')
 
 		case UserActionAPI.methods.recordStop: return t('Stopping recording')
 		case UserActionAPI.methods.recordStart: return t('Starting recording')
