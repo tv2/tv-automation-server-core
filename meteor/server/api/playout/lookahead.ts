@@ -59,6 +59,9 @@ export function getLookeaheadObjects (rundownData: RundownData, studio: Studio):
 				const prevObj = lookaheadObjs.timed[i - 1].obj
 				enable = calculateStartAfterPreviousObj(prevObj)
 			}
+			if (entry.obj.classes && entry.obj.classes.indexOf('_lookahead_maintain_relative_timings') !== -1 && entry.obj.enable.start !== undefined) {
+				enable.start = entry.obj.enable.start
+			}
 			if (!entry.obj.id) throw new Meteor.Error(500, 'lookahead: timeline obj id not set')
 
 			const finiteDuration = entry.partId === activeRundown.currentPartId || (currentPart && currentPart.autoNext && entry.partId === activeRundown.nextPartId)
@@ -82,8 +85,8 @@ export function getLookeaheadObjects (rundownData: RundownData, studio: Studio):
 			const lastTimedObj = _.last(lookaheadObjs.timed)
 			const enable =
 				singleFutureObj && lastTimedObj ? calculateStartAfterPreviousObj(lastTimedObj.obj) :
-				(lastTimedObj && lastTimedObj.obj.classes && lastTimedObj.obj.classes.indexOf('_lookahead_maintain_relative_timings'))
-				? lastTimedObj.obj.enable : { start: 1000 }
+				(lastTimedObj && lastTimedObj.obj.classes && lastTimedObj.obj.classes.indexOf('_lookahead_maintain_relative_timings') !== -1)
+				? lastTimedObj.obj.enable : { while: '1' }
 			// We use while: 1 for the enabler, as any time before it should be active will be filled by either a playing object, or a timed lookahead.
 			// And this allows multiple futures to be timed in a way that allows them to co-exist
 
