@@ -37,9 +37,11 @@ export function getLookeaheadObjects (rundownData: RundownData, studio: Studio):
 
 	const calculateStartAfterPreviousObj = (prevObj: TimelineObjRundown): TimelineTypes.TimelineEnable => {
 		const prevHasDelayFlag = (prevObj.classes || []).indexOf('_lookahead_start_delay') !== -1
+		const maintainRelativeTimings = prevObj.classes && prevObj.classes.includes('_lookahead_maintain_relative_timings')
 
 		// Start with previous piece
-		const startOffset = prevHasDelayFlag ? 2000 : 0
+		const startOffset = maintainRelativeTimings && prevObj.enable.start !== undefined ?
+			prevObj.enable.start : prevHasDelayFlag ? 2000 : 0
 		return {
 			start: `#${prevObj.id}.start + ${startOffset}`
 		}
