@@ -87,8 +87,8 @@ export function getLookeaheadObjects (rundownData: RundownData, studio: Studio):
 			const lastTimedObj = _.last(lookaheadObjs.timed)
 			const enable =
 				singleFutureObj && lastTimedObj ? calculateStartAfterPreviousObj(lastTimedObj.obj) :
-				(lastTimedObj && lastTimedObj.obj.classes && lastTimedObj.obj.classes.indexOf('_lookahead_maintain_relative_timings') !== -1)
-				? lastTimedObj.obj.enable : { while: '1' }
+				(entry.obj.classes && entry.obj.classes.includes('_lookahead_maintain_relative_timings'))
+				? entry.obj.enable : { while: '1' }
 			// We use while: 1 for the enabler, as any time before it should be active will be filled by either a playing object, or a timed lookahead.
 			// And this allows multiple futures to be timed in a way that allows them to co-exist
 
