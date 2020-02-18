@@ -156,7 +156,10 @@ export function parseVersion (v: string | Version): Version {
 	if ((v + '').match(/git:\/\//) || (v + '').match(/http/)) {
 		return '0.0.0' // fallback
 	}
-	const valid = semver.valid(v)
+	let valid = semver.valid(v)
+	if (!valid) {
+		valid = semver.valid(v.substr(0, 5))
+	}
 	if (!valid) throw new Meteor.Error(500, `Invalid version: "${v}"`)
 	return valid
 }
