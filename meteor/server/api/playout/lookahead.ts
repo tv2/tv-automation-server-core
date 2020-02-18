@@ -240,7 +240,7 @@ export function findLookaheadForlayer (
 		}
 	}
 
-	return res
+	return { timed: res.timed, future: [] }
 }
 
 function getPartsOrderedByTime (rundownData: RundownData) {
