@@ -375,31 +375,32 @@ function updateRundownFromIngestData (
 		rundownId: rundownId,
 	}, adlibPieces)
 
-	// determine if update is allowed here
-	if (!isUpdateAllowed(dbRundown, { changed: [{ doc: dbRundown, oldId: dbRundown._id }] }, prepareSaveSegments, prepareSaveParts, Settings.allowUnsyncedSegments)) {
-		ServerRundownAPI.unsync(dbRundown._id)
-		return false
-	}
-
 	if (Settings.allowUnsyncedSegments) {
-		// Remove part updates for parts with these segment Ids
-		const removeWithSegmentId: string[] = processSegmentChangesToReject(dbRundown, prepareSaveSegments)
 
-		// Remove part updates associated with rejected segment updates
-		const removeWithPartId: string[] = removePartUpdatesBySegmentId(dbRundown, prepareSaveParts, removeWithSegmentId)
-
-		// Remove piece updates for pieces with these part Ids
-		const changes = processPartChangesToReject(dbRundown, prepareSaveParts)
-		removeWithPartId.push(...changes.partIds)
-
-		removeSegmentUpdatesBySegmentId(prepareSaveSegments, changes.segmentIds)
-
-		changes.segmentIds.forEach((id) => {
-			ServerRundownAPI.unsync(dbRundown._id, id)
-		})
-
-		// Remove piece updates that must be rejected
-		removePieceUpdatesByPartId(prepareSavePieces, removeWithPartId)
+		if (!isUpdateAllowed(dbRundown, { changed: [{ doc: dbRundown, oldId: dbRundown._id }] })) {
+			ServerRundownAPI.unsync(dbRundown._id)
+			return false
+		} else {
+			const segmentChanges: typeof changes = splitIntoSegments(
+				prepareSaveSegments,
+				prepareSaveParts,
+				prepareSavePieces,
+				prepareSaveAdLibPieces
+			)
+			const approvedSegmentChanges: typeof changes = []
+			_.each(segmentChanges, segmentChange => {
+				if (isUpdateAllowed(dbRundown, { changed: [{ doc: dbRundown, oldId: dbRundown._id }] }, prepareSaveSegments, prepareSaveParts)) {
+					segmentChange
+				} else {
+					// unsynk segment
+				}
+			})
+		}
+	} else {
+		if (!isUpdateAllowed(dbRundown, { changed: [{ doc: dbRundown, oldId: dbRundown._id }] }, prepareSaveSegments, prepareSaveParts)) {
+			ServerRundownAPI.unsync(dbRundown._id)
+			return false
+		}
 	}
 
 	changes = sumChanges(
@@ -846,10 +847,9 @@ function generateSegmentContents (
 
 export function isUpdateAllowed (
 	rundown: Rundown,
-	rundownChanges: Optional<PreparedChanges<DBRundown>>,
-	segmentChanges: Optional<PreparedChanges<DBSegment>>,
-	partChanges: Optional<PreparedChanges<DBPart>>,
-	unsyncedSegmentAllowed?: boolean
+	rundownChanges?: Optional<PreparedChanges<DBRundown>>,
+	segmentChanges?: Optional<PreparedChanges<DBSegment>>,
+	partChanges?: Optional<PreparedChanges<DBPart>>
 ): boolean {
 	let allowed: boolean = true
 
@@ -861,7 +861,7 @@ export function isUpdateAllowed (
 
 	if (rundown.active) {
 
-		if (allowed && rundownChanges.removed && rundownChanges.removed.length) {
+		if (allowed && rundownChanges && rundownChanges.removed && rundownChanges.removed.length) {
 			_.each(rundownChanges.removed, rd => {
 				if (rundown._id === rd._id) {
 					// Don't allow removing an active rundown
@@ -871,7 +871,7 @@ export function isUpdateAllowed (
 			})
 		}
 		if (rundown.currentPartId) {
-			if (allowed && partChanges.removed && partChanges.removed.length && !unsyncedSegmentAllowed) {
+			if (allowed && partChanges && partChanges.removed && partChanges.removed.length) {
 				_.each(partChanges.removed, part => {
 					if (rundown.currentPartId === part._id) {
 						// Don't allow removing currently playing part
@@ -882,7 +882,7 @@ export function isUpdateAllowed (
 			}
 			if (allowed) {
 				const currentPart = rundown.getParts({ _id: rundown.currentPartId })[0]
-				if (segmentChanges.removed && segmentChanges.removed.length && !unsyncedSegmentAllowed) {
+				if (segmentChanges && segmentChanges.removed && segmentChanges.removed.length) {
 					_.each(segmentChanges.removed, segment => {
 						if (currentPart.segmentId === segment._id) {
 							// Don't allow removing segment with currently playing part
@@ -891,7 +891,7 @@ export function isUpdateAllowed (
 						}
 					})
 				}
-				if (allowed && partChanges.removed && partChanges.removed.length && currentPart && currentPart.afterPart && !unsyncedSegmentAllowed) {
+				if (allowed && partChanges && partChanges.removed && partChanges.removed.length && currentPart && currentPart.afterPart) {
 					// If the currently playing part is a queued part and depending on any of the parts that are to be removed:
 					const removedPartIds = partChanges.removed.map(part => part._id)
 					if (removedPartIds.includes(currentPart.afterPart)) {
@@ -904,9 +904,9 @@ export function isUpdateAllowed (
 		}
 	}
 	if (!allowed) {
-		logger.debug(`rundownChanges: ${printChanges(rundownChanges)}`)
-		logger.debug(`segmentChanges: ${printChanges(segmentChanges)}`)
-		logger.debug(`partChanges: ${printChanges(partChanges)}`)
+		if (rundownChanges) logger.debug(`rundownChanges: ${printChanges(rundownChanges)}`)
+		if (segmentChanges) logger.debug(`segmentChanges: ${printChanges(segmentChanges)}`)
+		if (partChanges) logger.debug(`partChanges: ${printChanges(partChanges)}`)
 	}
 	return allowed
 }
