@@ -16,7 +16,9 @@ import { getCurrentTime,
 	makePromise,
 	clone,
 	literal,
-	asyncCollectionRemove} from '../../../lib/lib'
+	asyncCollectionRemove,
+	Profiler
+} from '../../../lib/lib'
 import { Timeline, TimelineObjGeneric } from '../../../lib/collections/Timeline'
 import { Segments, Segment, DBSegment } from '../../../lib/collections/Segments'
 import { Random } from 'meteor/random'
@@ -208,6 +210,7 @@ export namespace ServerPlayoutAPI {
 	export function takeNextPart (rundownId: string): ClientAPI.ClientResponse {
 		let now = getCurrentTime()
 		return rundownSyncFunction(rundownId, RundownSyncFunctionPriority.Playout, () => {
+			logger.debug('takeNextPart')
 			let rundown = Rundowns.findOne(rundownId) as Rundown
 			if (!rundown) throw new Meteor.Error(404, `Rundown "${rundownId}" not found!`)
 			if (!rundown.active) throw new Meteor.Error(501, `Rundown "${rundownId}" is not active!`)
@@ -215,8 +218,11 @@ export namespace ServerPlayoutAPI {
 
 			let timeOffset: number | null = rundown.nextTimeOffset || null
 
+			let profiler = new Profiler()
+
 			let firstTake = !rundown.startedPlayback
 			let rundownData = rundown.fetchAllData()
+			logger.debug(`takeNextPart: rundown.fetchAllData took ${profiler.measureTime()}`)
 
 			let pBlueprint = makePromise(() => getBlueprintOfRundown(rundown))
 
@@ -240,6 +246,7 @@ export namespace ServerPlayoutAPI {
 						holdState: RundownHoldState.NONE
 					}
 				})
+				logger.debug(`takeNextPart: Rundowns.update took ${profiler.measureTime()}`)
 			// If hold is active, then this take is to clear it
 			} else if (rundown.holdState === RundownHoldState.ACTIVE) {
 				const ps: Promise<any>[] = []
@@ -277,7 +284,9 @@ export namespace ServerPlayoutAPI {
 					}, { multi: true }))
 				}
 				waitForPromiseAll(ps)
+				logger.debug(`takeNextPart: asyncCollectionUpdate and asyncCollectionRemove took ${profiler.measureTime()}`)
 				updateTimeline(rundown.studioId)
+				logger.debug(`takeNextPart: updateTimeline took ${profiler.measureTime()}`)
 				return ClientAPI.responseSuccess()
 			}
 
@@ -289,10 +298,11 @@ export namespace ServerPlayoutAPI {
 			if (!takePart) throw new Meteor.Error(404, 'takePart not found!')
 
 			let nextPart: Part | null = getNextPart(rundown, rundownData.parts, takePart) || null
+			logger.debug(`takeNextPart: getNextPart took ${profiler.measureTime()}`)
 
 			// beforeTake(rundown, previousPart || null, takePart)
 			beforeTake(rundownData, previousPart || null, takePart)
-
+			logger.debug(`takeNextPart: beforeTake took ${profiler.measureTime()}`)
 
 			const { blueprint } = waitForPromise(pBlueprint)
 			if (blueprint.onPreTake) {
@@ -305,6 +315,7 @@ export namespace ServerPlayoutAPI {
 					logger.error(e)
 				}
 			}
+			logger.debug(`takeNextPart: waitForPromise took ${profiler.measureTime()}`)
 			// TODO - the state could change after this sampling point. This should be handled properly
 			let previousPartEndState: PartEndState | undefined = undefined
 			if (blueprint.getEndStateForPart && previousPart) {
@@ -314,6 +325,7 @@ export namespace ServerPlayoutAPI {
 				const context = new RundownContext(rundown)
 				previousPartEndState = blueprint.getEndStateForPart(context, rundown.previousPersistentState, previousPart.previousPartEndState, resolvedPieces, time)
 				logger.info(`Calculated end state in ${getCurrentTime() - time}ms`)
+				logger.debug(`takeNextPart: calculating end state took ${profiler.measureTime()}`)
 			}
 			let ps: Array<Promise<any>> = []
 			let m: Partial<Rundown> = {
@@ -354,6 +366,7 @@ export namespace ServerPlayoutAPI {
 
 			libSetNextPart(rundown, nextPart, takePart)
 			waitForPromiseAll(ps)
+			logger.debug(`takeNextPart: asyncCollectionUpdate took ${profiler.measureTime()}`)
 			ps = []
 
 			// Setup the parts for the HOLD we are starting
@@ -392,7 +405,9 @@ export namespace ServerPlayoutAPI {
 				})
 			}
 			waitForPromiseAll(ps)
+			logger.debug(`takeNextPart: Setup the parts for the HOLD took ${profiler.measureTime()}`)
 			afterTake(rundownData, takePart, timeOffset)
+			logger.debug(`takeNextPart: afterTake took ${profiler.measureTime()}`)
 
 			// Last:
 			const takeDoneTime = getCurrentTime()

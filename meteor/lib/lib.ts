@@ -1133,9 +1133,9 @@ export function firstIfArray<T> (value: any): T {
 export type WrapAsyncCallback<T> = ((error: Error) => void) & ((error: null, result: T) => void)
 
 export class Profiler {
-	startTime: number = Date.now()
+	startTime: number = getCurrentTime()
 	measureTime = () => {
-		let now = Date.now()
+		let now = getCurrentTime()
 		let difference = now - this.startTime
 		this.startTime = now
 		return `${difference} ms`
