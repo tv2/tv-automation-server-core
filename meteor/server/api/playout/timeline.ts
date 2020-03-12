@@ -43,7 +43,8 @@ import {
 	extendMandadory,
 	literal,
 	clone,
-	omit
+	omit,
+	Profiler
 } from '../../../lib/lib'
 import { Rundowns, RundownData, Rundown, RundownHoldState } from '../../../lib/collections/Rundowns'
 import { RundownBaselineObj, RundownBaselineObjs } from '../../../lib/collections/RundownBaselineObjs'
@@ -75,6 +76,7 @@ import { isNumber } from 'util'
 export const updateTimeline: (studioId: string, forceNowToTime?: Time, activeRundownData0?: RundownData | null) => void
 = syncFunctionIgnore(function updateTimeline (studioId: string, forceNowToTime?: Time, activeRundownData0?: RundownData | null) {
 	logger.debug('updateTimeline running...')
+	let profiler = new Profiler()
 	let timelineObjs: Array<TimelineObjGeneric> = []
 	const pStudio = asyncCollectionFindOne(Studios, studioId)
 
@@ -87,6 +89,7 @@ export const updateTimeline: (studioId: string, forceNowToTime?: Time, activeRun
 		if (activeRundown) {
 			activeRundownData = activeRundown.fetchAllData()
 		}
+		logger.debug(`updateTimeline: get active rundown took ${profiler.measureTime()}`)
 	} else {
 		activeRundownData = activeRundownData0
 	}
@@ -94,6 +97,7 @@ export const updateTimeline: (studioId: string, forceNowToTime?: Time, activeRun
 	const activeRundown = activeRundownData && activeRundownData.rundown
 
 	let studio = waitForPromise(pStudio)
+	logger.debug(`updateTimeline: waitForPromise(pStudio) took ${profiler.measureTime()}`)
 
 	if (!studio) throw new Meteor.Error(404, 'studio "' + studioId + '" not found!')
 
@@ -107,13 +111,14 @@ export const updateTimeline: (studioId: string, forceNowToTime?: Time, activeRun
 	ps.push(caught(getTimelineRecording(studio).then(applyTimelineObjs)))
 
 	waitForPromiseAll(ps)
-
+	logger.debug(`updateTimeline: getTimelineRundown and getTimelineRecording took ${profiler.measureTime()}`)
 
 	processTimelineObjects(studio, timelineObjs)
-
+	logger.debug(`updateTimeline: processTimelineObjects took ${profiler.measureTime()}`)
 
 	if (forceNowToTime) { // used when autoNexting
 		setNowToTimeInObjects(timelineObjs, forceNowToTime)
+		logger.debug(`updateTimeline: setNowToTimeInObjects took ${profiler.measureTime()}`)
 	}
 
 	let savedTimelineObjsHashes: TimelineObjHash[] = []
@@ -137,9 +142,10 @@ export const updateTimeline: (studioId: string, forceNowToTime?: Time, activeRun
 			savedTimelineObjsHashes.push(prepareTimelineObjectHash(o))
 		}
 	})
+	logger.debug(`updateTimeline: saveIntoDb took ${profiler.measureTime()}`)
 
 	afterUpdateTimeline(studio, savedTimelineObjsHashes)
-
+	logger.debug(`updateTimeline: afterUpdateTimeline took ${profiler.measureTime()}`)
 
 	logger.debug('updateTimeline done!')
 })

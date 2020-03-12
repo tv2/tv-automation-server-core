@@ -4,7 +4,7 @@ import { check } from 'meteor/check'
 import { Random } from 'meteor/random'
 import * as _ from 'underscore'
 import { SourceLayerType, TimelineObjectCoreExt, PieceLifespan, getPieceGroupId } from 'tv-automation-sofie-blueprints-integration'
-import { extendMandadory, getCurrentTime, literal, waitForPromise, asyncCollectionFindOne, makePromise, asyncCollectionFindFetch } from '../../../lib/lib'
+import { extendMandadory, getCurrentTime, literal, waitForPromise, asyncCollectionFindOne, makePromise, asyncCollectionFindFetch, Profiler } from '../../../lib/lib'
 import { logger } from '../../../lib/logging'
 import { Rundowns, RundownHoldState, Rundown } from '../../../lib/collections/Rundowns'
 import { Timeline, TimelineObjGeneric, TimelineObjType } from '../../../lib/collections/Timeline'
@@ -139,6 +139,10 @@ export namespace ServerPlayoutAdLibAPI {
 		})
 	}
 	function innerStartAdLibPiece (rundown: Rundown, queue: boolean, partId: string, adLibPiece: AdLibPiece) {
+		logger.debug('innerStartAdLibPiece')
+		let profilerFull = new Profiler()
+		let profilerPartial = new Profiler()
+
 		if (adLibPiece.toBeQueued) {
 			// Allow adlib to request to always be queued
 			queue = true
@@ -149,6 +153,8 @@ export namespace ServerPlayoutAdLibAPI {
 			// insert a NEW, adlibbed part after this part
 			partId = adlibQueueInsertPart(rundown, partId, adLibPiece)
 		}
+		logger.debug(`innerStartAdLibPiece: adlibQueueInsertPart took ${profilerPartial.measureTime()}`)
+
 		let part = Parts.findOne({
 			_id: partId,
 			rundownId: rundown._id
@@ -159,6 +165,8 @@ export namespace ServerPlayoutAdLibAPI {
 			_id: rundown.nextPartId,
 			rundownId: rundown._id
 		}) : undefined
+
+		logger.debug(`innerStartAdLibPiece: finding part took ${profilerPartial.measureTime()}`)
 
 		let pieceStart: number | 'now' = queue ? 0 : 'now'
 		// HACK WARNING: Temporary 'fix' to insert adlibs to the next part if it is a dve and the current one is not.
@@ -186,10 +194,14 @@ export namespace ServerPlayoutAdLibAPI {
 					sourceLayerId: adLibPiece.sourceLayerId
 				})
 			}
+			logger.debug(`innerStartAdLibPiece: dve took ${profilerPartial.measureTime()}`)
 		}
 
 		let newPiece = convertAdLibToPiece(adLibPiece, part, queue, pieceStart)
+		logger.debug(`innerStartAdLibPiece: convertAdLibToPiece took ${profilerPartial.measureTime()}`)
+
 		Pieces.insert(newPiece)
+		logger.debug(`innerStartAdLibPiece: Pieces.insert took ${profilerPartial.measureTime()}`)
 
 		if (queue) {
 			// keep infinite pieces
@@ -201,6 +213,7 @@ export namespace ServerPlayoutAdLibAPI {
 					Pieces.insert(newPiece)
 				}
 			})
+			logger.debug(`innerStartAdLibPiece: Pieces.find took ${profilerPartial.measureTime()}`)
 
 			// Copy across adlib-preroll and other properties needed on the part
 			if (newPiece.adlibPreroll !== undefined) {
@@ -209,15 +222,22 @@ export namespace ServerPlayoutAdLibAPI {
 						prerollDuration: newPiece.adlibPreroll
 					}
 				})
+				logger.debug(`innerStartAdLibPiece: Parts.update took ${profilerPartial.measureTime()}`)
 			}
 
 			ServerPlayoutAPI.setNextPartInner(rundown, partId)
+			logger.debug(`innerStartAdLibPiece: ServerPlayoutAPI.setNextPartInner took ${profilerPartial.measureTime()}`)
 		} else {
 			updateSourceLayerInfinitesAfterPart(rundown)
+			logger.debug(`innerStartAdLibPiece: updateSourceLayerInfinitesAfterPart took ${profilerPartial.measureTime()}`)
 			cropInfinitesOnLayer(rundown, part, newPiece)
+			logger.debug(`innerStartAdLibPiece: cropInfinitesOnLayer took ${profilerPartial.measureTime()}`)
 			stopInfinitesRunningOnLayer(rundown, part, newPiece.sourceLayerId)
+			logger.debug(`innerStartAdLibPiece: stopInfinitesRunningOnLayer took ${profilerPartial.measureTime()}`)
 			updateTimeline(rundown.studioId)
+			logger.debug(`innerStartAdLibPiece: updateTimeline took ${profilerPartial.measureTime()}`)
 		}
+		logger.debug(`innerStartAdLibPiece took ${profilerFull.measureTime()}`)
 	}
 	function adlibQueueInsertPart (rundown: Rundown, partId: string, adLibPiece: AdLibPiece) {
 		logger.info('adlibQueueInsertPart')
