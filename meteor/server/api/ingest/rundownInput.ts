@@ -60,6 +60,7 @@ import { extractExpectedPlayoutItems, updateExpectedPlayoutItemsOnRundown } from
 import { ExpectedPlayoutItem, ExpectedPlayoutItems } from '../../../lib/collections/ExpectedPlayoutItems'
 import { Settings } from '../../../lib/Settings'
 import { isArray } from 'util'
+import { number } from 'prop-types'
 
 export enum RundownSyncFunctionPriority {
 	Ingest = 0,
@@ -67,6 +68,14 @@ export enum RundownSyncFunctionPriority {
 }
 export function rundownSyncFunction<T extends Function> (rundownId: string, priority: RundownSyncFunctionPriority, fcn: T): ReturnType<T> {
 	return syncFunction(fcn, `ingest_rundown_${rundownId}`, undefined, priority)()
+}
+
+interface SegmentChanges {
+	segmentId: string,
+	segment: PreparedChanges<DBSegment>
+	parts: PreparedChanges<DBPart>
+	pieces: PreparedChanges<Piece>
+	adlibPieces: PreparedChanges<AdLibPiece>
 }
 
 export namespace RundownInput {
@@ -361,17 +370,17 @@ function updateRundownFromIngestData (
 
 
 	// Prepare updates:
-	const prepareSaveSegments = prepareSaveIntoDb(Segments, {
+	let prepareSaveSegments = prepareSaveIntoDb(Segments, {
 		rundownId: rundownId
 	}, segments)
-	const prepareSaveParts = prepareSaveIntoDb<Part, DBPart>(Parts, {
+	let prepareSaveParts = prepareSaveIntoDb<Part, DBPart>(Parts, {
 		rundownId: rundownId,
 	}, parts)
-	const prepareSavePieces = prepareSaveIntoDb<Piece, Piece>(Pieces, {
+	let prepareSavePieces = prepareSaveIntoDb<Piece, Piece>(Pieces, {
 		rundownId: rundownId,
 		dynamicallyInserted: { $ne: true } // do not affect dynamically inserted pieces (such as adLib pieces)
 	}, segmentPieces)
-	const prepareSaveAdLibPieces = prepareSaveIntoDb<AdLibPiece, AdLibPiece>(AdLibPieces, {
+	let prepareSaveAdLibPieces = prepareSaveIntoDb<AdLibPiece, AdLibPiece>(AdLibPieces, {
 		rundownId: rundownId,
 	}, adlibPieces)
 
@@ -381,18 +390,53 @@ function updateRundownFromIngestData (
 			ServerRundownAPI.unsync(dbRundown._id)
 			return false
 		} else {
-			const segmentChanges: typeof changes = splitIntoSegments(
+			const segmentChanges: SegmentChanges[] = splitIntoSegments(
 				prepareSaveSegments,
 				prepareSaveParts,
 				prepareSavePieces,
 				prepareSaveAdLibPieces
 			)
-			const approvedSegmentChanges: typeof changes = []
+			console.log(`SEGMENT CHANGES: ${segmentChanges.length}`)
+			const approvedSegmentChanges: SegmentChanges[] = []
 			_.each(segmentChanges, segmentChange => {
-				if (isUpdateAllowed(dbRundown, { changed: [{ doc: dbRundown, oldId: dbRundown._id }] }, prepareSaveSegments, prepareSaveParts)) {
-					segmentChange
+				if (isUpdateAllowed(dbRundown, { changed: [{ doc: dbRundown, oldId: dbRundown._id }] }, segmentChange.segment, segmentChange.parts)) {
+					logger.info(`Approving change`)
+					approvedSegmentChanges.push(segmentChange)
 				} else {
-					// unsynk segment
+					logger.info(`Rejecting change`)
+					ServerRundownAPI.unsync(dbRundown._id, segmentChange.segmentId)
+				}
+			})
+			prepareSaveSegments = {
+				inserted: [],
+				changed: [],
+				removed: [],
+				unchanged: []
+			}
+			prepareSaveParts = {
+				inserted: [],
+				changed: [],
+				removed: [],
+				unchanged: []
+			}
+			prepareSavePieces = {
+				inserted: [],
+				changed: [],
+				removed: [],
+				unchanged: []
+			}
+			prepareSaveAdLibPieces = {
+				inserted: [],
+				changed: [],
+				removed: [],
+				unchanged: []
+			}
+			approvedSegmentChanges.forEach((segmentChange) => {
+				for (const key in prepareSaveSegments) {
+					prepareSaveSegments[key].push(...segmentChange.segment[key])
+					prepareSaveParts[key].push(...segmentChange.parts[key])
+					prepareSavePieces[key].push(...segmentChange.pieces[key])
+					prepareSaveAdLibPieces[key].push(...segmentChange.adlibPieces[key])
 				}
 			})
 		}
@@ -959,153 +1003,187 @@ function removePartUpdatesBySegmentId(rundown: Rundown, changes: PreparedChanges
 	return partIds
 }
 
-/**
- * Removes pieces that have partIds specified.
- * @param changes Changed to filter.
- * @param partIds Part Ids to remove.
- */
-function removePieceUpdatesByPartId(changes: PreparedChanges<Piece>, partIds: string[]) {
-	changes.removed = changes.removed.filter((piece) => !partIds.includes(piece.partId))
-	changes.inserted = changes.inserted.filter((piece) => !partIds.includes(piece.partId))
-	changes.changed = changes.changed.filter((piece) => !partIds.includes(piece.doc.partId))
+type partIdToSegmentId = Map<string, string>
+
+function splitIntoSegments (
+	prepareSaveSegments: PreparedChanges<DBSegment>,
+	prepareSaveParts: PreparedChanges<DBPart>,
+	prepareSavePieces: PreparedChanges<Piece>,
+	prepareSaveAdLibPieces: PreparedChanges<AdLibPiece>
+): SegmentChanges[] {
+	let changes: SegmentChanges[] = []
+
+	processChangeGroup(changes, prepareSaveSegments, 'changed')
+	processChangeGroup(changes, prepareSaveSegments, 'inserted')
+	processChangeGroup(changes, prepareSaveSegments, 'removed')
+	processChangeGroup(changes, prepareSaveSegments, 'unchanged')
+
+	const partsToSegments: partIdToSegmentId = new Map()
+
+	prepareSaveParts.changed.forEach((part) => {
+		partsToSegments.set(part.doc._id, part.doc.segmentId)
+		const index = changes.findIndex((c) => c.segmentId === part.doc.segmentId)
+		if (index === -1) {
+			const newChange = makeChangeObj(part.doc.segmentId)
+			newChange.parts.changed.push(part)
+			changes.push(newChange)
+		} else {			
+			changes[index].parts.changed.push(part)
+		}
+	});
+
+	['removed', 'inserted', 'unchanged'].forEach((change: keyof Omit<PreparedChanges<DBPart>, 'changed'>) => {
+		prepareSaveParts[change].forEach((part: DBPart) => {
+			partsToSegments.set(part._id, part.segmentId)
+			const index = changes.findIndex((c) => c.segmentId === part.segmentId)
+			if (index === -1) {
+				const newChange = makeChangeObj(part.segmentId)
+				newChange.parts[change].push(part)
+				changes.push(newChange)
+			} else {				
+				changes[index].parts[change].push(part)
+			}
+		})
+	})
+
+	for (const piece of prepareSavePieces.changed) {
+		const segmentId = partsToSegments.get(piece.doc.partId)
+		if (!segmentId) {
+			logger.warning(`SegmentId could not be found when trying to modify piece ${piece.doc._id}`)
+			break  // In theory this shouldn't happen, but reject 'orphaned' changes
+		}
+		const index = changes.findIndex((c) => c.segmentId === segmentId)
+		if (index === -1) {
+			const newChange = makeChangeObj(segmentId)
+			newChange.pieces.changed.push(piece)
+			changes.push(newChange)
+		} else {			
+			changes[index].pieces.changed.push(piece)
+		}
+	}
+
+	['removed', 'inserted', 'unchanged'].forEach((change: keyof Omit<PreparedChanges<Piece>, 'changed'>) => {
+		for (const piece of prepareSavePieces[change]) {
+			const segmentId = partsToSegments.get(piece.partId)
+			if (!segmentId) {
+				logger.warning(`SegmentId could not be found when trying to modify piece ${piece._id}`)
+				break  // In theory this shouldn't happen, but reject 'orphaned' changes
+			}
+			const index = changes.findIndex((c) => c.segmentId === segmentId)
+			if (index === -1) {
+				const newChange = makeChangeObj(segmentId)
+				newChange.pieces[change].push(piece)
+				changes.push(newChange)
+			} else {
+				changes[index].pieces[change].push(piece)
+			}
+		}
+	})
+
+	for (const adlib of prepareSaveAdLibPieces.changed) {
+		const segmentId = partsToSegments.get(adlib.doc.partId || '')
+		if (!segmentId) {
+			logger.warning(`SegmentId could not be found when trying to modify adlib ${adlib.doc._id}`)
+			break  // In theory this shouldn't happen, but reject 'orphaned' changes
+		}
+		const index = changes.findIndex((c) => c.segmentId === segmentId)
+		if (index === -1) {
+			const newChange = makeChangeObj(segmentId)
+			newChange.adlibPieces.changed.push(adlib)
+			changes.push(newChange)
+		} else {			
+			changes[index].adlibPieces.changed.push(adlib)
+		}
+	}
+
+	['removed', 'inserted', 'unchanged'].forEach((change: keyof Omit<PreparedChanges<AdLibPiece>, 'changed'>) => {
+		for (const piece of prepareSaveAdLibPieces[change]) {
+			const segmentId = partsToSegments.get(piece.partId || '')
+			if (!segmentId) {
+				logger.warning(`SegmentId could not be found when trying to modify adlib ${piece._id}`)
+				break  // In theory this shouldn't happen, but reject 'orphaned' changes
+			}
+			const index = changes.findIndex((c) => c.segmentId === segmentId)
+			if (index === -1) {
+				const newChange = makeChangeObj(segmentId)
+				newChange.adlibPieces[change].push(piece)
+				changes.push(newChange)
+			} else {
+				changes[index].adlibPieces[change].push(piece)
+			}
+		}
+	})
+
+	return changes
 }
 
-function removeSegmentUpdatesBySegmentId(changes: PreparedChanges<DBSegment>, segmentIds: string[]) {
-	changes.removed = changes.removed.filter((segment) => !segmentIds.includes(segment._id))
-	changes.inserted = changes.inserted.filter((segment) => !segmentIds.includes(segment._id))
-	changes.changed = changes.changed.filter((segment) => !segmentIds.includes(segment.doc._id))
+function processChangeGroup <
+	ChangeType extends keyof PreparedChanges<DBSegment>,
+	ChangedObj extends DBSegment | DBPart | Piece | AdLibPiece
+> (
+	changes: SegmentChanges[],
+	preparedChanges: PreparedChanges<ChangedObj>,
+	changeField: ChangeType
+) {
+	const subset = preparedChanges[changeField]
+	subset.forEach((ch) => {
+		if (changeField === 'changed') {
+			const existing = changes.findIndex((c) => (ch as PreparedChangesChangesDoc<ChangedObj>).doc._id === c.segmentId)
+			processChangeGroupInner(existing, changes, changeField, ch, (ch as PreparedChangesChangesDoc<ChangedObj>).doc._id)
+		} else {
+			const existing = changes.findIndex((c) => (ch as ChangedObj)._id === c.segmentId)
+			processChangeGroupInner(existing, changes, changeField, ch, (ch as ChangedObj)._id)
+		}
+	})
 }
 
-/**
- * Filters out changes to segments that should be rejected and unsyncs segments that have become unsynced.
- * @param rundown Rundown the changes belong to.
- * @param changes Changes to check.
- */
-function processSegmentChangesToReject (rundown: Rundown, changes: PreparedChanges<DBSegment>): string[] {
-	const removeWithSegmentId: string[] = []
-
-	changes.inserted = changes.inserted.filter((segment) => {
-		if (rejectSegmentUpdate(rundown, segment, 'inserted')) {
-			removeWithSegmentId.push(segment._id)
-			ServerRundownAPI.unsync(rundown._id, segment._id)
-			return false
+function processChangeGroupInner <
+	ChangeType extends keyof PreparedChanges<DBSegment>
+> (existing: number, changes: SegmentChanges[], changeField: ChangeType, changedObject: PreparedChangesChangesDoc<DBSegment> | DBSegment, segmentId) {
+	if (existing !== -1) {
+		if (!changes[existing].segment) {
+			changes[existing].segment = {
+				inserted: [],
+				changed: [],
+				removed: [],
+				unchanged: []
+			}
 		}
-		return true
-	})
-
-	changes.removed = changes.removed.filter((segment) => {
-		if (rejectSegmentUpdate(rundown, segment, 'removed')) {
-			removeWithSegmentId.push(segment._id)
-			ServerRundownAPI.unsync(rundown._id, segment._id)
-			return false
-		}
-		return true
-	})
-
-	changes.changed = changes.changed.filter((segment) => {
-		if (rejectSegmentUpdate(rundown, segment.doc, 'changed')) {
-			removeWithSegmentId.push(segment.doc._id)
-			removeWithSegmentId.push(segment.oldId)
-			ServerRundownAPI.unsync(rundown._id, segment.doc._id)
-			ServerRundownAPI.unsync(rundown._id, segment.oldId)
-			return false
-		}
-		return true
-	})
-
-	return removeWithSegmentId
+		
+		changes[existing].segment[changeField].push(changedObject as any)
+	} else {
+		const newChange = makeChangeObj(segmentId)
+		newChange.segment[changeField].push(changedObject as any)
+		changes.push(newChange)
+	}
 }
 
-/**
- * Checks if a segment update should be rejected.
- * @param rundown Rundown the part belongs to.
- * @param existingSegment Segment the part belongs to.
- * @param part Part to update.
- * @param field Type of update.
- */
-function rejectSegmentUpdate (rundown: Rundown, segment: DBSegment, field: keyof PreparedChanges<DBSegment>, existingSegment?: Segment): boolean {
-	return !isUpdateAllowed(rundown, {}, { [field]: [segment] }, {}) || (!!existingSegment && !canBeUpdated(rundown, existingSegment))
-}
-
-/**
- * Filters out changes to parts that should be rejected and unsyncs segments that have become unsynced.
- * @param rundown Rundown the changes belong to.
- * @param changes Changes to check.
- */
-function processPartChangesToReject (rundown: Rundown, changes: PreparedChanges<DBPart>): { partIds: string[], segmentIds: string[] } {
-	const removeWithPartId: string[] = []
-	const removeWithSegmentId: string[] = []
-
-	changes.inserted = changes.inserted.filter((part) => {
-		const existingSegment = Segments.findOne({ _id: part.segmentId })
-		if (removeWithSegmentId.includes(part.segmentId) || rejectPartUpdate(rundown, part, 'inserted', existingSegment)) {
-			removeWithPartId.push(part._id)
-			removeWithSegmentId.push(part.segmentId)
-			ServerRundownAPI.unsync(rundown._id, part.segmentId)
-			return false
+function makeChangeObj (segmentId: string): SegmentChanges {
+	return {
+		segmentId,
+		segment: {
+			inserted: [],
+			changed: [],
+			removed: [],
+			unchanged: []
+		},
+		parts: {
+			inserted: [],
+			changed: [],
+			removed: [],
+			unchanged: []
+		},
+		pieces: {
+			inserted: [],
+			changed: [],
+			removed: [],
+			unchanged: []
+		},
+		adlibPieces: {
+			inserted: [],
+			changed: [],
+			removed: [],
+			unchanged: []
 		}
-		return true
-	})
-
-	changes.removed = changes.removed.filter((part) => {
-		const existingSegment = Segments.findOne({ _id: part.segmentId })
-		if (removeWithSegmentId.includes(part.segmentId) || rejectPartUpdate(rundown, part, 'removed', existingSegment)) {
-			removeWithPartId.push(part._id)
-			removeWithSegmentId.push(part.segmentId)
-			ServerRundownAPI.unsync(rundown._id, part.segmentId)
-			return false
-		}
-		return true
-	})
-
-	changes.changed = changes.changed.filter((part) => {
-		const existingSegment = Segments.findOne({ _id: part.doc.segmentId })
-		if (removeWithSegmentId.includes(part.doc.segmentId) || rejectPartUpdate(rundown, part.doc, 'changed', existingSegment)) {
-			removeWithPartId.push(part.doc._id)
-			removeWithPartId.push(part.oldId)
-			removeWithSegmentId.push(part.doc.segmentId)
-			ServerRundownAPI.unsync(rundown._id, part.doc.segmentId)
-			return false
-		}
-		return true
-	})
-
-	// Perform a second pass to catch parts before an on-air part that may now be in an unsynced segment.
-	changes.inserted = changes.inserted.filter((part) => {
-		if (removeWithSegmentId.includes(part.segmentId)) {
-			removeWithPartId.push(part._id)
-			ServerRundownAPI.unsync(rundown._id, part.segmentId)
-			return false
-		}
-		return true
-	})
-	changes.removed = changes.removed.filter((part) => {
-		if (removeWithSegmentId.includes(part.segmentId)) {
-			removeWithPartId.push(part._id)
-			ServerRundownAPI.unsync(rundown._id, part.segmentId)
-			return false
-		}
-		return true
-	})
-	changes.changed = changes.changed.filter((part) => {
-		if (removeWithSegmentId.includes(part.doc.segmentId)) {
-			removeWithPartId.push(part.doc._id)
-			ServerRundownAPI.unsync(rundown._id, part.doc.segmentId)
-			return false
-		}
-		return true
-	})
-
-	return { partIds: removeWithPartId, segmentIds: removeWithSegmentId }
-}
-
-/**
- * Checks if a part update should be rejected.
- * @param rundown Rundown the part belongs to.
- * @param existingSegment Segment the part belongs to.
- * @param part Part to update.
- * @param field Type of update.
- */
-function rejectPartUpdate (rundown: Rundown, part: DBPart, field: keyof PreparedChanges<Part>, existingSegment?: Segment): boolean {
-	return !isUpdateAllowed(rundown, {}, {}, { [field]: [part] }) || (!!existingSegment && !canBeUpdated(rundown, existingSegment))
+	}
 }
