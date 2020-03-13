@@ -60,7 +60,6 @@ import { extractExpectedPlayoutItems, updateExpectedPlayoutItemsOnRundown } from
 import { ExpectedPlayoutItem, ExpectedPlayoutItems } from '../../../lib/collections/ExpectedPlayoutItems'
 import { Settings } from '../../../lib/Settings'
 import { isArray } from 'util'
-import { number } from 'prop-types'
 
 export enum RundownSyncFunctionPriority {
 	Ingest = 0,
@@ -964,45 +963,6 @@ function printChanges (changes: Optional<PreparedChanges<{_id: string}>>): strin
 	return str
 }
 
-/**
- * Removes parts that have segmentIds specified.
- * @param changes Changes to filter.
- * @param segmentIds Segment Ids to remove.
- */
-function removePartUpdatesBySegmentId(rundown: Rundown, changes: PreparedChanges<DBPart>, segmentIds: string[]): string[] {
-	const partIds: string[] = []
-
-	changes.removed = changes.removed.filter((part) => {
-		if (segmentIds.includes(part.segmentId)) {
-			partIds.push(part._id)
-			ServerRundownAPI.unsync(rundown._id, part.segmentId)
-			return false
-		}
-		return true
-	})
-
-	changes.inserted = changes.inserted.filter((part) => {
-		if (segmentIds.includes(part.segmentId)) {
-			partIds.push(part._id)
-			ServerRundownAPI.unsync(rundown._id, part.segmentId)
-			return false
-		}
-		return true
-	})
-
-	changes.changed = changes.changed.filter((part) => {
-		if (segmentIds.includes(part.doc.segmentId)) {
-			partIds.push(part.doc._id)
-			partIds.push(part.oldId)
-			ServerRundownAPI.unsync(rundown._id, part.doc.segmentId)
-			return false
-		}
-		return true
-	})
-
-	return partIds
-}
-
 type partIdToSegmentId = Map<string, string>
 
 function splitIntoSegments (
@@ -1013,111 +973,25 @@ function splitIntoSegments (
 ): SegmentChanges[] {
 	let changes: SegmentChanges[] = []
 
-	processChangeGroup(changes, prepareSaveSegments, 'changed')
-	processChangeGroup(changes, prepareSaveSegments, 'inserted')
-	processChangeGroup(changes, prepareSaveSegments, 'removed')
-	processChangeGroup(changes, prepareSaveSegments, 'unchanged')
+	groupSegmentChanges(changes, prepareSaveSegments, 'changed')
+	groupSegmentChanges(changes, prepareSaveSegments, 'inserted')
+	groupSegmentChanges(changes, prepareSaveSegments, 'removed')
+	groupSegmentChanges(changes, prepareSaveSegments, 'unchanged')
 
-	const partsToSegments: partIdToSegmentId = new Map()
+	let partsToSegments: partIdToSegmentId = new Map()
 
-	prepareSaveParts.changed.forEach((part) => {
-		partsToSegments.set(part.doc._id, part.doc.segmentId)
-		const index = changes.findIndex((c) => c.segmentId === part.doc.segmentId)
-		if (index === -1) {
-			const newChange = makeChangeObj(part.doc.segmentId)
-			newChange.parts.changed.push(part)
-			changes.push(newChange)
-		} else {			
-			changes[index].parts.changed.push(part)
-		}
-	});
+	partsToSegments = groupPartChanges(prepareSaveParts, partsToSegments, changes)
 
-	['removed', 'inserted', 'unchanged'].forEach((change: keyof Omit<PreparedChanges<DBPart>, 'changed'>) => {
-		prepareSaveParts[change].forEach((part: DBPart) => {
-			partsToSegments.set(part._id, part.segmentId)
-			const index = changes.findIndex((c) => c.segmentId === part.segmentId)
-			if (index === -1) {
-				const newChange = makeChangeObj(part.segmentId)
-				newChange.parts[change].push(part)
-				changes.push(newChange)
-			} else {				
-				changes[index].parts[change].push(part)
-			}
-		})
-	})
+	console.log(JSON.stringify(partsToSegments))
 
-	for (const piece of prepareSavePieces.changed) {
-		const segmentId = partsToSegments.get(piece.doc.partId)
-		if (!segmentId) {
-			logger.warning(`SegmentId could not be found when trying to modify piece ${piece.doc._id}`)
-			break  // In theory this shouldn't happen, but reject 'orphaned' changes
-		}
-		const index = changes.findIndex((c) => c.segmentId === segmentId)
-		if (index === -1) {
-			const newChange = makeChangeObj(segmentId)
-			newChange.pieces.changed.push(piece)
-			changes.push(newChange)
-		} else {			
-			changes[index].pieces.changed.push(piece)
-		}
-	}
+	groupPieceChanges(prepareSavePieces, partsToSegments, changes)
 
-	['removed', 'inserted', 'unchanged'].forEach((change: keyof Omit<PreparedChanges<Piece>, 'changed'>) => {
-		for (const piece of prepareSavePieces[change]) {
-			const segmentId = partsToSegments.get(piece.partId)
-			if (!segmentId) {
-				logger.warning(`SegmentId could not be found when trying to modify piece ${piece._id}`)
-				break  // In theory this shouldn't happen, but reject 'orphaned' changes
-			}
-			const index = changes.findIndex((c) => c.segmentId === segmentId)
-			if (index === -1) {
-				const newChange = makeChangeObj(segmentId)
-				newChange.pieces[change].push(piece)
-				changes.push(newChange)
-			} else {
-				changes[index].pieces[change].push(piece)
-			}
-		}
-	})
-
-	for (const adlib of prepareSaveAdLibPieces.changed) {
-		const segmentId = partsToSegments.get(adlib.doc.partId || '')
-		if (!segmentId) {
-			logger.warning(`SegmentId could not be found when trying to modify adlib ${adlib.doc._id}`)
-			break  // In theory this shouldn't happen, but reject 'orphaned' changes
-		}
-		const index = changes.findIndex((c) => c.segmentId === segmentId)
-		if (index === -1) {
-			const newChange = makeChangeObj(segmentId)
-			newChange.adlibPieces.changed.push(adlib)
-			changes.push(newChange)
-		} else {			
-			changes[index].adlibPieces.changed.push(adlib)
-		}
-	}
-
-	['removed', 'inserted', 'unchanged'].forEach((change: keyof Omit<PreparedChanges<AdLibPiece>, 'changed'>) => {
-		for (const piece of prepareSaveAdLibPieces[change]) {
-			const segmentId = partsToSegments.get(piece.partId || '')
-			if (!segmentId) {
-				logger.warning(`SegmentId could not be found when trying to modify adlib ${piece._id}`)
-				break  // In theory this shouldn't happen, but reject 'orphaned' changes
-			}
-			const index = changes.findIndex((c) => c.segmentId === segmentId)
-			if (index === -1) {
-				const newChange = makeChangeObj(segmentId)
-				newChange.adlibPieces[change].push(piece)
-				changes.push(newChange)
-			} else {
-				changes[index].adlibPieces[change].push(piece)
-			}
-		}
-	})
+	groupAdlibChanges(prepareSaveAdLibPieces, partsToSegments, changes)
 
 	return changes
 }
 
-function processChangeGroup <
+function groupSegmentChanges <
 	ChangeType extends keyof PreparedChanges<DBSegment>,
 	ChangedObj extends DBSegment | DBPart | Piece | AdLibPiece
 > (
@@ -1129,32 +1003,148 @@ function processChangeGroup <
 	subset.forEach((ch) => {
 		if (changeField === 'changed') {
 			const existing = changes.findIndex((c) => (ch as PreparedChangesChangesDoc<ChangedObj>).doc._id === c.segmentId)
-			processChangeGroupInner(existing, changes, changeField, ch, (ch as PreparedChangesChangesDoc<ChangedObj>).doc._id)
+			processSegmentChangeGroupInner(existing, changes, changeField, ch, (ch as PreparedChangesChangesDoc<ChangedObj>).doc._id)
 		} else {
 			const existing = changes.findIndex((c) => (ch as ChangedObj)._id === c.segmentId)
-			processChangeGroupInner(existing, changes, changeField, ch, (ch as ChangedObj)._id)
+			processSegmentChangeGroupInner(existing, changes, changeField, ch, (ch as ChangedObj)._id)
 		}
 	})
 }
 
-function processChangeGroupInner <
-	ChangeType extends keyof PreparedChanges<DBSegment>
-> (existing: number, changes: SegmentChanges[], changeField: ChangeType, changedObject: PreparedChangesChangesDoc<DBSegment> | DBSegment, segmentId) {
-	if (existing !== -1) {
-		if (!changes[existing].segment) {
-			changes[existing].segment = {
-				inserted: [],
-				changed: [],
-				removed: [],
-				unchanged: []
-			}
+function groupPartChanges (
+	prepareSaveParts: PreparedChanges<DBPart>,
+	partsToSegments: Map<string, string>,
+	changes: SegmentChanges[]
+): Map<string, string> {
+	return groupAdlibsPiecesPartsInner(prepareSaveParts, partsToSegments, changes, 'parts')
+}
+
+function groupPieceChanges (
+	prepareSavePieces: PreparedChanges<Piece>,
+	partsToSegments: Map<string, string>,
+	changes: SegmentChanges[]
+): Map<string, string> {
+	return groupAdlibsPiecesPartsInner(prepareSavePieces, partsToSegments, changes, 'pieces')
+}
+
+function groupAdlibChanges (
+	prepareSaveAdLibPieces: PreparedChanges<AdLibPiece>,
+	partsToSegments: Map<string, string>,
+	changes: SegmentChanges[]
+): Map<string, string> {
+	return groupAdlibsPiecesPartsInner(prepareSaveAdLibPieces, partsToSegments, changes, 'adlibPieces')
+}
+
+type FieldType<S> = S extends PreparedChanges<AdLibPiece> ? 'adlibPieces' : S extends PreparedChanges<Piece> ? 'pieces' : 'parts'
+
+function groupAdlibsPiecesPartsInner <
+	S extends PreparedChanges<AdLibPiece | Piece | DBPart>
+> (
+	prepareSaveChanges: S,
+	partsToSegments: Map<string, string>,
+	changes: SegmentChanges[],
+	field: FieldType<S>
+): Map<string, string> {
+	for (const changedObj of prepareSaveChanges.changed) {
+		const segmentId = field === 'parts' ? 
+			(changedObj.doc as DBPart).segmentId :
+			partsToSegments.get((changedObj.doc as AdLibPiece | Piece).partId || '')
+		if (!segmentId) {
+			logger.warning(`SegmentId could not be found when trying to modify ${field} ${changedObj.doc._id}`)
+			continue  // In theory this shouldn't happen, but reject 'orphaned' changes
 		}
-		
-		changes[existing].segment[changeField].push(changedObject as any)
-	} else {
+		if (field === 'parts') {
+			partsToSegments.set((changedObj.doc as DBPart)._id, segmentId)
+		}
+		const index = changes.findIndex((c) => c.segmentId === segmentId)
+		addChange(index, segmentId, changedObj, field, changes, 'changed')
+	}
+
+	['removed', 'inserted', 'unchanged'].forEach((changeType: keyof Omit<PreparedChanges<S>, 'changed'>) => {
+		for (const changedObj of prepareSaveChanges[changeType]) {
+			const segmentId = field === 'parts' ? 
+				(changedObj as DBPart).segmentId :
+				partsToSegments.get((changedObj as AdLibPiece | Piece).partId || '')
+			if (!segmentId) {
+				logger.warning(`SegmentId could not be found when trying to modify ${field} ${changedObj._id}`)
+				continue  // In theory this shouldn't happen, but reject 'orphaned' changes
+			}
+			if (field === 'parts') {
+				partsToSegments.set((changedObj as DBPart)._id, segmentId)
+			}
+			const index = changes.findIndex((c) => c.segmentId === segmentId)
+			addChange(index, segmentId, changedObj, field, changes, changeType)
+		}
+	})
+
+	return partsToSegments
+}
+
+function addChange <
+	T extends AdLibPiece | Piece | DBPart,
+	ChangedObjType extends T | PreparedChangesChangesDoc<T>
+> (
+	index: number,
+	segmentId: string,
+	changedObj: ChangedObjType,
+	field: FieldType<T>,
+	changes:  SegmentChanges[],
+	changeType: keyof SegmentChanges['segment']
+) {
+	if (index === -1) {
 		const newChange = makeChangeObj(segmentId)
-		newChange.segment[changeField].push(changedObject as any)
 		changes.push(newChange)
+		index = changes.length - 1
+	}
+
+	if (field === 'adlibPieces') {
+		if (changeType === 'changed') {
+			changes[index].adlibPieces.changed.push(changedObj as unknown as PreparedChangesChangesDoc<AdLibPiece>)
+		} else {
+			changes[index].adlibPieces[changeType].push(changedObj as unknown as AdLibPiece)
+		}
+	} if (field === 'pieces') {
+		if (changeType === 'changed') {
+			changes[index].pieces.changed.push(changedObj as unknown as PreparedChangesChangesDoc<Piece>)
+		} else {
+			changes[index].pieces[changeType].push(changedObj as unknown as Piece)
+		}
+	} else {
+		if (changeType === 'changed') {
+			changes[index].parts.changed.push(changedObj as unknown as PreparedChangesChangesDoc<DBPart>)
+		} else {
+			changes[index].parts[changeType].push(changedObj as unknown as DBPart)
+
+		}
+	}
+}
+
+function processSegmentChangeGroupInner (
+	index: number,
+	changes: SegmentChanges[],
+	changeType: keyof SegmentChanges['segment'],
+	changedObject: PreparedChangesChangesDoc<DBSegment> | DBSegment,
+	segmentId: string
+) {
+	if (index === -1) {
+		const newChange = makeChangeObj(segmentId)
+		changes.push(newChange)
+		index = changes.length - 1
+	}
+	
+	if (!changes[index].segment) {
+		changes[index].segment = {
+			inserted: [],
+			changed: [],
+			removed: [],
+			unchanged: []
+		}
+	}
+
+	if (changeType === 'changed') {
+		changes[index].segment.changed.push(changedObject as unknown as PreparedChangesChangesDoc<DBSegment>)
+	} else {
+		changes[index].segment[changeType].push(changedObject as unknown as DBSegment)
 	}
 }
 
