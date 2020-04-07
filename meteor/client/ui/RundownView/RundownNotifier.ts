@@ -328,7 +328,7 @@ class RundownViewNotifier extends WithManagedTracker {
 			const newNoteIds: Array<string> = []
 			getSegmentPartNotes(rRundownId).forEach((item: PartNote & {rank: number}) => {
 				const id = item.message + '-' + (item.origin.pieceId || item.origin.partId || item.origin.segmentId || item.origin.rundownId) + '-' + item.origin.name + '-' + item.type
-				let newNotification = new Notification(id, item.type === NoteType.ERROR ? NoticeLevel.CRITICAL : NoticeLevel.WARNING, (item.origin.name ? item.origin.name + ': ' : '') + item.message, item.origin.segmentId || 'unknown', getCurrentTime(), true, [
+				let newNotification = new Notification(id, item.type === NoteType.ERROR ? NoticeLevel.CRITICAL : NoticeLevel.WARNING, (item.origin.name ? [item.origin.name + ': ', item.message] : [item.message]), item.origin.segmentId || 'unknown', getCurrentTime(), true, [
 					{
 						label: t('Show issue'),
 						type: 'default'
@@ -532,13 +532,13 @@ class RundownViewNotifier extends WithManagedTracker {
 		}
 	}
 
-	private makeDeviceMessage (device: PeripheralDevice): string {
+	private makeDeviceMessage (device: PeripheralDevice): Array<string> {
 		const t = i18nTranslator
 
 		if (!device.connected) {
-			return t('Device {{deviceName}} is disconnected', { deviceName: device.name })
+			return [t('Device {{deviceName}} is disconnected', { deviceName: device.name })]
 		}
-		return `${device.name}: ` + (device.status.messages || ['']).join(', ')
+		return [device.name, ...(device.status.messages || [])]
 	}
 }
 

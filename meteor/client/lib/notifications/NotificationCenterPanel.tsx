@@ -5,10 +5,13 @@ import * as VelocityReact from 'velocity-react'
 import * as Velocity from 'velocity-animate'
 import { translateWithTracker, Translated, withTracker } from '../ReactMeteorData/ReactMeteorData'
 import { MeteorReactComponent } from '../MeteorReactComponent'
-import { NotificationCenter, Notification, NoticeLevel, NotificationAction } from './notifications'
+import { NotificationCenter, Notification, NoticeLevel, NotificationAction, NotificationMessage, NotificationMessageType } from './notifications'
 import { sofieWarningIcon as WarningIcon } from './warningIcon'
 import { ContextMenuTrigger, ContextMenu, MenuItem } from 'react-contextmenu'
 import * as _ from 'underscore'
+import * as markdownit from 'markdown-it'
+import * as AdaptiveCards from 'adaptivecards'
+import { AdaptiveCard } from './AdaptiveCard'
 
 interface IPopUpProps {
 	item: Notification
@@ -64,22 +67,25 @@ class NotificationPopUp extends React.Component<IPopUpProps> {
 				<WarningIcon />
 			</div>
 			<div className='notification-pop-up__contents'>
-				{item.message}
-				{(
-					!defaultAction && allActions.length ?
-						<div className='notification-pop-up__actions'>
-							{_.map(allActions, (action: NotificationAction, i: number) => {
-								return (
-									<button key={i} className={ClassNames('btn', (
-										['default', 'primary'].indexOf(action.type) ? 'btn-primary' : 'btn-default'
-									))} onClick={e => this.triggerEvent(action, e)}>
-										{action.label}
-									</button>
-								)
-							})}
-						</div>
-						: null
-				)}
+				{_.map(item.messages, (message: NotificationMessage, i: number) => {
+					return message.type === NotificationMessageType.DEFAULT ?
+						<div key={i}>{message.content}</div> :
+						<AdaptiveCard key={i} payload={message.content}/>
+				})}
+				{!defaultAction && allActions.length ?
+					<div className='notification-pop-up__actions'>
+						{_.map(allActions, (action: NotificationAction, i: number) => {
+							return (
+								<button key={i} className={ClassNames('btn', (
+									['default', 'primary'].indexOf(action.type) ? 'btn-primary' : 'btn-default'
+								))} onClick={e => this.triggerEvent(action, e)}>
+									{action.label}
+								</button>
+							)
+						})}
+					</div>
+					: null
+				}
 			</div>
 			{this.props.showDismiss &&
 				<ContextMenuTrigger id='context-menu-dissmiss-all' attributes={{ className: 'notification-pop-up__dismiss' }}>
@@ -132,6 +138,15 @@ export const NotificationCenterPopUps = translateWithTracker<IProps, IState, ITr
 		highlightedLevel: NotificationCenter.getHighlightedLevel()
 	}
 })(class NotificationCenterPopUps extends MeteorReactComponent<Translated<IProps & ITrackedProps>, IState> {
+	private _hostConfig: AdaptiveCards.HostConfig
+
+	componentWillMount () {
+		AdaptiveCards.AdaptiveCard.onProcessMarkdown = (text, result) => {
+			result.outputHtml = new markdownit().render(text)
+			result.didProcess = true
+		}
+	}
+
 	dismissNotification (item: Notification) {
 		if (item.persistent) {
 			item.snooze()
@@ -192,7 +207,7 @@ export const NotificationCenterPopUps = translateWithTracker<IProps, IState, ITr
 	render () {
 		const { t, highlightedSource, highlightedLevel } = this.props
 		const displayList = this.props.notifications.filter(i => this.props.showSnoozed || !i.snoozed).sort((a, b) => Notification.compare(a, b)).map(item => (
-			<NotificationPopUp key={item.created + (item.message || 'undefined').toString() + (item.id || '')}
+			<NotificationPopUp key={item.created + (item.messages[0] || 'undefined').toString() + (item.id || '')}
 				item={item} onDismiss={() => this.dismissNotification(item)}
 				showDismiss={!item.persistent || !this.props.showSnoozed}
 				isHighlighted={item.source === highlightedSource && item.status === highlightedLevel} />

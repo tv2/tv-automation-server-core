@@ -8,6 +8,7 @@ import { Random } from 'meteor/random'
 import { EventEmitter } from 'events'
 import { Time } from '../../../lib/lib'
 import { HTMLAttributes } from 'react'
+import { isArray } from 'util'
 
 /**
  * Priority level for Notifications.
@@ -290,6 +291,21 @@ class NotificationCenter0 {
 
 export const NotificationCenter = new NotificationCenter0()
 
+export const enum NotificationMessageType {
+	DEFAULT = 'default',
+	ADAPTIVE = 'adaptive'
+}
+
+export interface NotificationMessage {
+	type: NotificationMessageType
+	content: string | React.ReactElement<HTMLElement> | null | AdaptiveCard
+}
+
+export interface AdaptiveCard {
+	type: 'AdaptiveCard'
+	[index: string]: any
+}
+
 /**
  * A Notification that can be presented to the user
  *
@@ -300,7 +316,7 @@ export const NotificationCenter = new NotificationCenter0()
 export class Notification extends EventEmitter {
 	id: string | undefined
 	status: NoticeLevel
-	message: string | React.ReactElement<HTMLElement> | null
+	messages: Array<NotificationMessage>
 	source: string
 	persistent?: boolean
 	timeout?: number
@@ -312,7 +328,7 @@ export class Notification extends EventEmitter {
 	constructor (
 		id: string | undefined,
 		status: NoticeLevel,
-		message: string | React.ReactElement<HTMLElement> | null,
+		messages: string | React.ReactElement<HTMLElement> | AdaptiveCard | null | Array<string | React.ReactElement<HTMLElement> | AdaptiveCard | null>,
 		source: string,
 		created?: Time,
 		persistent?: boolean,
@@ -324,7 +340,26 @@ export class Notification extends EventEmitter {
 
 		this.id = id
 		this.status = status
-		this.message = message
+		messages = isArray(messages) ? messages : [messages]
+		this.messages = messages.map(message => {
+			if (typeof message === 'string') {
+				try {
+					message = JSON.parse(message)
+				} catch (_e) {
+					message = message
+				}
+			}
+			if (message && typeof message === 'object' && message['type'] === 'AdaptiveCard') {
+				return {
+					type: NotificationMessageType.ADAPTIVE,
+					content: message
+				}
+			}
+			return {
+				type: NotificationMessageType.DEFAULT,
+				content: message
+			}
+		})
 		this.source = source
 		this.persistent = persistent || false
 		this.actions = actions || undefined
