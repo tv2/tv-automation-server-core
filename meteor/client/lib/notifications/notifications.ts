@@ -342,17 +342,20 @@ export class Notification extends EventEmitter {
 		this.status = status
 		messages = isArray(messages) ? messages : [messages]
 		this.messages = messages.map(message => {
+			let parsedMessage: any
 			if (typeof message === 'string') {
 				try {
-					message = JSON.parse(message)
-				} catch (_e) {
-					message = message
+					parsedMessage = JSON.parse(message)
+				} catch (e) {
+					parsedMessage = message
 				}
+			} else if (typeof message === 'object') {
+				parsedMessage = message
 			}
-			if (message && typeof message === 'object' && message['type'] === 'AdaptiveCard') {
+			if (parsedMessage && typeof parsedMessage === 'object' && parsedMessage['type'] === 'AdaptiveCard') {
 				return {
 					type: NotificationMessageType.ADAPTIVE,
-					content: message
+					content: parsedMessage
 				}
 			}
 			return {
