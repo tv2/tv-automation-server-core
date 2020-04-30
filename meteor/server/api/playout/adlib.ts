@@ -22,6 +22,7 @@ import { rundownPlaylistSyncFunction, RundownSyncFunctionPriority } from '../ing
 
 import { PieceInstances, PieceInstance, PieceInstanceId } from '../../../lib/collections/PieceInstances'
 import { PartInstances, PartInstance, PartInstanceId } from '../../../lib/collections/PartInstances'
+import { ShowStyleBases } from '../../../lib/collections/ShowStyleBases'
 
 export namespace ServerPlayoutAdLibAPI {
 	export function pieceTakeNow (rundownPlaylistId: RundownPlaylistId, partInstanceId: PartInstanceId, pieceInstanceIdOrPieceIdToCopy: PieceInstanceId | PieceId) {
@@ -221,8 +222,35 @@ export namespace ServerPlayoutAdLibAPI {
 		Pieces.insert(newPieceInstance.piece)
 
 		if (queue) {
-			// Update any infinites
-			updateSourceLayerInfinitesAfterPart(rundown, previousPartInstance!.part)
+			// Remove pieces that are in the same exclusivity group / source layer, if parts have been merged
+			if (adLibPiece.canCombineQueue && partInstance.part.canCombineQueue) {
+				const showStyle = ShowStyleBases.findOne({ _id: rundown.showStyleBaseId })
+				if (!showStyle) throw new Meteor.Error(`Could not find showstyle base with Id "${rundown.showStyleBaseId}"`)
+
+				const adlibPieceSourceLayer = showStyle.sourceLayers.find((layer) => layer._id === adLibPiece.sourceLayerId)
+				if (!adlibPieceSourceLayer) throw new Meteor.Error(`Could not find source layer "${adLibPiece.sourceLayerId}" for piece with Id "${adLibPiece._id}"`)
+
+				const pieces = PieceInstances.find({
+					_id: { $ne: newPieceInstance._id },
+					partInstanceId
+				})
+
+				pieces.forEach(piece => {
+					const sourceLayer = showStyle.sourceLayers.find((layer) => layer._id === piece.piece.sourceLayerId)
+					if (!sourceLayer) throw new Meteor.Error(`Could not find source layer "${piece.piece.sourceLayerId}" for piece with Id "${piece._id}"`)
+
+					if (
+						adLibPiece.sourceLayerId === piece.piece.sourceLayerId ||
+						(
+							sourceLayer.exclusiveGroup &&
+							adlibPieceSourceLayer.exclusiveGroup &&
+							sourceLayer.exclusiveGroup === adlibPieceSourceLayer.exclusiveGroup
+						)
+					) {
+						PieceInstances.remove({ _id: piece._id })
+					}
+				})
+			}
 
 			// Copy across adlib-preroll and other properties needed on the part
 			if (adLibPiece.adlibPreroll !== undefined) {
@@ -284,7 +312,7 @@ export namespace ServerPlayoutAdLibAPI {
 		}, {
 			sort: { _rank: -1, _id: -1 }
 		})
-		if (alreadyQueuedPartInstance) {
+		if (alreadyQueuedPartInstance && (!adLibPiece.canCombineQueue || !alreadyQueuedPartInstance.part.canCombineQueue)) {
 			if (rundownPlaylist.currentPartInstanceId !== alreadyQueuedPartInstance._id) {
 				Parts.remove(alreadyQueuedPartInstance.part._id)
 				PartInstances.remove(alreadyQueuedPartInstance._id)
@@ -292,30 +320,35 @@ export namespace ServerPlayoutAdLibAPI {
 			}
 		}
 
-		const newPartInstanceId = protectString<PartInstanceId>(Random.id())
-		const newPart = literal<DBPart>({
-			_id: getRandomId(),
-			_rank: 99999, // something high, so it will be placed after current part. The rank will be updated later to its correct value
-			externalId: '',
-			segmentId: afterPartInstance.segmentId,
-			rundownId: rundown._id,
-			title: adLibPiece.name,
-			dynamicallyInserted: true,
-			afterPart: afterPartInstance.part.afterPart || afterPartInstance.part._id,
-			typeVariant: 'adlib',
-			prerollDuration: adLibPiece.adlibPreroll,
-			expectedDuration: adLibPiece.expectedDuration
-		})
-		PartInstances.insert({
-			_id: newPartInstanceId,
-			rundownId: newPart.rundownId,
-			segmentId: newPart.segmentId,
-			takeCount: afterPartInstance.takeCount + 1,
-			part: new Part(newPart)
-		})
+		let newPartInstanceId = protectString<PartInstanceId>(Random.id())
 
-		// TODO-PartInstance - pending new data flow
-		Parts.insert(newPart)
+		if (alreadyQueuedPartInstance && adLibPiece.canCombineQueue && alreadyQueuedPartInstance.part.canCombineQueue) {
+			newPartInstanceId = alreadyQueuedPartInstance._id
+		} else {
+			const newPart = literal<DBPart>({
+				_id: getRandomId(),
+				_rank: 99999, // something high, so it will be placed after current part. The rank will be updated later to its correct value
+				externalId: '',
+				segmentId: afterPartInstance.segmentId,
+				rundownId: rundown._id,
+				title: adLibPiece.name,
+				dynamicallyInserted: true,
+				afterPart: afterPartInstance.part.afterPart || afterPartInstance.part._id,
+				typeVariant: 'adlib',
+				prerollDuration: adLibPiece.adlibPreroll,
+				expectedDuration: adLibPiece.expectedDuration,
+				canCombineQueue: adLibPiece.canCombineQueue
+			})
+			PartInstances.insert({
+				_id: newPartInstanceId,
+				rundownId: newPart.rundownId,
+				segmentId: newPart.segmentId,
+				takeCount: afterPartInstance.takeCount + 1,
+				part: new Part(newPart)
+			})
+			// TODO-PartInstance - pending new data flow
+			Parts.insert(newPart)
+		}
 
 		updatePartRanks(rundown) // place in order
 

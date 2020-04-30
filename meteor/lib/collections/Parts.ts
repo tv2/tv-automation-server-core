@@ -68,6 +68,7 @@ export interface DBPart extends ProtectedStringProperties<IBlueprintPartDB, '_id
 	runtimeArguments?: BlueprintRuntimeArguments
 	/** An part should be marked as `dirty` if the part blueprint has been injected with runtimeArguments */
 	dirty?: boolean
+	canCombineQueue?: boolean
 }
 export interface PartTimings extends IBlueprintPartDBTimings {
 	/** The playback offset that was set for the last take */
@@ -106,6 +107,7 @@ export class Part implements DBPart {
 	}
 	public floated?: boolean
 	public gap?: boolean
+	public canCombineQueue?: boolean
 	// From IBlueprintPartDB:
 	public _id: PartId
 	public segmentId: SegmentId
