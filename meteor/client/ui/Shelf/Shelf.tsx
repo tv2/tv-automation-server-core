@@ -31,6 +31,7 @@ import { DashboardActionButtonGroup } from './DashboardActionButtonGroup'
 import { KeyboardPreviewPanel } from './KeyboardPreviewPanel'
 import { Settings } from '../../../lib/Settings'
 import { AdLibRegionPanel } from './AdLibRegionPanel'
+import { PartCountdownPanel } from './PartCountdownPanel'
 
 export enum ShelfTabs {
 	ADLIB = 'adlib',
@@ -475,6 +476,14 @@ export class ShelfBase extends React.Component<Translated<ShelfProps>, IState> {
 							adlibRank={panel.adlibRank}
 							visible={true}
 							{...this.props}
+							/> :
+					RundownLayoutsAPI.isPartCountdown(panel) ?
+						<PartCountdownPanel
+							key={panel._id}
+							panel={panel}
+							layout={rundownLayout}
+							visible={true}
+							rundown={this.props.rundown}
 							/> :
 					RundownLayoutsAPI.isKeyboardMap(panel) ?
 						<KeyboardPreviewPanel
