@@ -57,11 +57,12 @@ export const MicSourceRenderer = translate()(class extends CustomLayerItemRender
 				scriptReadTime = content.sourceDuration * this.props.timeScale
 				this.readTime = content.sourceDuration
 				const positionByReadTime = this.itemPosition + scriptReadTime
-				const positionByPartEnd = (this.props.part.expectedDuration || this.props.partDuration) * this.props.timeScale
+				const positionByPartEnd = this.props.partDuration * this.props.timeScale
+				const positionByExpectedPartEnd = (this.props.part.expectedDuration || this.props.partDuration) * this.props.timeScale
 				if (positionByReadTime !== this.linePosition) {
 					this.linePosition = Math.min(positionByReadTime, positionByPartEnd)
 					this.repositionLine()
-					if (Math.abs(positionByReadTime - positionByPartEnd) <= 1) {
+					if (Math.abs(positionByReadTime - positionByExpectedPartEnd) <= 1) {
 						this.addClassToLine('at-end')
 					} else {
 						this.removeClassFromLine('at-end')
