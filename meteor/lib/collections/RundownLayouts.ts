@@ -62,6 +62,7 @@ export interface RundownLayoutAdLibRegion extends RundownLayoutElementBase {
 	role: RundownLayoutAdLibRegionRole
 	adlibRank: number
 	labelBelowPanel: boolean
+	thumbnailSourceLayerIds: string[] | undefined
 }
 
 /**

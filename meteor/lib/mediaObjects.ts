@@ -4,6 +4,7 @@ import {
 	SourceLayerType,
 	ISourceLayer,
 	IBlueprintPieceGeneric,
+	GraphicsContent,
 } from 'tv-automation-sofie-blueprints-integration'
 import { RundownAPI } from './api/rundown'
 import { MediaObjects, MediaInfo, MediaObject, FieldOrder, MediaStream, Anomaly } from './collections/MediaObjects'
@@ -105,6 +106,11 @@ export function getMediaObjectMediaId(piece: IBlueprintPieceGeneric, sourceLayer
 				return (piece.content as VTContent).fileName.toUpperCase()
 			}
 			return undefined
+		case SourceLayerType.GRAPHICS:
+			if (piece.content && piece.content.fileName) {
+				return (piece.content as GraphicsContent).fileName.toUpperCase()
+			}
+			return undefined
 	}
 	return undefined
 }
@@ -125,12 +131,13 @@ export function checkPieceContentStatus(
 
 	const ignoreMediaStatus = piece.content && piece.content.ignoreMediaObjectStatus
 	if (!ignoreMediaStatus && sourceLayer) {
+		const messages: Array<string> = []
+		const displayName = piece.name
+		const fileName = getMediaObjectMediaId(piece, sourceLayer)
 		switch (sourceLayer.type) {
 			case SourceLayerType.VT:
 			case SourceLayerType.LIVE_SPEAK:
-				const fileName = getMediaObjectMediaId(piece, sourceLayer)
-				const displayName = piece.name
-				const messages: Array<string> = []
+				// case SourceLayerType.TRANSITION:
 				// If the fileName is not set...
 				if (!fileName) {
 					newStatus = RundownAPI.PieceStatusCode.SOURCE_NOT_SET
@@ -265,17 +272,31 @@ export function checkPieceContentStatus(
 						metadata = mediaObject
 					}
 				}
-
-				if (messages.length) {
-					if (newStatus === RundownAPI.PieceStatusCode.OK) {
-						newStatus = RundownAPI.PieceStatusCode.SOURCE_BROKEN
-					}
-					message = t('{{displayName}}: {{messages}}', {
-						displayName: displayName,
-						messages: messages.join(', '),
+				break
+			case SourceLayerType.GRAPHICS:
+				if (fileName) {
+					const mediaObject = MediaObjects.findOne({
+						mediaId: fileName,
 					})
+					if (!mediaObject) {
+						newStatus = RundownAPI.PieceStatusCode.SOURCE_MISSING
+						messages.push(t('Source is missing', { fileName: displayName }))
+					} else {
+						newStatus = RundownAPI.PieceStatusCode.OK
+						metadata = mediaObject
+					}
 				}
 				break
+		}
+
+		if (messages.length) {
+			if (newStatus === RundownAPI.PieceStatusCode.OK) {
+				newStatus = RundownAPI.PieceStatusCode.SOURCE_BROKEN
+			}
+			message = t('{{displayName}}: {{messages}}', {
+				displayName: displayName,
+				messages: messages.join(', '),
+			})
 		}
 	}
 
