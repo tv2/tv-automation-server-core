@@ -640,7 +640,13 @@ export const GlobalAdLibPanel = translateWithTracker<IProps, IState, ITrackedPro
 				if (adlibPiece.isAction && adlibPiece.adlibAction) {
 					const action = adlibPiece.adlibAction
 					doUserAction(t, e, UserAction.START_GLOBAL_ADLIB, (e) =>
-						MeteorCall.userAction.executeAction(e, this.props.playlist._id, action.actionId, action.userData)
+						MeteorCall.userAction.executeAction(
+							e,
+							this.props.playlist._id,
+							adlibPiece._id,
+							action.actionId,
+							action.userData
+						)
 					)
 				} else {
 					doUserAction(t, e, UserAction.START_GLOBAL_ADLIB, (e) =>

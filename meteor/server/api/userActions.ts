@@ -384,8 +384,14 @@ export function pieceSetInOutPoints(
 		.then(() => ClientAPI.responseSuccess(undefined))
 		.catch((error) => ClientAPI.responseError(error))
 }
-export function executeAction(rundownPlaylistId: RundownPlaylistId, actionId: string, userData: any) {
+export function executeAction(
+	rundownPlaylistId: RundownPlaylistId,
+	adLibPieceId: PieceId,
+	actionId: string,
+	userData: any
+) {
 	check(rundownPlaylistId, String)
+	check(adLibPieceId, String)
 	check(actionId, String)
 	check(userData, Match.Any)
 
@@ -396,7 +402,9 @@ export function executeAction(rundownPlaylistId: RundownPlaylistId, actionId: st
 	if (!playlist.currentPartInstanceId)
 		return ClientAPI.responseError(`No part is playing, please Take a part before executing an action.`)
 
-	return ClientAPI.responseSuccess(ServerPlayoutAPI.executeAction(rundownPlaylistId, actionId, userData))
+	return ClientAPI.responseSuccess(
+		ServerPlayoutAPI.executeAction(rundownPlaylistId, adLibPieceId, actionId, userData)
+	)
 }
 export function segmentAdLibPieceStart(
 	rundownPlaylistId: RundownPlaylistId,
@@ -779,10 +787,11 @@ class ServerUserActionAPI implements NewUserActionAPI {
 	executeAction(
 		_userEvent: string,
 		rundownPlaylistId: RundownPlaylistId,
+		adLibPieceId: PieceId,
 		actionId: string,
 		userData: ActionUserData
 	) {
-		return makePromise(() => executeAction(rundownPlaylistId, actionId, userData))
+		return makePromise(() => executeAction(rundownPlaylistId, adLibPieceId, actionId, userData))
 	}
 	segmentAdLibPieceStart(
 		_userEvent: string,

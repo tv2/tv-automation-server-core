@@ -1374,9 +1374,15 @@ export namespace ServerPlayoutAPI {
 
 		return ServerPlayoutAdLibAPI.sourceLayerStickyPieceStart(rundownPlaylistId, sourceLayerId)
 	}
-	export function executeAction(rundownPlaylistId: RundownPlaylistId, actionId: string, userData: any) {
+	export function executeAction(
+		rundownPlaylistId: RundownPlaylistId,
+		adLibPieceId: PieceId,
+		actionId: string,
+		userData: any
+	) {
 		check(rundownPlaylistId, String)
 		check(actionId, String)
+		check(adLibPieceId, String)
 		check(userData, Match.Any)
 
 		return executeActionInner(rundownPlaylistId, (context, cache, rundown) => {
@@ -1387,7 +1393,7 @@ export namespace ServerPlayoutAPI {
 
 			logger.info(`Executing AdlibAction "${actionId}": ${JSON.stringify(userData)}`)
 
-			blueprint.blueprint.executeAction(context, actionId, userData)
+			blueprint.blueprint.executeAction(context, unprotectString(adLibPieceId), actionId, userData)
 		})
 	}
 

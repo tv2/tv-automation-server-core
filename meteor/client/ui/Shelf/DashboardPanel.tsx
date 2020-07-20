@@ -424,7 +424,13 @@ export class DashboardPanelInner extends MeteorReactComponent<
 				if (adlibPiece.isAction && adlibPiece.adlibAction) {
 					const action = adlibPiece.adlibAction
 					doUserAction(t, e, adlibPiece.isGlobal ? UserAction.START_GLOBAL_ADLIB : UserAction.START_ADLIB, (e) =>
-						MeteorCall.userAction.executeAction(e, this.props.playlist._id, action.actionId, action.userData)
+						MeteorCall.userAction.executeAction(
+							e,
+							this.props.playlist._id,
+							adlibPiece._id,
+							action.actionId,
+							action.userData
+						)
 					)
 				} else if (!adlibPiece.isGlobal && !adlibPiece.isAction) {
 					doUserAction(t, e, UserAction.START_ADLIB, (e) =>
@@ -651,12 +657,23 @@ export function getUnfinishedPieceInstancesReactive(currentPartInstanceId: PartI
 						$exists: false,
 					},
 				},
+				{
+					$or: [
+						{
+							'piece.adLibActionSourceId': {
+								$exists: true,
+							},
+						},
+						{
+							'piece.adLibSourceId': {
+								$exists: true,
+							},
+						},
+					],
+				},
 			],
 			'piece.playoutDuration': {
 				$exists: false,
-			},
-			'piece.adLibSourceId': {
-				$exists: true,
 			},
 			$or: [
 				{
@@ -703,7 +720,7 @@ export function getUnfinishedPieceInstancesReactive(currentPartInstanceId: PartI
 	// Convert to array of ids as that is all that is needed
 	const unfinishedPieceInstances: { [adlibId: string]: PieceInstance[] } = {}
 	_.each(
-		_.groupBy(prospectivePieces, (piece) => piece.piece.adLibSourceId),
+		_.groupBy(prospectivePieces, (piece) => piece.piece.adLibSourceId || piece.piece.adLibActionSourceId),
 		(grp, id) => (unfinishedPieceInstances[id] = _.map(grp, (instance) => instance))
 	)
 

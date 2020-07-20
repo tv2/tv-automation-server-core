@@ -96,6 +96,7 @@ export interface NewUserActionAPI {
 	executeAction(
 		userEvent: string,
 		rundownPlaylistId: RundownPlaylistId,
+		adLibPieceId: PieceId,
 		actionId: string,
 		userData: ActionUserData
 	): Promise<ClientAPI.ClientResponse<void>>
