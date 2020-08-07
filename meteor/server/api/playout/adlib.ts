@@ -32,6 +32,7 @@ import { PartInstances, PartInstance, PartInstanceId } from '../../../lib/collec
 import { initCacheForRundownPlaylist, CacheForRundownPlaylist } from '../../DatabaseCaches'
 import { BucketAdLib, BucketAdLibs } from '../../../lib/collections/BucketAdlibs'
 import { MongoQuery } from '../../../lib/typings/meteor'
+import { profiler, ProfilerLevel } from '../../../lib/profiler'
 
 export namespace ServerPlayoutAdLibAPI {
 	export function pieceTakeNow(
@@ -195,9 +196,14 @@ export namespace ServerPlayoutAdLibAPI {
 		baselineAdLibPieceId: PieceId,
 		queue: boolean
 	) {
+		const PROFILE_ID = profiler.startProfiling(`rundownBaselineAdlibPieceStart`, ProfilerLevel.SIMPLE)
 		return rundownPlaylistSyncFunction(rundownPlaylistId, RundownSyncFunctionPriority.USER_PLAYOUT, () => {
 			logger.debug('rundownBaselineAdLibPieceStart')
 
+			const PROFILE_ID_FETCH_DATA = profiler.startProfiling(
+				`rundownBaselineAdlibPieceStart -> FetchData`,
+				ProfilerLevel.DETAILED
+			)
 			const rundownPlaylist = RundownPlaylists.findOne(rundownPlaylistId)
 			if (!rundownPlaylist) throw new Meteor.Error(404, `Rundown Playlist "${rundownPlaylistId}" not found!`)
 			if (!rundownPlaylist.active)
@@ -231,10 +237,12 @@ export namespace ServerPlayoutAdLibAPI {
 					403,
 					`Rundown Baseline AdLib-pieces can be only placed in a currently playing part!`
 				)
+			profiler.stopProfiling(PROFILE_ID_FETCH_DATA)
 
 			innerStartOrQueueAdLibPiece(cache, rundownPlaylist, rundown, queue, partInstance, adLibPiece)
 
 			waitForPromise(cache.saveAllToDatabase())
+			profiler.stopProfiling(PROFILE_ID)
 		})
 	}
 	function innerStartOrQueueAdLibPiece(
@@ -245,6 +253,7 @@ export namespace ServerPlayoutAdLibAPI {
 		currentPartInstance: PartInstance,
 		adLibPiece: AdLibPiece | BucketAdLib
 	) {
+		const PROFILE_ID = profiler.startProfiling(`innerStartOrQueueAdLibPiece`, ProfilerLevel.DETAILED)
 		if (queue || adLibPiece.toBeQueued) {
 			const newPartInstance = new PartInstance({
 				_id: getRandomId(),
@@ -286,6 +295,7 @@ export namespace ServerPlayoutAdLibAPI {
 		updateSourceLayerInfinitesAfterPart(cache, rundown, currentPartInstance.part)
 
 		updateTimeline(cache, rundownPlaylist.studioId)
+		profiler.stopProfiling(PROFILE_ID)
 	}
 
 	export function sourceLayerStickyPieceStart(rundownPlaylistId: RundownPlaylistId, sourceLayerId: string) {
@@ -375,6 +385,7 @@ export namespace ServerPlayoutAdLibAPI {
 		newPartInstance: PartInstance,
 		newPieceInstances: PieceInstance[]
 	) {
+		const PROFILE_ID = profiler.startProfiling(`innerStartQueuedAdLib`, ProfilerLevel.SIMPLE)
 		logger.info('adlibQueueInsertPartInstance')
 
 		// check if there's already a queued part after this:
@@ -421,6 +432,7 @@ export namespace ServerPlayoutAdLibAPI {
 		updatePartRanks(cache, rundown)
 
 		setNextPart(cache, rundownPlaylist, newPartInstance)
+		profiler.stopProfiling(PROFILE_ID)
 	}
 	export function innerStartAdLibPiece(
 		cache: CacheForRundownPlaylist,
@@ -429,6 +441,7 @@ export namespace ServerPlayoutAdLibAPI {
 		existingPartInstance: PartInstance,
 		newPieceInstance: PieceInstance
 	) {
+		const PROFILE_ID = profiler.startProfiling(`innerStartAdLibPiece`, ProfilerLevel.SIMPLE)
 		// Ensure it is labelled as dynamic
 		newPieceInstance.partInstanceId = existingPartInstance._id
 		newPieceInstance.piece.partId = existingPartInstance.part._id
@@ -439,6 +452,7 @@ export namespace ServerPlayoutAdLibAPI {
 		cache.Pieces.insert(newPieceInstance.piece)
 
 		cropInfinitesOnLayer(cache, rundown, existingPartInstance, newPieceInstance)
+		profiler.stopProfiling(PROFILE_ID)
 	}
 
 	export function innerStopPieces(

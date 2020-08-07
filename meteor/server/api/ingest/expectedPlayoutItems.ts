@@ -10,6 +10,7 @@ import { Parts, PartId } from '../../../lib/collections/Parts'
 import { saveIntoDb, protectString, check } from '../../../lib/lib'
 import { CacheForRundownPlaylist } from '../../DatabaseCaches'
 import { getAllPiecesFromCache, getAllAdLibPiecesFromCache } from '../playout/lib'
+import { profiler, ProfilerLevel } from '../../../lib/profiler'
 
 interface ExpectedPlayoutItemGenericWithPiece extends ExpectedPlayoutItemGeneric {
 	partId?: PartId
@@ -102,6 +103,8 @@ export const updateExpectedPlayoutItemsOnPart: (
 	check(rundownId, String)
 	check(partId, String)
 
+	const PROFILE_ID = profiler.startProfiling(`updateExpectedPlayoutItemsOnPart`, ProfilerLevel.SIMPLE)
+
 	const rundown = cache.Rundowns.findOne(rundownId)
 	if (!rundown) {
 		cache.defer(() => {
@@ -139,5 +142,7 @@ export const updateExpectedPlayoutItemsOnPart: (
 			},
 			expectedPlayoutItems
 		)
+
+		profiler.stopProfiling(PROFILE_ID)
 	})
 })

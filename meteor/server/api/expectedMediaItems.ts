@@ -12,6 +12,7 @@ import { BucketAdLibs } from '../../lib/collections/BucketAdlibs'
 import { StudioId } from '../../lib/collections/Studios'
 import { BucketId } from '../../lib/collections/Buckets'
 import { CacheForRundownPlaylist } from '../DatabaseCaches'
+import { profiler, ProfilerLevel } from '../../lib/profiler'
 
 export enum PieceType {
 	PIECE = 'piece',
@@ -168,6 +169,8 @@ export const updateExpectedMediaItemsOnPart: (
 	check(rundownId, String)
 	check(partId, String)
 
+	const PROFILE_ID = profiler.startProfiling(`updateExpectedMediaItemsOnPart`, ProfilerLevel.SIMPLE)
+
 	const rundown = cache.Rundowns.findOne(rundownId)
 	if (!rundown) {
 		cache.defer(() => {
@@ -220,5 +223,7 @@ export const updateExpectedMediaItemsOnPart: (
 			},
 			eMIs
 		)
+
+		profiler.stopProfiling(PROFILE_ID)
 	})
 })

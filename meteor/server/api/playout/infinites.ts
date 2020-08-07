@@ -31,6 +31,7 @@ import {
 } from './lib'
 import { SegmentId } from '../../../lib/collections/Segments'
 import { CacheForRundownPlaylist } from '../../DatabaseCaches'
+import { profiler, ProfilerLevel } from '../../../lib/profiler'
 
 /** When we crop a piece, set the piece as "it has definitely ended" this far into the future. */
 const DEFINITELY_ENDED_FUTURE_DURATION = 10 * 1000
@@ -41,6 +42,7 @@ export function updateSourceLayerInfinitesAfterPart(
 	previousPart?: Part,
 	runUntilEnd?: boolean
 ): void {
+	const PROFILE_ID = profiler.startProfiling(`updateSourceLayerInfinitesAfterPart`, ProfilerLevel.SIMPLE)
 	let activeInfinitePieces: { [layer: string]: Piece } = {}
 	let activeInfiniteItemsSegmentId: { [layer: string]: SegmentId } = {}
 
@@ -312,6 +314,7 @@ export function updateSourceLayerInfinitesAfterPart(
 			}
 		}
 	}
+	profiler.stopProfiling(PROFILE_ID)
 }
 
 export function cropInfinitesOnLayer(
@@ -320,6 +323,7 @@ export function cropInfinitesOnLayer(
 	partInstance: PartInstance,
 	newPieceInstance: PieceInstance
 ) {
+	const PROFILE_ID = profiler.startProfiling(`cropInfinitesOnLayer`, ProfilerLevel.SIMPLE)
 	const showStyleBase = rundown.getShowStyleBase()
 	const exclusiveGroup = _.find(showStyleBase.sourceLayers, (sl) => sl._id === newPieceInstance.piece.sourceLayerId)
 	const newItemExclusivityGroup = exclusiveGroup ? exclusiveGroup.exclusiveGroup : undefined
@@ -381,6 +385,8 @@ export function cropInfinitesOnLayer(
 			})
 		}
 	}
+
+	profiler.stopProfiling(PROFILE_ID)
 }
 
 // export function stopInfinitesRunningOnLayer (cache: CacheForRundownPlaylist, rundownPlaylist: RundownPlaylist, rundown: Rundown, partInstance: PartInstance, sourceLayer: string) {
