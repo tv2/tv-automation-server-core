@@ -103,10 +103,8 @@ import { updateExpectedMediaItemsOnRundown } from '../expectedMediaItems'
 import { triggerUpdateTimelineAfterIngestData } from '../playout/playout'
 import { PartNote, NoteType, SegmentNote, RundownNote } from '../../../lib/api/notes'
 import { syncFunction } from '../../codeControl'
-import { updateSourceLayerInfinitesAfterPart } from '../playout/infinites'
 import { UpdateNext } from './updateNext'
-import { extractExpectedPlayoutItems, updateExpectedPlayoutItemsOnRundown } from './expectedPlayoutItems'
-import { ExpectedPlayoutItem, ExpectedPlayoutItems } from '../../../lib/collections/ExpectedPlayoutItems'
+import { updateExpectedPlayoutItemsOnRundown } from './expectedPlayoutItems'
 import {
 	RundownPlaylists,
 	DBRundownPlaylist,
@@ -148,6 +146,8 @@ export enum RundownSyncFunctionPriority {
 	USER_INGEST = 9,
 	/** Events initiated from user, for playout */
 	USER_PLAYOUT = 10,
+	/** Events initiated from playout-gateway callbacks */
+	CALLBACK_PLAYOUT = 20,
 }
 export function rundownPlaylistSyncFunction<T extends Function>(
 	rundownPlaylistId: RundownPlaylistId,
@@ -639,7 +639,7 @@ function updateRundownFromIngestData(
 	// TODO - store notes from rundownNotesContext
 
 	const segmentsAndParts = getRundownsSegmentsAndPartsFromCache(cache, [dbRundown])
-	const existingRundownParts = _.filter(segmentsAndParts.parts, (part) => part.dynamicallyInserted !== true)
+	const existingRundownParts = _.filter(segmentsAndParts.parts, (part) => !part.dynamicallyInsertedAfterPartId)
 	const existingSegments = segmentsAndParts.segments
 
 	const segments: DBSegment[] = []
@@ -658,7 +658,7 @@ function updateRundownFromIngestData(
 		ingestSegment.parts = _.sortBy(ingestSegment.parts, (part) => part.rank)
 
 		const notesContext = new NotesContext(ingestSegment.name, `rundownId=${rundownId},segmentId=${segmentId}`, true)
-		const context = new SegmentContext(dbRundown, studio, existingParts, notesContext)
+		const context = new SegmentContext(dbRundown, studio, notesContext)
 		const res = blueprint.getSegment(context, ingestSegment)
 
 		const segmentContents = generateSegmentContents(
@@ -695,7 +695,6 @@ function updateRundownFromIngestData(
 		cache.Pieces,
 		{
 			rundownId: rundownId,
-			dynamicallyInserted: { $ne: true }, // do not affect dynamically inserted pieces (such as adLib pieces)
 		},
 		segmentPieces
 	)
@@ -952,7 +951,7 @@ function syncChangesToSelectedPartInstances(
 				})
 
 				// Pieces
-				const piecesForPart = pieces.filter((p) => p.partId === newPart._id)
+				const piecesForPart = pieces.filter((p) => p.startPartId === newPart._id)
 				const currentPieceInstances = rawPieceInstances.filter((p) => p.partInstanceId === partInstance._id)
 				const currentPieceInstancesMap = normalizeArrayFunc(currentPieceInstances, (p) =>
 					unprotectString(p.piece._id)
@@ -1149,13 +1148,13 @@ function updateSegmentFromIngestData(
 	const existingParts = cache.Parts.findFetch({
 		rundownId: rundown._id,
 		segmentId: segmentId,
-		dynamicallyInserted: { $ne: true },
+		dynamicallyInsertedAfterPartId: { $exists: false },
 	})
 
 	ingestSegment.parts = _.sortBy(ingestSegment.parts, (s) => s.rank)
 
 	const notesContext = new NotesContext(ingestSegment.name, `rundownId=${rundown._id},segmentId=${segmentId}`, true)
-	const context = new SegmentContext(rundown, studio, existingParts, notesContext)
+	const context = new SegmentContext(rundown, studio, notesContext)
 	const res = blueprint.getSegment(context, ingestSegment)
 
 	const { parts, segmentPieces, adlibPieces, adlibActions, newSegment } = generateSegmentContents(
@@ -1181,7 +1180,7 @@ function updateSegmentFromIngestData(
 					_id: { $in: _.pluck(parts, '_id') },
 				},
 			],
-			dynamicallyInserted: { $ne: true }, // do not affect dynamically inserted parts (such as adLib parts)
+			dynamicallyInsertedAfterPartId: { $exists: false }, // do not affect dynamically inserted parts (such as adLib parts)
 		},
 		parts
 	)
@@ -1190,7 +1189,6 @@ function updateSegmentFromIngestData(
 		{
 			rundownId: rundown._id,
 			partId: { $in: parts.map((p) => p._id) },
-			dynamicallyInserted: { $ne: true }, // do not affect dynamically inserted pieces (such as adLib pieces)
 		},
 		segmentPieces
 	)
@@ -1307,18 +1305,18 @@ function updateSegmentFromIngestData(
 }
 function afterIngestChangedData(cache: CacheForRundownPlaylist, rundown: Rundown, changedSegmentIds: SegmentId[]) {
 	const playlist = cache.RundownPlaylists.findOne({ _id: rundown.playlistId })
-	// To be called after rundown has been changed
-	updateExpectedMediaItemsOnRundown(cache, rundown._id)
-	updateExpectedPlayoutItemsOnRundown(cache, rundown._id)
-	updatePartRanks(cache, rundown)
-	updateSourceLayerInfinitesAfterPart(cache, rundown)
-
 	if (!playlist) {
 		throw new Meteor.Error(404, `Orphaned rundown ${rundown._id}`)
 	}
+
+	// To be called after rundown has been changed
+	updateExpectedMediaItemsOnRundown(cache, rundown._id)
+	updateExpectedPlayoutItemsOnRundown(cache, rundown._id)
+	updatePartRanks(cache, playlist, changedSegmentIds)
+
 	UpdateNext.ensureNextPartIsValid(cache, playlist)
 
-	triggerUpdateTimelineAfterIngestData(rundown._id, rundown.playlistId, changedSegmentIds)
+	triggerUpdateTimelineAfterIngestData(rundown.playlistId)
 }
 
 export function handleRemovedPart(
@@ -1517,7 +1515,19 @@ function generateSegmentContents(
 		}
 
 		// Update pieces
-		segmentPieces.push(...postProcessPieces(context, blueprintPart.pieces, blueprintId, rundownId, part._id))
+		segmentPieces.push(
+			...postProcessPieces(
+				context,
+				blueprintPart.pieces,
+				blueprintId,
+				rundownId,
+				newSegment._id,
+				part._id,
+				undefined,
+				undefined,
+				part.invalid
+			)
+		)
 		adlibPieces.push(...postProcessAdLibPieces(context, blueprintPart.adLibPieces, blueprintId, part._id))
 		adlibActions.push(...postProcessAdLibActions(context, blueprintPart.actions || [], blueprintId, part._id))
 	})
@@ -1613,14 +1623,14 @@ export function isUpdateAllowed(
 					partChanges.removed &&
 					partChanges.removed.length &&
 					currentPart &&
-					currentPart.part.afterPart
+					currentPart.part.dynamicallyInsertedAfterPartId
 				) {
 					// If the currently playing part is a queued part and depending on any of the parts that are to be removed:
 					const removedPartIds = partChanges.removed.map((part) => part._id)
-					if (removedPartIds.includes(currentPart.part.afterPart)) {
+					if (removedPartIds.includes(currentPart.part.dynamicallyInsertedAfterPartId)) {
 						// Don't allow removal of a part that has a currently playing queued Part
 						logger.warn(
-							`Not allowing removal of part "${currentPart.part.afterPart}", because currently playing (queued) part "${currentPart._id}" is after it`
+							`Not allowing removal of part "${currentPart.part.dynamicallyInsertedAfterPartId}", because currently playing (queued) part "${currentPart._id}" is after it`
 						)
 						allowed = false
 					}
@@ -1688,7 +1698,7 @@ function splitIntoSegments(
 	})
 
 	for (const piece of prepareSavePieces.changed) {
-		const segmentId = partsToSegments.get(piece.doc.partId)
+		const segmentId = partsToSegments.get(piece.doc.startPartId)
 		if (!segmentId) {
 			logger.warning(`SegmentId could not be found when trying to modify piece ${piece.doc._id}`)
 			break // In theory this shouldn't happen, but reject 'orphaned' changes
@@ -1705,7 +1715,7 @@ function splitIntoSegments(
 
 	;['removed', 'inserted', 'unchanged'].forEach((change: keyof Omit<PreparedChanges<Piece>, 'changed'>) => {
 		for (const piece of prepareSavePieces[change]) {
-			const segmentId = partsToSegments.get(piece.partId)
+			const segmentId = partsToSegments.get(piece.startPartId)
 			if (!segmentId) {
 				logger.warning(`SegmentId could not be found when trying to modify piece ${piece._id}`)
 				break // In theory this shouldn't happen, but reject 'orphaned' changes

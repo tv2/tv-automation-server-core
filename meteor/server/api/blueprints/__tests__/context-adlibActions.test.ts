@@ -11,6 +11,49 @@ import { NotesContext, ActionExecutionContext, ActionPartChange } from '../conte
 import { Rundown, Rundowns } from '../../../../lib/collections/Rundowns'
 import { PartInstance, PartInstanceId, PartInstances } from '../../../../lib/collections/PartInstances'
 import {
+	LookaheadMode,
+	NotesContext as INotesContext,
+	IBlueprintPart,
+	IBlueprintPartDB,
+	IBlueprintAsRunLogEventContent,
+	IBlueprintSegment,
+	IBlueprintSegmentDB,
+	IBlueprintPieceDB,
+	TSR,
+	IBlueprintPartInstance,
+	IBlueprintPieceInstance,
+	IBlueprintPiece,
+	PieceLifespan,
+} from 'tv-automation-sofie-blueprints-integration'
+import {
+	CommonContext,
+	StudioConfigContext,
+	StudioContext,
+	ShowStyleContext,
+	NotesContext,
+	SegmentContext,
+	PartEventContext,
+	AsRunEventContext,
+	ActionExecutionContext,
+	ActionPartChange,
+} from '../context'
+import { ConfigRef } from '../config'
+import { ShowStyleBases } from '../../../../lib/collections/ShowStyleBases'
+import { ShowStyleVariant, ShowStyleVariants } from '../../../../lib/collections/ShowStyleVariants'
+import { Rundowns, Rundown, RundownId } from '../../../../lib/collections/Rundowns'
+import { DBPart, PartId } from '../../../../lib/collections/Parts'
+import { AsRunLogEvent, AsRunLog } from '../../../../lib/collections/AsRunLog'
+import { IngestDataCache, IngestCacheType } from '../../../../lib/collections/IngestDataCache'
+import { Pieces } from '../../../../lib/collections/Pieces'
+import {
+	wrapPartToTemporaryInstance,
+	PartInstance,
+	PartInstances,
+	unprotectPartInstance,
+	PartInstanceId,
+} from '../../../../lib/collections/PartInstances'
+import {
+	PieceInstances,
 	PieceInstance,
 	ResolvedPieceInstance,
 	PieceInstanceId,
@@ -299,57 +342,53 @@ describe('Test blueprint api context', () => {
 					expect(context.findLastPieceOnLayer(sourceLayerIds[0])).toBeUndefined()
 					expect(context.findLastPieceOnLayer(sourceLayerIds[1])).toBeUndefined()
 
-					// Insert a piece that is played
-					const pieceId0: PieceInstanceId = getRandomId()
-					cache.PieceInstances.insert({
-						_id: pieceId0,
-						rundownId: rundown._id,
-						partInstanceId: partInstances[0]._id,
-						piece: {
-							_id: getRandomId(),
-							partId: partInstances[0].part._id,
-							rundownId: rundown._id,
-							externalId: '',
-							name: 'abc',
-							sourceLayerId: sourceLayerIds[0],
-							outputLayerId: '',
-							status: -1,
-							enable: { start: 0 },
-							startedPlayback: 1000,
-							dynamicallyInserted: true,
-						},
-					})
-					// We need to push changes back to 'mongo' for these tests
-					waitForPromise(cache.saveAllToDatabase())
+				// Insert a piece that is played
+				const pieceId0: PieceInstanceId = getRandomId()
+				cache.PieceInstances.insert({
+					_id: pieceId0,
+					rundownId: rundown._id,
+					partInstanceId: partInstances[0]._id,
+					dynamicallyInserted: true,
+					piece: {
+						_id: getRandomId(),
+						startPartId: partInstances[0].part._id,
+						externalId: '',
+						name: 'abc',
+						sourceLayerId: sourceLayerIds[0],
+						outputLayerId: '',
+						status: -1,
+						enable: { start: 0 },
+						startedPlayback: 1000,
+						lifespan: PieceLifespan.OutOnSegmentChange,
+						invalid: false,
+					},
+				})
+				// We need to push changes back to 'mongo' for these tests
+				waitForPromise(cache.saveAllToDatabase())
 
 					expect(context.findLastPieceOnLayer(sourceLayerIds[0])).toMatchObject({ _id: pieceId0 })
 					expect(context.findLastPieceOnLayer(sourceLayerIds[0], { originalOnly: true })).toBeUndefined()
 
-					// Insert another more recent piece that is played
-					const pieceId1: PieceInstanceId = getRandomId()
-					cache.PieceInstances.insert({
-						_id: pieceId1,
-						rundownId: rundown._id,
-						partInstanceId: partInstances[0]._id,
-						piece: {
-							_id: getRandomId(),
-							partId: partInstances[0].part._id,
-							rundownId: rundown._id,
-							externalId: '',
-							name: 'abc',
-							sourceLayerId: sourceLayerIds[0],
-							outputLayerId: '',
-							status: -1,
-							enable: { start: 0 },
-							startedPlayback: 2000,
-							dynamicallyInserted: true,
-						},
-					})
-					// We need to push changes back to 'mongo' for these tests
-					waitForPromise(cache.saveAllToDatabase())
-
-					expect(context.findLastPieceOnLayer(sourceLayerIds[0])).toMatchObject({ _id: pieceId1 })
-					expect(context.findLastPieceOnLayer(sourceLayerIds[0], { originalOnly: true })).toBeUndefined()
+				// Insert another more recent piece that is played
+				const pieceId1: PieceInstanceId = getRandomId()
+				cache.PieceInstances.insert({
+					_id: pieceId1,
+					rundownId: rundown._id,
+					partInstanceId: partInstances[0]._id,
+					dynamicallyInserted: true,
+					piece: {
+						_id: getRandomId(),
+						startPartId: partInstances[0].part._id,
+						externalId: '',
+						name: 'abc',
+						sourceLayerId: sourceLayerIds[0],
+						outputLayerId: '',
+						status: -1,
+						enable: { start: 0 },
+						startedPlayback: 2000,
+						lifespan: PieceLifespan.OutOnSegmentChange,
+						invalid: false,
+					},
 				})
 			})
 
@@ -372,47 +411,49 @@ describe('Test blueprint api context', () => {
 					expect(context.findLastPieceOnLayer(sourceLayerIds[0])).toBeUndefined()
 					expect(context.findLastPieceOnLayer(sourceLayerIds[1])).toBeUndefined()
 
-					// Insert a couple of pieces that are played
-					const pieceId0: PieceInstanceId = getRandomId()
-					cache.PieceInstances.insert({
-						_id: pieceId0,
-						rundownId: rundown._id,
-						partInstanceId: partInstances[0]._id,
-						piece: {
-							_id: getRandomId(),
-							partId: partInstances[0].part._id,
-							rundownId: rundown._id,
-							externalId: '',
-							name: 'abc',
-							sourceLayerId: sourceLayerIds[0],
-							outputLayerId: '',
-							status: -1,
-							enable: { start: 0 },
-							startedPlayback: 1000,
-							dynamicallyInserted: true,
-						},
-					})
-					const pieceId1: PieceInstanceId = getRandomId()
-					cache.PieceInstances.insert({
-						_id: pieceId1,
-						rundownId: rundown._id,
-						partInstanceId: partInstances[2]._id,
-						piece: {
-							_id: getRandomId(),
-							partId: partInstances[2].part._id,
-							rundownId: rundown._id,
-							externalId: '',
-							name: 'abc',
-							sourceLayerId: sourceLayerIds[0],
-							outputLayerId: '',
-							status: -1,
-							enable: { start: 0 },
-							startedPlayback: 2000,
-							dynamicallyInserted: true,
-						},
-					})
-					// We need to push changes back to 'mongo' for these tests
-					waitForPromise(cache.saveAllToDatabase())
+				// Insert a couple of pieces that are played
+				const pieceId0: PieceInstanceId = getRandomId()
+				cache.PieceInstances.insert({
+					_id: pieceId0,
+					rundownId: rundown._id,
+					partInstanceId: partInstances[0]._id,
+					dynamicallyInserted: true,
+					piece: {
+						_id: getRandomId(),
+						startPartId: partInstances[0].part._id,
+						externalId: '',
+						name: 'abc',
+						sourceLayerId: sourceLayerIds[0],
+						outputLayerId: '',
+						status: -1,
+						enable: { start: 0 },
+						startedPlayback: 1000,
+						lifespan: PieceLifespan.OutOnSegmentChange,
+						invalid: false,
+					},
+				})
+				const pieceId1: PieceInstanceId = getRandomId()
+				cache.PieceInstances.insert({
+					_id: pieceId1,
+					rundownId: rundown._id,
+					partInstanceId: partInstances[2]._id,
+					dynamicallyInserted: true,
+					piece: {
+						_id: getRandomId(),
+						startPartId: partInstances[2].part._id,
+						externalId: '',
+						name: 'abc',
+						sourceLayerId: sourceLayerIds[0],
+						outputLayerId: '',
+						status: -1,
+						enable: { start: 0 },
+						startedPlayback: 2000,
+						lifespan: PieceLifespan.OutOnSegmentChange,
+						invalid: false,
+					},
+				})
+				// We need to push changes back to 'mongo' for these tests
+				waitForPromise(cache.saveAllToDatabase())
 
 					// Check it
 					expect(context.findLastPieceOnLayer(sourceLayerIds[0])).toMatchObject({ _id: pieceId1 })
@@ -443,51 +484,53 @@ describe('Test blueprint api context', () => {
 					expect(context.findLastPieceOnLayer(sourceLayerIds[0])).toBeUndefined()
 					expect(context.findLastPieceOnLayer(sourceLayerIds[1])).toBeUndefined()
 
-					// Insert a couple of pieces that are played
-					const pieceId0: PieceInstanceId = getRandomId()
-					cache.PieceInstances.insert({
-						_id: pieceId0,
-						rundownId: rundown._id,
-						partInstanceId: partInstances[0]._id,
-						piece: {
-							_id: getRandomId(),
-							partId: partInstances[0].part._id,
-							rundownId: rundown._id,
-							externalId: '',
-							name: 'abc',
-							sourceLayerId: sourceLayerIds[0],
-							outputLayerId: '',
-							status: -1,
-							enable: { start: 0 },
-							startedPlayback: 1000,
-							dynamicallyInserted: true,
+				// Insert a couple of pieces that are played
+				const pieceId0: PieceInstanceId = getRandomId()
+				cache.PieceInstances.insert({
+					_id: pieceId0,
+					rundownId: rundown._id,
+					partInstanceId: partInstances[0]._id,
+					dynamicallyInserted: true,
+					piece: {
+						_id: getRandomId(),
+						startPartId: partInstances[0].part._id,
+						externalId: '',
+						name: 'abc',
+						sourceLayerId: sourceLayerIds[0],
+						outputLayerId: '',
+						status: -1,
+						enable: { start: 0 },
+						startedPlayback: 1000,
+						lifespan: PieceLifespan.OutOnSegmentChange,
+						invalid: false,
+					},
+				})
+				const pieceId1: PieceInstanceId = getRandomId()
+				cache.PieceInstances.insert({
+					_id: pieceId1,
+					rundownId: rundown._id,
+					partInstanceId: partInstances[2]._id,
+					dynamicallyInserted: true,
+					piece: {
+						_id: getRandomId(),
+						startPartId: partInstances[2].part._id,
+						externalId: '',
+						name: 'abc',
+						sourceLayerId: sourceLayerIds[0],
+						outputLayerId: '',
+						status: -1,
+						enable: { start: 0 },
+						startedPlayback: 2000,
+						metaData: {
+							prop1: 'hello',
+							prop2: '5',
 						},
-					})
-					const pieceId1: PieceInstanceId = getRandomId()
-					cache.PieceInstances.insert({
-						_id: pieceId1,
-						rundownId: rundown._id,
-						partInstanceId: partInstances[2]._id,
-						piece: {
-							_id: getRandomId(),
-							partId: partInstances[2].part._id,
-							rundownId: rundown._id,
-							externalId: '',
-							name: 'abc',
-							sourceLayerId: sourceLayerIds[0],
-							outputLayerId: '',
-							status: -1,
-							enable: { start: 0 },
-							startedPlayback: 2000,
-							dynamicallyInserted: true,
-							metaData: {
-								prop1: 'hello',
-								prop2: '5',
-							},
-						},
-					})
-					// We need to push changes back to 'mongo' for these tests
-					waitForPromise(cache.saveAllToDatabase())
+						lifespan: PieceLifespan.OutOnSegmentChange,
+						invalid: false,
+					},
+				})
+				// We need to push changes back to 'mongo' for these tests
+				waitForPromise(cache.saveAllToDatabase())
 
 					// Check it
 					expect(context.findLastPieceOnLayer(sourceLayerIds[0])).toMatchObject({ _id: pieceId1 })
@@ -568,13 +611,12 @@ describe('Test blueprint api context', () => {
 					)
 					expect(innerStartAdLibPieceMock).toHaveBeenCalledTimes(1)
 
-					// check some properties not exposed to the blueprints
-					const newPieceInstance = cache.PieceInstances.findOne(
-						protectString(newPieceInstanceId!)
-					) as PieceInstance
-					expect(newPieceInstance.piece.dynamicallyInserted).toBeTruthy()
-					expect(newPieceInstance.partInstanceId).toEqual(partInstance._id)
-				})
+				// check some properties not exposed to the blueprints
+				const newPieceInstance = cache.PieceInstances.findOne(
+					protectString(newPieceInstanceId!)
+				) as PieceInstance
+				expect(newPieceInstance.dynamicallyInserted).toBeTruthy()
+				expect(newPieceInstance.partInstanceId).toEqual(partInstance._id)
 			})
 		})
 
@@ -778,18 +820,18 @@ describe('Test blueprint api context', () => {
 					expect(partInstance).toBeTruthy()
 					playlist.currentPartInstanceId = partInstance._id
 
-					const newPiece: IBlueprintPiece = {
-						_id: '',
-						name: 'test piece',
-						sourceLayerId: 'sl1',
-						outputLayerId: 'o1',
-						externalId: '-',
-						enable: { start: 0 },
-					}
-					const newPart: IBlueprintPart = {
-						externalId: 'nope',
-						title: 'something',
-					}
+				const newPiece: IBlueprintPiece = {
+					name: 'test piece',
+					sourceLayerId: 'sl1',
+					outputLayerId: 'o1',
+					externalId: '-',
+					enable: { start: 0 },
+					lifespan: PieceLifespan.OutOnRundownEnd,
+				}
+				const newPart: IBlueprintPart = {
+					externalId: 'nope',
+					title: 'something',
+				}
 
 					expect(postProcessPiecesMock).toHaveBeenCalledTimes(0)
 					expect(innerStartAdLibPieceMock).toHaveBeenCalledTimes(0)
@@ -804,12 +846,12 @@ describe('Test blueprint api context', () => {
 					expect(innerStartAdLibPieceMock).toHaveBeenCalledTimes(0)
 					expect(innerStartQueuedAdLibMock).toHaveBeenCalledTimes(1)
 
-					// Verify some properties not exposed to the blueprints
-					const newPartInstance = cache.PartInstances.findOne(playlist.nextPartInstanceId!) as PartInstance
-					expect(newPartInstance).toBeTruthy()
-					expect(newPartInstance.part._rank).toBeLessThan(9000)
-					expect(newPartInstance.part._rank).toBeGreaterThan(partInstance.part._rank)
-					expect(newPartInstance.part.dynamicallyInserted).toBeTruthy()
+				// Verify some properties not exposed to the blueprints
+				const newPartInstance = cache.PartInstances.findOne(playlist.nextPartInstanceId!) as PartInstance
+				expect(newPartInstance).toBeTruthy()
+				expect(newPartInstance.part._rank).toBeLessThan(9000)
+				expect(newPartInstance.part._rank).toBeGreaterThan(partInstance.part._rank)
+				expect(newPartInstance.part.dynamicallyInsertedAfterPartId).toBeTruthy()
 
 					const newNextPartInstances = context.getPieceInstances('next')
 					expect(newNextPartInstances).toHaveLength(1)

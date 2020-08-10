@@ -7,7 +7,6 @@ import {
 	SourceLayerType,
 	getPieceGroupId,
 	PieceLifespan,
-	IBlueprintActionManifest,
 	IBlueprintActionManifestDisplay,
 	IBlueprintActionManifestDisplayContent,
 } from 'tv-automation-sofie-blueprints-integration'
@@ -18,16 +17,16 @@ import {
 	PieceExtended,
 	IOutputLayerExtended,
 	ISourceLayerExtended,
-	calculatePieceTimelineEnable,
 } from '../../lib/Rundown'
-import { DBSegment, Segment } from '../../lib/collections/Segments'
+import { DBSegment, SegmentId } from '../../lib/collections/Segments'
 import { RundownPlaylist } from '../../lib/collections/RundownPlaylists'
 import { ShowStyleBase } from '../../lib/collections/ShowStyleBases'
-import { literal, fetchNext, last, normalizeArray, unprotectObject } from '../../lib/lib'
-import { findPartInstanceOrWrapToTemporary, PartInstance } from '../../lib/collections/PartInstances'
+import { literal, normalizeArray, unprotectObject } from '../../lib/lib'
+import { findPartInstanceOrWrapToTemporary } from '../../lib/collections/PartInstances'
 import { PieceId } from '../../lib/collections/Pieces'
-import { Part } from '../../lib/collections/Parts'
 import { AdLibPieceUi } from '../ui/Shelf/AdLibPanel'
+import { PieceInstancePiece } from '../../lib/collections/PieceInstances'
+import { DBPart, PartId } from '../../lib/collections/Parts'
 
 export namespace RundownUtils {
 	function padZerundown(input: number, places?: number): string {
@@ -203,9 +202,11 @@ export namespace RundownUtils {
 		return true
 	}
 
-	export function getSourceLayerClassName(partType: SourceLayerType): string {
+	export function getSourceLayerClassName(sourceLayerType: SourceLayerType): string {
 		// CAMERA_MOVEMENT -> "camera-movement"
-		return ((SourceLayerType[partType] || 'unknown-sourceLayer-' + partType) + '').toLowerCase().replace(/_/g, '-')
+		return ((SourceLayerType[sourceLayerType] || 'unknown-sourceLayer-' + sourceLayerType) + '')
+			.toLowerCase()
+			.replace(/_/g, '-')
 	}
 
 	/**
@@ -224,7 +225,9 @@ export namespace RundownUtils {
 	export function getResolvedSegment(
 		showStyleBase: ShowStyleBase,
 		playlist: RundownPlaylist,
-		segment: DBSegment
+		segment: DBSegment,
+		segmentsBeforeThisInRundownSet: Set<SegmentId>,
+		orderedAllPartIds: PartId[]
 	): {
 		/** A Segment with some additional information */
 		segmentExtended: SegmentExtended
@@ -281,7 +284,7 @@ export namespace RundownUtils {
 			segmentId: segment._id,
 		})
 
-		const partsInSegment = _.filter(segmentsAndParts.parts, (p) => p.segmentId === segment._id)
+		const partsInSegment = segmentsAndParts.parts
 
 		if (partsInSegment.length > 0) {
 			// create local deep copies of the studio outputLayers and sourceLayers so that we can store
@@ -319,7 +322,9 @@ export namespace RundownUtils {
 			let startsAt = 0
 			let previousPart: PartExtended | undefined
 			// fetch all the pieces for the parts
-			partsE = _.map(partsInSegment, (part, itIndex) => {
+			const partIds = partsInSegment.map((part) => part._id)
+
+			partsE = partsInSegment.map((part, itIndex) => {
 				const partInstance = findPartInstanceOrWrapToTemporary(activePartInstancesMap, part)
 				let partTimeline: SuperTimeline.TimelineObject[] = []
 
@@ -327,7 +332,13 @@ export namespace RundownUtils {
 				let partE = literal<PartExtended>({
 					partId: part._id,
 					instance: partInstance,
-					pieces: _.map(getPieceInstancesForPartInstance(partInstance), (piece) =>
+					pieces: getPieceInstancesForPartInstance(
+						partInstance,
+						new Set(partIds.slice(0, itIndex)),
+						segmentsBeforeThisInRundownSet,
+						orderedAllPartIds,
+						false
+					).map((piece) =>
 						literal<PieceExtended>({
 							instance: piece,
 							renderedDuration: 0,
@@ -362,13 +373,19 @@ export namespace RundownUtils {
 				}
 
 				// insert items into the timeline for resolution
-				_.each<PieceExtended>(partE.pieces, (piece) => {
+				partE.pieces.forEach((piece) => {
+					const rawInnerPiece: PieceInstancePiece = piece.instance.piece
 					partTimeline.push({
-						id: getPieceGroupId(unprotectObject(piece.instance.piece)),
-						enable: calculatePieceTimelineEnable(piece.instance.piece, TIMELINE_TEMP_OFFSET),
-						layer: piece.instance.piece.outputLayerId,
+						id: getPieceGroupId(unprotectObject(rawInnerPiece)),
+						enable: {
+							...rawInnerPiece.enable,
+							start:
+								(typeof rawInnerPiece.enable.start === 'number' ? rawInnerPiece.enable.start : 0) +
+								TIMELINE_TEMP_OFFSET,
+						},
+						layer: rawInnerPiece.outputLayerId,
 						content: {
-							id: piece.instance.piece._id,
+							id: rawInnerPiece._id,
 						},
 					})
 					// find the target output layer
@@ -394,7 +411,7 @@ export namespace RundownUtils {
 						if (!sourceLayer) {
 							sourceLayer = sourceLayers[piece.instance.piece.sourceLayerId]
 							if (sourceLayer) {
-								sourceLayer = _.clone(sourceLayer)
+								sourceLayer = { ...sourceLayer }
 								let part = sourceLayer
 								part.pieces = []
 								outputLayer.sourceLayers.push(part)
@@ -431,7 +448,7 @@ export namespace RundownUtils {
 				let tlResolved = SuperTimeline.Resolver.resolveTimeline(partTimeline, { time: 0 })
 				// furthestDuration is used to figure out how much content (in terms of time) is there in the Part
 				let furthestDuration = 0
-				_.each(tlResolved.objects, (obj) => {
+				for (let obj of Object.values(tlResolved.objects)) {
 					if (obj.resolved.resolved) {
 						// Timeline actually has copies of the content object, instead of the object itself, so we need to match it back to the Part
 						let piece = piecesLookup.get(obj.content.id)
@@ -453,7 +470,7 @@ export namespace RundownUtils {
 							// TODO - should this piece be removed?
 						}
 					}
-				})
+				}
 
 				// use the expectedDuration and fallback to the default display duration for the part
 				partE.renderedDuration = partE.instance.part.expectedDuration || Settings.defaultDisplayDuration // furthestDuration
@@ -508,21 +525,18 @@ export namespace RundownUtils {
 						? item.instance.piece.enable.duration || 0
 						: 0
 				const userDurationNumber =
-					item.instance.piece.userDuration && typeof item.instance.piece.userDuration.duration === 'number'
-						? item.instance.piece.userDuration.duration || 0
+					item.instance.userDuration &&
+					typeof item.instance.userDuration.end === 'number' &&
+					item.instance.piece.startedPlayback
+						? item.instance.userDuration.end - item.instance.piece.startedPlayback
 						: 0
-				return (
-					item.instance.piece.playoutDuration ||
-					userDurationNumber ||
-					item.renderedDuration ||
-					expectedDurationNumber
-				)
+				return userDurationNumber || item.renderedDuration || expectedDurationNumber
 			}
 
-			_.each<PartExtended>(partsE, (part) => {
+			partsE.forEach((part) => {
 				if (part.pieces) {
 					// if an item is continued by another item, rendered duration may need additional resolution
-					_.each<PieceExtended>(part.pieces, (item) => {
+					part.pieces.forEach((item) => {
 						if (item.continuedByRef) {
 							item.renderedDuration = resolveDuration(item)
 						}
@@ -535,7 +549,7 @@ export namespace RundownUtils {
 					})
 					// check if the Pieces should be cropped (as should be the case if an item on a layer is placed after
 					// an infinite Piece) and limit the width of the labels so that they dont go under or over the next Piece.
-					_.each(itemsByLayer, (layerItems, outputSourceCombination) => {
+					for (let [outputSourceCombination, layerItems] of Object.entries(itemsByLayer)) {
 						const sortedItems = _.sortBy(layerItems, 'renderedInPoint')
 						for (let i = 1; i < sortedItems.length; i++) {
 							const currentItem = sortedItems[i]
@@ -549,7 +563,7 @@ export namespace RundownUtils {
 								currentItem.renderedDuration !== undefined
 							) {
 								if (
-									previousItem.instance.piece.infiniteMode ||
+									previousItem.instance.infinite ||
 									(previousItem.renderedDuration !== null &&
 										previousItem.renderedInPoint + previousItem.renderedDuration >
 											currentItem.renderedInPoint)
@@ -557,15 +571,17 @@ export namespace RundownUtils {
 									previousItem.renderedDuration =
 										currentItem.renderedInPoint - previousItem.renderedInPoint
 									previousItem.cropped = true
-									if (previousItem.instance.piece.infiniteMode) {
-										previousItem.instance.piece.infiniteMode = PieceLifespan.Normal
+									if (previousItem.instance.infinite) {
+										// TODO-INFINITE
+										previousItem.instance.piece.lifespan = PieceLifespan.WithinPart
+										delete previousItem.instance.infinite
 									}
 								}
 
 								previousItem.maxLabelWidth = currentItem.renderedInPoint - previousItem.renderedInPoint
 							}
 						}
-					})
+					}
 				}
 			})
 

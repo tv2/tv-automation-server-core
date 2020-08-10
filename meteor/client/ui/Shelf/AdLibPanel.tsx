@@ -27,6 +27,7 @@ import {
 	IBlueprintPieceDB,
 	IBlueprintActionManifestDisplayContent,
 	SomeContent,
+	PieceLifespan,
 } from 'tv-automation-sofie-blueprints-integration'
 import { PubSub, meteorSubscribe } from '../../../lib/api/pubsub'
 import { doUserAction, UserAction } from '../../lib/userAction'
@@ -192,13 +193,12 @@ const AdLibListView = withTranslation()(
 					tSLayers[sourceLayer._id] = sourceLayer
 				})
 
-				return _.extend(state, {
+				return {
 					outputLayers: tOLayers,
 					sourceLayers: tSLayers,
-				})
-			} else {
-				return state
+				}
 			}
+			return null
 		}
 
 		scrollToCurrentSegment() {
@@ -483,7 +483,7 @@ function actionToAdLibPieceUi(action: AdLibAction | RundownBaselineAdLibAction):
 		status: RundownAPI.PieceStatusCode.UNKNOWN,
 		isAction: true,
 		expectedDuration: 0,
-		disabled: false,
+		lifespan: PieceLifespan.WithinPart,
 		externalId: unprotectString(action._id),
 		rundownId: action.rundownId,
 		sourceLayerId,
@@ -729,7 +729,7 @@ export function fetchAndFilter(props: Translated<IAdLibPanelProps>): IAdLibPanel
 									isSticky: true,
 									isGlobal: true,
 									expectedDuration: 0,
-									disabled: false,
+									lifespan: PieceLifespan.WithinPart,
 									externalId: layer._id,
 									rundownId: protectString(''),
 									sourceLayerId: layer._id,
@@ -766,7 +766,7 @@ export function fetchAndFilter(props: Translated<IAdLibPanelProps>): IAdLibPanel
 						.concat(globalAdLibActions)
 						.map((item) => {
 							// automatically assign hotkeys based on adLibItem index
-							const uiAdLib: AdLibPieceUi = _.clone(item)
+							const uiAdLib: AdLibPieceUi = { ...item }
 							uiAdLib.isGlobal = true
 
 							let sourceLayer = item.sourceLayerId && sourceLayerLookup[item.sourceLayerId]
@@ -816,7 +816,7 @@ export function fetchAndFilter(props: Translated<IAdLibPanelProps>): IAdLibPanel
 								isClearSourceLayer: true,
 								isGlobal: true,
 								expectedDuration: 0,
-								disabled: false,
+								lifespan: PieceLifespan.WithinPart,
 								externalId: layer._id,
 								rundownId: protectString(''),
 								sourceLayerId: layer._id,

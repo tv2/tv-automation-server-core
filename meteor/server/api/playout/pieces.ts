@@ -1,7 +1,6 @@
 /* tslint:disable:no-use-before-declare */
 import { Resolver } from 'superfly-timeline'
 import * as _ from 'underscore'
-import { Part, PartId } from '../../../lib/collections/Parts'
 import { Piece } from '../../../lib/collections/Pieces'
 import {
 	literal,
@@ -10,8 +9,8 @@ import {
 	clone,
 	normalizeArray,
 	protectString,
-	unprotectObject,
 	unprotectString,
+	omit,
 } from '../../../lib/lib'
 import {
 	TimelineContentTypeOther,
@@ -33,118 +32,59 @@ import {
 import { transformTimeline, TimelineContentObject } from '../../../lib/timeline'
 import { AdLibPiece } from '../../../lib/collections/AdLibPieces'
 import { Random } from 'meteor/random'
-import { prefixAllObjectIds, getAllPiecesFromCache, getSelectedPartInstancesFromCache } from './lib'
-import { calculatePieceTimelineEnable } from '../../../lib/Rundown'
-import { RundownPlaylistPlayoutData, RundownPlaylist } from '../../../lib/collections/RundownPlaylists'
-import { postProcessAdLibPieces } from '../blueprints/postProcess'
+import { prefixAllObjectIds, getSelectedPartInstancesFromCache } from './lib'
+import { RundownPlaylist, RundownPlaylistId } from '../../../lib/collections/RundownPlaylists'
 import { BucketAdLib } from '../../../lib/collections/BucketAdlibs'
-import { PieceInstance, ResolvedPieceInstance, PieceInstanceId } from '../../../lib/collections/PieceInstances'
+import { PieceInstance, ResolvedPieceInstance, PieceInstancePiece } from '../../../lib/collections/PieceInstances'
 import { PartInstance } from '../../../lib/collections/PartInstances'
 import { CacheForRundownPlaylist } from '../../DatabaseCaches'
 
-export interface PieceResolved extends Piece {
-	/** Resolved start time of the piece */
-	resolvedStart: number
-	/** Whether the piece was successfully resolved */
-	resolved: boolean
-}
-export function orderPieces(pieces: Piece[], partId: PartId, partStarted?: number): Array<PieceResolved> {
-	const now = getCurrentTime()
-
-	const pieceMap = normalizeArray(pieces, '_id')
-
-	const objs: Array<TimelineObjRundown> = pieces.map((piece) => {
-		const obj = createPieceGroup({
-			_id: protectString(unprotectString(piece._id)) as PieceInstanceId, // Set the id to the same, as it is just for metadata
-			rundownId: piece.rundownId,
-			piece: piece,
-		})
-
-		if (obj.enable.start === 0) {
-			if (piece.infiniteId && piece.infiniteId !== piece._id) {
-				// Infinite coninuation, needs to start earlier otherwise it will likely end up being unresolved
-				obj.enable.start = 0
-			} else {
-				obj.enable.start = 100 // TODO: write a motivation for this. perhaps to try and avoid unresolved pieces, due to them never having length?
-			}
-		} else if (obj.enable.start === 'now') {
-			obj.enable.start = (partStarted ? now - partStarted : 0) + 100
-			// I think this is + 100 as 'now' will at the earliest happen in 100ms from now, so we are trying to compensate?
-		}
-
-		return obj
-	})
-	const tlResolved = Resolver.resolveTimeline(transformTimeline(objs), {
-		time: 0,
-	})
-
-	let resolvedPieces: Array<PieceResolved> = []
-	let unresolvedIds: string[] = []
-	let unresolvedCount = tlResolved.statistics.unresolvedCount
-	_.each(tlResolved.objects, (obj0) => {
-		const obj = (obj0 as any) as TimelineObjRundown
-		const pieceInstanceId = (obj.metaData || {}).pieceId
-		const piece = _.clone(pieceMap[pieceInstanceId]) as PieceResolved
-		if (obj0.resolved.resolved && obj0.resolved.instances && obj0.resolved.instances.length > 0) {
-			piece.resolvedStart = obj0.resolved.instances[0].start || 0
-			piece.resolved = true
-			resolvedPieces.push(piece)
-		} else {
-			piece.resolvedStart = 0
-			piece.resolved = false
-
-			resolvedPieces.push(piece)
-
-			if (piece.virtual) {
-				// Virtuals always are unresolved and should be ignored
-				unresolvedCount -= 1
-			} else {
-				unresolvedIds.push(obj.id)
-			}
-		}
-	})
-
-	if (unresolvedCount > 0) {
-		logger.error(
-			`Got ${unresolvedCount} unresolved timeline-objects for part #${partId} (${unresolvedIds.join(', ')})`
-		)
-	}
-	if (pieces.length !== resolvedPieces.length) {
-		logger.error(`Got ${resolvedPieces.length} ordered pieces. Expected ${pieces.length} for part #${partId}`)
-	}
-
-	resolvedPieces.sort((a, b) => {
-		if (a.resolvedStart < b.resolvedStart) return -1
-		if (a.resolvedStart > b.resolvedStart) return 1
-
-		if (a.isTransition === b.isTransition) return 0
-		if (b.isTransition) return 1
+function comparePieceStart<T extends PieceInstancePiece>(a: T, b: T, nowInPart: number): 0 | 1 | -1 {
+	const aStart = a.enable.start === 'now' ? nowInPart : a.enable.start
+	const bStart = b.enable.start === 'now' ? nowInPart : b.enable.start
+	if (aStart < bStart) {
 		return -1
-	})
-
-	return resolvedPieces
+	} else if (aStart > bStart) {
+		return 1
+	} else {
+		// Transitions first
+		if (a.isTransition && !b.isTransition) {
+			return -1
+		} else if (!a.isTransition && b.isTransition) {
+			return 1
+		} else if (a._id < b._id) {
+			// Then go by id to make it consistent
+			return -1
+		} else if (a._id > b._id) {
+			return 1
+		} else {
+			return 0
+		}
+	}
 }
-/**
- * Returns a list of the pieces in a Part, ordered in the order they will be played
- * @param part
- */
-export function getOrderedPiece(cache: CacheForRundownPlaylist, part: Part): Array<PieceResolved> {
-	const pieces = getAllPiecesFromCache(cache, part)
-	const partStarted = part.getLastStartedPlayback()
 
-	return orderPieces(pieces, part._id, partStarted)
+export function sortPieceInstancesByStart(pieces: PieceInstance[], nowInPart: number): PieceInstance[] {
+	pieces.sort((a, b) => comparePieceStart(a.piece, b.piece, nowInPart))
+	return pieces
 }
+
+export function sortPiecesByStart<T extends PieceInstancePiece>(pieces: T[]): T[] {
+	pieces.sort((a, b) => comparePieceStart(a, b, 0))
+	return pieces
+}
+
 export function createPieceGroupFirstObject(
+	playlistId: RundownPlaylistId,
 	pieceInstance: PieceInstance,
 	pieceGroup: TimelineObjRundown,
 	firstObjClasses?: string[]
 ): TimelineObjPieceAbstract & OnGenerateTimelineObj {
 	const firstObject = literal<TimelineObjPieceAbstract & OnGenerateTimelineObj>({
-		id: getPieceFirstObjectId(unprotectObject(pieceInstance.piece)),
+		id: getPieceFirstObjectId(unprotectString(pieceInstance.piece._id)),
 		_id: protectString(''), // set later
 		studioId: protectString(''), // set later
 		pieceInstanceId: unprotectString(pieceInstance._id),
-		infinitePieceId: unprotectString(pieceInstance.piece.infiniteId),
+		infinitePieceId: unprotectString(pieceInstance.infinite?.infinitePieceId),
 		objectType: TimelineObjType.RUNDOWN,
 		enable: { start: 0 },
 		layer: pieceInstance.piece.sourceLayerId + '_firstobject',
@@ -153,9 +93,9 @@ export function createPieceGroupFirstObject(
 			type: 'callback',
 			callBack: 'piecePlaybackStarted',
 			callBackData: {
-				rundownId: pieceInstance.rundownId,
+				rundownPlaylistId: playlistId,
 				pieceInstanceId: pieceInstance._id,
-				dynamicallyInserted: pieceInstance.piece.dynamicallyInserted,
+				dynamicallyInserted: pieceInstance.dynamicallyInserted,
 			},
 			callBackStopped: 'piecePlaybackStopped', // Will cause a callback to be called, when the object stops playing:
 		},
@@ -165,11 +105,12 @@ export function createPieceGroupFirstObject(
 	return firstObject
 }
 export function createPieceGroup(
-	pieceInstance: Pick<PieceInstance, '_id' | 'rundownId' | 'piece'>,
-	partGroup?: TimelineObjRundown
+	pieceInstance: Pick<PieceInstance, '_id' | 'rundownId' | 'piece' | 'infinite'>,
+	partGroup?: TimelineObjRundown,
+	pieceEnable?: TSR.Timeline.TimelineEnable
 ): TimelineObjGroup & TimelineObjRundown & OnGenerateTimelineObj {
 	return literal<TimelineObjGroup & TimelineObjRundown & OnGenerateTimelineObj>({
-		id: getPieceGroupId(unprotectObject(pieceInstance.piece)),
+		id: getPieceGroupId(unprotectString(pieceInstance.piece._id)),
 		_id: protectString(''), // set later
 		studioId: protectString(''), // set later
 		content: {
@@ -180,13 +121,14 @@ export function createPieceGroup(
 		inGroup: partGroup && partGroup.id,
 		isGroup: true,
 		pieceInstanceId: unprotectString(pieceInstance._id),
-		infinitePieceId: unprotectString(pieceInstance.piece.infiniteId),
+		infinitePieceId: unprotectString(pieceInstance.infinite?.infinitePieceId),
 		objectType: TimelineObjType.RUNDOWN,
-		enable: calculatePieceTimelineEnable(pieceInstance.piece),
+		enable: pieceEnable ?? pieceInstance.piece.enable,
 		layer: pieceInstance.piece.sourceLayerId,
 		metaData: {
 			pieceId: pieceInstance._id,
 		},
+		// TODO-INSTANCES we might want to set a priority, BUT should a later starter always take priority?
 	})
 }
 
@@ -301,7 +243,7 @@ export function getResolvedPieces(cache: CacheForRundownPlaylist, partInstance: 
 
 	// crop infinite pieces
 	resolvedPieces.forEach((pieceInstance, index, source) => {
-		if (pieceInstance.piece.infiniteMode) {
+		if (pieceInstance.infinite) {
 			for (let i = index + 1; i < source.length; i++) {
 				const sourcePieceInstance = source[i]
 				if (pieceInstance.piece.sourceLayerId === sourcePieceInstance.piece.sourceLayerId) {
@@ -331,7 +273,7 @@ export function getResolvedPiecesFromFullTimeline(
 		(p) => partInstanceIds.indexOf(p.partInstanceId) !== -1
 	)
 
-	const { currentPartInstance, nextPartInstance } = getSelectedPartInstancesFromCache(cache, playlist) // todo: should these be passed as a parameter from getTimelineRundown?
+	const { currentPartInstance } = getSelectedPartInstancesFromCache(cache, playlist) // todo: should these be passed as a parameter from getTimelineRundown?
 
 	if (currentPartInstance && currentPartInstance.part.autoNext && playlist.nextPartInstanceId) {
 		pieceInstances.push(...cache.PieceInstances.findFetch((p) => p.partInstanceId === playlist.nextPartInstanceId))
@@ -363,7 +305,7 @@ export function getResolvedPiecesFromFullTimeline(
 
 	// crop infinite pieces
 	resolvedPieces.forEach((instance, index, source) => {
-		if (instance.piece.infiniteMode) {
+		if (instance.infinite) {
 			// && piece.infiniteMode !== PieceLifespan.OutOnNextPart) {
 			for (let i = index + 1; i < source.length; i++) {
 				const sourceInstance = source[i]
@@ -387,17 +329,15 @@ export function getResolvedPiecesFromFullTimeline(
 	}
 }
 
-export function convertPieceToAdLibPiece(piece: Piece): AdLibPiece {
+export function convertPieceToAdLibPiece(piece: PieceInstancePiece): AdLibPiece {
 	// const oldId = piece._id
 	const newId = Random.id()
 	const newAdLibPiece = literal<AdLibPiece>({
-		..._.omit(piece, 'userDuration', 'timings', 'startedPlayback', 'stoppedPlayback', 'infiniteId'),
-		_id: newId,
+		...omit(piece, 'timings', 'startedPlayback', 'stoppedPlayback'),
+		_id: protectString(newId),
 		_rank: 0,
-		disabled: false,
-		dynamicallyInserted: true,
-		infiniteMode: piece.originalInfiniteMode !== undefined ? piece.originalInfiniteMode : piece.infiniteMode,
-		expectedDuration: _.isNumber(piece.enable.duration) ? piece.enable.duration : 0,
+		expectedDuration: piece.enable.duration,
+		rundownId: protectString(''),
 	})
 
 	if (newAdLibPiece.content && newAdLibPiece.content.timelineObjects) {
@@ -420,11 +360,11 @@ export function convertPieceToAdLibPiece(piece: Piece): AdLibPiece {
 }
 
 export function convertAdLibToPieceInstance(
-	adLibPiece: AdLibPiece | Piece | BucketAdLib,
+	adLibPiece: AdLibPiece | Piece | BucketAdLib | PieceInstancePiece,
 	partInstance: PartInstance,
 	queue: boolean
 ): PieceInstance {
-	let duration: number | string | undefined = undefined
+	let duration: number | undefined = undefined
 	if (adLibPiece['expectedDuration']) {
 		duration = adLibPiece['expectedDuration']
 	} else if (adLibPiece['enable'] && adLibPiece['enable'].duration) {
@@ -436,17 +376,24 @@ export function convertAdLibToPieceInstance(
 		_id: protectString(`${partInstance._id}_${newPieceId}`),
 		rundownId: partInstance.rundownId,
 		partInstanceId: partInstance._id,
-		piece: {
-			..._.omit(adLibPiece, '_rank', 'expectedDuration', 'startedPlayback', 'stoppedPlayback'), // TODO - this could be typed stronger
-			_id: newPieceId,
-			rundownId: partInstance.rundownId,
-			partId: partInstance.part._id,
+		adLibSourceId: adLibPiece._id,
+		dynamicallyInserted: !queue,
+		piece: literal<PieceInstancePiece>({
+			...(_.omit(
+				adLibPiece,
+				'_rank',
+				'expectedDuration',
+				'startedPlayback',
+				'stoppedPlayback',
+				'partId',
+				'rundownId'
+			) as PieceInstancePiece), // TODO - this could be typed stronger
+			_id: protectString(newPieceId),
+			startPartId: partInstance.part._id,
 			enable: {
 				start: queue ? 0 : 'now',
-				duration: !queue && adLibPiece.infiniteMode === PieceLifespan.Normal ? duration : undefined,
+				duration: !queue && adLibPiece.lifespan === PieceLifespan.WithinPart ? duration : undefined,
 			},
-			adLibSourceId: adLibPiece._id,
-			dynamicallyInserted: !queue,
 			timings: {
 				take: [getCurrentTime()],
 				startedPlayback: [],
@@ -456,8 +403,15 @@ export function convertAdLibToPieceInstance(
 				takeDone: [],
 				takeOut: [],
 			},
-		},
+		}),
 	})
+
+	if (newPieceInstance.piece.lifespan !== PieceLifespan.WithinPart) {
+		// Set it up as an infinite
+		newPieceInstance.infinite = {
+			infinitePieceId: newPieceInstance.piece._id,
+		}
+	}
 
 	if (newPieceInstance.piece.content && newPieceInstance.piece.content.timelineObjects) {
 		let contentObjects = newPieceInstance.piece.content.timelineObjects
@@ -477,63 +431,3 @@ export function convertAdLibToPieceInstance(
 	}
 	return newPieceInstance
 }
-
-// export function resolveActivePieces (playlistId: RundownPlaylistId, part: Part, now: number): Piece[] {
-// 	const pieces = part.getAllPieces()
-
-// 	const itemMap: { [key: string]: Piece } = {}
-// 	pieces.forEach(i => itemMap[i._id] = i)
-
-// 	const partStartTime = part.startedPlayback ? part.getLastStartedPlayback() || 0 : 0
-// 	const targetTime = part.startedPlayback ? now - partStartTime : 0
-
-// 	const objs: Array<TimelineObjRundown> = pieces.map(piece => {
-// 		const obj = createPieceGroup(playlistId, piece)
-
-// 		// If start is now, then if the part is active set it to be now, or fallback to start of the part
-// 		if (piece.enable.start === 'now') {
-// 			piece.enable.start = targetTime
-// 		}
-
-// 		return obj
-// 	})
-
-// 	const resolved = Resolver.resolveTimeline(transformTimeline(objs), {
-// 		time: targetTime
-// 	})
-
-// 	const state = Resolver.getState(resolved, targetTime, 1)
-
-// 	let unresolvedIds: string[] = []
-// 	let unresolvedCount = resolved.statistics.unresolvedCount
-// 	_.each(resolved.objects, obj0 => {
-// 		if (!obj0.resolved.resolved || !obj0.resolved.instances || obj0.resolved.instances.length === 0) {
-// 			const obj = obj0 as any as TimelineObjRundown
-// 			const pieceId = (obj.metadata || {}).pieceId
-// 			const piece = itemMap[pieceId]
-// 			if (piece && piece.virtual) {
-// 				// Virtuals always are unresolved and should be ignored
-// 				unresolvedCount -= 1
-// 			} else {
-// 				unresolvedIds.push(obj.id)
-// 			}
-// 		}
-// 	})
-
-// 	let activePieces: Array<Piece> = []
-// 	_.each(state.layers, obj0 => {
-// 		const obj = obj0 as any as TimelineObjRundown
-// 		const pieceId = (obj.metadata || {}).pieceId
-// 		const piece = itemMap[pieceId]
-
-// 		if (piece) {
-// 			activePieces.push(piece)
-// 		}
-// 	})
-
-// 	if (unresolvedCount > 0) {
-// 		logger.error(`Got ${unresolvedCount} unresolved timeline-objects for part #${part._id} (${unresolvedIds.join(', ')})`)
-// 	}
-
-// 	return activePieces
-// }

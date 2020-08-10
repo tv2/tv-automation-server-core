@@ -10,6 +10,7 @@ import { PartId } from '../../../lib/collections/Parts'
 import { PieceId } from '../../../lib/collections/Pieces'
 import { StudioId } from '../../../lib/collections/Studios'
 import { PieceInstanceId } from '../../../lib/collections/PieceInstances'
+import { ClientAPI } from '../../../lib/api/client'
 import { SegmentId } from '../../../lib/collections/Segments'
 
 class ServerPlayoutAPIClass implements NewPlayoutAPI {
@@ -49,9 +50,10 @@ class ServerPlayoutAPIClass implements NewPlayoutAPI {
 		property: string,
 		value: string
 	) {
-		return makePromise(() =>
-			ServerPlayoutAPI.rundownTogglePartArgument(playlistId, partInstanceId, property, value)
-		)
+		return makePromise(() => ClientAPI.responseSuccess(undefined))
+		// return makePromise(() =>
+		// 	ServerPlayoutAPI.rundownTogglePartArgument(playlistId, partInstanceId, property, value)
+		// )
 	}
 	rundownSetNext(playlistId: RundownPlaylistId, partId: PartId, timeOffset?: number | undefined) {
 		return makePromise(() => ServerPlayoutAPI.setNextPart(playlistId, partId, true, timeOffset))
