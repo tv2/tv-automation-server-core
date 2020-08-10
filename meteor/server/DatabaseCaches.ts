@@ -24,6 +24,7 @@ import { AdLibPiece, AdLibPieces } from '../lib/collections/AdLibPieces'
 import { RundownBaselineAdLibItem, RundownBaselineAdLibPieces } from '../lib/collections/RundownBaselineAdLibPieces'
 import { AdLibAction, AdLibActions } from '../lib/collections/AdLibActions'
 import { RundownBaselineAdLibAction, RundownBaselineAdLibActions } from '../lib/collections/RundownBaselineAdLibActions'
+import { profiler, ProfilerLevel } from '../lib/profiler'
 
 type DeferredFunction<Cache> = (cache: Cache) => void
 
@@ -62,6 +63,7 @@ export class Cache {
 		})
 	}
 	async saveAllToDatabase() {
+		const PROFILE_ID = profiler.startProfiling(`cache -> saveAllToDatabase`, ProfilerLevel.DATABASE_OPERATIONS)
 		this._abortActiveTimeout()
 
 		// shouldn't the deferred functions be executed after updating the db?
@@ -75,6 +77,7 @@ export class Cache {
 				}
 			})
 		)
+		profiler.stopProfiling(PROFILE_ID)
 	}
 	/** Defer provided function (it will be run just before cache.saveAllToDatabase() ) */
 	defer(fcn: DeferredFunction<Cache>): void {
@@ -109,6 +112,7 @@ function emptyCacheForStudio(studioId: StudioId): CacheForStudio {
 	return new CacheForStudio(studioId)
 }
 async function fillCacheForStudioWithData(cache: CacheForStudio, studioId: StudioId, initializeImmediately: boolean) {
+	const PROFILE_ID = profiler.startProfiling(`fillCacheForStudioWithData`, ProfilerLevel.CACHE_OPERATIONS)
 	await Promise.all([
 		makePromise(() => cache.RundownPlaylists.prepareInit({ studioId: studioId }, initializeImmediately)),
 		makePromise(() => cache.Studios.prepareInit({ _id: studioId }, initializeImmediately)),
@@ -116,12 +120,15 @@ async function fillCacheForStudioWithData(cache: CacheForStudio, studioId: Studi
 		makePromise(() => cache.RecordedFiles.prepareInit({ studioId: studioId }, initializeImmediately)),
 		makePromise(() => cache.PeripheralDevices.prepareInit({ studioId: studioId }, initializeImmediately)),
 	])
+	profiler.stopProfiling(PROFILE_ID)
 
 	return cache
 }
 export async function initCacheForStudio(studioId: StudioId, initializeImmediately: boolean = true) {
+	const PROFILE_ID = profiler.startProfiling(`initCacheForStudio`, ProfilerLevel.CACHE_OPERATIONS)
 	const cache: CacheForStudio = emptyCacheForStudio(studioId)
 	await fillCacheForStudioWithData(cache, studioId, initializeImmediately)
+	profiler.stopProfiling(PROFILE_ID)
 
 	return cache
 }
@@ -185,6 +192,7 @@ async function fillCacheForRundownPlaylistWithData(
 	playlist: RundownPlaylist,
 	initializeImmediately: boolean
 ) {
+	const PROFILE_ID = profiler.startProfiling(`fillCacheForRundownPlaylistWithData`, ProfilerLevel.CACHE_OPERATIONS)
 	const ps: Promise<any>[] = []
 	cache.Rundowns.prepareInit({ playlistId: playlist._id }, true)
 
@@ -270,18 +278,21 @@ async function fillCacheForRundownPlaylistWithData(
 	)
 
 	await Promise.all(ps)
+	profiler.stopProfiling(PROFILE_ID)
 }
 export async function initCacheForRundownPlaylist(
 	playlist: RundownPlaylist,
 	extendFromCache?: CacheForStudio,
 	initializeImmediately: boolean = true
 ): Promise<CacheForRundownPlaylist> {
+	const PROFILE_ID = profiler.startProfiling(`initCacheForRundownPlaylist`, ProfilerLevel.CACHE_OPERATIONS)
 	if (!extendFromCache) extendFromCache = await initCacheForStudio(playlist.studioId, initializeImmediately)
 	let cache: CacheForRundownPlaylist = emptyCacheForRundownPlaylist(playlist.studioId, playlist._id)
 	if (extendFromCache) {
 		cache._extendWithData(extendFromCache)
 	}
 	await fillCacheForRundownPlaylistWithData(cache, playlist, initializeImmediately)
+	profiler.stopProfiling(PROFILE_ID)
 	return cache
 }
 /** Cache for playout, but there is no playlist playing */

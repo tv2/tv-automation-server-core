@@ -21,6 +21,7 @@ import {
 } from '../lib/lib'
 import * as _ from 'underscore'
 import { TransformedCollection, MongoModifier, FindOptions, MongoQuery } from '../lib/typings/meteor'
+import { profiler, ProfilerLevel } from '../lib/profiler'
 
 export function isDbCacheCollection(o: any): o is DbCacheCollection<any, any> {
 	return !!(o && typeof o === 'object' && o.updateDatabaseWithData)
@@ -308,9 +309,12 @@ export function saveIntoCache<DocClass extends DBInterface, DBInterface extends 
 	newData: Array<DBInterface>,
 	options?: SaveIntoDbOptions<DocClass, DBInterface>
 ): Changes {
+	const PROFILE_ID = profiler.startProfiling(`saveIntoCache`, ProfilerLevel.CACHE_OPERATIONS)
 	const preparedChanges = prepareSaveIntoCache(collection, filter, newData, options)
 
-	return savePreparedChangesIntoCache(preparedChanges, collection, options)
+	const changes = savePreparedChangesIntoCache(preparedChanges, collection, options)
+	profiler.stopProfiling(PROFILE_ID)
+	return changes
 }
 export interface PreparedChanges<T> {
 	inserted: T[]

@@ -40,6 +40,8 @@ export interface ISettings {
 	keyboardMapLayout: KeyboardLayouts.Names
 	/** NRCS name displayed in various places */
 	nrcsName: string
+	/** Enable profiling */
+	enableProfiler: boolean
 }
 
 export let Settings: ISettings
@@ -61,6 +63,7 @@ const DEFAULT_SETTINGS: ISettings = {
 	showKeyboardMap: true,
 	keyboardMapLayout: KeyboardLayouts.Names.STANDARD_102_TKL,
 	nrcsName: 'ENPS',
+	enableProfiler: Meteor.isDevelopment,
 }
 
 Settings = _.clone(DEFAULT_SETTINGS)

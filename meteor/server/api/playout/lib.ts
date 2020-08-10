@@ -41,6 +41,7 @@ import { RundownBaselineAdLibPieces } from '../../../lib/collections/RundownBase
 import { IngestDataCache } from '../../../lib/collections/IngestDataCache'
 import { ExpectedMediaItems } from '../../../lib/collections/ExpectedMediaItems'
 import { ExpectedPlayoutItems } from '../../../lib/collections/ExpectedPlayoutItems'
+import { profiler, ProfilerLevel } from '../../../lib/profiler'
 
 /**
  * Reset the rundown:
@@ -471,6 +472,7 @@ export function setNextPart(
 	setManually?: boolean,
 	nextTimeOffset?: number | undefined
 ) {
+	const PROFILE_ID = profiler.startProfiling(`setNextPart`, ProfilerLevel.SIMPLE)
 	const rundownIds = getRundownIDsFromCache(cache, rundownPlaylist)
 	const { currentPartInstance, nextPartInstance } = getSelectedPartInstancesFromCache(
 		cache,
@@ -637,6 +639,7 @@ export function setNextPart(
 		})
 		// delete rundownPlaylist.nextSegmentId
 	}
+	profiler.stopProfiling(PROFILE_ID)
 }
 export function setNextSegment(
 	cache: CacheForRundownPlaylist,

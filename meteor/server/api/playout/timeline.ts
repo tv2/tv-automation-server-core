@@ -68,6 +68,7 @@ import { PieceInstance, PieceInstances } from '../../../lib/collections/PieceIns
 import { isNumber } from 'util'
 import { CacheForRundownPlaylist, CacheForStudio } from '../../DatabaseCaches'
 import { saveIntoCache } from '../../DatabaseCache'
+import { profiler, ProfilerLevel } from '../../../lib/profiler'
 
 /**
  * Updates the Timeline to reflect the state in the Rundown, Segments, Parts etc...
@@ -77,6 +78,7 @@ import { saveIntoCache } from '../../DatabaseCache'
 // export const updateTimeline: (cache: CacheForRundownPlaylist, studioId: StudioId, forceNowToTime?: Time) => void
 // = syncFunctionIgnore(function updateTimeline (cache: CacheForRundownPlaylist, studioId: StudioId, forceNowToTime?: Time) {
 export function updateTimeline(cache: CacheForRundownPlaylist, studioId: StudioId, forceNowToTime?: Time) {
+	const PROFILE_ID = profiler.startProfiling(`updateTimeline`, ProfilerLevel.SIMPLE)
 	logger.debug('updateTimeline running...')
 	let timelineObjs: Array<TimelineObjGeneric> = []
 	const studio = cache.Studios.findOne(studioId)
@@ -156,6 +158,7 @@ export function updateTimeline(cache: CacheForRundownPlaylist, studioId: StudioI
 	afterUpdateTimeline(cache, studio._id, savedTimelineObjs)
 
 	logger.debug('updateTimeline done!')
+	profiler.stopProfiling(PROFILE_ID)
 }
 // '$1') // This causes syncFunctionIgnore to only use the second argument (studioId) when ignoring
 
@@ -169,6 +172,7 @@ export function afterUpdateTimeline(
 	studioId: StudioId,
 	timelineObjs?: Array<TimelineObjGeneric>
 ) {
+	const PROFILE_ID = profiler.startProfiling(`afterUpdateTimeline`, ProfilerLevel.DETAILED)
 	// logger.info('afterUpdateTimeline')
 	if (!timelineObjs) {
 		timelineObjs = cache.Timeline.findFetch({
@@ -205,6 +209,7 @@ export function afterUpdateTimeline(
 	statObj._id = getTimelineId(statObj)
 
 	cache.Timeline.upsert(statObj._id, statObj)
+	profiler.stopProfiling(PROFILE_ID)
 }
 export function getActiveRundownPlaylist(cache: CacheForStudio, studioId: StudioId): RundownPlaylist | undefined {
 	return cache.RundownPlaylists.findOne({
@@ -372,6 +377,7 @@ function getTimelineRecording(
  * @param timelineObjs Array of timeline objects
  */
 function processTimelineObjects(studio: Studio, timelineObjs: Array<TimelineObjGeneric>): void {
+	const PROFILE_ID = profiler.startProfiling(`processTimelineObjects`, ProfilerLevel.DETAILED)
 	// first, split out any grouped objects, to make the timeline shallow:
 	let fixObjectChildren = (o: TimelineObjGeneric): void => {
 		// Unravel children objects and put them on the (flat) timelineObjs array
@@ -404,6 +410,7 @@ function processTimelineObjects(studio: Studio, timelineObjs: Array<TimelineObjG
 		o._id = getTimelineId(o)
 		fixObjectChildren(o)
 	})
+	profiler.stopProfiling(PROFILE_ID)
 }
 /**
  * goes through timelineObjs and forces the "now"-values to the absolute time specified

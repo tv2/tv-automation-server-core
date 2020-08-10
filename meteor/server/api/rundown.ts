@@ -64,6 +64,7 @@ import { AdLibActions, AdLibAction } from '../../lib/collections/AdLibActions'
 import { Settings } from '../../lib/Settings'
 import { findMissingConfigs } from './blueprints/config'
 import { modifyPlaylistExternalId } from './ingest/lib'
+import { profiler, ProfilerLevel } from '../../lib/profiler'
 
 export function selectShowStyleVariant(
 	studio: Studio,
@@ -302,6 +303,7 @@ export function afterRemoveSegments(cache: CacheForRundownPlaylist, rundownId: R
  * @param skipEnsure For when caller is handling state changes themselves.
  */
 export function afterRemoveParts(cache: CacheForRundownPlaylist, rundownId: RundownId, removedParts: DBPart[]) {
+	const PROFILE_ID = profiler.startProfiling(`afterRemoveParts`, ProfilerLevel.CACHE_OPERATIONS)
 	saveIntoCache(
 		cache.Parts,
 		{
@@ -342,6 +344,7 @@ export function afterRemoveParts(cache: CacheForRundownPlaylist, rundownId: Rund
 		updateExpectedMediaItemsOnPart(cache, part.rundownId, part._id) // todo: is this correct
 		updateExpectedPlayoutItemsOnPart(cache, part.rundownId, part._id)
 	})
+	profiler.stopProfiling(PROFILE_ID)
 }
 
 export function afterRemovePartsAuxiliary(
@@ -403,6 +406,7 @@ export function afterRemovePieces(
 export function updatePartRanks(cache: CacheForRundownPlaylist, rundown: Rundown): Array<Part> {
 	// TODO-PartInstance this will need to consider partInstances that have no backing part at some point, or do we not care about their rank?
 
+	const PROFILE_ID = profiler.startProfiling(`updatePartRanks`, ProfilerLevel.DETAILED)
 	const { segments, parts: orgParts } = getRundownsSegmentsAndPartsFromCache(cache, [rundown])
 
 	logger.debug(`updatePartRanks (${orgParts.length} parts, ${segments.length} segments)`)
@@ -489,6 +493,7 @@ export function updatePartRanks(cache: CacheForRundownPlaylist, rundown: Rundown
 		})
 	}
 
+	profiler.stopProfiling(PROFILE_ID)
 	return parts
 }
 
