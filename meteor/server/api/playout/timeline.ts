@@ -221,6 +221,7 @@ export function getActiveRundownPlaylist(cache: CacheForStudio, studioId: Studio
  * Returns timeline objects related to rundowns in a studio
  */
 function getTimelineRundown(cache: CacheForRundownPlaylist, studio: Studio): TimelineObjRundown[] {
+	const PROFILE_ID = profiler.startProfiling(`getTimelineRundown`, ProfilerLevel.DETAILED)
 	try {
 		let timelineObjs: Array<TimelineObjGeneric & OnGenerateTimelineObj> = []
 
@@ -286,10 +287,12 @@ function getTimelineRundown(cache: CacheForRundownPlaylist, studio: Studio): Tim
 						})
 					}
 				} catch (e) {
+					profiler.stopProfiling(PROFILE_ID)
 					logger.error(`Error in onTimelineGenerate during getTimelineRundown`, e)
 				}
 			}
 
+			profiler.stopProfiling(PROFILE_ID)
 			return timelineObjs.map<TimelineObjRundown>((timelineObj) => {
 				return {
 					...omit(timelineObj, 'pieceInstanceId', 'infinitePieceId'), // temporary fields from OnGenerateTimelineObj
@@ -329,10 +332,12 @@ function getTimelineRundown(cache: CacheForRundownPlaylist, studio: Studio): Tim
 				)
 			}
 
+			profiler.stopProfiling(PROFILE_ID)
 			return studioBaseline
 		}
 	} catch (e) {
 		logger.error(e)
+		profiler.stopProfiling(PROFILE_ID)
 		return []
 	}
 }
@@ -344,6 +349,7 @@ function getTimelineRecording(
 	studio: Studio,
 	forceNowToTime?: Time
 ): TimelineObjRecording[] {
+	const PROFILE_ID = profiler.startProfiling(`getTimelineRecording`, ProfilerLevel.DETAILED)
 	try {
 		let recordingTimelineObjs: TimelineObjRecording[] = []
 
@@ -362,8 +368,10 @@ function getTimelineRecording(
 			recordingTimelineObjs = recordingTimelineObjs.concat(generateRecordingTimelineObjs(studio, activeRecording))
 		})
 
+		profiler.stopProfiling(PROFILE_ID)
 		return recordingTimelineObjs
 	} catch (e) {
+		profiler.stopProfiling(PROFILE_ID)
 		return []
 	}
 	// Timeline.remove({

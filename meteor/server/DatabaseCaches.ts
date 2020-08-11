@@ -68,12 +68,22 @@ export class Cache {
 
 		// shouldn't the deferred functions be executed after updating the db?
 		_.each(this._deferredFunctions, (fcn) => {
+			const PROFILE_ID = profiler.startProfiling(
+				`cache -> saveAllToDatabase -> deferred -> ${fcn.name}`,
+				ProfilerLevel.CACHE_OPERATIONS
+			)
 			fcn(this)
+			profiler.stopProfiling(PROFILE_ID)
 		})
 		await Promise.all(
 			_.map(_.values(this), async (db) => {
 				if (isDbCacheCollection(db)) {
+					const PROFILE_ID = profiler.startProfiling(
+						`cache -> saveAllToDatabase -> db.updateDatabaseWithData -> ${db.name}`,
+						ProfilerLevel.DATABASE_OPERATIONS
+					)
 					await db.updateDatabaseWithData()
+					profiler.stopProfiling(PROFILE_ID)
 				}
 			})
 		)
@@ -210,6 +220,10 @@ async function fillCacheForRundownPlaylistWithData(
 	ps.push(
 		makePromise(() =>
 			cache.PieceInstances.prepareInit(async () => {
+				const PROFILE_ID = profiler.startProfiling(
+					`fillCacheForRundownPlaylistWithData -> PieceInstances -> prepareInit`,
+					ProfilerLevel.CACHE_OPERATIONS
+				)
 				const selectedPartInstanceIds = _.compact([
 					playlist.currentPartInstanceId,
 					playlist.nextPartInstanceId,
@@ -220,61 +234,87 @@ async function fillCacheForRundownPlaylistWithData(
 					rundownId: { $in: rundownIds },
 					partInstanceId: { $in: selectedPartInstanceIds },
 				})
+				profiler.stopProfiling(PROFILE_ID)
 			}, initializeImmediately)
 		)
 	)
 
 	ps.push(
-		makePromise(() =>
+		makePromise(() => {
+			const PROFILE_ID = profiler.startProfiling(
+				`fillCacheForRundownPlaylistWithData -> RundownBaselineObjs -> prepareInit`,
+				ProfilerLevel.CACHE_OPERATIONS
+			)
 			cache.RundownBaselineObjs.prepareInit(
 				{
 					rundownId: { $in: rundownIds },
 				},
 				initializeImmediately
 			)
-		)
+			profiler.stopProfiling(PROFILE_ID)
+		})
 	)
 
 	ps.push(
-		makePromise(() =>
+		makePromise(() => {
+			const PROFILE_ID = profiler.startProfiling(
+				`fillCacheForRundownPlaylistWithData -> AdLibPieces -> prepareInit`,
+				ProfilerLevel.CACHE_OPERATIONS
+			)
 			cache.AdLibPieces.prepareInit(
 				{
 					rundownId: { $in: rundownIds },
 				},
 				false
 			)
-		)
+			profiler.stopProfiling(PROFILE_ID)
+		})
 	)
 	ps.push(
-		makePromise(() =>
+		makePromise(() => {
+			const PROFILE_ID = profiler.startProfiling(
+				`fillCacheForRundownPlaylistWithData -> AdLibActions -> prepareInit`,
+				ProfilerLevel.CACHE_OPERATIONS
+			)
 			cache.AdLibActions.prepareInit(
 				{
 					rundownId: { $in: rundownIds },
 				},
 				false
 			)
-		)
+			profiler.stopProfiling(PROFILE_ID)
+		})
 	)
 
 	ps.push(
-		makePromise(() =>
+		makePromise(() => {
+			const PROFILE_ID = profiler.startProfiling(
+				`fillCacheForRundownPlaylistWithData -> RundownBaselineAdLibPieces -> prepareInit`,
+				ProfilerLevel.CACHE_OPERATIONS
+			)
 			cache.RundownBaselineAdLibPieces.prepareInit(
 				{
 					rundownId: { $in: rundownIds },
 				},
 				false
 			)
-		)
+			profiler.stopProfiling(PROFILE_ID)
+		})
 	)
 	ps.push(
-		makePromise(() =>
+		makePromise(() => {
+			const PROFILE_ID = profiler.startProfiling(
+				`fillCacheForRundownPlaylistWithData -> RundownBaselineAdLibPieces -> prepareInit`,
+				ProfilerLevel.CACHE_OPERATIONS
+			)
 			cache.RundownBaselineAdLibActions.prepareInit(
 				{
 					rundownId: { $in: rundownIds },
 				},
 				false
 			)
-		)
+			profiler.stopProfiling(PROFILE_ID)
+		})
 	)
 
 	await Promise.all(ps)
