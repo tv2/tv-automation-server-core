@@ -58,7 +58,6 @@ import { PieceInstance } from '../../../lib/collections/PieceInstances'
 import { CacheForRundownPlaylist, CacheForStudio } from '../../DatabaseCaches'
 import { saveIntoCache } from '../../DatabaseCache'
 import { profiler, ProfilerLevel } from '../../../lib/profiler'
-import { writeFileSync } from 'fs'
 
 /**
  * Updates the Timeline to reflect the state in the Rundown, Segments, Parts etc...
@@ -97,9 +96,6 @@ export function updateTimeline(cache: CacheForRundownPlaylist, studioId: StudioI
 	]
 
 	processTimelineObjects(studio, timelineObjs)
-
-	// logger.info(`timelineObjs: ${JSON.stringify(timelineObjs, undefined, 4)}`)
-	writeFileSync('tmp.json', JSON.stringify(timelineObjs, undefined, 4))
 
 	if (forceNowToTime) {
 		// used when autoNexting

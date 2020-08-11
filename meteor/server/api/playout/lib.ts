@@ -25,7 +25,6 @@ import { ExpectedPlayoutItems } from '../../../lib/collections/ExpectedPlayoutIt
 import { profiler, ProfilerLevel } from '../../../lib/profiler'
 import { saveIntoCache } from '../../DatabaseCache'
 import { afterRemoveParts } from '../rundown'
-import { writeFileSync } from 'fs'
 import { AdLibActions } from '../../../lib/collections/AdLibActions'
 
 /**
