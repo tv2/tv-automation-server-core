@@ -739,6 +739,7 @@ export function getSelectedPartInstancesFromCache(
 	playlist: RundownPlaylist,
 	rundownIds?: RundownId[]
 ) {
+	const PROFILE_ID = profiler.startProfiling(`getSelectedPartInstancesFromCache`, ProfilerLevel.DETAILED)
 	if (!rundownIds) {
 		rundownIds = getRundownIDsFromCache(cache, playlist)
 	}
@@ -763,6 +764,7 @@ export function getSelectedPartInstancesFromCache(
 		reset: { $ne: true },
 	})
 
+	profiler.stopProfiling(PROFILE_ID)
 	return {
 		currentPartInstance: instances.find((inst) => inst._id === playlist.currentPartInstanceId),
 		nextPartInstance: instances.find((inst) => inst._id === playlist.nextPartInstanceId),

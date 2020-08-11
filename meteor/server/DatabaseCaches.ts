@@ -305,7 +305,7 @@ async function fillCacheForRundownPlaylistWithData(
 	ps.push(
 		makePromise(() => {
 			const PROFILE_ID = profiler.startProfiling(
-				`fillCacheForRundownPlaylistWithData -> RundownBaselineAdLibPieces -> prepareInit`,
+				`fillCacheForRundownPlaylistWithData -> RundownBaselineAdLibActions -> prepareInit`,
 				ProfilerLevel.CACHE_OPERATIONS
 			)
 			cache.RundownBaselineAdLibActions.prepareInit(

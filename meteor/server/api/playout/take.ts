@@ -35,8 +35,10 @@ import { PartEventContext, RundownContext } from '../blueprints/context/context'
 import { PartInstance } from '../../../lib/collections/PartInstances'
 import { IngestActions } from '../ingest/actions'
 import { StudioId } from '../../../lib/collections/Studios'
+import { profiler, ProfilerLevel } from '../../../lib/profiler'
 
 export function takeNextPartInner(rundownPlaylistId: RundownPlaylistId): ClientAPI.ClientResponse<void> {
+	const PROFILE_ID = profiler.startProfiling(`takeNextPartInner`, ProfilerLevel.SIMPLE)
 	let now = getCurrentTime()
 
 	return rundownPlaylistSyncFunction(rundownPlaylistId, RundownSyncFunctionPriority.USER_PLAYOUT, () => {
@@ -111,20 +113,25 @@ export function takeNextPartInner(rundownPlaylistId: RundownPlaylistId): ClientA
 
 		const { segments, parts: partsInOrder } = getSegmentsAndPartsFromCache(cache, playlist)
 		// let takeSegment = rundownData.segmentsMap[takePart.segmentId]
+		const PROFILE_SELECT_NEXT_PART = profiler.startProfiling(`selectnextPart`, ProfilerLevel.DETAILED)
 		const nextPart = selectNextPart(playlist, takePartInstance, partsInOrder)
+		profiler.stopProfiling(PROFILE_SELECT_NEXT_PART)
 
 		// beforeTake(rundown, previousPart || null, takePart)
 		copyOverflowingPieces(cache, partsInOrder, previousPartInstance || null, takePartInstance)
 
 		const { blueprint } = waitForPromise(pBlueprint)
 		if (blueprint.onPreTake) {
+			const PROFILE_ID = profiler.startProfiling(`onPreTake`, ProfilerLevel.DETAILED)
 			try {
 				waitForPromise(
 					Promise.resolve(
 						blueprint.onPreTake(new PartEventContext(takeRundown, undefined, takePartInstance))
 					).catch(logger.error)
 				)
+				profiler.stopProfiling(PROFILE_ID)
 			} catch (e) {
+				profiler.stopProfiling(PROFILE_ID)
 				logger.error(e)
 			}
 		}
@@ -244,6 +251,7 @@ export function takeNextPartInner(rundownPlaylistId: RundownPlaylistId): ClientA
 				// let bp = getBlueprintOfRundown(rundown)
 				if (firstTake) {
 					if (blueprint.onRundownFirstTake) {
+						const PROFILE_ID = profiler.startProfiling(`onRundownFirstTake`, ProfilerLevel.DETAILED)
 						waitForPromise(
 							Promise.resolve(
 								blueprint.onRundownFirstTake(
@@ -251,20 +259,24 @@ export function takeNextPartInner(rundownPlaylistId: RundownPlaylistId): ClientA
 								)
 							).catch(logger.error)
 						)
+						profiler.stopProfiling(PROFILE_ID)
 					}
 				}
 
 				if (blueprint.onPostTake) {
+					const PROFILE_ID = profiler.startProfiling(`onPostTake`, ProfilerLevel.DETAILED)
 					waitForPromise(
 						Promise.resolve(
 							blueprint.onPostTake(new PartEventContext(takeRundown, undefined, takePartInstance))
 						).catch(logger.error)
 					)
+					profiler.stopProfiling(PROFILE_ID)
 				}
 			}
 		})
 		waitForPromise(cache.saveAllToDatabase())
 
+		profiler.stopProfiling(PROFILE_ID)
 		return ClientAPI.responseSuccess(undefined)
 	})
 }
@@ -275,6 +287,7 @@ function copyOverflowingPieces(
 	currentPartInstance: PartInstance | null,
 	nextPartInstance: PartInstance
 ) {
+	const PROFILE_ID = profiler.startProfiling(`copyOverflowingPieces`, ProfilerLevel.DETAILED)
 	// TODO-PartInstance - is this going to work? It needs some work to handle part data changes
 	if (currentPartInstance) {
 		const adjacentPart = partsInOrder.find((part) => {
@@ -328,6 +341,7 @@ function copyOverflowingPieces(
 			}
 		})
 	}
+	profiler.stopProfiling(PROFILE_ID)
 }
 
 export function afterTake(
@@ -336,6 +350,7 @@ export function afterTake(
 	takePartInstance: PartInstance,
 	timeOffset: number | null = null
 ) {
+	const PROFILE_ID = profiler.startProfiling(`afterTake`, ProfilerLevel.DETAILED)
 	// This function should be called at the end of a "take" event (when the Parts have been updated)
 
 	let forceNowTime: number | undefined = undefined
@@ -344,6 +359,8 @@ export function afterTake(
 	}
 	// or after a new part has started playing
 	updateTimeline(cache, studioId, forceNowTime)
+
+	profiler.stopProfiling(PROFILE_ID)
 
 	// defer these so that the playout gateway has the chance to learn about the changes
 	Meteor.setTimeout(() => {
