@@ -110,7 +110,12 @@ export function getLookeaheadObjects(
 
 	const orderedPiecesCache = new Map<PartId, PieceResolved[]>()
 
-	_.each(studio.mappings || {}, (mapping: MappingExt, layerId: string) => {
+	const mappings = Object.entries(studio.mappings || {})
+
+	for (let index = 0, len = mappings.length; index < len; index++) {
+		const layerId = mappings[index][0]
+		const mapping = mappings[index][1]
+
 		const lookaheadTargetObjects = mapping.lookahead === LookaheadMode.PRELOAD ? mapping.lookaheadDepth || 1 : 1 // TODO - test other modes
 		const lookaheadMaxSearchDistance =
 			mapping.lookaheadMaxSearchDistance !== undefined && mapping.lookaheadMaxSearchDistance >= 0
@@ -129,11 +134,12 @@ export function getLookeaheadObjects(
 			lookaheadMaxSearchDistance
 		)
 		if (!lookaheadObjs) {
-			return
+			continue
 		}
 
-		// Add the objects that have some timing info
-		_.each(lookaheadObjs.timed, (entry, i) => {
+		for (let i = 0, len = lookaheadObjs.timed.length; i < len; i++) {
+			const entry = lookaheadObjs.timed[i]
+
 			let enable: TimelineTypes.TimelineEnable = {
 				start: 1, // Absolute 0 without a group doesnt work
 			}
@@ -146,18 +152,20 @@ export function getLookeaheadObjects(
 			enable.end = `#${entry.obj.id}.start`
 
 			mutateAndPushObject(entry.obj, `timed${i}`, enable, mapping, LOOKAHEAD_OBJ_PRIORITY)
-		})
+		}
 
 		// Add each of the future objects, that have no end point
 		const futureObjCount = lookaheadObjs.future.length
 		const futurePriorityScale = LOOKAHEAD_OBJ_PRIORITY / (futureObjCount + 1)
-		_.each(lookaheadObjs.future, (entry, i) => {
+		for (let i = 0, len = lookaheadObjs.future.length; i < len; i++) {
+			const entry = lookaheadObjs.future[i]
+
 			if (!entry.obj.id) throw new Meteor.Error(500, 'lookahead: timeline obj id not set')
 
 			// WHEN_CLEAR mode can't take multiple futures, as they are always flattened into the single layer. so give it some real timings, and only output one
 			const singleFutureObj = mapping.lookahead !== LookaheadMode.WHEN_CLEAR
 			if (singleFutureObj && i !== 0) {
-				return
+				break
 			}
 
 			const lastTimedObj = _.last(lookaheadObjs.timed)
@@ -169,8 +177,8 @@ export function getLookeaheadObjects(
 			// Prioritise so that the earlier ones are higher, decreasing within the range 'reserved' for lookahead
 			const priority = singleFutureObj ? LOOKAHEAD_OBJ_PRIORITY : futurePriorityScale * (futureObjCount - i)
 			mutateAndPushObject(entry.obj, `future${i}`, enable, mapping, priority)
-		})
-	})
+		}
+	}
 	return timelineObjs
 }
 
@@ -222,14 +230,15 @@ function findLookaheadForlayer(
 	}
 
 	// Generate timed objects for parts on the timeline
-	_.each(partInstancesOnTimeline, (partInstance) => {
+	for (let i = 0, len = partInstancesOnTimeline.length; i < len; i++) {
+		const partInstance = partInstancesOnTimeline[i]
 		const pieces = filterPartInstancePieces(partInstance.pieces)
 		const partInfo = {
 			part: partInstance.part.part,
 			pieces: pieces.map((p) => p.piece),
 		}
 
-		findObjectsForPart(
+		const objects = findObjectsForPart(
 			cache,
 			playlist,
 			orderedPiecesCache,
@@ -237,9 +246,14 @@ function findLookaheadForlayer(
 			previousPartInfo,
 			partInfo,
 			partInstance.part._id
-		).forEach((o) => res.timed.push({ obj: o, partId: partInstance.part.part._id }))
+		)
+
+		for (let j = 0, len2 = objects.length; j < len2; j++) {
+			res.timed.push({ obj: objects[j], partId: partInstance.part.part._id })
+		}
+
 		previousPartInfo = partInfo
-	})
+	}
 
 	// find all pieces that touch the layer
 	const piecesUsingLayer = cache.Pieces.findFetch((piece: Piece) => {
@@ -265,16 +279,18 @@ function findLookaheadForlayer(
 
 	// have pieces grouped by part, so we can look based on rank to choose the correct one
 	const piecesUsingLayerByPart: { [partId: string]: Piece[] | undefined } = {}
-	piecesUsingLayer.forEach((i) => {
-		const partId = unprotectString(i.partId)
+	for (let i = 0, len = piecesUsingLayer.length; i < len; i++) {
+		const piece = piecesUsingLayer[i]
+		const partId = unprotectString(piece.partId)
 		if (!piecesUsingLayerByPart[partId]) {
 			piecesUsingLayerByPart[partId] = []
 		}
 
-		piecesUsingLayerByPart[partId]!.push(i)
-	})
+		piecesUsingLayerByPart[partId]!.push(piece)
+	}
 
-	for (const part of futureParts) {
+	for (let i = 0, len = futureParts.length; i < len; i++) {
+		const part = futureParts[i]
 		// Stop if we have enough objects already
 		if (res.future.length >= lookaheadTargetObjects) {
 			break
@@ -283,7 +299,7 @@ function findLookaheadForlayer(
 		const pieces = piecesUsingLayerByPart[unprotectString(part._id)] || []
 		if (pieces.length > 0 && part.isPlayable()) {
 			const partInfo = { part, pieces }
-			findObjectsForPart(
+			const objects = findObjectsForPart(
 				cache,
 				playlist,
 				orderedPiecesCache,
@@ -291,7 +307,13 @@ function findLookaheadForlayer(
 				previousPartInfo,
 				partInfo,
 				null
-			).forEach((o) => res.future.push({ obj: o, partId: part._id }))
+			)
+
+			for (let j = 0, len = objects.length; i < len; i++) {
+				const o = objects[j]
+				res.future.push({ obj: o, partId: part._id })
+			}
+
 			previousPartInfo = partInfo
 		}
 	}
@@ -316,12 +338,15 @@ function findObjectsForPart(
 	}
 
 	let allObjs: TimelineObjRundown[] = []
-	partInfo.pieces.forEach((piece) => {
+	for (let i = 0, len = partInfo.pieces.length; i < len; i++) {
+		const piece = partInfo.pieces[i]
 		if (piece.content && piece.content.timelineObjects) {
 			// Calculate the pieceInstanceId or fallback to the pieceId. This is ok, as its only for lookahead
 			const pieceInstanceId = partInstanceId ? wrapPieceToInstance(piece, partInstanceId)._id : piece._id
 
-			_.each(piece.content.timelineObjects, (obj) => {
+			for (let i = 0, len = piece.content.timelineObjects.length; i < len; i++) {
+				const obj = piece.content.timelineObjects[i]
+
 				if (obj) {
 					fixTimelineId(obj)
 					allObjs.push(
@@ -335,9 +360,10 @@ function findObjectsForPart(
 						})
 					)
 				}
-			})
+			}
 		}
-	})
+	}
+
 	// let allObjs: TimelineObjRundown[] = _.compact(rawObjs)
 
 	if (allObjs.length === 0) {
@@ -376,23 +402,25 @@ function findObjectsForPart(
 			transObj2.content.timelineObjects.find((o) => o != null && o.layer === layer)
 
 		const res: TimelineObjRundown[] = []
-		orderedItems.forEach((i) => {
-			if (!partInfo || (!allowTransition && i.isTransition)) {
-				return
+
+		for (let i = 0, len = orderedItems.length; i < len; i++) {
+			const resolvedPiece = orderedItems[i]
+			if (!partInfo || (!allowTransition && resolvedPiece.isTransition)) {
+				continue
 			}
 
-			const piece = partInfo.pieces.find((l) => l._id === i._id)
+			const piece = partInfo.pieces.find((l) => l._id === resolvedPiece._id)
 			if (!piece || !piece.content || !piece.content.timelineObjects) {
-				return
+				continue
 			}
 
 			// If there is a transition and this piece is abs0, it is assumed to be the primary piece and so does not need lookahead
 			if (
 				hasTransition &&
-				!i.isTransition &&
+				!resolvedPiece.isTransition &&
 				piece.enable.start === 0 // <-- need to discuss this!
 			) {
-				return
+				continue
 			}
 
 			// Note: This is assuming that there is only one use of a layer in each piece.
@@ -429,7 +457,7 @@ function findObjectsForPart(
 					})
 				)
 			}
-		})
+		}
 		return res
 	}
 }
