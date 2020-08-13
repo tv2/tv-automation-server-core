@@ -630,7 +630,6 @@ export namespace ServerPlayoutAPI {
 			// Last:
 			const takeDoneTime = getCurrentTime()
 			cache.defer(() => {
-				// todo: should this be changed back to Meteor.defer, at least for the blueprint stuff?
 				if (takePartInstance) {
 					cache.PartInstances.update(takePartInstance._id, {
 						$push: {
@@ -642,27 +641,31 @@ export namespace ServerPlayoutAPI {
 							'timings.takeDone': takeDoneTime,
 						},
 					})
+				}
+				Meteor.defer(() => {
 					// let bp = getBlueprintOfRundown(rundown)
-					if (firstTake) {
-						if (blueprint.onRundownFirstTake) {
+					if (takePartInstance) {
+						if (firstTake) {
+							if (blueprint.onRundownFirstTake) {
+								waitForPromise(
+									Promise.resolve(
+										blueprint.onRundownFirstTake(
+											new PartEventContext(takeRundown, undefined, takePartInstance)
+										)
+									).catch(logger.error)
+								)
+							}
+						}
+
+						if (blueprint.onPostTake) {
 							waitForPromise(
 								Promise.resolve(
-									blueprint.onRundownFirstTake(
-										new PartEventContext(takeRundown, undefined, takePartInstance)
-									)
+									blueprint.onPostTake(new PartEventContext(takeRundown, undefined, takePartInstance))
 								).catch(logger.error)
 							)
 						}
 					}
-
-					if (blueprint.onPostTake) {
-						waitForPromise(
-							Promise.resolve(
-								blueprint.onPostTake(new PartEventContext(takeRundown, undefined, takePartInstance))
-							).catch(logger.error)
-						)
-					}
-				}
+				})
 			})
 			waitForPromise(cache.saveAllToDatabase())
 

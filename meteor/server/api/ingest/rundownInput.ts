@@ -1361,7 +1361,7 @@ export function handleRemovedPart(
 				ingestSegment.parts = ingestSegment.parts.filter((p) => p.externalId !== partExternalId)
 				ingestSegment.modified = getCurrentTime()
 
-				cache.defer(() => {
+				Meteor.defer(() => {
 					saveSegmentCache(rundown._id, segmentId, ingestSegment)
 				})
 				const updatedSegmentId = updateSegmentFromIngestData(cache, studio, playlist, rundown, ingestSegment)
@@ -1430,7 +1430,7 @@ export function handleUpdatedPartInner(
 		ingestSegment.parts.push(makeNewIngestPart(ingestPart))
 		ingestSegment.modified = getCurrentTime()
 
-		cache.defer(() => {
+		Meteor.defer(() => {
 			saveSegmentCache(rundown._id, segmentId, ingestSegment)
 		})
 		const updatedSegmentId = updateSegmentFromIngestData(cache, studio, playlist, rundown, ingestSegment)

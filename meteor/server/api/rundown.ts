@@ -391,9 +391,11 @@ export function afterRemovePieces(
 	removedPieces: Array<Piece | AdLibPiece>
 ) {
 	cache.defer(() => {
-		ExpectedPlayoutItems.remove({
-			rundownId: rundownId,
-			pieceId: { $in: _.map(removedPieces, (p) => p._id) },
+		Meteor.defer(() => {
+			ExpectedPlayoutItems.remove({
+				rundownId: rundownId,
+				pieceId: { $in: _.map(removedPieces, (p) => p._id) },
+			})
 		})
 	})
 }

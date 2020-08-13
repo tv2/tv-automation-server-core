@@ -75,7 +75,7 @@ export function activateRundownPlaylist(
 
 	updateTimeline(cache, studio._id)
 
-	cache.defer(() => {
+	Meteor.defer(() => {
 		if (!rundown) return // if the proper rundown hasn't been found, there's little point doing anything else
 		const { blueprint } = getBlueprintOfRundown(rundown)
 		if (blueprint.onRundownActivate) {
@@ -90,7 +90,7 @@ export function deactivateRundownPlaylist(cache: CacheForRundownPlaylist, rundow
 
 	updateTimeline(cache, rundownPlaylist.studioId)
 
-	cache.defer(() => {
+	Meteor.defer(() => {
 		if (rundown) {
 			const { blueprint } = getBlueprintOfRundown(rundown)
 			if (blueprint.onRundownDeActivate) {
