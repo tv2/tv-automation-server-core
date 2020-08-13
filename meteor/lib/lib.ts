@@ -866,6 +866,23 @@ export function asyncCollectionUpdate<DocClass extends DBInterface, DBInterface 
 	})
 }
 
+export function asyncCollectionBulkUpdate<
+	DocClass extends DBInterface,
+	DBInterface extends { _id: ProtectedString<any> }
+>(
+	collection: TransformedCollection<DocClass, DBInterface>,
+	changes: Array<{ selector: { _id: ProtectedString<any> }; modifier: MongoModifier<DBInterface> }>
+) {
+	return collection.rawCollection().bulkWrite(
+		changes.map((change) => ({
+			updateOne: {
+				filter: change.selector,
+				update: change.modifier,
+			},
+		}))
+	)
+}
+
 export function asyncCollectionUpsert<DocClass extends DBInterface, DBInterface extends { _id: ProtectedString<any> }>(
 	collection: TransformedCollection<DocClass, DBInterface>,
 	selector: MongoQuery<DBInterface> | ProtectedString<any>,
@@ -885,6 +902,24 @@ export function asyncCollectionUpsert<DocClass extends DBInterface, DBInterface 
 	})
 }
 
+export function asyncCollectionBulkUpsert<
+	DocClass extends DBInterface,
+	DBInterface extends { _id: ProtectedString<any> }
+>(
+	collection: TransformedCollection<DocClass, DBInterface>,
+	changes: Array<{ selector: { _id: ProtectedString<any> }; modifier: MongoModifier<DBInterface> }>
+) {
+	return collection.rawCollection().bulkWrite(
+		changes.map((change) => ({
+			updateOne: {
+				filter: change.selector,
+				update: change.modifier,
+				upsert: true,
+			},
+		}))
+	)
+}
+
 export function asyncCollectionRemove<DocClass extends DBInterface, DBInterface extends { _id: ProtectedString<any> }>(
 	collection: TransformedCollection<DocClass, DBInterface>,
 	selector: MongoQuery<DBInterface> | ProtectedString<any>
@@ -896,6 +931,19 @@ export function asyncCollectionRemove<DocClass extends DBInterface, DBInterface 
 		})
 	})
 }
+
+export function asyncCollectionBulkRemoveById<
+	DocClass extends DBInterface,
+	DBInterface extends { _id: ProtectedString<any> }
+>(collection: TransformedCollection<DocClass, DBInterface>, ids: Array<ProtectedString<any>>): Promise<void> {
+	return new Promise((resolve, reject) => {
+		collection.remove({ _id: { $in: ids as any } }, (err: any) => {
+			if (err) reject(err)
+			else resolve()
+		})
+	})
+}
+
 /**
  * Supresses the "UnhandledPromiseRejectionWarning" warning
  * ref: https://stackoverflow.com/questions/40920179/should-i-refrain-from-handling-promise-rejection-asynchronously
