@@ -133,7 +133,7 @@ export class CacheForRundownPlaylist extends CacheForStudio {
 	containsDataFromPlaylist: RundownPlaylistId // Just to get the typings to alert on different cache types
 
 	Rundowns: DbCacheCollection<Rundown, DBRundown>
-	Segments: DbCacheCollection<Segment, DBSegment>
+	Segments: DbCacheCollection<Pick<Segment, '_id' | '_rank'>, Pick<DBSegment, '_id' | '_rank'>>
 	Parts: DbCacheCollection<Part, DBPart>
 	Pieces: DbCacheCollection<Piece, Piece>
 	PartInstances: DbCacheCollection<PartInstance, DBPartInstance>
@@ -193,14 +193,95 @@ async function fillCacheForRundownPlaylistWithData(
 	const rundownsInPlaylist = cache.Rundowns.findFetch()
 	const rundownIds = rundownsInPlaylist.map((r) => r._id)
 
-	ps.push(makePromise(() => cache.Segments.prepareInit({ rundownId: { $in: rundownIds } }, initializeImmediately)))
+	// Parallel and async
+	const currentPart = playlist.currentPartInstanceId
+		? PartInstances.findOne({ _id: playlist.currentPartInstanceId })
+		: undefined
+	const nextPart = playlist.nextPartInstanceId
+		? PartInstances.findOne({ _id: playlist.nextPartInstanceId })
+		: undefined
+	const previousPart = playlist.previousPartInstanceId
+		? PartInstances.findOne({ _id: playlist.previousPartInstanceId })
+		: undefined
+
+	const segmentIds = Array.from(
+		new Set([
+			...(currentPart ? [currentPart.segmentId] : []),
+			...(nextPart ? [nextPart.segmentId] : []),
+			...(previousPart ? [previousPart.segmentId] : []),
+			...(playlist.nextSegmentId ? [playlist.nextSegmentId] : []),
+		])
+	)
+
+	/*ps.push(
+		makePromise(() =>
+			cache.Segments.prepareInit(
+				{ rundownId: { $in: rundownIds }, ...(segmentIds.length ? { _id: { $in: segmentIds } } : {}) },
+				initializeImmediately,
+				{ fields: { _id: 1, _rank: 1 } }
+			)
+		)
+	)
+	ps.push(
+		makePromise(() =>
+			cache.Parts.prepareInit(
+				{ rundownId: { $in: rundownIds }, ...(segmentIds.length ? { segmentId: { $in: segmentIds } } : {}) },
+				initializeImmediately
+			)
+		)
+	)*/
+	ps.push(
+		makePromise(() => {
+			const start = getCurrentTime()
+			cache.Segments.prepareInit({ rundownId: { $in: rundownIds } }, initializeImmediately, {
+				fields: { _id: 1, _rank: 1 },
+			})
+			logger.debug(`Getting segments took: ${getCurrentTime() - start}ms`)
+		})
+	)
 	ps.push(makePromise(() => cache.Parts.prepareInit({ rundownId: { $in: rundownIds } }, initializeImmediately)))
-	ps.push(makePromise(() => cache.Pieces.prepareInit({ rundownId: { $in: rundownIds } }, false)))
+	ps.push(
+		makePromise(() => {
+			const start = getCurrentTime()
+			cache.Pieces.prepareInit(
+				{
+					rundownId: { $in: rundownIds },
+					...(currentPart && nextPart && previousPart
+						? {
+								startPartId: {
+									$in: [currentPart.part._id, nextPart.part._id, previousPart.part._id] as any,
+								},
+						  }
+						: {}),
+				},
+				true
+			)
+			logger.debug(`Getting pieces took: ${getCurrentTime() - start}ms`)
+		})
+	)
 
 	ps.push(
-		makePromise(() => cache.PartInstances.prepareInit({ rundownId: { $in: rundownIds } }, initializeImmediately))
+		makePromise(() => {
+			const start = getCurrentTime()
+			cache.PartInstances.prepareInit(
+				{
+					rundownId: { $in: rundownIds },
+					...(currentPart && nextPart && previousPart
+						? { _id: { $in: [currentPart._id, nextPart._id, previousPart._id] as any } }
+						: {}),
+				},
+				initializeImmediately
+			)
+			logger.debug(`Getting part instances took: ${getCurrentTime() - start}ms`)
+		})
 		// TODO - should this only load the non-reset?
 	)
+
+	/**
+	 * Take -> initCache -> selectNextPart -> copyOverflowingPieces -> setNextPart -> afterTake -> saveAllToDatabase
+	 *                   -> Go and find next segment to take
+	 * 							-> Get the parts for that
+	 */
 
 	ps.push(
 		makePromise(() =>
@@ -219,7 +300,7 @@ async function fillCacheForRundownPlaylistWithData(
 		)
 	)
 
-	ps.push(
+	/*ps.push(
 		makePromise(() =>
 			cache.RundownBaselineObjs.prepareInit(
 				{
@@ -270,7 +351,7 @@ async function fillCacheForRundownPlaylistWithData(
 				false
 			)
 		)
-	)
+	)*/
 
 	await Promise.all(ps)
 }

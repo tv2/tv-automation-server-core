@@ -33,6 +33,7 @@ export class DbCacheCollection<Class extends DBInterface, DBInterface extends { 
 
 	private _initialized: boolean = false
 	private _initializer?: MongoQuery<DBInterface> | (() => Promise<void>) = undefined
+	private _options?: FindOptions<DBInterface>
 	private _initializing: Promise<any> | undefined
 
 	constructor(private _collection: TransformedCollection<Class, DBInterface>) {
@@ -42,8 +43,13 @@ export class DbCacheCollection<Class extends DBInterface, DBInterface extends { 
 		return this._collection['name']
 	}
 
-	prepareInit(initializer: MongoQuery<DBInterface> | (() => Promise<void>), initializeImmediately: boolean) {
+	prepareInit(
+		initializer: MongoQuery<DBInterface> | (() => Promise<void>),
+		initializeImmediately: boolean,
+		options?: FindOptions<DBInterface>
+	) {
 		this._initializer = initializer
+		this._options = options
 		if (initializeImmediately) {
 			this._initialize()
 		}
@@ -209,8 +215,11 @@ export class DbCacheCollection<Class extends DBInterface, DBInterface extends { 
 		}
 	}
 
-	async fillWithDataFromDatabase(selector: MongoQuery<DBInterface>): Promise<number> {
-		const docs = await asyncCollectionFindFetch(this._collection, selector)
+	async fillWithDataFromDatabase(
+		selector: MongoQuery<DBInterface>,
+		options?: FindOptions<DBInterface>
+	): Promise<number> {
+		const docs = await asyncCollectionFindFetch(this._collection, selector, options)
 
 		this._innerfillWithDataFromArray(docs)
 		return docs.length
