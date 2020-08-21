@@ -263,6 +263,10 @@ export namespace ServerPlayoutAdLibAPI {
 					afterPart: currentPartInstance.part.afterPart || currentPartInstance.part._id,
 					prerollDuration: adLibPiece.adlibPreroll,
 					expectedDuration: adLibPiece.expectedDuration,
+					autoNext: adLibPiece.adlibAutoNext,
+					autoNextOverlap: adLibPiece.adlibAutoNextOverlap,
+					disableOutTransition: adLibPiece.adlibDisableOutTransition,
+					transitionKeepaliveDuration: adLibPiece.adlibTransitionKeepAlive,
 				}),
 			})
 			const newPieceInstance = convertAdLibToPieceInstance(adLibPiece, newPartInstance, queue)

@@ -1,5 +1,6 @@
 import { Meteor } from 'meteor/meteor'
 import * as _ from 'underscore'
+import { KeyboardLayouts } from './keyboardLayout'
 
 /**
  * This is an object specifying installation-wide, User Interface settings.
@@ -29,10 +30,16 @@ export interface ISettings {
 	allowGrabbingTimeline: boolean
 	/** Allow Segments to become unsynced, rather than the entire rundown */
 	allowUnsyncedSegments: boolean
-	/** Allow resets while a rundown is on-air */
-	allowRundownResetOnAir: boolean
 	/** Default duration to use to render parts when no duration is provided */
 	defaultDisplayDuration: number
+	/** Allow resets while a rundown is on-air */
+	allowRundownResetOnAir: boolean
+	// Show keyboard map in AdLib Shelf
+	showKeyboardMap: boolean
+	// Keyboard map layout (what physical layout to use for the keyboard)
+	keyboardMapLayout: KeyboardLayouts.Names
+	/** NRCS name displayed in various places */
+	nrcsName: string
 }
 
 export let Settings: ISettings
@@ -49,8 +56,11 @@ const DEFAULT_SETTINGS: ISettings = {
 	defaultTimeScale: 1,
 	allowGrabbingTimeline: true,
 	allowUnsyncedSegments: false,
-	allowRundownResetOnAir: false,
 	defaultDisplayDuration: 3000,
+	allowRundownResetOnAir: false,
+	showKeyboardMap: true,
+	keyboardMapLayout: KeyboardLayouts.Names.STANDARD_102_TKL,
+	nrcsName: 'ENPS',
 }
 
 Settings = _.clone(DEFAULT_SETTINGS)

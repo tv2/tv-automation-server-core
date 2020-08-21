@@ -152,6 +152,7 @@ export namespace mousetrapHelper {
 // Add mousetrap keycodes for special keys
 mousetrap.addKeycodes({
 	220: '§', // on US-based (ANSI) keyboards (single-row, Enter key), this is the key above Enter, usually with a backslash and the vertical pipe character
+	223: '|', // this key is not present on 101 keyboards
 
 	// TODO: These keys have temporarly been prefixed by 9x so that thye don't actually register as hotkeys,
 	// but can still be used, as they will generally map onto .which === 220

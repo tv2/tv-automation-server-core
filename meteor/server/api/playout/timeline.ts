@@ -176,7 +176,6 @@ export function afterUpdateTimeline(
 			objectType: { $ne: TimelineObjType.STAT },
 		})
 	}
-
 	// Number of objects
 	let objCount = timelineObjs.length
 	// Hash of all objects
@@ -782,7 +781,8 @@ function transformPartIntoTimeline(
 	partGroup?: TimelineObjRundown,
 	transitionProps?: TransformTransitionProps,
 	holdState?: RundownHoldState,
-	showHoldExcept?: boolean
+	showHoldExcept?: boolean,
+	ignorePieceStart?: boolean
 ): Array<TimelineObjRundown & OnGenerateTimelineObj> {
 	let timelineObjs: Array<TimelineObjRundown & OnGenerateTimelineObj> = []
 
@@ -831,6 +831,11 @@ function transformPartIntoTimeline(
 				} else if (pieceInstance.piece.isTransition && transitionPieceDelay) {
 					pieceInstance.piece.enable.start = Math.max(0, transitionPieceDelay)
 				}
+			}
+
+			if (ignorePieceStart) {
+				// The start time is used for the fake part group
+				pieceInstance.piece.enable.start = 0
 			}
 
 			// create a piece group for the pieces and then place all of them there

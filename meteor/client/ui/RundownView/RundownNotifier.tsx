@@ -36,6 +36,7 @@ import { RundownPlaylist, RundownPlaylists, RundownPlaylistId } from '../../../l
 import { MeteorCall } from '../../../lib/api/methods'
 import { getSegmentPartNotes } from '../../../lib/rundownNotifications'
 import { RankedNote, IMediaObjectIssue } from '../../../lib/api/rundownNotifications'
+import { Settings } from '../../../lib/Settings'
 
 export const onRONotificationClick = new ReactiveVar<((e: RONotificationEvent) => void) | undefined>(undefined)
 export const reloadRundownPlaylistClick = new ReactiveVar<((e: any) => void) | undefined>(undefined)
@@ -184,7 +185,9 @@ class RundownViewNotifier extends WithManagedTracker {
 						newNotification = new Notification(
 							unsyncedId,
 							NoticeLevel.CRITICAL,
-							t('The Rundown has been UNSYNCED from ENPS! No data updates will currently come through.'),
+							t('The Rundown has been UNSYNCED from {{nrcsName}}! No data updates will currently come through.', {
+								nrcsName: Settings.nrcsName,
+							}),
 							'Rundown',
 							getCurrentTime(),
 							true,
@@ -701,7 +704,7 @@ class RundownViewNotifier extends WithManagedTracker {
 						true,
 						[
 							{
-								label: t('Reload ENPS Data'),
+								label: t('Reload {{nrcsName}} Data', { nrcsName: Settings.nrcsName }),
 								type: 'primary',
 								action: (e) => {
 									const reloadFunc = reloadRundownPlaylistClick.get()

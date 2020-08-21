@@ -1236,6 +1236,16 @@ function updateSegmentFromIngestData(
 		newSegment
 	)
 
+	// Update segment info:
+	const p = asyncCollectionUpsert(
+		Segments,
+		{
+			_id: segmentId,
+			rundownId: rundown._id,
+		},
+		newSegment
+	)
+
 	const changes = sumChanges(
 		// These are done in this order to ensure that the afterRemoveAll don't delete anything that was simply moved
 

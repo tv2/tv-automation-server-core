@@ -658,6 +658,11 @@ body.no-overflow {
 		display: none;
 	}
 
+	// the identifier is an installation-specific feature that needs to be supported by the blueprints. It's disabled in the UI by default.
+	.segment-timeline__identifier {
+		display: none;
+	}
+
 	// This is the display in the top-left corner of the segment
 	.segment-timeline__duration {
 		position: relative;
@@ -1791,6 +1796,10 @@ body.no-overflow {
 					border-left: 2px dotted $segment-layer-background-mic;
 					margin-left: -2px;
 					box-shadow: 0px 0px 1px 1px rgba(0, 30, 0, 0.18);
+
+					&.hidden {
+						opacity: 0;
+					}
 				}
 			}
 

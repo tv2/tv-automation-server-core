@@ -80,9 +80,22 @@ export class DbCacheCollection<Class extends DBInterface, DBInterface extends { 
 		this._initialize()
 
 		selector = selector || {}
+		if (isProtectedString(selector)) {
+			selector = { _id: selector } as MongoQuery<DBInterface>
+		}
+
+		let docsToSearch = this.documents
+		if (selector['_id'] && _.isString(selector['_id'])) {
+			// Optimization: Make the lookup as small as possible:
+			docsToSearch = {}
+			const doc = this.documents[selector['_id']]
+			if (doc) {
+				docsToSearch[selector['_id']] = doc
+			}
+		}
 
 		const results: Class[] = []
-		_.each(this.documents, (doc, _id) => {
+		_.each(docsToSearch, (doc, _id) => {
 			if (doc.removed) return
 			if (
 				!selector
@@ -117,7 +130,10 @@ export class DbCacheCollection<Class extends DBInterface, DBInterface extends { 
 
 		const existing = doc._id && this.documents[unprotectString(doc._id)]
 		if (existing && !existing.removed) {
-			throw new Meteor.Error(500, `Error in cache insert: _id "${doc._id}" already exists`)
+			throw new Meteor.Error(
+				500,
+				`Error in cache insert: _id "${doc._id}" already exists in collection "${this.name}"`
+			)
 		}
 		if (!doc._id) doc._id = getRandomId()
 		this.documents[unprotectString(doc._id)] = {

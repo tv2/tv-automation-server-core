@@ -297,8 +297,9 @@ export function afterRemoveSegments(cache: CacheForRundownPlaylist, rundownId: R
 /**
  * After Parts have been removed, handle the contents.
  * This will NOT trigger an update of the timeline
- * @param rundownId Id of the Rundown
+ * @param rundown the Rundown
  * @param removedParts The parts that have been removed
+ * @param skipEnsure For when caller is handling state changes themselves.
  */
 export function afterRemoveParts(cache: CacheForRundownPlaylist, rundownId: RundownId, removedParts: DBPart[]) {
 	saveIntoCache(
@@ -582,12 +583,32 @@ export namespace ServerRundownAPI {
 		const rundown = Rundowns.findOne(rundownId)
 		if (!rundown) throw new Meteor.Error(404, `Rundown "${rundownId}" not found!`)
 		// if (rundown.active) throw new Meteor.Error(400,`Not allowed to resync an active Rundown "${rundownId}".`)
+		const ps: Promise<any>[] = []
+
+		if (Settings.allowUnsyncedSegments) {
+			Segments.update(
+				{
+					rundownId: rundown._id,
+					unsynced: true,
+				},
+				{
+					$set: {
+						unsynced: false,
+					},
+				},
+				{
+					multi: true,
+				}
+			)
+		}
 
 		Rundowns.update(rundown._id, {
 			$set: {
 				unsynced: false,
 			},
 		})
+
+		waitForPromiseAll(ps)
 
 		return IngestActions.reloadRundown(rundown)
 	}

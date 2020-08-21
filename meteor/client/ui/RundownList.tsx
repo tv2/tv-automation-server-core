@@ -31,6 +31,8 @@ import { SplitDropdown } from '../lib/SplitDropdown'
 import { RundownLayoutBase, RundownLayouts } from '../../lib/collections/RundownLayouts'
 import { UIStateStorage } from '../lib/UIStateStorage'
 import ClassNames from 'classnames'
+import { IconProp } from '@fortawesome/fontawesome-svg-core'
+import { Settings } from '../../lib/Settings'
 
 const PackageInfo = require('../../package.json')
 
@@ -607,8 +609,10 @@ export const RundownList = translateWithTracker(() => {
 									{unsyncedRundownPlaylists.length > 0 && (
 										<tbody>
 											<tr className="hl">
-												<th colSpan={10} className="pvn phn">
-													<h2 className="mtm mbs mhn">{t('Unsynced from MOS')}</h2>
+												<th colSpan={9} className="pvn phn">
+													<h2 className="mtm mbs mhn">
+														{t('Unsynced from {{nrcsName}}', { nrcsName: Settings.nrcsName })}
+													</h2>
 												</th>
 											</tr>
 										</tbody>

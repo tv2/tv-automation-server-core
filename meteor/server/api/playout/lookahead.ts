@@ -108,6 +108,23 @@ export function getLookeaheadObjects(
 
 	const orderedParts = getAllOrderedPartsFromCache(cache, playlist)
 
+	// nextPartInstance should always have a backing part (if it exists), so this will be safe
+	let futureParts: Part[] = []
+	const lastPartInstanceOnTimeline = _.last(partInstancesOnTimeline) || previousPartInfo || null
+	if (
+		lastPartInstanceOnTimeline &&
+		nextPartInstance &&
+		lastPartInstanceOnTimeline.part._id !== nextPartInstance._id
+	) {
+		// We need to find the nextPart and do lookahead from there
+		const nextPartIndex = orderedParts.findIndex((p) => p._id === nextPartInstance.part._id)
+		futureParts = nextPartIndex !== undefined ? orderedParts.slice(nextPartIndex) : []
+	} else {
+		// next is already handled, so work from after that
+		const nextPartIndex = selectNextPart(playlist, lastPartInstanceOnTimeline?.part ?? null, orderedParts)?.index
+		futureParts = nextPartIndex !== undefined ? orderedParts.slice(nextPartIndex) : []
+	}
+
 	const orderedPiecesCache = new Map<PartId, PieceResolved[]>()
 
 	_.each(studio.mappings || {}, (mapping: MappingExt, layerId: string) => {
@@ -121,7 +138,7 @@ export function getLookeaheadObjects(
 			playlist,
 			partInstancesOnTimeline,
 			previousPartInfo,
-			orderedParts,
+			futureParts.slice(0, lookaheadMaxSearchDistance),
 			orderedPiecesCache,
 			layerId,
 			mapping.lookahead,
@@ -155,7 +172,7 @@ export function getLookeaheadObjects(
 			if (!entry.obj.id) throw new Meteor.Error(500, 'lookahead: timeline obj id not set')
 
 			// WHEN_CLEAR mode can't take multiple futures, as they are always flattened into the single layer. so give it some real timings, and only output one
-			const singleFutureObj = mapping.lookahead !== LookaheadMode.WHEN_CLEAR
+			const singleFutureObj = mapping.lookahead === LookaheadMode.WHEN_CLEAR
 			if (singleFutureObj && i !== 0) {
 				return
 			}
@@ -189,7 +206,7 @@ function findLookaheadForlayer(
 	playlist: RundownPlaylist,
 	partInstancesOnTimeline: PartInstanceAndPieceInstances[],
 	previousPartInstanceInfo: PartInstanceAndPieceInstances | undefined,
-	orderedParts: Part[],
+	futureParts: Part[],
 	orderedPiecesCache: Map<PartId, PieceResolved[]>,
 	layer: string,
 	mode: LookaheadMode,
@@ -253,12 +270,6 @@ function findLookaheadForlayer(
 		return res
 	}
 
-	// nextPartInstance should always have a backing part (if it exists), so this will be safe
-	const nextPartInstance = _.last(partInstancesOnTimeline) || previousPartInstanceInfo || null
-	const nextPart = selectNextPart(playlist, nextPartInstance ? nextPartInstance.part : null, orderedParts)
-	const lastPartIndex =
-		nextPart && lookaheadMaxSearchDistance !== undefined ? nextPart.index + lookaheadMaxSearchDistance : undefined
-	const futureParts = nextPart ? orderedParts.slice(nextPart.index, lastPartIndex ? lastPartIndex : undefined) : []
 	if (futureParts.length === 0) {
 		return res
 	}

@@ -67,6 +67,9 @@ const IBlueprintPieceSample: Required<OmitId<IBlueprintPiece>> = {
 	adlibAutoNext: false,
 	adlibAutoNextOverlap: 0,
 	adlibDisableOutTransition: false,
+	adlibTransitionKeepAlive: 0,
+	canCombineQueue: false,
+	tags: [],
 }
 // Compile a list of the keys which are allowed to be set
 const IBlueprintPieceSampleKeys = Object.keys(IBlueprintPieceSample) as Array<keyof OmitId<IBlueprintPiece>>
@@ -107,6 +110,7 @@ export class ActionExecutionContext extends ShowStyleContext implements IActionE
 	public currentPartState: ActionPartChange = ActionPartChange.NONE
 	/** To be set by any mutation methods on this context. Indicates to core how extensive the changes are to the next partInstance */
 	public nextPartState: ActionPartChange = ActionPartChange.NONE
+	public takeAfterExecute: boolean
 
 	constructor(
 		cache: CacheForRundownPlaylist,
@@ -119,6 +123,7 @@ export class ActionExecutionContext extends ShowStyleContext implements IActionE
 		this.cache = cache
 		this.rundownPlaylist = rundownPlaylist
 		this.rundown = rundown
+		this.takeAfterExecute = false
 	}
 
 	private _getPartInstanceId(part: 'current' | 'next'): PartInstanceId | null {
@@ -223,6 +228,20 @@ export class ActionExecutionContext extends ShowStyleContext implements IActionE
 		if (this.cache.Pieces.findOne(protectString(rawPiece._id))) {
 			// TODO-PartInstances - this will need rethinking after new dataflow
 			throw new Error(`Piece with id "${rawPiece._id}" already exists`)
+		}
+
+		const lastStartedPlayback = partInstance.part.getLastStartedPlayback()
+		if (part === 'current' && lastStartedPlayback !== undefined) {
+			const time = getCurrentTime()
+			const playheadTime = time - lastStartedPlayback
+
+			if (rawPiece.enable.start !== undefined && _.isNumber(rawPiece.enable.start)) {
+				rawPiece.enable.start += playheadTime
+			}
+
+			if (rawPiece.enable.end !== undefined && _.isNumber(rawPiece.enable.end)) {
+				rawPiece.enable.end += playheadTime
+			}
 		}
 
 		const trimmedPiece: IBlueprintPiece = _.pick(rawPiece, [...IBlueprintPieceSampleKeys, '_id'])
@@ -335,7 +354,7 @@ export class ActionExecutionContext extends ShowStyleContext implements IActionE
 			throw new Error('Cannot queue part when next part has already been modified')
 		}
 
-		if (isTooCloseToAutonext(currentPartInstance, false)) {
+		if (isTooCloseToAutonext(currentPartInstance, true)) {
 			throw new Error('Too close to an autonext to queue a part')
 		}
 
@@ -506,5 +525,10 @@ export class ActionExecutionContext extends ShowStyleContext implements IActionE
 		}
 
 		return unprotectStringArray(stoppedIds)
+	}
+	takeAfterExecuteAction(take: boolean): boolean {
+		this.takeAfterExecute = take
+
+		return this.takeAfterExecute
 	}
 }

@@ -88,13 +88,15 @@ import { NoraPreviewRenderer } from './SegmentTimeline/Renderers/NoraPreviewRend
 import { Buckets, Bucket } from '../../lib/collections/Buckets'
 import { contextMenuHoldToDisplayTime } from '../lib/lib'
 import { OffsetPosition } from '../utils/positions'
-import { Settings } from '../../lib/Settings'
 import { MeteorCall } from '../../lib/api/methods'
+import { AdlibSegmentUi } from './Shelf/AdLibPanel'
+import { Settings } from '../../lib/Settings'
 import { PointerLockCursor } from '../lib/PointerLockCursor'
 import { AdLibPieceUi } from './Shelf/AdLibPanel'
 import { documentTitle } from '../lib/documentTitle'
 import { PartInstanceId } from '../../lib/collections/PartInstances'
 import { RundownDividerHeader } from './RundownView/RundownDividerHeader'
+import { RegisteredHotkeys, registerHotkey, HotkeyAssignmentType } from '../lib/hotkeyRegistry'
 
 export const MAGIC_TIME_SCALE_FACTOR = 0.03
 
@@ -202,8 +204,7 @@ interface ITimingDisplayProps {
 }
 
 export enum RundownViewKbdShortcuts {
-	RUNDOWN_TAKE = 'f12',
-	RUNDOWN_TAKE2 = 'enter', // is only going to use the rightmost enter key for take
+	RUNDOWN_TAKE = 'enter',
 	RUNDOWN_HOLD = 'h',
 	RUNDOWN_UNDO_HOLD = 'shift+h',
 	RUNDOWN_ACTIVATE = '§',
@@ -211,19 +212,22 @@ export enum RundownViewKbdShortcuts {
 	RUNDOWN_ACTIVATE3 = '|',
 	RUNDOWN_ACTIVATE_REHEARSAL = 'mod+§',
 	RUNDOWN_DEACTIVATE = 'mod+shift+§',
-	RUNDOWN_GO_TO_LIVE = 'mod+home',
-	RUNDOWN_REWIND_SEGMENTS = 'shift+home',
-	RUNDOWN_RESET_RUNDOWN = 'mod+shift+f12',
-	RUNDOWN_RESET_RUNDOWN2 = 'mod+shift+enter',
+	RUNDOWN_GO_TO_LIVE = 'shift+home',
+	RUNDOWN_REWIND_SEGMENTS = 'mod+home',
+	RUNDOWN_RESET_RUNDOWN = 'shift+escape',
 	RUNDOWN_TOGGLE_SHELF = 'tab',
 	ADLIB_QUEUE_MODIFIER = 'shift',
-	RUNDOWN_NEXT_FORWARD = 'f9',
-	RUNDOWN_NEXT_DOWN = 'f10',
-	RUNDOWN_NEXT_BACK = 'shift+f9',
-	RUNDOWN_NEXT_UP = 'shift+f10',
-	RUNDOWN_DISABLE_NEXT_ELEMENT = 'g',
-	RUNDOWN_UNDO_DISABLE_NEXT_ELEMENT = 'shift+g',
-	RUNDOWN_LOG_ERROR = 'backspace',
+	RUNDOWN_NEXT_FORWARD = 'shift+right',
+	RUNDOWN_NEXT_DOWN = 'shift+down',
+	RUNDOWN_NEXT_BACK = 'shift+left',
+	RUNDOWN_NEXT_UP = 'shift+up',
+	RUNDOWN_NEXT_FORWARD2 = 'shift+ArrowRight',
+	RUNDOWN_NEXT_DOWN2 = 'shift+ArrowDown',
+	RUNDOWN_NEXT_BACK2 = 'shift+ArrowLeft',
+	RUNDOWN_NEXT_UP2 = 'shift+ArrowUp',
+	// RUNDOWN_DISABLE_NEXT_ELEMENT = 'g',
+	// RUNDOWN_UNDO_DISABLE_NEXT_ELEMENT = 'shift+g',
+	RUNDOWN_LOG_ERROR = 'shift+backspace',
 	SHOW_CURRENT_SEGMENT_FULL_NONLATCH = '',
 }
 
@@ -420,6 +424,8 @@ const TimingDisplay = withTranslation()(
 interface HotkeyDefinition {
 	key: string
 	label: string
+	up?: (e: any) => void
+	down?: (e: any) => void
 }
 
 interface IRundownHeaderProps {
@@ -455,12 +461,6 @@ const RundownHeader = withTranslation()(
 				this.bindKeys = [
 					{
 						key: RundownViewKbdShortcuts.RUNDOWN_TAKE,
-						up: this.keyTake,
-						label: t('Take'),
-						global: true,
-					},
-					{
-						key: RundownViewKbdShortcuts.RUNDOWN_TAKE2,
 						up: this.keyTake,
 						label: t('Take'),
 						global: true,
@@ -512,12 +512,6 @@ const RundownHeader = withTranslation()(
 						global: true,
 					},
 					{
-						key: RundownViewKbdShortcuts.RUNDOWN_RESET_RUNDOWN2,
-						up: this.keyResetRundown,
-						label: t('Reset Rundown'),
-						global: true,
-					},
-					{
 						key: RundownViewKbdShortcuts.RUNDOWN_NEXT_FORWARD,
 						up: this.keyMoveNextForward,
 						label: t('Move Next forwards'),
@@ -542,15 +536,39 @@ const RundownHeader = withTranslation()(
 						global: true,
 					},
 					{
-						key: RundownViewKbdShortcuts.RUNDOWN_DISABLE_NEXT_ELEMENT,
-						up: this.keyDisableNextPiece,
-						label: t('Disable the next element'),
+						key: RundownViewKbdShortcuts.RUNDOWN_NEXT_FORWARD2,
+						up: this.keyMoveNextForward,
+						label: t('Move Next forwards'),
+						global: true,
 					},
 					{
-						key: RundownViewKbdShortcuts.RUNDOWN_UNDO_DISABLE_NEXT_ELEMENT,
-						up: this.keyDisableNextPieceUndo,
-						label: t('Undo Disable the next element'),
+						key: RundownViewKbdShortcuts.RUNDOWN_NEXT_DOWN2,
+						up: this.keyMoveNextDown,
+						label: t('Move Next to the following segment'),
+						global: true,
 					},
+					{
+						key: RundownViewKbdShortcuts.RUNDOWN_NEXT_UP2,
+						up: this.keyMoveNextUp,
+						label: t('Move Next to the previous segment'),
+						global: true,
+					},
+					{
+						key: RundownViewKbdShortcuts.RUNDOWN_NEXT_BACK2,
+						up: this.keyMoveNextBack,
+						label: t('Move Next backwards'),
+						global: true,
+					},
+					// {
+					// 	key: RundownViewKbdShortcuts.RUNDOWN_DISABLE_NEXT_ELEMENT,
+					// 	up: this.keyDisableNextPiece,
+					// 	label: t('Disable the next element'),
+					// },
+					// {
+					// 	key: RundownViewKbdShortcuts.RUNDOWN_UNDO_DISABLE_NEXT_ELEMENT,
+					// 	up: this.keyDisableNextPieceUndo,
+					// 	label: t('Undo Disable the next element'),
+					// },
 					{
 						key: RundownViewKbdShortcuts.RUNDOWN_LOG_ERROR,
 						up: this.keyLogError,
@@ -633,10 +651,7 @@ const RundownHeader = withTranslation()(
 			})
 		}
 		keyTake = (e: ExtendedKeyboardEvent) => {
-			if (e.key !== 'Enter' || e.location === 3) {
-				// only allow the rightmost enter key
-				if (!isModalShowing()) this.take(e)
-			}
+			if (!isModalShowing()) this.take(e)
 		}
 		keyHold = (e: ExtendedKeyboardEvent) => {
 			this.hold(e)
@@ -1149,7 +1164,9 @@ const RundownHeader = withTranslation()(
 									) ? (
 										<MenuItem onClick={(e) => this.resetRundown(e)}>{t('Reset Rundown')}</MenuItem>
 									) : null}
-									<MenuItem onClick={(e) => this.reloadRundownPlaylist(e)}>{t('Reload ENPS Data')}</MenuItem>
+									<MenuItem onClick={(e) => this.reloadRundownPlaylist(e)}>
+										{t('Reload {{nrcsName}} Data', { nrcsName: Settings.nrcsName })}
+									</MenuItem>
 									<MenuItem onClick={(e) => this.takeRundownSnapshot(e)}>{t('Store Snapshot')}</MenuItem>
 								</React.Fragment>
 							) : (
@@ -1518,6 +1535,7 @@ export const RundownView = translateWithTracker<IProps, IState, ITrackedProps>((
 					})
 				}
 			})
+
 			this.autorun(() => {
 				let playlist = RundownPlaylists.findOne(playlistId)
 				if (playlist) {
@@ -1559,6 +1577,23 @@ export const RundownView = translateWithTracker<IProps, IState, ITrackedProps>((
 							$in: rundownIDs,
 						},
 					})
+					if (this.props.onlyShelf) {
+						this.subscribe(PubSub.pieceInstances, {
+							rundownId: {
+								$in: rundownIDs,
+							},
+							partInstanceId: {
+								$in: [
+									playlist.currentPartInstanceId,
+									playlist.nextPartInstanceId,
+									playlist.previousPartInstanceId,
+								].filter((p) => p !== null),
+							},
+							reset: {
+								$ne: true,
+							},
+						})
+					}
 				}
 			})
 			this.autorun(() => {
@@ -1722,7 +1757,13 @@ export const RundownView = translateWithTracker<IProps, IState, ITrackedProps>((
 			const noOp = (e) => {
 				preventDefault(e)
 			}
+			this.usedArgumentKeys = []
 
+			const HOTKEY_GROUP = 'RuntimeArguments'
+
+			RegisteredHotkeys.remove({
+				tag: HOTKEY_GROUP,
+			})
 			this.usedArgumentKeys.forEach((k) => {
 				if (k.up) {
 					mousetrapHelper.unbind(k.key, 'RuntimeArguments', 'keyup')
@@ -1748,13 +1789,24 @@ export const RundownView = translateWithTracker<IProps, IState, ITrackedProps>((
 						}
 					}
 					_.each(combos, (combo: string) => {
-						mousetrapHelper.bind(combo, handler, 'keyup', 'RuntimeArguments')
-						mousetrapHelper.bind(combo, noOp, 'keydown', 'RuntimeArguments')
+						mousetrapHelper.bind(combo, handler, 'keyup', HOTKEY_GROUP)
+						mousetrapHelper.bind(combo, noOp, 'keydown', HOTKEY_GROUP)
 						this.usedArgumentKeys.push({
 							up: handler,
 							key: combo,
 							label: i.label || '',
 						})
+
+						registerHotkey(
+							combo,
+							i.label || '',
+							HotkeyAssignmentType.RUNTIME_ARGUMENT,
+							undefined,
+							false,
+							handler,
+							undefined,
+							HOTKEY_GROUP
+						)
 					})
 				})
 			}
@@ -2142,6 +2194,27 @@ export const RundownView = translateWithTracker<IProps, IState, ITrackedProps>((
 			this.state.usedHotkeys = this.state.usedHotkeys.concat(hotkeys) // we concat directly to the state object member, because we need to
 			this.setState({
 				usedHotkeys: this.state.usedHotkeys,
+			})
+
+			const HOTKEY_TAG = 'RundownView'
+
+			RegisteredHotkeys.remove({
+				tag: HOTKEY_TAG,
+			})
+
+			function noop() {}
+
+			this.state.usedHotkeys.forEach((hotkey) => {
+				registerHotkey(
+					hotkey.key,
+					hotkey.label,
+					HotkeyAssignmentType.SYSTEM,
+					undefined,
+					false,
+					hotkey.up || hotkey.down || noop,
+					undefined,
+					HOTKEY_TAG
+				)
 			})
 		}
 

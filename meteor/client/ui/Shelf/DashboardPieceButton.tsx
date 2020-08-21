@@ -15,6 +15,7 @@ import {
 	SourceLayerType,
 	VTContent,
 	LiveSpeakContent,
+	GraphicsContent,
 	SplitsContent,
 } from 'tv-automation-sofie-blueprints-integration'
 import { AdLibPieceUi } from './AdLibPanel'
@@ -31,9 +32,9 @@ import { DashboardPieceButtonSplitPreview } from './DashboardPieceButtonSplitPre
 
 export interface IDashboardButtonProps {
 	adLibListItem: IAdLibListItem
-	layer: ISourceLayer
+	layer?: ISourceLayer
 	outputLayer?: IOutputLayer
-	onToggleAdLib: (aSLine: IAdLibListItem, queue: boolean, context: any) => void
+	onToggleAdLib: (aSLine: IAdLibListItem, queue: boolean, e: any) => void
 	playlist: RundownPlaylist
 	mediaPreviewUrl?: string
 	isOnAir?: boolean
@@ -52,6 +53,7 @@ export const DEFAULT_BUTTON_HEIGHT = 5.625
 export interface IDashboardButtonTrackedProps {
 	status: RundownAPI.PieceStatusCode | undefined
 	metadata: MediaObject | null
+	contentDuration: number | undefined
 }
 
 export class DashboardPieceButtonBase<T = {}> extends MeteorReactComponent<
@@ -83,11 +85,16 @@ export class DashboardPieceButtonBase<T = {}> extends MeteorReactComponent<
 			if (piece.content && piece.content.fileName) {
 				switch (this.props.layer.type) {
 					case SourceLayerType.VT:
-						objId = (piece.content as VTContent).fileName.toUpperCase()
+						objId = (piece.content as VTContent).fileName?.toUpperCase()
 						break
 					case SourceLayerType.LIVE_SPEAK:
-						objId = (piece.content as LiveSpeakContent).fileName.toUpperCase()
+						objId = (piece.content as LiveSpeakContent).fileName?.toUpperCase()
 						break
+					/*case SourceLayerType.GRAPHICS:
+						if (piece.content.fileName) {
+							objId = (piece.content as GraphicsContent).fileName?.toUpperCase()
+						}
+						break*/
 				}
 			}
 
@@ -147,7 +154,11 @@ export class DashboardPieceButtonBase<T = {}> extends MeteorReactComponent<
 					{renderThumbnail ? (
 						<DashboardPieceButtonSplitPreview piece={splitAdLib} />
 					) : (
-						<SplitInputIcon abbreviation={this.props.layer.abbreviation} piece={splitAdLib} hideLabel={true} />
+						<SplitInputIcon
+							abbreviation={this.props.layer ? this.props.layer.abbreviation : undefined}
+							piece={splitAdLib}
+							hideLabel={true}
+						/>
 					)}
 				</React.Fragment>
 			)
@@ -219,11 +230,16 @@ export const DashboardPieceButton = translateWithTracker<IDashboardButtonProps, 
 	(props: IDashboardButtonProps) => {
 		const piece = (props.adLibListItem as any) as AdLibPieceUi
 
-		const { status, metadata } = checkPieceContentStatus(piece, props.layer, props.playlist.getStudio().settings)
+		const { status, metadata, contentDuration } = checkPieceContentStatus(
+			piece,
+			props.layer,
+			props.playlist.getStudio().settings
+		)
 
 		return {
 			status,
 			metadata,
+			contentDuration,
 		}
 	}
 )(DashboardPieceButtonBase)

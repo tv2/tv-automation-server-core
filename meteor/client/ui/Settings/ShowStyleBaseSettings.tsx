@@ -22,21 +22,24 @@ import { Random } from 'meteor/random'
 import { withTranslation } from 'react-i18next'
 import { mousetrapHelper } from '../../lib/mousetrapHelper'
 import { ShowStyleVariants, ShowStyleVariant } from '../../../lib/collections/ShowStyleVariants'
-import {
-	ISourceLayer,
-	SourceLayerType,
-	IOutputLayer,
-	IBlueprintRuntimeArgumentsItem,
-	BlueprintManifestType,
-	ConfigManifestEntry,
-} from 'tv-automation-sofie-blueprints-integration'
-import { ConfigManifestSettings } from './ConfigManifestSettings'
-import { Studios, Studio, MappingsExt } from '../../../lib/collections/Studios'
 import { Link } from 'react-router-dom'
 import RundownLayoutEditor from './RundownLayoutEditor'
 import { getHelpMode } from '../../lib/localStorage'
 import { SettingsNavigation } from '../../lib/SettingsNavigation'
 import { MeteorCall } from '../../../lib/api/methods'
+import { downloadBlob } from '../../lib/downloadBlob'
+import { AHKModifierMap, AHKKeyboardMap, AHKBaseHeader, useAHKComboTemplate } from '../../../lib/tv2/AHKkeyboardMap'
+import { Studio, Studios, MappingsExt } from '../../../lib/collections/Studios'
+import {
+	ConfigManifestEntry,
+	BlueprintManifestType,
+	IBlueprintRuntimeArgumentsItem,
+	ISourceLayer,
+	SourceLayerType,
+	IOutputLayer,
+} from 'tv-automation-sofie-blueprints-integration'
+import { ConfigManifestSettings } from './ConfigManifestSettings'
+import { Settings } from '../../../lib/Settings'
 
 interface IProps {
 	match: {
@@ -860,7 +863,9 @@ const SourceLayerSettings = withTranslation()(
 				<div>
 					<h2 className="mhn">
 						<Tooltip
-							overlay={t('Add some source layers (e.g. Graphics) for your ENPS data to appear in rundowns')}
+							overlay={t('Add some source layers (e.g. Graphics) for your {{nrcsName}} data to appear in rundowns', {
+								nrcsName: Settings.nrcsName,
+							})}
 							visible={getHelpMode() && !this.props.showStyleBase.sourceLayers.length}
 							placement="bottom">
 							<span>{t('Source Layers')}</span>
@@ -1212,6 +1217,40 @@ const HotkeyLegendSettings = withTranslation()(
 					hotkeyLegend: newItem,
 				},
 			})
+		}
+
+		onDownloadAHKScript = () => {
+			const mappedKeys = this.props.showStyleBase.hotkeyLegend
+			let ahkCommands: string[] = _.clone(AHKBaseHeader)
+
+			function convertComboToAHK(combo: string) {
+				return combo
+					.split(/\s*\+\s*/)
+					.map((key) => {
+						const lowerCaseKey = key.toLowerCase()
+						if (AHKModifierMap[lowerCaseKey] !== undefined) {
+							return AHKModifierMap[lowerCaseKey]
+						} else if (AHKKeyboardMap[lowerCaseKey] !== undefined) {
+							return AHKKeyboardMap[lowerCaseKey]
+						} else {
+							return lowerCaseKey
+						}
+					})
+					.join('')
+			}
+
+			if (mappedKeys) {
+				ahkCommands = ahkCommands.concat(
+					mappedKeys
+						.filter((key) => !!key.platformKey)
+						.map((key) => {
+							const platformKeyCombo = convertComboToAHK(key.platformKey!)
+							const browserKeyCombo = convertComboToAHK(key.key)
+
+							return useAHKComboTemplate({ platformKeyCombo, browserKeyCombo })
+						})
+				)
+			}
 		}
 
 		renderItems() {

@@ -74,7 +74,6 @@ export function orderPieces(pieces: Piece[], partId: PartId, partStarted?: numbe
 
 		return obj
 	})
-
 	const tlResolved = Resolver.resolveTimeline(transformTimeline(objs), {
 		time: 0,
 	})
