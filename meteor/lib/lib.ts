@@ -863,7 +863,8 @@ export function asyncCollectionBulkUpdate<
 				filter: change.selector,
 				update: change.modifier,
 			},
-		}))
+		})),
+		{ ordered: false }
 	)
 }
 
@@ -900,7 +901,8 @@ export function asyncCollectionBulkUpsert<
 				update: change.modifier,
 				upsert: true,
 			},
-		}))
+		})),
+		{ ordered: false }
 	)
 }
 
