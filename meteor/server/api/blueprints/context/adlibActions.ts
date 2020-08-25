@@ -107,6 +107,7 @@ export class ActionExecutionContext extends ShowStyleContext implements IActionE
 	public currentPartState: ActionPartChange = ActionPartChange.NONE
 	/** To be set by any mutation methods on this context. Indicates to core how extensive the changes are to the next partInstance */
 	public nextPartState: ActionPartChange = ActionPartChange.NONE
+	public takeAfterExecute: boolean
 
 	constructor(
 		cache: CacheForRundownPlaylist,
@@ -119,6 +120,7 @@ export class ActionExecutionContext extends ShowStyleContext implements IActionE
 		this.cache = cache
 		this.rundownPlaylist = rundownPlaylist
 		this.rundown = rundown
+		this.takeAfterExecute = false
 	}
 
 	private _getPartInstanceId(part: 'current' | 'next'): PartInstanceId | null {
@@ -488,6 +490,12 @@ export class ActionExecutionContext extends ShowStyleContext implements IActionE
 		this.nextPartState = Math.max(this.nextPartState, changeLevel)
 
 		return unprotectStringArray(pieceInstances.map((p) => p._id))
+	}
+
+	takeAfterExecuteAction(take: boolean): boolean {
+		this.takeAfterExecute = take
+
+		return this.takeAfterExecute
 	}
 
 	private _stopPiecesByRule(filter: (pieceInstance: PieceInstance) => boolean, timeOffset: number | undefined) {

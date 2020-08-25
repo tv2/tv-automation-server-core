@@ -391,5 +391,47 @@ describe('Playout API', () => {
 
 			expect(PartInstances.find({ rundownId, 'part.dirty': true }).fetch()).toHaveLength(0)
 		})
+
+		testInFiber('take after execute', () => {
+			const api = ServerPlayoutAPI
+			const mockTake = jest.fn().mockReturnThis()
+			api.takeNextpartInner = mockTake
+
+			const BLUEPRINT_TYPE = BlueprintManifestType.SHOWSTYLE
+			const STATE_NONE = ActionPartChange.NONE
+			const STATE_SAFE = ActionPartChange.SAFE_CHANGE
+			const STATE_DIRTY = ActionPartChange.MARK_DIRTY
+
+			Blueprints.update(blueprintId, {
+				$set: {
+					code: packageBlueprint<ShowStyleBlueprintManifest>(
+						{
+							// Constants to into code:
+							BLUEPRINT_TYPE,
+							STATE_NONE,
+							STATE_SAFE,
+							STATE_DIRTY,
+						},
+						function(): any {
+							return {
+								blueprintType: BLUEPRINT_TYPE,
+								executeAction: (context0) => {
+									const context = context0 as ActionExecutionContext
+									context.takeAfterExecuteAction(true)
+								},
+							}
+						}
+					),
+				},
+			})
+
+			const actionId = 'some-action'
+			const userData = { blobby: true }
+			api.executeAction(playlistId, actionId, userData)
+
+			const timesTakeCalled = mockTake.mock.calls.length
+			mockTake.mockRestore()
+			expect(timesTakeCalled).toBe(1)
+		})
 	})
 })
