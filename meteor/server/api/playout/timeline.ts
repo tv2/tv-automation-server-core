@@ -502,6 +502,17 @@ function buildTimelineObjsForRundown(
 					showStyle,
 					cache.PieceInstances.findFetch({
 						partInstanceId: previousPartInstance._id,
+						$or: [
+							{
+								'piece.stoppedPlayback': { $exists: false },
+							},
+							{
+								'piece.userDuration': { $exists: false },
+							},
+							{
+								'infinite.infinitePieceId': { $exists: true },
+							},
+						],
 					}),
 					nowInPreviousPart
 				).filter((pi) => !pi.infinite || currentInfinitePieceIds.indexOf(pi.infinite.infinitePieceId) < 0)
@@ -555,7 +566,20 @@ function buildTimelineObjsForRundown(
 
 		const previousPartInfinites = previousPartInstance
 			? normalizeArrayFunc(
-					cache.PieceInstances.findFetch((p) => p.partInstanceId === previousPartInstance._id),
+					cache.PieceInstances.findFetch({
+						partInstanceId: previousPartInstance._id,
+						$or: [
+							{
+								'piece.stoppedPlayback': { $exists: false },
+							},
+							{
+								'piece.userDuration': { $exists: false },
+							},
+							{
+								'infinite.infinitePieceId': { $exists: true },
+							},
+						],
+					}),
 					(inst) => (inst.infinite ? unprotectString(inst.infinite.infinitePieceId) : '')
 			  )
 			: {}
