@@ -459,7 +459,11 @@ function buildTimelineObjsForRundown(
 	if (currentPartInstance) {
 		const partLastStarted = currentPartInstance.part.getLastStartedPlayback()
 		const nowInPart = partLastStarted === undefined ? 0 : currentTime - partLastStarted
-		const currentPieces = cache.PieceInstances.findFetch({ partInstanceId: currentPartInstance._id })
+		const currentPieces = cache.PieceInstances.findFetch({
+			partInstanceId: currentPartInstance._id,
+			'piece.stoppedPlayback': { $exists: false },
+			'piece.userDuration': { $exists: false },
+		})
 		const [currentInfinitePieces, currentNormalItems] = _.partition(
 			processAndPrunePieceInstanceTimings(showStyle, currentPieces, nowInPart),
 			(l) => !!l.infinite && l.piece.lifespan !== PieceLifespan.WithinPart
