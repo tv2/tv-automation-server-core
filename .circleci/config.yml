@@ -140,31 +140,41 @@ workflows:
       - validate-all-dependencies:
           filters:
             tags:
-              only: /v.*/
+              only:
+                - /v.*/
+                - /automated-testing-.*/
             branches:
               only: /.*/
       - validate-prod-dependencies:
           filters:
             tags:
-              only: /v.*/
+              only:
+                - /v.*/
+                - /automated-testing-.*/
             branches:
               only: /.*/
       - build:
           filters:
             tags:
-              only: /v.*/
+              only:
+                - /v.*/
+                - /automated-testing-.*/
             branches:
               only: /.*/
       - lint:
           filters:
             tags:
-              only: /v.*/
+              only:
+                - /v.*/
+                - /automated-testing-.*/
             branches:
               only: /.*/
       - tests:
           filters:
             tags:
-              only: /v.*/
+              only:
+                - /v.*/
+                - /automated-testing-.*/
             branches:
               only: /.*/
       - publish-tag:
@@ -174,7 +184,9 @@ workflows:
             - build
           filters:
             tags:
-              only: /v.*/
+              only:
+                - /v.*/
+                - /automated-testing-.*/
             branches:
               ignore: /.*/
       - publish-branch:
