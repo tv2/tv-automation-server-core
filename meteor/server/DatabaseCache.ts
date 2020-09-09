@@ -11,7 +11,6 @@ import {
 	mongoModify,
 	mongoFindOptions,
 	DBObj,
-	compareObjs,
 	waitForPromise,
 	asyncCollectionBulkWrite,
 	PreparedChanges,
@@ -21,6 +20,7 @@ import * as _ from 'underscore'
 import { TransformedCollection, MongoModifier, FindOptions, MongoQuery } from '../lib/typings/meteor'
 import { BulkWriteOperation } from 'mongodb'
 import { profiler } from './api/profiler'
+import fastDeepEqual from 'fast-deep-equal'
 
 export function isDbCacheReadCollection(o: any): o is DbCacheReadCollection<any, any> {
 	return !!(o && typeof o === 'object' && o.fillWithDataFromDatabase)
@@ -467,7 +467,7 @@ export function prepareSaveIntoCache<DocClass extends DBInterface, DBInterface e
 
 		if (oldObj) {
 			const o2 = options.beforeDiff ? options.beforeDiff(o, oldObj) : o
-			const eql = compareObjs(oldObj, o2)
+			const eql = fastDeepEqual(oldObj, o2)
 
 			if (!eql) {
 				let oUpdate = options.beforeUpdate ? options.beforeUpdate(o, oldObj) : o

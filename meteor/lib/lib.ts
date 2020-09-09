@@ -18,6 +18,7 @@ import * as crypto from 'crypto'
 import { DeepReadonly } from 'utility-types'
 import { BulkWriteOperation } from 'mongodb'
 const cloneOrg = require('fast-clone')
+import fastDeepEqual from 'fast-deep-equal'
 
 export function clone<T>(o: DeepReadonly<T> | Readonly<T> | T): T {
 	// Use this instead of fast-clone directly, as this retains the type
@@ -175,7 +176,7 @@ export function prepareSaveIntoDb<DocClass extends DBInterface, DBInterface exte
 		const oldObj = removeObjs['' + o[identifier]]
 		if (oldObj) {
 			const o2 = options.beforeDiff ? options.beforeDiff(o, oldObj) : o
-			const eql = compareObjs(oldObj, o2)
+			const eql = fastDeepEqual(oldObj, o2)
 
 			if (!eql) {
 				let oUpdate = options.beforeUpdate ? options.beforeUpdate(o, oldObj) : o
