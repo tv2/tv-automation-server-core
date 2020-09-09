@@ -311,16 +311,21 @@ export namespace ServerPlayoutAPI {
 		check(rundownPlaylistId, String)
 		if (nextPartId) check(nextPartId, String)
 
-		return rundownPlaylistSyncFunction(rundownPlaylistId, RundownSyncFunctionPriority.USER_PLAYOUT, () => {
-			const cache = waitForPromise(initCacheForRundownPlaylist(dbPlaylist))
-			const playlist = cache.RundownPlaylists.findOne(dbPlaylist._id)
-			if (!playlist) throw new Meteor.Error(404, `Rundown Playlist "${rundownPlaylistId}" not found in cache!`)
+		return rundownPlaylistSyncFunction(
+			rundownPlaylistId,
+			RundownSyncFunctionPriority.USER_PLAYOUT,
+			function setNextPart() {
+				const cache = waitForPromise(initCacheForRundownPlaylist(dbPlaylist))
+				const playlist = cache.RundownPlaylists.findOne(dbPlaylist._id)
+				if (!playlist)
+					throw new Meteor.Error(404, `Rundown Playlist "${rundownPlaylistId}" not found in cache!`)
 
-			setNextPartInner(cache, playlist, nextPartId, setManually, nextTimeOffset)
+				setNextPartInner(cache, playlist, nextPartId, setManually, nextTimeOffset)
 
-			waitForPromise(cache.saveAllToDatabase())
-			return ClientAPI.responseSuccess(undefined)
-		})
+				waitForPromise(cache.saveAllToDatabase())
+				return ClientAPI.responseSuccess(undefined)
+			}
+		)
 	}
 
 	export function setNextPartInner(
@@ -477,39 +482,44 @@ export namespace ServerPlayoutAPI {
 		check(rundownPlaylistId, String)
 		if (nextSegmentId) check(nextSegmentId, String)
 
-		return rundownPlaylistSyncFunction(rundownPlaylistId, RundownSyncFunctionPriority.USER_PLAYOUT, () => {
-			const dbPlaylist = checkAccessAndGetPlaylist(context, rundownPlaylistId)
-			if (!dbPlaylist.active)
-				throw new Meteor.Error(501, `Rundown Playlist "${rundownPlaylistId}" is not active!`)
+		return rundownPlaylistSyncFunction(
+			rundownPlaylistId,
+			RundownSyncFunctionPriority.USER_PLAYOUT,
+			function setNextSegment() {
+				const dbPlaylist = checkAccessAndGetPlaylist(context, rundownPlaylistId)
+				if (!dbPlaylist.active)
+					throw new Meteor.Error(501, `Rundown Playlist "${rundownPlaylistId}" is not active!`)
 
-			const cache = waitForPromise(initCacheForRundownPlaylist(dbPlaylist))
+				const cache = waitForPromise(initCacheForRundownPlaylist(dbPlaylist))
 
-			const playlist = cache.RundownPlaylists.findOne(dbPlaylist._id)
-			if (!playlist) throw new Meteor.Error(404, `Rundown Playlist "${rundownPlaylistId}" not found in cache!`)
+				const playlist = cache.RundownPlaylists.findOne(dbPlaylist._id)
+				if (!playlist)
+					throw new Meteor.Error(404, `Rundown Playlist "${rundownPlaylistId}" not found in cache!`)
 
-			let nextSegment: Segment | null = null
-			if (nextSegmentId) {
-				nextSegment = cache.Segments.findOne(nextSegmentId) || null
+				let nextSegment: Segment | null = null
+				if (nextSegmentId) {
+					nextSegment = cache.Segments.findOne(nextSegmentId) || null
 
-				if (!nextSegment) throw new Meteor.Error(404, `Segment "${nextSegmentId}" not found!`)
-				const acceptableRundownIds = getRundownIDsFromCache(cache, playlist)
-				if (acceptableRundownIds.indexOf(nextSegment.rundownId) === -1) {
-					throw new Meteor.Error(
-						501,
-						`Segment "${nextSegmentId}" does not belong to Rundown Playlist "${rundownPlaylistId}"!`
-					)
+					if (!nextSegment) throw new Meteor.Error(404, `Segment "${nextSegmentId}" not found!`)
+					const acceptableRundownIds = getRundownIDsFromCache(cache, playlist)
+					if (acceptableRundownIds.indexOf(nextSegment.rundownId) === -1) {
+						throw new Meteor.Error(
+							501,
+							`Segment "${nextSegmentId}" does not belong to Rundown Playlist "${rundownPlaylistId}"!`
+						)
+					}
 				}
+
+				libSetNextSegment(cache, playlist, nextSegment)
+
+				// Update any future lookaheads
+				updateTimeline(cache, playlist.studioId)
+
+				waitForPromise(cache.saveAllToDatabase())
+
+				return ClientAPI.responseSuccess(undefined)
 			}
-
-			libSetNextSegment(cache, playlist, nextSegment)
-
-			// Update any future lookaheads
-			updateTimeline(cache, playlist.studioId)
-
-			waitForPromise(cache.saveAllToDatabase())
-
-			return ClientAPI.responseSuccess(undefined)
-		})
+		)
 	}
 	export function activateHold(context: MethodContext, rundownPlaylistId: RundownPlaylistId) {
 		// @TODO Check for a better solution to validate security methods
@@ -706,34 +716,40 @@ export namespace ServerPlayoutAPI {
 
 		triggerWriteAccessBecauseNoCheckNecessary() // tmp
 
-		return rundownPlaylistSyncFunction(rundownPlaylistId, RundownSyncFunctionPriority.CALLBACK_PLAYOUT, () => {
-			const rundowns = Rundowns.find({ playlistId: rundownPlaylistId }).fetch()
-			// This method is called when an auto-next event occurs
+		return rundownPlaylistSyncFunction(
+			rundownPlaylistId,
+			RundownSyncFunctionPriority.CALLBACK_PLAYOUT,
+			function onPiecePlaybackStarted() {
+				const rundowns = Rundowns.find({ playlistId: rundownPlaylistId }).fetch()
+				// This method is called when an auto-next event occurs
 
-			const pieceInstance = PieceInstances.findOne({
-				_id: pieceInstanceId,
-				rundownId: { $in: rundowns.map((r) => r._id) },
-			})
-			if (dynamicallyInserted && !pieceInstance) return // if it was dynamically inserted, it's okay if we can't find it
-			if (!pieceInstance)
-				throw new Meteor.Error(
-					404,
-					`PieceInstance "${pieceInstanceId}" in RundownPlaylist "${rundownPlaylistId}" not found!`
+				const pieceInstance = PieceInstances.findOne({
+					_id: pieceInstanceId,
+					rundownId: { $in: rundowns.map((r) => r._id) },
+				})
+				if (dynamicallyInserted && !pieceInstance) return // if it was dynamically inserted, it's okay if we can't find it
+				if (!pieceInstance)
+					throw new Meteor.Error(
+						404,
+						`PieceInstance "${pieceInstanceId}" in RundownPlaylist "${rundownPlaylistId}" not found!`
+					)
+
+				const isPlaying: boolean = !!(
+					pieceInstance.piece.startedPlayback && !pieceInstance.piece.stoppedPlayback
 				)
+				if (!isPlaying) {
+					logger.info(
+						`Playout reports pieceInstance "${pieceInstanceId}" has started playback on timestamp ${new Date(
+							startedPlayback
+						).toISOString()}`
+					)
 
-			const isPlaying: boolean = !!(pieceInstance.piece.startedPlayback && !pieceInstance.piece.stoppedPlayback)
-			if (!isPlaying) {
-				logger.info(
-					`Playout reports pieceInstance "${pieceInstanceId}" has started playback on timestamp ${new Date(
-						startedPlayback
-					).toISOString()}`
-				)
+					reportPieceHasStarted(rundownPlaylistId, pieceInstance, startedPlayback)
 
-				reportPieceHasStarted(rundownPlaylistId, pieceInstance, startedPlayback)
-
-				// We don't need to bother with an updateTimeline(), as this hasn't changed anything, but lets us accurately add started items when reevaluating
+					// We don't need to bother with an updateTimeline(), as this hasn't changed anything, but lets us accurately add started items when reevaluating
+				}
 			}
-		})
+		)
 	}
 	/**
 	 * Triggered from Playout-gateway when a Piece has stopped playing
@@ -751,32 +767,38 @@ export namespace ServerPlayoutAPI {
 
 		triggerWriteAccessBecauseNoCheckNecessary() // tmp
 
-		return rundownPlaylistSyncFunction(rundownPlaylistId, RundownSyncFunctionPriority.CALLBACK_PLAYOUT, () => {
-			const rundowns = Rundowns.find({ playlistId: rundownPlaylistId }).fetch()
+		return rundownPlaylistSyncFunction(
+			rundownPlaylistId,
+			RundownSyncFunctionPriority.CALLBACK_PLAYOUT,
+			function onPiecePlaybackStopped() {
+				const rundowns = Rundowns.find({ playlistId: rundownPlaylistId }).fetch()
 
-			// This method is called when an auto-next event occurs
-			const pieceInstance = PieceInstances.findOne({
-				_id: pieceInstanceId,
-				rundownId: { $in: rundowns.map((r) => r._id) },
-			})
-			if (dynamicallyInserted && !pieceInstance) return // if it was dynamically inserted, it's okay if we can't find it
-			if (!pieceInstance)
-				throw new Meteor.Error(
-					404,
-					`PieceInstance "${pieceInstanceId}" in RundownPlaylist "${rundownPlaylistId}" not found!`
+				// This method is called when an auto-next event occurs
+				const pieceInstance = PieceInstances.findOne({
+					_id: pieceInstanceId,
+					rundownId: { $in: rundowns.map((r) => r._id) },
+				})
+				if (dynamicallyInserted && !pieceInstance) return // if it was dynamically inserted, it's okay if we can't find it
+				if (!pieceInstance)
+					throw new Meteor.Error(
+						404,
+						`PieceInstance "${pieceInstanceId}" in RundownPlaylist "${rundownPlaylistId}" not found!`
+					)
+
+				const isPlaying: boolean = !!(
+					pieceInstance.piece.startedPlayback && !pieceInstance.piece.stoppedPlayback
 				)
+				if (isPlaying) {
+					logger.info(
+						`Playout reports pieceInstance "${pieceInstanceId}" has stopped playback on timestamp ${new Date(
+							stoppedPlayback
+						).toISOString()}`
+					)
 
-			const isPlaying: boolean = !!(pieceInstance.piece.startedPlayback && !pieceInstance.piece.stoppedPlayback)
-			if (isPlaying) {
-				logger.info(
-					`Playout reports pieceInstance "${pieceInstanceId}" has stopped playback on timestamp ${new Date(
-						stoppedPlayback
-					).toISOString()}`
-				)
-
-				reportPieceHasStopped(rundownPlaylistId, pieceInstance, stoppedPlayback)
+					reportPieceHasStopped(rundownPlaylistId, pieceInstance, stoppedPlayback)
+				}
 			}
-		})
+		)
 	}
 	/**
 	 * Triggered from Playout-gateway when a Part has started playing
@@ -793,105 +815,84 @@ export namespace ServerPlayoutAPI {
 
 		triggerWriteAccessBecauseNoCheckNecessary() // tmp
 
-		return rundownPlaylistSyncFunction(rundownPlaylistId, RundownSyncFunctionPriority.CALLBACK_PLAYOUT, () => {
-			// This method is called when a part starts playing (like when an auto-next event occurs, or a manual next)
-			const rundowns = Rundowns.find({ playlistId: rundownPlaylistId }).fetch()
+		return rundownPlaylistSyncFunction(
+			rundownPlaylistId,
+			RundownSyncFunctionPriority.CALLBACK_PLAYOUT,
+			function onPartPlaybackStarted() {
+				// This method is called when a part starts playing (like when an auto-next event occurs, or a manual next)
+				const rundowns = Rundowns.find({ playlistId: rundownPlaylistId }).fetch()
 
-			const playingPartInstance = PartInstances.findOne({
-				_id: partInstanceId,
-				rundownId: { $in: rundowns.map((r) => r._id) },
-			})
+				const playingPartInstance = PartInstances.findOne({
+					_id: partInstanceId,
+					rundownId: { $in: rundowns.map((r) => r._id) },
+				})
 
-			if (playingPartInstance) {
-				// make sure we don't run multiple times, even if TSR calls us multiple times
+				if (playingPartInstance) {
+					// make sure we don't run multiple times, even if TSR calls us multiple times
 
-				const isPlaying = playingPartInstance.part.startedPlayback && !playingPartInstance.part.stoppedPlayback
-				if (!isPlaying) {
-					logger.info(
-						`Playout reports PartInstance "${partInstanceId}" has started playback on timestamp ${new Date(
-							startedPlayback
-						).toISOString()}`
-					)
-
-					let playlist = RundownPlaylists.findOne(rundownPlaylistId)
-					if (!playlist) throw new Meteor.Error(404, `Rundown Playlist "${rundownPlaylistId}" not found!`)
-					if (!playlist.active)
-						throw new Meteor.Error(501, `Rundown Playlist "${rundownPlaylistId}" is not active!`)
-
-					const cache = waitForPromise(initCacheForRundownPlaylist(playlist))
-					const rundown = cache.Rundowns.findOne(playingPartInstance.rundownId)
-					if (!rundown) throw new Meteor.Error(404, `Rundown "${playingPartInstance.rundownId}" not found!`)
-
-					playlist = cache.RundownPlaylists.findOne(playlist._id)
-					if (!playlist) throw new Meteor.Error(404, `Rundown Playlist not found in cache!`)
-
-					const { currentPartInstance, previousPartInstance } = getSelectedPartInstancesFromCache(
-						cache,
-						playlist
-					)
-
-					if (playlist.currentPartInstanceId === partInstanceId) {
-						// this is the current part, it has just started playback
-						if (playlist.previousPartInstanceId) {
-							if (!previousPartInstance) {
-								// We couldn't find the previous part: this is not a critical issue, but is clearly is a symptom of a larger issue
-								logger.error(
-									`Previous PartInstance "${playlist.previousPartInstanceId}" on RundownPlaylist "${playlist._id}" could not be found.`
-								)
-							} else if (!previousPartInstance.part.duration) {
-								onPartHasStoppedPlaying(cache, previousPartInstance, startedPlayback)
-							}
-						}
-
-						setRundownStartedPlayback(cache, playlist, rundown, startedPlayback) // Set startedPlayback on the rundown if this is the first item to be played
-
-						reportPartHasStarted(cache, playingPartInstance, startedPlayback)
-					} else if (playlist.nextPartInstanceId === partInstanceId) {
-						// this is the next part, clearly an autoNext has taken place
-						if (playlist.currentPartInstanceId) {
-							if (!currentPartInstance) {
-								// We couldn't find the previous part: this is not a critical issue, but is clearly is a symptom of a larger issue
-								logger.error(
-									`Previous PartInstance "${playlist.currentPartInstanceId}" on RundownPlaylist "${playlist._id}" could not be found.`
-								)
-							} else if (!currentPartInstance.part.duration) {
-								onPartHasStoppedPlaying(cache, currentPartInstance, startedPlayback)
-							}
-						}
-
-						setRundownStartedPlayback(cache, playlist, rundown, startedPlayback) // Set startedPlayback on the rundown if this is the first item to be played
-
-						cache.RundownPlaylists.update(playlist._id, {
-							$set: {
-								previousPartInstanceId: playlist.currentPartInstanceId,
-								currentPartInstanceId: playingPartInstance._id,
-								holdState: RundownHoldState.NONE,
-							},
-						})
-
-						reportPartHasStarted(cache, playingPartInstance, startedPlayback)
-
-						const nextPart = selectNextPart(
-							playlist,
-							playingPartInstance,
-							getAllOrderedPartsFromCache(cache, playlist)
+					const isPlaying =
+						playingPartInstance.part.startedPlayback && !playingPartInstance.part.stoppedPlayback
+					if (!isPlaying) {
+						logger.info(
+							`Playout reports PartInstance "${partInstanceId}" has started playback on timestamp ${new Date(
+								startedPlayback
+							).toISOString()}`
 						)
-						libsetNextPart(cache, playlist, nextPart ? nextPart.part : null)
-					} else {
-						// a part is being played that has not been selected for playback by Core
-						// show must go on, so find next part and update the Rundown, but log an error
-						const previousReported = playlist.lastIncorrectPartPlaybackReported
 
-						if (previousReported && Date.now() - previousReported > INCORRECT_PLAYING_PART_DEBOUNCE) {
-							// first time this has happened for a while, let's try to progress the show:
+						let playlist = RundownPlaylists.findOne(rundownPlaylistId)
+						if (!playlist) throw new Meteor.Error(404, `Rundown Playlist "${rundownPlaylistId}" not found!`)
+						if (!playlist.active)
+							throw new Meteor.Error(501, `Rundown Playlist "${rundownPlaylistId}" is not active!`)
+
+						const cache = waitForPromise(initCacheForRundownPlaylist(playlist))
+						const rundown = cache.Rundowns.findOne(playingPartInstance.rundownId)
+						if (!rundown)
+							throw new Meteor.Error(404, `Rundown "${playingPartInstance.rundownId}" not found!`)
+
+						playlist = cache.RundownPlaylists.findOne(playlist._id)
+						if (!playlist) throw new Meteor.Error(404, `Rundown Playlist not found in cache!`)
+
+						const { currentPartInstance, previousPartInstance } = getSelectedPartInstancesFromCache(
+							cache,
+							playlist
+						)
+
+						if (playlist.currentPartInstanceId === partInstanceId) {
+							// this is the current part, it has just started playback
+							if (playlist.previousPartInstanceId) {
+								if (!previousPartInstance) {
+									// We couldn't find the previous part: this is not a critical issue, but is clearly is a symptom of a larger issue
+									logger.error(
+										`Previous PartInstance "${playlist.previousPartInstanceId}" on RundownPlaylist "${playlist._id}" could not be found.`
+									)
+								} else if (!previousPartInstance.part.duration) {
+									onPartHasStoppedPlaying(cache, previousPartInstance, startedPlayback)
+								}
+							}
+
+							setRundownStartedPlayback(cache, playlist, rundown, startedPlayback) // Set startedPlayback on the rundown if this is the first item to be played
+
+							reportPartHasStarted(cache, playingPartInstance, startedPlayback)
+						} else if (playlist.nextPartInstanceId === partInstanceId) {
+							// this is the next part, clearly an autoNext has taken place
+							if (playlist.currentPartInstanceId) {
+								if (!currentPartInstance) {
+									// We couldn't find the previous part: this is not a critical issue, but is clearly is a symptom of a larger issue
+									logger.error(
+										`Previous PartInstance "${playlist.currentPartInstanceId}" on RundownPlaylist "${playlist._id}" could not be found.`
+									)
+								} else if (!currentPartInstance.part.duration) {
+									onPartHasStoppedPlaying(cache, currentPartInstance, startedPlayback)
+								}
+							}
 
 							setRundownStartedPlayback(cache, playlist, rundown, startedPlayback) // Set startedPlayback on the rundown if this is the first item to be played
 
 							cache.RundownPlaylists.update(playlist._id, {
 								$set: {
-									previousPartInstanceId: null,
+									previousPartInstanceId: playlist.currentPartInstanceId,
 									currentPartInstanceId: playingPartInstance._id,
-									lastIncorrectPartPlaybackReported: Date.now(), // save the time to prevent the system to go in a loop
+									holdState: RundownHoldState.NONE,
 								},
 							})
 
@@ -903,26 +904,53 @@ export namespace ServerPlayoutAPI {
 								getAllOrderedPartsFromCache(cache, playlist)
 							)
 							libsetNextPart(cache, playlist, nextPart ? nextPart.part : null)
+						} else {
+							// a part is being played that has not been selected for playback by Core
+							// show must go on, so find next part and update the Rundown, but log an error
+							const previousReported = playlist.lastIncorrectPartPlaybackReported
+
+							if (previousReported && Date.now() - previousReported > INCORRECT_PLAYING_PART_DEBOUNCE) {
+								// first time this has happened for a while, let's try to progress the show:
+
+								setRundownStartedPlayback(cache, playlist, rundown, startedPlayback) // Set startedPlayback on the rundown if this is the first item to be played
+
+								cache.RundownPlaylists.update(playlist._id, {
+									$set: {
+										previousPartInstanceId: null,
+										currentPartInstanceId: playingPartInstance._id,
+										lastIncorrectPartPlaybackReported: Date.now(), // save the time to prevent the system to go in a loop
+									},
+								})
+
+								reportPartHasStarted(cache, playingPartInstance, startedPlayback)
+
+								const nextPart = selectNextPart(
+									playlist,
+									playingPartInstance,
+									getAllOrderedPartsFromCache(cache, playlist)
+								)
+								libsetNextPart(cache, playlist, nextPart ? nextPart.part : null)
+							}
+
+							// TODO - should this even change the next?
+							logger.error(
+								`PartInstance "${playingPartInstance._id}" has started playback by the playout gateway, but has not been selected for playback!`
+							)
 						}
 
-						// TODO - should this even change the next?
-						logger.error(
-							`PartInstance "${playingPartInstance._id}" has started playback by the playout gateway, but has not been selected for playback!`
-						)
+						// complete the take
+						afterTake(cache, rundown.studioId, playingPartInstance)
+
+						waitForPromise(cache.saveAllToDatabase())
 					}
-
-					// complete the take
-					afterTake(cache, rundown.studioId, playingPartInstance)
-
-					waitForPromise(cache.saveAllToDatabase())
+				} else {
+					throw new Meteor.Error(
+						404,
+						`PartInstance "${partInstanceId}" in RundownPlayst "${rundownPlaylistId}" not found!`
+					)
 				}
-			} else {
-				throw new Meteor.Error(
-					404,
-					`PartInstance "${partInstanceId}" in RundownPlayst "${rundownPlaylistId}" not found!`
-				)
 			}
-		})
+		)
 	}
 	/**
 	 * Triggered from Playout-gateway when a Part has stopped playing
@@ -939,35 +967,39 @@ export namespace ServerPlayoutAPI {
 
 		triggerWriteAccessBecauseNoCheckNecessary() // tmp
 
-		return rundownPlaylistSyncFunction(rundownPlaylistId, RundownSyncFunctionPriority.CALLBACK_PLAYOUT, () => {
-			// This method is called when a part stops playing (like when an auto-next event occurs, or a manual next)
-			const rundowns = Rundowns.find({ playlistId: rundownPlaylistId }).fetch()
+		return rundownPlaylistSyncFunction(
+			rundownPlaylistId,
+			RundownSyncFunctionPriority.CALLBACK_PLAYOUT,
+			function onPartPlaybackStopped() {
+				// This method is called when a part stops playing (like when an auto-next event occurs, or a manual next)
+				const rundowns = Rundowns.find({ playlistId: rundownPlaylistId }).fetch()
 
-			const partInstance = PartInstances.findOne({
-				_id: partInstanceId,
-				rundownId: { $in: rundowns.map((r) => r._id) },
-			})
+				const partInstance = PartInstances.findOne({
+					_id: partInstanceId,
+					rundownId: { $in: rundowns.map((r) => r._id) },
+				})
 
-			if (partInstance) {
-				// make sure we don't run multiple times, even if TSR calls us multiple times
+				if (partInstance) {
+					// make sure we don't run multiple times, even if TSR calls us multiple times
 
-				const isPlaying = partInstance.part.startedPlayback && !partInstance.part.stoppedPlayback
-				if (isPlaying) {
-					logger.info(
-						`Playout reports PartInstance "${partInstanceId}" has stopped playback on timestamp ${new Date(
-							stoppedPlayback
-						).toISOString()}`
+					const isPlaying = partInstance.part.startedPlayback && !partInstance.part.stoppedPlayback
+					if (isPlaying) {
+						logger.info(
+							`Playout reports PartInstance "${partInstanceId}" has stopped playback on timestamp ${new Date(
+								stoppedPlayback
+							).toISOString()}`
+						)
+
+						reportPartHasStopped(rundownPlaylistId, partInstance, stoppedPlayback)
+					}
+				} else {
+					throw new Meteor.Error(
+						404,
+						`PartInstance "${partInstanceId}" in RundownPlayst "${rundownPlaylistId}" not found!`
 					)
-
-					reportPartHasStopped(rundownPlaylistId, partInstance, stoppedPlayback)
 				}
-			} else {
-				throw new Meteor.Error(
-					404,
-					`PartInstance "${partInstanceId}" in RundownPlayst "${rundownPlaylistId}" not found!`
-				)
 			}
-		})
+		)
 	}
 	/**
 	 * Make a copy of a piece and start playing it now
@@ -1071,65 +1103,70 @@ export namespace ServerPlayoutAPI {
 	) {
 		const now = getCurrentTime()
 
-		rundownPlaylistSyncFunction(rundownPlaylistId, RundownSyncFunctionPriority.USER_PLAYOUT, () => {
-			const tmpPlaylist = RundownPlaylists.findOne(rundownPlaylistId)
-			if (!tmpPlaylist) throw new Meteor.Error(404, `Rundown "${rundownPlaylistId}" not found!`)
-			if (!tmpPlaylist.active) throw new Meteor.Error(403, `Pieces can be only manipulated in an active rundown!`)
-			if (!tmpPlaylist.currentPartInstanceId)
-				throw new Meteor.Error(400, `A part needs to be active to execute an action`)
+		rundownPlaylistSyncFunction(
+			rundownPlaylistId,
+			RundownSyncFunctionPriority.USER_PLAYOUT,
+			function executeActionInner() {
+				const tmpPlaylist = RundownPlaylists.findOne(rundownPlaylistId)
+				if (!tmpPlaylist) throw new Meteor.Error(404, `Rundown "${rundownPlaylistId}" not found!`)
+				if (!tmpPlaylist.active)
+					throw new Meteor.Error(403, `Pieces can be only manipulated in an active rundown!`)
+				if (!tmpPlaylist.currentPartInstanceId)
+					throw new Meteor.Error(400, `A part needs to be active to execute an action`)
 
-			const cache = waitForPromise(initCacheForRundownPlaylist(tmpPlaylist))
-			const playlist = cache.RundownPlaylists.findOne(rundownPlaylistId)
-			if (!playlist) throw new Meteor.Error(404, `Rundown "${rundownPlaylistId}" not found!`)
+				const cache = waitForPromise(initCacheForRundownPlaylist(tmpPlaylist))
+				const playlist = cache.RundownPlaylists.findOne(rundownPlaylistId)
+				if (!playlist) throw new Meteor.Error(404, `Rundown "${rundownPlaylistId}" not found!`)
 
-			const studio = cache.activationCache.getStudio()
-			if (!studio) throw new Meteor.Error(501, `Current Studio "${playlist.studioId}" could not be found`)
+				const studio = cache.activationCache.getStudio()
+				if (!studio) throw new Meteor.Error(501, `Current Studio "${playlist.studioId}" could not be found`)
 
-			const currentPartInstance = playlist.currentPartInstanceId
-				? cache.PartInstances.findOne(playlist.currentPartInstanceId)
-				: undefined
-			if (!currentPartInstance)
-				throw new Meteor.Error(
-					501,
-					`Current PartInstance "${playlist.currentPartInstanceId}" could not be found.`
+				const currentPartInstance = playlist.currentPartInstanceId
+					? cache.PartInstances.findOne(playlist.currentPartInstanceId)
+					: undefined
+				if (!currentPartInstance)
+					throw new Meteor.Error(
+						501,
+						`Current PartInstance "${playlist.currentPartInstanceId}" could not be found.`
+					)
+
+				const rundown = cache.Rundowns.findOne(currentPartInstance.rundownId)
+				if (!rundown)
+					throw new Meteor.Error(501, `Current Rundown "${currentPartInstance.rundownId}" could not be found`)
+
+				const notesContext = new NotesContext(
+					`${rundown.name}(${playlist.name})`,
+					`playlist=${playlist._id},rundown=${rundown._id},currentPartInstance=${
+						currentPartInstance._id
+					},execution=${getRandomId()}`,
+					false
 				)
+				const actionContext = new ActionExecutionContext(cache, notesContext, studio, playlist, rundown)
 
-			const rundown = cache.Rundowns.findOne(currentPartInstance.rundownId)
-			if (!rundown)
-				throw new Meteor.Error(501, `Current Rundown "${currentPartInstance.rundownId}" could not be found`)
+				// If any action cannot be done due to timings, that needs to be rejected by the context
+				func(actionContext, cache, rundown, currentPartInstance)
 
-			const notesContext = new NotesContext(
-				`${rundown.name}(${playlist.name})`,
-				`playlist=${playlist._id},rundown=${rundown._id},currentPartInstance=${
-					currentPartInstance._id
-				},execution=${getRandomId()}`,
-				false
-			)
-			const actionContext = new ActionExecutionContext(cache, notesContext, studio, playlist, rundown)
-
-			// If any action cannot be done due to timings, that needs to be rejected by the context
-			func(actionContext, cache, rundown, currentPartInstance)
-
-			if (
-				actionContext.currentPartState !== ActionPartChange.NONE ||
-				actionContext.nextPartState !== ActionPartChange.NONE
-			) {
-				syncPlayheadInfinitesForNextPartInstance(cache, playlist)
-			}
-
-			if (actionContext.takeAfterExecute) {
-				return ServerPlayoutAPI.callTakeWithCache(context, rundownPlaylistId, now, cache)
-			} else {
 				if (
 					actionContext.currentPartState !== ActionPartChange.NONE ||
 					actionContext.nextPartState !== ActionPartChange.NONE
 				) {
-					updateTimeline(cache, playlist.studioId)
+					syncPlayheadInfinitesForNextPartInstance(cache, playlist)
 				}
 
-				waitForPromise(cache.saveAllToDatabase())
+				if (actionContext.takeAfterExecute) {
+					return ServerPlayoutAPI.callTakeWithCache(context, rundownPlaylistId, now, cache)
+				} else {
+					if (
+						actionContext.currentPartState !== ActionPartChange.NONE ||
+						actionContext.nextPartState !== ActionPartChange.NONE
+					) {
+						updateTimeline(cache, playlist.studioId)
+					}
+
+					waitForPromise(cache.saveAllToDatabase())
+				}
 			}
-		})
+		)
 	}
 	/**
 	 * This exists for the purpose of mocking this call for testing.
