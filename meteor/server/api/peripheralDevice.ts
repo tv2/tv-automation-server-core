@@ -29,6 +29,7 @@ import { determineDiffTime, getTimeDiff } from './systemTime/systemTime'
 import { PickerPOST } from './http'
 import { initCacheForNoRundownPlaylist, initCacheForStudio, initCacheForRundownPlaylist } from '../DatabaseCaches'
 import { RundownPlaylists } from '../../lib/collections/RundownPlaylists'
+import { UserIOActions } from './userIO/userIO'
 
 // import {ServerPeripheralDeviceAPIMOS as MOS} from './peripheralDeviceMos'
 export namespace ServerPeripheralDeviceAPI {
@@ -805,6 +806,18 @@ class ServerPeripheralDeviceAPIClass implements NewPeripheralDeviceAPI {
 		obj: MediaWorkFlowStep | null
 	) {
 		return makePromise(() => MediaManagerIntegration.updateMediaWorkFlowStep(deviceId, deviceToken, docId, obj))
+	}
+	// ----------- UserIO -----------
+	userIOTake() {
+		return makePromise(() => {
+			UserIOActions.userIOTake()
+		})
+	}
+
+	userIOAdlibActionStart() {
+		return makePromise(() => {
+			UserIOActions.userIOAdLibActionStart()
+		})
 	}
 }
 registerClassToMeteorMethods(PeripheralDeviceAPIMethods, ServerPeripheralDeviceAPIClass, false)

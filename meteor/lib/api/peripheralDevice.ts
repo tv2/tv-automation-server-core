@@ -255,6 +255,9 @@ export interface NewPeripheralDeviceAPI {
 		obj: MediaWorkFlowStep | null
 	): Promise<void>
 
+	userIOTake(): Promise<void>
+	userIOAdlibActionStart(): Promise<any>
+
 	determineDiffTime(): Promise<DiffTimeResult>
 	getTimeDiff(): Promise<TimeDiff>
 	getTime(): Promise<number>
@@ -329,6 +332,9 @@ export enum PeripheralDeviceAPIMethods {
 
 	'requestUserAuthToken' = 'peripheralDevice.spreadsheet.requestUserAuthToken',
 	'storeAccessToken' = 'peripheralDevice.spreadsheet.storeAccessToken',
+
+	'userIOTake' = 'peripheralDevice.user_io.userIOTake',
+	'userIOAdlibActionStart' = 'peripheralDevice.user_io.userIOAdlibActionStart',
 }
 export interface TimeDiff {
 	currentTime: number
@@ -374,6 +380,7 @@ export namespace PeripheralDeviceAPI {
 		INGEST = 'ingest',
 		PLAYOUT = 'playout',
 		MEDIA_MANAGER = 'media_manager',
+		USER_IO = 'user_io',
 	}
 	export enum DeviceType {
 		// Ingest devices:
@@ -384,6 +391,8 @@ export namespace PeripheralDeviceAPI {
 		PLAYOUT = 'playout',
 		// Media-manager devices:
 		MEDIA_MANAGER = 'media_manager',
+		// User Gateway devices:
+		USER_IO = 'user_io',
 	}
 	export type DeviceSubType = SUBTYPE_PROCESS | TSR.DeviceType | MOS_DeviceType | Spreadsheet_DeviceType
 
