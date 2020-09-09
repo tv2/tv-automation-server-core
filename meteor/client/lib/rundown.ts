@@ -17,6 +17,7 @@ import {
 	PieceExtended,
 	IOutputLayerExtended,
 	ISourceLayerExtended,
+	PartInstanceLimited,
 } from '../../lib/Rundown'
 import { DBSegment, SegmentId } from '../../lib/collections/Segments'
 import { RundownPlaylist } from '../../lib/collections/RundownPlaylists'
@@ -28,6 +29,7 @@ import { AdLibPieceUi } from '../ui/Shelf/AdLibPanel'
 import { PartId } from '../../lib/collections/Parts'
 import { processAndPrunePieceInstanceTimings } from '../../lib/rundown/infinites'
 import { createPieceGroupAndCap } from '../../lib/rundown/pieces'
+import { PieceInstances } from '../../lib/collections/PieceInstances'
 
 export namespace RundownUtils {
 	function padZerundown(input: number, places?: number): string {
@@ -271,9 +273,18 @@ export namespace RundownUtils {
 				segmentId: segment._id,
 			}
 		)
-		const activePartInstancesMap = playlist.getActivePartInstancesMap({
-			segmentId: segment._id,
-		})
+		const activePartInstancesMap = playlist.getActivePartInstancesMap(
+			{
+				segmentId: segment._id,
+			},
+			{
+				fields: {
+					isTaken: 0,
+					previousPartEndState: 0,
+					takeCount: 0,
+				},
+			}
+		) as { [indexKey: string]: PartInstanceLimited }
 
 		const partsInSegment = segmentsAndParts.parts
 
@@ -310,6 +321,12 @@ export namespace RundownUtils {
 			let previousPart: PartExtended | undefined
 			// fetch all the pieces for the parts
 			const partIds = partsInSegment.map((part) => part._id)
+
+			const currentPartIndex = currentPartInstance
+				? orderedAllPartIds.indexOf(currentPartInstance.part._id)
+				: null
+
+			const nextPartIndex = nextPartInstance ? orderedAllPartIds.indexOf(nextPartInstance.part._id) : null
 
 			partsE = partsInSegment.map((part, itIndex) => {
 				const partInstance = findPartInstanceOrWrapToTemporary(activePartInstancesMap, part)
@@ -407,9 +424,9 @@ export namespace RundownUtils {
 							sourceLayer = sourceLayers[piece.piece.sourceLayerId]
 							if (sourceLayer) {
 								sourceLayer = { ...sourceLayer }
-								let part = sourceLayer
-								part.pieces = []
-								outputLayer.sourceLayers.push(part)
+								let partSourceLayer = sourceLayer
+								partSourceLayer.pieces = []
+								outputLayer.sourceLayers.push(partSourceLayer)
 							}
 						}
 
@@ -449,7 +466,9 @@ export namespace RundownUtils {
 				let tlResolved = SuperTimeline.Resolver.resolveTimeline(partTimeline, { time: 0 })
 				// furthestDuration is used to figure out how much content (in terms of time) is there in the Part
 				let furthestDuration = 0
-				for (let obj of Object.values(tlResolved.objects)) {
+				const objs = Object.values(tlResolved.objects)
+				for (let i = 0; i < objs.length; i++) {
+					const obj = objs[i]
 					const obj0 = (obj as unknown) as TimelineObjectCoreExt
 					if (obj.resolved.resolved && obj0.metaData) {
 						// Timeline actually has copies of the content object, instead of the object itself, so we need to match it back to the Part
