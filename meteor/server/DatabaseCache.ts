@@ -35,6 +35,7 @@ export class DbCacheReadCollection<Class extends DBInterface, DBInterface extend
 	private _initialized: boolean = false
 	private _initializer?: MongoQuery<DBInterface> | (() => Promise<void>) = undefined
 	private _initializing: Promise<any> | undefined
+	protected _postSave?: () => void
 
 	constructor(protected _collection: TransformedCollection<Class, DBInterface>) {
 		//
@@ -48,11 +49,16 @@ export class DbCacheReadCollection<Class extends DBInterface, DBInterface extend
 		return this._initialized || this._initializing !== undefined
 	}
 
-	prepareInit(initializer: MongoQuery<DBInterface> | (() => Promise<void>), initializeImmediately: boolean) {
+	prepareInit(
+		initializer: MongoQuery<DBInterface> | (() => Promise<void>),
+		initializeImmediately: boolean,
+		postSave?: () => void
+	) {
 		this._initializer = initializer
 		if (initializeImmediately) {
 			this._initialize()
 		}
+		this._postSave = postSave
 	}
 	extendWithData(cacheCollection: DbCacheReadCollection<Class, DBInterface>) {
 		this._initialized = cacheCollection._initialized
@@ -145,7 +151,7 @@ export class DbCacheReadCollection<Class extends DBInterface, DBInterface extend
 		this._innerfillWithDataFromArray(docs)
 		return docs.length
 	}
-	private _innerfillWithDataFromArray(documents: Class[]) {
+	_innerfillWithDataFromArray(documents: Class[]) {
 		_.each(documents, (doc) => {
 			const id = unprotectString(doc._id)
 			if (this.documents[id]) {
@@ -370,7 +376,9 @@ export class DbCacheWriteCollection<
 		})
 
 		await pBulkWriteResult
-
+		if (typeof this._postSave === 'function') {
+			this._postSave()
+		}
 		if (span) span.addLabels(changes)
 		if (span) span.end()
 		return changes

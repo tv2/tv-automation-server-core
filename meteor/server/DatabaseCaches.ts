@@ -32,6 +32,8 @@ import {
 	waitTime,
 	sumChanges,
 	anythingChanged,
+	unprotectString,
+	clone,
 } from '../lib/lib'
 import { logger } from './logging'
 import { AdLibPiece, AdLibPieces } from '../lib/collections/AdLibPieces'
@@ -44,7 +46,16 @@ import { profiler } from './api/profiler'
 
 type DeferredFunction<Cache> = (cache: Cache) => void
 
+const cacheOfCache: {
+	Timeline: { [key: string]: TimelineObjGeneric[] }
+	PieceInstances: { [key: string]: TimelineObjGeneric[] }
+} = {
+	Timeline: {},
+	PieceInstances: {},
+}
+
 /** This cache contains data relevant in a studio */
+
 export class Cache {
 	private _deferredFunctions: DeferredFunction<Cache>[] = []
 	private _deferredAfterSaveFunctions: (() => void)[] = []
@@ -186,7 +197,24 @@ async function fillCacheForStudioBaseWithData(
 ) {
 	await Promise.all([
 		makePromise(() => cache.RundownPlaylists.prepareInit({ studioId: studioId }, initializeImmediately)),
-		makePromise(() => cache.Timeline.prepareInit({ studioId: studioId }, initializeImmediately)),
+		makePromise(() =>
+			cache.Timeline.prepareInit(
+				async () => {
+					const cached = cacheOfCache.Timeline[unprotectString(studioId)]
+					if (cached) {
+						cache.Timeline._innerfillWithDataFromArray(clone(cached))
+					} else {
+						await cache.Timeline.fillWithDataFromDatabase({ studioId: studioId })
+					}
+				},
+				initializeImmediately,
+				() => {
+					cacheOfCache.Timeline[unprotectString(studioId)] = clone(
+						Object.values(cache.Timeline.documents).map((d) => d.document)
+					)
+				}
+			)
+		),
 		makePromise(() => cache.RecordedFiles.prepareInit({ studioId: studioId }, initializeImmediately)),
 	])
 

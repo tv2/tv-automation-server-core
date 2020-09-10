@@ -1,6 +1,6 @@
 import { registerClassToMeteorMethods } from '../methods'
 import { NewManualPlayoutAPI, ManualPlayoutAPIMethods } from '../../lib/api/manualPlayout'
-import { Timeline, TimelineObjGeneric, getTimelineId, TimelineObjType } from '../../lib/collections/Timeline'
+import { TimelineObjGeneric, getTimelineId, TimelineObjType } from '../../lib/collections/Timeline'
 import { Studios, StudioId } from '../../lib/collections/Studios'
 import { afterUpdateTimeline } from './playout/timeline'
 import { check } from '../../lib/check'
