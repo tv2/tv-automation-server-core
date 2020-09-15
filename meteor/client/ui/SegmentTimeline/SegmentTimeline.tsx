@@ -431,12 +431,15 @@ export class SegmentTimelineClass extends React.Component<Translated<IProps>, IS
 	onTimelineMouseUp = (e: React.MouseEvent<HTMLDivElement> & any) => {
 		document.removeEventListener('mousemove', this.onTimelineMouseMove)
 		document.removeEventListener('mouseup', this.onTimelineMouseUp)
-		this._mouseAttached = false
-		this._lastPointer = undefined
-		this.setState({
-			mouseGrabbed: false,
-		})
-		document.exitPointerLock()
+
+		setTimeout(() => {
+			this._mouseAttached = false
+			this._lastPointer = undefined
+			this.setState({
+				mouseGrabbed: false,
+			})
+			document.exitPointerLock()
+		}, 0) // Without the timeout, exitPointerLock was not registered when the mouse didn't move
 
 		const now = Date.now()
 		if (!this._mouseMoved && now - this._lastClick < 500) {
@@ -448,11 +451,13 @@ export class SegmentTimelineClass extends React.Component<Translated<IProps>, IS
 	onTimelinePointerLockChange = (e: Event) => {
 		if (!document.pointerLockElement) {
 			hidePointerLockCursor()
+			document.removeEventListener('pointerlockchange', this.onTimelinePointerLockChange)
 		}
 	}
 
 	onTimelinePointerError = (e: Event) => {
 		hidePointerLockCursor()
+		document.removeEventListener('pointerlockerror', this.onTimelinePointerLockChange)
 	}
 
 	onRundownEventSegmentZoomOn = (e: any) => {
