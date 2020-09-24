@@ -4,9 +4,10 @@ import * as Velocity from 'velocity-animate'
 import { SEGMENT_TIMELINE_ELEMENT_ID } from '../ui/SegmentTimeline/SegmentTimeline'
 import { Parts, PartId } from '../../lib/collections/Parts'
 import { PartInstances, PartInstanceId } from '../../lib/collections/PartInstances'
-import { SegmentId } from '../../lib/collections/Segments'
+import { SegmentId, Segments } from '../../lib/collections/Segments'
 import { isProtectedString } from '../../lib/lib'
 import { RundownViewEvents, IGoToPartEvent, IGoToPartInstanceEvent } from '../ui/RundownView'
+import { Settings } from '../../lib/Settings'
 
 let focusInterval: NodeJS.Timer | undefined
 let _dontClearInterval: boolean = false
@@ -107,15 +108,83 @@ export function getHeaderHeight(): number {
 let pendingSecondStageScroll: number | undefined
 let currentScrollingElement: HTMLElement | undefined
 
-export function scrollToSegment(
+export async function scrollToSegment(
+	elementToScrollToOrSegmentId: HTMLElement | SegmentId,
+	forceScroll?: boolean,
+	noAnimation?: boolean
+): Promise<boolean> {
+	let virtualTargetId: SegmentId | undefined = undefined
+	if (isProtectedString(elementToScrollToOrSegmentId)) {
+		const selectedSegment = Segments.findOne({ _id: elementToScrollToOrSegmentId })
+		if (selectedSegment) {
+			const previousSegment = Segments.find(
+				{
+					_rank: { $lt: selectedSegment._rank },
+					rundownId: selectedSegment.rundownId,
+					isHidden: false,
+				},
+				{
+					sort: {
+						_rank: -1,
+					},
+					limit: 1,
+				}
+			).fetch()[0]
+			if (previousSegment) {
+				virtualTargetId = previousSegment._id
+			}
+		}
+	}
+
+	const actualTarget = getElementToScrollTo(elementToScrollToOrSegmentId)
+	const virtualTarget = virtualTargetId ? getElementToScrollTo(virtualTargetId) : undefined
+
+	if (!actualTarget) {
+		return Promise.reject('Could not find segment element')
+	}
+
+	if (virtualTarget && Settings.showPreviousSegmentOnAutoScroll) {
+		// Scroll to prior segment
+		return innerScrollToSegment(
+			virtualTarget,
+			forceScroll || !regionInViewport(virtualTarget, actualTarget),
+			noAnimation
+		)
+	} else {
+		return innerScrollToSegment(actualTarget, forceScroll, noAnimation)
+	}
+}
+
+function regionInViewport(topElement: HTMLElement, bottomElement: HTMLElement) {
+	let { top, bottom } = getRegionPosition(topElement, bottomElement)
+
+	const headerHeight = Math.floor(getHeaderHeight())
+
+	return !(bottom > Math.floor(window.innerHeight) || top < headerHeight)
+}
+
+function getRegionPosition(topElement: HTMLElement, bottomElement: HTMLElement): { top: number; bottom: number } {
+	let top = topElement.getBoundingClientRect().top
+	let bottom = bottomElement.getBoundingClientRect().bottom
+	top = Math.floor(top)
+	bottom = Math.floor(bottom)
+
+	return { top, bottom }
+}
+
+function getElementToScrollTo(elementToScrollToOrSegmentId: HTMLElement | SegmentId): HTMLElement | null {
+	return isProtectedString(elementToScrollToOrSegmentId)
+		? document.querySelector('#' + SEGMENT_TIMELINE_ELEMENT_ID + elementToScrollToOrSegmentId)
+		: elementToScrollToOrSegmentId
+}
+
+function innerScrollToSegment(
 	elementToScrollToOrSegmentId: HTMLElement | SegmentId,
 	forceScroll?: boolean,
 	noAnimation?: boolean,
 	secondStage?: boolean
 ): Promise<boolean> {
-	let elementToScrollTo: HTMLElement | null = isProtectedString(elementToScrollToOrSegmentId)
-		? document.querySelector('#' + SEGMENT_TIMELINE_ELEMENT_ID + elementToScrollToOrSegmentId)
-		: elementToScrollToOrSegmentId
+	let elementToScrollTo = getElementToScrollTo(elementToScrollToOrSegmentId)
 
 	if (!elementToScrollTo) {
 		return Promise.reject('Could not find segment element')
@@ -127,14 +196,14 @@ export function scrollToSegment(
 		return Promise.reject('Scroll overriden by a new scroll')
 	}
 
-	let { top, bottom } = elementToScrollTo.getBoundingClientRect()
-	top = Math.floor(top)
-	bottom = Math.floor(bottom)
-
-	const headerHeight = Math.floor(getHeaderHeight())
-
 	// check if the item is in viewport
-	if (forceScroll || bottom > Math.floor(window.innerHeight) || top < headerHeight) {
+	if (forceScroll || !regionInViewport(elementToScrollTo, elementToScrollTo)) {
+		let { top, bottom } = elementToScrollTo.getBoundingClientRect()
+		top = Math.floor(top)
+		bottom = Math.floor(bottom)
+
+		const headerHeight = Math.floor(getHeaderHeight())
+
 		if (pendingSecondStageScroll) window.cancelIdleCallback(pendingSecondStageScroll)
 
 		return scrollToPosition(top + window.scrollY, noAnimation).then(
@@ -156,10 +225,12 @@ export function scrollToSegment(
 								bottom = Math.floor(bottom)
 
 								if (bottom > Math.floor(window.innerHeight) || top < headerHeight) {
-									return scrollToSegment(elementToScrollToOrSegmentId, forceScroll, true, true).then(
-										resolve,
-										reject
-									)
+									return innerScrollToSegment(
+										elementToScrollToOrSegmentId,
+										forceScroll,
+										true,
+										true
+									).then(resolve, reject)
 								} else {
 									resolve(true)
 								}
@@ -179,7 +250,7 @@ export function scrollToSegment(
 		)
 	}
 
-	return Promise.resolve(false)
+	return Promise.resolve(true)
 }
 
 let scrollToPositionRequest: number | undefined

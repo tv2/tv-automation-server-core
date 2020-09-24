@@ -36,6 +36,8 @@ export interface ISettings {
 	defaultDisplayDuration: number
 	/** Allow resets while a rundown is on-air */
 	allowRundownResetOnAir: boolean
+	/** Show segment above segment set as next when auto scrolling */
+	showPreviousSegmentOnAutoScroll: boolean
 	// Show keyboard map in AdLib Shelf
 	showKeyboardMap: boolean
 	// Keyboard map layout (what physical layout to use for the keyboard)
@@ -61,6 +63,7 @@ const DEFAULT_SETTINGS: ISettings = {
 	allowUnsyncedSegments: false,
 	defaultDisplayDuration: 3000,
 	allowRundownResetOnAir: false,
+	showPreviousSegmentOnAutoScroll: false,
 	showKeyboardMap: true,
 	keyboardMapLayout: KeyboardLayouts.Names.STANDARD_102_TKL,
 	nrcsName: 'ENPS',
