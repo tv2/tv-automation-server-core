@@ -119,7 +119,27 @@ export function getPieceInstancesForPartInstance(
 			partInstance.isTemporary
 		)
 	} else {
-		return PieceInstances.find({ partInstanceId: partInstance._id }).fetch()
+		const pieceInstances = PieceInstances.find({ partInstanceId: partInstance._id }).fetch()
+		if (pieceInstances.length === 0) {
+			// most likely we're waiting for the PieceInstances collection to update, let's get temporary piece instances
+			return getPieceInstancesForPart(
+				undefined,
+				undefined,
+				partInstance.part,
+				partsBeforeThisInSegmentSet,
+				segmentsBeforeThisInRundownSet,
+				fetchPiecesThatMayBeActiveForPart(
+					partInstance.part,
+					partsBeforeThisInSegmentSet,
+					segmentsBeforeThisInRundownSet
+				),
+				orderedAllParts,
+				partInstance._id,
+				nextPartIsAfterCurrentPart,
+				true
+			)
+		}
+		return pieceInstances
 	}
 }
 
