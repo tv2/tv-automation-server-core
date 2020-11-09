@@ -82,33 +82,46 @@ function getOrderedPartsAfterPlayhead(
 		nextSegmentId: alreadyConsumedNextSegmentId ? undefined : playlist.nextSegmentId,
 		loop: playlist.loop,
 	}
-	const nextNextPart = selectNextPart(strippedPlaylist, nextPartInstance ?? currentPartInstance ?? null, orderedParts)
-	if (!nextNextPart) {
-		// We don't know where to begin searching, so we can't do anything
-		return []
-	}
-
-	const playablePartsSlice = orderedParts.slice(nextNextPart.index).filter((p) => p.isPlayable())
+	const nextNextPart = selectNextPart(strippedPlaylist, currentPartInstance ?? null, orderedParts)
 
 	const res: Part[] = []
 
-	const nextSegmentIndex = playablePartsSlice.findIndex((p) => p.segmentId === playlist.nextSegmentId)
-	if (
-		playlist.nextSegmentId &&
-		!alreadyConsumedNextSegmentId &&
-		nextSegmentIndex !== -1 &&
-		!nextNextPart.consumesNextSegmentId
-	) {
-		// TODO - this if clause needs some decent testing
+	if (nextNextPart) {
+		const playablePartsSlice = orderedParts.slice(nextNextPart.index).filter((p) => p.isPlayable())
 
-		// Push the next part and the remainder of its segment
-		res.push(...playablePartsSlice.filter((p) => p.segmentId === nextNextPart.part.segmentId))
+		const nextSegmentIndex = playablePartsSlice.findIndex((p) => p.segmentId === playlist.nextSegmentId)
+		if (
+			playlist.nextSegmentId &&
+			!alreadyConsumedNextSegmentId &&
+			nextSegmentIndex !== -1 &&
+			!nextNextPart.consumesNextSegmentId
+		) {
+			// TODO - this if clause needs some decent testing
 
-		// Push from nextSegmentId to the end of the playlist
-		res.push(...playablePartsSlice.slice(nextSegmentIndex))
+			// Push the next part and the remainder of its segment
+			res.push(...playablePartsSlice.filter((p) => p.segmentId === nextNextPart.part.segmentId))
+
+			// Push from nextSegmentId to the end of the playlist
+			res.push(...playablePartsSlice.slice(nextSegmentIndex))
+		} else {
+			// Push as many parts as we want
+			res.push(...playablePartsSlice)
+		}
 	} else {
-		// Push as many parts as we want
-		res.push(...playablePartsSlice)
+		const nextPartIndex = nextPartInstance
+			? orderedParts.findIndex((part) => part._id === nextPartInstance.part._id)
+			: -1
+
+		if (nextPartIndex !== -1) {
+			res.push(...orderedParts.slice(nextPartIndex))
+		} else {
+			const currentPartIndex = currentPartInstance
+				? orderedParts.findIndex((part) => part._id === currentPartInstance.part._id)
+				: -1
+			if (currentPartIndex !== -1) {
+				res.push(...orderedParts.slice(currentPartIndex))
+			}
+		}
 	}
 
 	if (res.length < partCount && playlist.loop) {
