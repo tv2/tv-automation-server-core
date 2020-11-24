@@ -379,9 +379,7 @@ export const SegmentTimelinePart = withTranslation()(
 					: undefined
 				return [
 					(durations.partDurations || {})[partId],
-					(durations.partDisplayStartsAt || {})[partId],
 					(durations.partDisplayDurations || {})[partId],
-					firstPartInSegmentId ? (durations.partDisplayStartsAt || {})[firstPartInSegmentId] : undefined,
 					firstPartInSegmentId ? (durations.partDisplayDurations || {})[firstPartInSegmentId] : undefined,
 				]
 			},
