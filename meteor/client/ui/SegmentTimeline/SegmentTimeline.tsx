@@ -905,11 +905,13 @@ export class SegmentTimelineClass extends React.Component<Translated<IProps>, IS
 						part={this.props.followingPart} />
 				</ErrorBoundary> */}
 				<ErrorBoundary>
-					<SegmentTimelineZoom
-						onZoomDblClick={this.onZoomDblClick}
-						timelineWidth={this.state.timelineWidth}
-						{...this.props}
-					/>
+					{!Settings.disableSegmentTimelineZoomArea && (
+						<SegmentTimelineZoom
+							onZoomDblClick={this.onZoomDblClick}
+							timelineWidth={this.state.timelineWidth}
+							{...this.props}
+						/>
+					)}
 				</ErrorBoundary>
 			</div>
 		)

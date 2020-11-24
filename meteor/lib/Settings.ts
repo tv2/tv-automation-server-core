@@ -40,6 +40,8 @@ export interface ISettings {
 	showKeyboardMap: boolean
 	// Keyboard map layout (what physical layout to use for the keyboard)
 	keyboardMapLayout: KeyboardLayouts.Names
+	// Disable the the zoom area underneath a Segment timeline
+	disableSegmentTimelineZoomArea: boolean
 }
 
 export let Settings: ISettings
@@ -61,6 +63,7 @@ const DEFAULT_SETTINGS: ISettings = {
 	allowRundownResetOnAir: false,
 	showKeyboardMap: true,
 	keyboardMapLayout: KeyboardLayouts.Names.STANDARD_102_TKL,
+	disableSegmentTimelineZoomArea: false,
 }
 
 Settings = _.clone(DEFAULT_SETTINGS)
