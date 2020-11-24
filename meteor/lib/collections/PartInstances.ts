@@ -76,9 +76,9 @@ export class PartInstance implements DBPartInstance {
 	public rundownId: RundownId
 
 	constructor(document: DBPartInstance, isTemporary?: boolean) {
-		_.each(_.keys(document), (key) => {
+		for (const key in document) {
 			this[key] = document[key]
-		})
+		}
 		this.isTemporary = isTemporary === true
 		this.part = new Part(document.part)
 	}
@@ -92,7 +92,7 @@ export function wrapPartToTemporaryInstance(part: DBPart): PartInstance {
 			segmentId: part.segmentId,
 			takeCount: -1,
 			rehearsal: false,
-			part: new Part(part),
+			part,
 		},
 		true
 	)
