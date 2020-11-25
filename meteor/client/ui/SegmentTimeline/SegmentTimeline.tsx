@@ -187,6 +187,7 @@ const SegmentTimelineZoom = class SegmentTimelineZoom extends React.Component<
 					isLastInSegment={false}
 					isAfterLastValidInSegmentAndItsLive={false}
 					isLastSegment={false}
+					isLiveSegment={this.props.isLiveSegment}
 				/>
 			)
 		})
@@ -676,6 +677,7 @@ export class SegmentTimelineClass extends React.Component<Translated<IProps>, IS
 								!!this.props.playlist.nextPartInstanceId
 							}
 							part={part}
+							isLiveSegment={this.props.isLiveSegment}
 						/>
 					)
 				})}

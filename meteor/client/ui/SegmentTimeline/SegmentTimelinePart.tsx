@@ -342,6 +342,7 @@ interface IProps {
 	isLastInSegment: boolean
 	isAfterLastValidInSegmentAndItsLive: boolean
 	isLastSegment: boolean
+	isLiveSegment: boolean
 }
 
 interface IState {
@@ -379,9 +380,16 @@ export const SegmentTimelinePart = withTranslation()(
 					: undefined
 				return [
 					(durations.partDurations || {})[partId],
-					(durations.partDisplayStartsAt || {})[partId],
+					...(props.isLiveSegment
+						? [
+								(durations.partDisplayStartsAt || {})[partId],
+								firstPartInSegmentId ? (durations.partDisplayStartsAt || {})[firstPartInSegmentId] : undefined,
+						  ]
+						: [
+								((durations.partDisplayStartsAt || {})[partId] || 0) -
+									(firstPartInSegmentId ? (durations.partDisplayStartsAt || {})[firstPartInSegmentId] || 0 : 0),
+						  ]),
 					(durations.partDisplayDurations || {})[partId],
-					firstPartInSegmentId ? (durations.partDisplayStartsAt || {})[firstPartInSegmentId] : undefined,
 					firstPartInSegmentId ? (durations.partDisplayDurations || {})[firstPartInSegmentId] : undefined,
 				]
 			},
