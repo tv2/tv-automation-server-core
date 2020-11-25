@@ -32,6 +32,7 @@ import {
 	waitTime,
 	sumChanges,
 	anythingChanged,
+	unprotectString,
 } from '../lib/lib'
 import { logger } from './logging'
 import { AdLibPiece, AdLibPieces } from '../lib/collections/AdLibPieces'
@@ -44,11 +45,14 @@ import { profiler } from './api/profiler'
 
 type DeferredFunction<Cache> = (cache: Cache) => void
 
+const cacheOfPlaylistCaches: { [playlistId: string]: CacheForRundownPlaylist } = {}
+
 /** This cache contains data relevant in a studio */
 export class Cache {
 	private _deferredFunctions: DeferredFunction<Cache>[] = []
 	private _deferredAfterSaveFunctions: (() => void)[] = []
 	private _activeTimeout: number | null = null
+	private _wasSaved: boolean = false
 
 	constructor() {
 		if (!Meteor.isProduction) {
@@ -60,6 +64,14 @@ export class Cache {
 				}, 2000)
 			}
 		}
+	}
+
+	wasSaved() {
+		return this._wasSaved
+	}
+
+	resetSaved() {
+		this._wasSaved = false
 	}
 
 	_abortActiveTimeout() {
@@ -124,7 +136,7 @@ export class Cache {
 			this._deferredAfterSaveFunctions[i]()
 		}
 		this._deferredAfterSaveFunctions.length = 0 // clear the array
-
+		this._wasSaved = true
 		if (span) span.end()
 	}
 	/** Defer provided function (it will be run just before cache.saveAllToDatabase() ) */
@@ -357,12 +369,25 @@ export async function initCacheForRundownPlaylist(
 	extendFromCache?: CacheForStudioBase,
 	initializeImmediately: boolean = true
 ): Promise<CacheForRundownPlaylist> {
-	if (!extendFromCache) extendFromCache = await initCacheForStudio(playlist.studioId, initializeImmediately)
-	let cache: CacheForRundownPlaylist = emptyCacheForRundownPlaylist(playlist.studioId, playlist._id)
-	if (extendFromCache) {
-		cache._extendWithData(extendFromCache)
+	let cache: CacheForRundownPlaylist
+	if (
+		cacheOfPlaylistCaches[unprotectString(playlist._id)] &&
+		cacheOfPlaylistCaches[unprotectString(playlist._id)].wasSaved()
+	) {
+		cache = cacheOfPlaylistCaches[unprotectString(playlist._id)]
+		cache.resetSaved()
+		if (extendFromCache) {
+			cache._extendWithData(extendFromCache)
+		}
+	} else {
+		cache = emptyCacheForRundownPlaylist(playlist.studioId, playlist._id)
+		if (!extendFromCache) extendFromCache = await initCacheForStudio(playlist.studioId, initializeImmediately)
+		if (extendFromCache) {
+			cache._extendWithData(extendFromCache)
+		}
+		await fillCacheForRundownPlaylistWithData(cache, playlist, initializeImmediately)
 	}
-	await fillCacheForRundownPlaylistWithData(cache, playlist, initializeImmediately)
+	cacheOfPlaylistCaches[unprotectString(playlist._id)] = cache
 	return cache
 }
 /** Cache for playout, but there is no playlist playing */
