@@ -118,8 +118,8 @@ export namespace ServerPlayoutAdLibAPI {
 				if (pieceInstanceToCopy && pieceInstanceToCopy.partInstanceId === partInstance._id) {
 					// Ensure the piece being copied isnt currently live
 					if (
-						pieceInstanceToCopy.piece.startedPlayback &&
-						pieceInstanceToCopy.piece.startedPlayback <= getCurrentTime()
+						pieceInstanceToCopy.startedPlayback &&
+						pieceInstanceToCopy.startedPlayback <= getCurrentTime()
 					) {
 						const resolvedPieces = getResolvedPieces(cache, showStyleBase, partInstance)
 						const resolvedPieceBeingCopied = resolvedPieces.find((p) => p._id === pieceInstanceToCopy._id)
@@ -378,7 +378,7 @@ export namespace ServerPlayoutAdLibAPI {
 			...customQuery,
 			rundownId: { $in: rundownIds },
 			'piece.sourceLayerId': sourceLayerId,
-			'piece.startedPlayback': {
+			startedPlayback: {
 				$exists: true,
 			},
 		}
@@ -396,8 +396,7 @@ export namespace ServerPlayoutAdLibAPI {
 		// TODO - will this cause problems?
 		return PieceInstances.findOne(query, {
 			sort: {
-				// @ts-ignore deep property
-				'piece.startedPlayback': -1,
+				startedPlayback: -1,
 			},
 		})
 	}
@@ -490,7 +489,7 @@ export namespace ServerPlayoutAdLibAPI {
 		const span = profiler.startSpan('innerStopPieces')
 		const stoppedInstances: PieceInstanceId[] = []
 
-		const lastStartedPlayback = currentPartInstance.part.getLastStartedPlayback()
+		const lastStartedPlayback = currentPartInstance.timings?.startedPlayback
 		if (lastStartedPlayback === undefined) {
 			throw new Error('Cannot stop pieceInstances when partInstance hasnt started playback')
 		}
