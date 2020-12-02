@@ -1,6 +1,6 @@
 {
   "name": "automation-core",
-  "version": "1.13.1",
+  "version": "1.14.2",
   "private": true,
   "engines": {
     "node": "12.16"
@@ -39,7 +39,8 @@
     "validate:prod-dependencies": "npm audit --production",
     "validate:dev-dependencies": "npm audit --only=dev --audit-level=moderate",
     "check-types": "tsc --noEmit -p tsconfig.json",
-    "watch-types": "npm run check-types -- --watch"
+    "watch-types": "npm run check-types -- --watch",
+    "validate:release": "npm run validate:prod-dependencies && npm run license-validate && npm run lint && npm run test"
   },
   "dependencies": {
     "@babel/runtime": "^7.11.2",
@@ -93,7 +94,7 @@
     "react-timer-hoc": "^2.3.0",
     "semver": "^7.3.2",
     "soap": "^0.31.0",
-    "superfly-timeline": "^8.1.1",
+    "superfly-timeline": "^8.1.2",
     "timecode": "0.0.4",
     "tv-automation-sofie-blueprints-integration": "git+https://github.com/olzzon/tv-automation-sofie-blueprints-integration.git#dist20201102_1",
     "underscore": "^1.11.0",
@@ -152,7 +153,6 @@
     "tslint": "^6.1.3",
     "tslint-config-prettier": "^1.18.0",
     "tslint-plugin-prettier": "^2.1.0",
-    "typedoc": "^0.17.8",
     "typescript": "~3.8.3",
     "typescript-tslint-plugin": "^0.5.5",
     "xmldom": "^0.3.0",

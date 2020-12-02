@@ -187,10 +187,6 @@ function innerScrollToSegment(
 
 					pendingSecondStageScroll = window.requestIdleCallback(
 						() => {
-							let { top, bottom } = elementToScrollTo!.getBoundingClientRect()
-							top = Math.floor(top)
-							bottom = Math.floor(bottom)
-
 							if (!secondStage) {
 								let { top, bottom } = elementToScrollTo!.getBoundingClientRect()
 								top = Math.floor(top)
