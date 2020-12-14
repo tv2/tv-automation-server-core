@@ -19,6 +19,7 @@ import {
 } from '../../../lib/collections/PartInstances'
 import { Settings } from '../../../lib/Settings'
 import { LIVE_LINE_TIME_PADDING } from '../SegmentTimeline/SegmentTimelinePart'
+import { SegmentId } from '../../../lib/collections/Segments'
 
 // Minimum duration that a part can be assigned. Used by gap parts to allow them to "compress" to indicate time running out.
 const MINIMAL_NONZERO_DURATION = 1
@@ -221,6 +222,9 @@ export const RundownTimingProvider = withTracker<
 			[key: string]: number
 		} = {}
 		private displayDurationGroups: _.Dictionary<number> = {}
+		private segmentBudgetDurations: {
+			[key: string]: number
+		} = {}
 
 		constructor(props: IRundownTimingProviderProps & IRundownTimingProviderTrackedProps) {
 			super(props)
@@ -373,9 +377,12 @@ export const RundownTimingProvider = withTracker<
 			let currentRemaining = 0
 			let startsAtAccumulator = 0
 			let displayStartsAtAccumulator = 0
+			let segmentDisplayDuration = 0
+			let segmentBudgetDurationLeft = 0
 
 			Object.keys(this.partLiveDisplayDurations).forEach((key) => delete this.partLiveDisplayDurations[key])
 			Object.keys(this.displayDurationGroups).forEach((key) => delete this.displayDurationGroups[key])
+			Object.keys(this.segmentBudgetDurations).forEach((key) => delete this.segmentBudgetDurations[key])
 			this.linearParts.length = 0
 
 			let debugConsole = ''
@@ -386,10 +393,31 @@ export const RundownTimingProvider = withTracker<
 			let nextAIndex = -1
 			let currentAIndex = -1
 
+			let lastSegmentId: SegmentId | undefined = undefined
+
+			parts.forEach((origPart) => {
+				if (origPart.budgetDuration !== undefined) {
+					const segmentId = unprotectString(origPart.segmentId)
+					if (this.segmentBudgetDurations[segmentId] !== undefined) {
+						this.segmentBudgetDurations[unprotectString(origPart.segmentId)] += origPart.budgetDuration
+					} else {
+						this.segmentBudgetDurations[unprotectString(origPart.segmentId)] = origPart.budgetDuration
+					}
+				}
+			})
+
 			if (playlist && parts) {
 				parts.forEach((origPart, itIndex) => {
 					const partInstance = this.getPartInstanceOrGetCachedTemp(partInstancesMap, origPart)
 
+					if (partInstance.segmentId !== lastSegmentId) {
+						lastSegmentId = partInstance.segmentId
+						segmentDisplayDuration = 0
+						if (segmentBudgetDurationLeft > 0) {
+							waitAccumulator += segmentBudgetDurationLeft
+						}
+						segmentBudgetDurationLeft = this.segmentBudgetDurations[unprotectString(partInstance.segmentId)]
+					}
 					// add piece to accumulator
 					const aIndex = this.linearParts.push([partInstance.part._id, waitAccumulator]) - 1
 
@@ -452,18 +480,6 @@ export const RundownTimingProvider = withTracker<
 
 					// This is where we actually calculate all the various variants of duration of a part
 					if (lastStartedPlayback && !partInstance.timings?.duration) {
-						currentRemaining = Math.max(
-							0,
-							(partInstance.timings?.duration ||
-								(memberOfDisplayDurationGroup ? displayDurationFromGroup : partInstance.part.expectedDuration) ||
-								0) -
-								(now - lastStartedPlayback)
-						)
-						partDuration =
-							Math.max(
-								partInstance.timings?.duration || partInstance.part.expectedDuration || 0,
-								now - lastStartedPlayback
-							) - playOffset
 						// because displayDurationGroups have no actual timing on them, we need to have a copy of the
 						// partDisplayDuration, but calculated as if it's not playing, so that the countdown can be
 						// calculated
@@ -474,6 +490,28 @@ export const RundownTimingProvider = withTracker<
 							Settings.defaultDisplayDuration
 						partDisplayDuration = Math.max(partDisplayDurationNoPlayback, now - lastStartedPlayback)
 						this.partPlayed[unprotectString(partInstance.part._id)] = now - lastStartedPlayback
+						if (this.segmentBudgetDurations[unprotectString(partInstance.segmentId)] !== undefined) {
+							currentRemaining = Math.max(
+								0,
+								this.segmentBudgetDurations[unprotectString(partInstance.segmentId)] -
+									segmentDisplayDuration -
+									(now - lastStartedPlayback)
+							)
+							segmentBudgetDurationLeft = 0
+						} else {
+							currentRemaining = Math.max(
+								0,
+								(partInstance.timings?.duration ||
+									(memberOfDisplayDurationGroup ? displayDurationFromGroup : partInstance.part.expectedDuration) ||
+									0) -
+									(now - lastStartedPlayback)
+							)
+						}
+						partDuration =
+							Math.max(
+								partInstance.timings?.duration || partInstance.part.expectedDuration || 0,
+								now - lastStartedPlayback
+							) - playOffset
 					} else {
 						partDuration = (partInstance.timings?.duration || partInstance.part.expectedDuration || 0) - playOffset
 						partDisplayDuration = Math.max(
@@ -551,13 +589,22 @@ export const RundownTimingProvider = withTracker<
 					this.partDisplayDurationsNoPlayback[partInstancePartId] = partDisplayDurationNoPlayback
 					startsAtAccumulator += this.partDurations[partInstancePartId]
 					displayStartsAtAccumulator += this.partDisplayDurations[partInstancePartId] // || this.props.defaultDuration || 3000
+					segmentDisplayDuration += this.partDisplayDurations[partInstancePartId]
 					// waitAccumulator is used to calculate the countdowns for Parts relative to the current Part
 					// always add the full duration, in case by some manual intervention this segment should play twice
+					let waitDuration = 0
 					if (memberOfDisplayDurationGroup) {
-						waitAccumulator +=
+						waitDuration =
 							partInstance.timings?.duration || partDisplayDuration || partInstance.part.expectedDuration || 0
 					} else {
-						waitAccumulator += partInstance.timings?.duration || partInstance.part.expectedDuration || 0
+						waitDuration = partInstance.timings?.duration || partInstance.part.expectedDuration || 0
+					}
+					waitAccumulator +=
+						this.segmentBudgetDurations[unprotectString(partInstance.segmentId)] !== undefined
+							? Math.min(waitDuration, Math.max(segmentBudgetDurationLeft, 0))
+							: waitDuration
+					if (this.segmentBudgetDurations[unprotectString(partInstance.segmentId)] !== undefined) {
+						segmentBudgetDurationLeft -= waitDuration
 					}
 
 					// remaining is the sum of unplayed lines + whatever is left of the current segment
@@ -574,6 +621,10 @@ export const RundownTimingProvider = withTracker<
 					) {
 						remainingRundownDuration += (partInstance.part.expectedDuration || 0) - (now - lastStartedPlayback)
 					}
+
+					// if (lastStartedPlayback) {
+					// 	this.segmentBudgetDurations[unprotectString(partInstance.segmentId)] -= partDuration
+					// }
 				})
 
 				// This is where the waitAccumulator-generated data in the linearSegLines is used to calculate the countdowns.
@@ -972,6 +1023,8 @@ export const CurrentPartRemaining = withTiming<IPartRemainingProps, {}>({
 
 interface ISegmentDurationProps {
 	partIds: PartId[]
+	budgetDuration?: number
+	livePosition: number
 }
 
 /**
@@ -983,7 +1036,10 @@ interface ISegmentDurationProps {
 export const SegmentDuration = withTiming<ISegmentDurationProps, {}>()(
 	class SegmentDuration extends React.Component<WithTiming<ISegmentDurationProps>> {
 		render() {
-			if (
+			let duration: number | undefined = undefined
+			if (this.props.budgetDuration !== undefined) {
+				duration = this.props.budgetDuration - this.props.livePosition
+			} else if (
 				this.props.partIds &&
 				this.props.timingDurations.partExpectedDurations &&
 				this.props.timingDurations.partPlayed
@@ -991,20 +1047,20 @@ export const SegmentDuration = withTiming<ISegmentDurationProps, {}>()(
 				let partExpectedDurations = this.props.timingDurations.partExpectedDurations
 				let partPlayed = this.props.timingDurations.partPlayed
 
-				const duration = this.props.partIds.reduce((memo, partId) => {
+				duration = this.props.partIds.reduce((memo, partId) => {
 					const pId = unprotectString(partId)
 					return partExpectedDurations[pId] !== undefined
 						? memo + Math.max(0, partExpectedDurations[pId] - (partPlayed[pId] || 0))
 						: memo
 				}, 0)
-
+			}
+			if (duration !== undefined) {
 				return (
 					<span className={duration < 0 ? 'negative' : undefined}>
 						{RundownUtils.formatDiffToTimecode(duration, false, false, true, false, true, '+')}
 					</span>
 				)
 			}
-
 			return null
 		}
 	}

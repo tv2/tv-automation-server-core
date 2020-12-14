@@ -933,6 +933,8 @@ export class SegmentTimelineClass extends React.Component<Translated<IProps>, IS
 								partIds={this.props.parts
 									.filter((item) => item.instance.timings?.duration === undefined)
 									.map((item) => item.instance.part._id)}
+								budgetDuration={this.props.budgetDuration}
+								livePosition={this.props.isLiveSegment ? this.props.livePosition : 0}
 							/>
 						)}
 				</div>
