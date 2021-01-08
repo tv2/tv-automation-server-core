@@ -284,7 +284,7 @@ export namespace ServerPlayoutAdLibAPI {
 				part: new Part({
 					_id: getRandomId(),
 					_rank: 99999, // something high, so it will be placed after current part. The rank will be updated later to its correct value
-					externalId: '',
+					externalId: `${currentPartInstance.part.externalId}_${adLibPiece.externalId}`,
 					segmentId: currentPartInstance.segmentId,
 					rundownId: rundown._id,
 					title: adLibPiece.name,
