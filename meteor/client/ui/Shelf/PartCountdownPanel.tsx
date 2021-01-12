@@ -21,12 +21,14 @@ import { RundownTiming, TimingEvent, RundownTimingProvider } from '../RundownVie
 import { RundownPlaylist } from '../../../lib/collections/RundownPlaylists'
 import { PartInstances, PartInstance } from '../../../lib/collections/PartInstances'
 import { PieceInstance } from '../../../lib/collections/PieceInstances'
+import { ShowStyleBase } from '../../../lib/collections/ShowStyleBases'
 
 interface IPartCountdownPanelProps {
 	visible?: boolean
 	layout: RundownLayoutBase
 	panel: RundownLayoutPartCountdown
 	playlist: RundownPlaylist
+	showStyleBase: ShowStyleBase
 }
 
 interface IPartCountdownPanelTrackedProps extends IDashboardPanelTrackedProps {
@@ -111,7 +113,10 @@ export const PartCountdownPanel = withTracker<IPartCountdownPanelProps, IState, 
 		const { unfinishedAdLibIds, unfinishedTags, unfinishedPieceInstances } = getUnfinishedPieceInstancesGrouped(
 			props.playlist.currentPartInstanceId
 		)
-		const { nextAdLibIds, nextTags } = getNextPieceInstancesGrouped(props.playlist.nextPartInstanceId)
+		const { nextAdLibIds, nextTags } = getNextPieceInstancesGrouped(
+			props.showStyleBase,
+			props.playlist.nextPartInstanceId
+		)
 		const livePart = props.playlist.currentPartInstanceId
 			? PartInstances.findOne(props.playlist.currentPartInstanceId)
 			: undefined
