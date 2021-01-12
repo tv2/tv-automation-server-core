@@ -97,6 +97,7 @@ export function ShelfDashboardLayout(props: IShelfDashboardLayoutProps) {
 						<PartCountdownPanel
 							key={panel._id}
 							panel={panel}
+							showStyleBase={props.showStyleBase}
 							layout={rundownLayout}
 							playlist={props.playlist}
 							visible={true}
