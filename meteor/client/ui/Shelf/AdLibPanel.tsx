@@ -514,6 +514,7 @@ function actionToAdLibPieceUi(action: AdLibAction | RundownBaselineAdLibAction):
 		currentPieceTags: action.display.currentPieceTags,
 		nextPieceTags: action.display.nextPieceTags,
 		lifespan: PieceLifespan.WithinPart, // value doesn't matter
+		uniquenessId: action.display.uniquenessId,
 	})
 }
 
