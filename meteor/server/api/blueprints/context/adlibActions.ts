@@ -41,6 +41,7 @@ import { MongoQuery } from '../../../../lib/typings/meteor'
 import { clone } from '../../../../lib/lib'
 import { PeripheralDeviceAPI } from '../../../../lib/api/peripheralDevice'
 import { PeripheralDevices } from '../../../../lib/collections/PeripheralDevices'
+import { MediaObjects } from '../../../../lib/collections/MediaObjects'
 
 export enum ActionPartChange {
 	NONE = 0,
@@ -91,6 +92,7 @@ const IBlueprintMutatablePartSample: Required<IBlueprintMutatablePart> = {
 	displayDurationGroup: '',
 	displayDuration: 0,
 	identifier: '',
+	hackListenToMediaObjectUpdates: [],
 }
 // Compile a list of the keys which are allowed to be set
 const IBlueprintMutatablePartSampleKeys = Object.keys(IBlueprintMutatablePartSample) as Array<
@@ -510,5 +512,10 @@ export class ActionExecutionContext extends ShowStyleContext implements IActionE
 			)
 			waitTime(10)
 		})
+	}
+
+	hackGetMediaObjectDuration(mediaId: string): number | undefined {
+		return MediaObjects.findOne({ mediaId: mediaId.toUpperCase(), studioId: this.studioId })?.mediainfo?.format
+			?.duration
 	}
 }

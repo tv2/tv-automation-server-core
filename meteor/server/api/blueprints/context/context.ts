@@ -61,6 +61,7 @@ import { ExternalMessageQueue } from '../../../../lib/collections/ExternalMessag
 import { extendIngestRundownCore } from '../../ingest/lib'
 import { CacheForRundownPlaylist, ReadOnlyCacheForRundownPlaylist } from '../../../DatabaseCaches'
 import { getSelectedPartInstancesFromCache } from '../../playout/lib'
+import { MediaObjects } from '../../../../lib/collections/MediaObjects'
 
 /** Common */
 
@@ -285,6 +286,11 @@ export class RundownContext extends ShowStyleContext implements IRundownContext,
 export class SegmentContext extends RundownContext implements ISegmentContext {
 	constructor(rundown: Rundown, cache: CacheForRundownPlaylist, notesContext: NotesContext) {
 		super(rundown, cache, notesContext)
+	}
+
+	hackGetMediaObjectDuration(mediaId: string): number | undefined {
+		return MediaObjects.findOne({ mediaId: mediaId.toUpperCase(), studioId: this.studioId })?.mediainfo?.format
+			?.duration
 	}
 }
 

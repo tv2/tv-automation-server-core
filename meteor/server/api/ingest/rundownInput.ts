@@ -3,7 +3,7 @@ import { check } from '../../../lib/check'
 import * as _ from 'underscore'
 import { PeripheralDevice, PeripheralDeviceId, getExternalNRCSName } from '../../../lib/collections/PeripheralDevices'
 import { Rundown, Rundowns, DBRundown, RundownId } from '../../../lib/collections/Rundowns'
-import { Part, DBPart, PartId } from '../../../lib/collections/Parts'
+import { Part, DBPart, PartId, Parts } from '../../../lib/collections/Parts'
 import { Piece } from '../../../lib/collections/Pieces'
 import {
 	saveIntoDb,
@@ -19,6 +19,7 @@ import {
 	Omit,
 	getRandomId,
 	PreparedChanges,
+	lazyIgnore,
 } from '../../../lib/lib'
 import {
 	IngestRundown,
@@ -117,6 +118,7 @@ import {
 } from '../../../lib/collections/RundownBaselineAdLibActions'
 import { removeEmptyPlaylists } from '../rundownPlaylist'
 import { profiler } from '../profiler'
+import { MediaObject, MediaObjects } from '../../../lib/collections/MediaObjects'
 
 /** Priority for handling of synchronous events. Lower means higher priority */
 export enum RundownSyncFunctionPriority {
@@ -1069,6 +1071,41 @@ export function handleRemovedSegment(
 		waitForPromise(cache.saveAllToDatabase())
 	})
 }
+export function updateSegmentFromCache(rundownId: RundownId, segmentId: SegmentId) {
+	const playlistId = getRundown(rundownId).playlistId
+
+	return rundownPlaylistSyncFunction(playlistId, RundownSyncFunctionPriority.INGEST, 'updateSegmentFromCache', () => {
+		const rundown = getRundown(rundownId)
+		const studio = rundown.getStudio()
+		const playlist = getRundownPlaylist(rundown)
+		const segment = Segments.findOne(segmentId)
+		if (!segment) {
+			logger.info(`updateSegmentFromCache: Segment "${segmentId}" not found.`)
+			return
+		}
+		if (!canBeUpdated(rundown, segment)) return
+
+		const ingestSegment: LocalIngestSegment = loadCachedIngestSegment(rundown._id, rundown.externalId, segmentId)
+
+		const cache = waitForPromise(initCacheForRundownPlaylist(playlist))
+		cache.defer(() => {
+			saveSegmentCache(rundown._id, segmentId, makeNewIngestSegment(ingestSegment))
+		})
+
+		const { segmentId: updatedSegmentId, newPartIds } = updateSegmentFromIngestData(
+			cache,
+			studio,
+			playlist,
+			rundown,
+			ingestSegment
+		)
+		if (updatedSegmentId) {
+			afterIngestChangedData(cache, rundown, [updatedSegmentId], false, newPartIds)
+		}
+
+		waitForPromise(cache.saveAllToDatabase())
+	})
+}
 export function handleUpdatedSegment(
 	peripheralDevice: PeripheralDevice,
 	rundownExternalId: string,
@@ -1936,5 +1973,40 @@ function makeChangeObj(segmentId: SegmentId): SegmentChanges {
 			removed: [],
 			unchanged: [],
 		},
+	}
+}
+
+Meteor.startup(() => {
+	if (Meteor.isServer) {
+		MediaObjects.find({}, { fields: { _id: 1, mediaId: 1, mediainfo: 1 } }).observe({
+			added: onMediaObjectChanged,
+			changed: onMediaObjectChanged,
+		})
+	}
+})
+
+function onMediaObjectChanged(newDocument: MediaObject, oldDocument?: MediaObject) {
+	if (
+		!oldDocument ||
+		(newDocument.mediainfo?.format?.duration &&
+			oldDocument.mediainfo?.format?.duration !== newDocument.mediainfo?.format?.duration)
+	) {
+		const segmentsToUpdate = new Map<SegmentId, RundownId>()
+		const rundownIdsInStudio = Rundowns.find({ studioId: newDocument.studioId }, { fields: { _id: 1 } })
+			.fetch()
+			.map((rundown) => rundown._id)
+		Parts.find({
+			rundownId: { $in: rundownIdsInStudio },
+			'hackListenToMediaObjectUpdates.mediaId': newDocument.mediaId,
+		}).forEach((part) => {
+			segmentsToUpdate.set(part.segmentId, part.rundownId)
+		})
+		segmentsToUpdate.forEach((rundownId, segmentId) => {
+			lazyIgnore(
+				`updateSegmentFromMediaObject_${segmentId}`,
+				() => updateSegmentFromCache(rundownId, segmentId),
+				200
+			)
+		})
 	}
 }
