@@ -123,6 +123,13 @@ export interface NewPeripheralDeviceAPI {
 		rundownExternalId: string,
 		ingestSegment: IngestSegment
 	): Promise<void>
+	dataSegmentRanksUpdate(
+		deviceId: PeripheralDeviceId,
+		deviceToken: string,
+		rundownExternalId: string,
+		segmentExternalIds: string[],
+		ranks: number[]
+	): Promise<void>
 	dataPartDelete(
 		deviceId: PeripheralDeviceId,
 		deviceToken: string,
@@ -329,6 +336,7 @@ export enum PeripheralDeviceAPIMethods {
 	'dataSegmentDelete' = 'peripheralDevice.rundown.segmentDelete',
 	'dataSegmentCreate' = 'peripheralDevice.rundown.segmentCreate',
 	'dataSegmentUpdate' = 'peripheralDevice.rundown.segmentUpdate',
+	'dataSegmentRanksUpdate' = 'peripheralDevice.rundown.segmentRanksUpdate',
 	'dataPartDelete' = 'peripheralDevice.rundown.partDelete',
 	'dataPartCreate' = 'peripheralDevice.rundown.partCreate',
 	'dataPartUpdate' = 'peripheralDevice.rundown.partUpdate',
