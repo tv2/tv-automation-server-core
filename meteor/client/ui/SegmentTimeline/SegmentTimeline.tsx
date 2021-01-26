@@ -687,7 +687,6 @@ export class SegmentTimelineClass extends React.Component<Translated<IProps>, IS
 				})}
 				{this.props.budgetGap > 0 && (
 					<SegmentTimelinePart
-						key={'gap'}
 						segment={this.props.segment}
 						playlist={this.props.playlist}
 						studio={this.props.studio}
@@ -934,7 +933,7 @@ export class SegmentTimelineClass extends React.Component<Translated<IProps>, IS
 									.filter((item) => item.instance.timings?.duration === undefined)
 									.map((item) => item.instance.part._id)}
 								budgetDuration={this.props.budgetDuration}
-								livePosition={this.props.isLiveSegment ? this.props.livePosition : 0}
+								playedOutDuration={this.props.isLiveSegment ? this.props.livePosition : 0}
 							/>
 						)}
 				</div>

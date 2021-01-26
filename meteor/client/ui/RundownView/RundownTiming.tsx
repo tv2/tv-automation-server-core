@@ -140,7 +140,7 @@ interface IRundownTimingProviderProps {
 	refreshInterval?: number
 	/** Fallback duration for Parts that have no as-played duration of their own. */
 	defaultDuration?: number
-	/**  */
+	/** Time scale of the rundown, used to calculate partLiveDisplayDurations */
 	timeScale?: number
 }
 interface IRundownTimingProviderChildContext {
@@ -1024,7 +1024,7 @@ export const CurrentPartRemaining = withTiming<IPartRemainingProps, {}>({
 interface ISegmentDurationProps {
 	partIds: PartId[]
 	budgetDuration?: number
-	livePosition: number
+	playedOutDuration: number
 }
 
 /**
@@ -1038,7 +1038,7 @@ export const SegmentDuration = withTiming<ISegmentDurationProps, {}>()(
 		render() {
 			let duration: number | undefined = undefined
 			if (this.props.budgetDuration !== undefined) {
-				duration = this.props.budgetDuration - this.props.livePosition
+				duration = this.props.budgetDuration - this.props.playedOutDuration
 			} else if (
 				this.props.partIds &&
 				this.props.timingDurations.partExpectedDurations &&
