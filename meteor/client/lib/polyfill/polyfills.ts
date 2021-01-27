@@ -1,2 +1,0 @@
-import './requestIdleCallback'
-import './vibrate'
