@@ -94,6 +94,12 @@ export interface IBlueprintMutatablePart<TMetadata = unknown> {
     displayDuration?: number;
     /** User-facing identifier that can be used by the User to identify the contents of a segment in the Rundown source system */
     identifier?: string;
+    /** MediaObjects that when created/updated, should cause the blueprint to be rerun for the Segment of this Part */
+    hackListenToMediaObjectUpdates?: HackPartMediaObjectSubscription[];
+}
+export interface HackPartMediaObjectSubscription {
+    /** The playable reference (CasparCG clip name, quantel GUID, etc) */
+    mediaId: string;
 }
 /** The Part generated from Blueprint */
 export interface IBlueprintPart<TMetadata = unknown> extends IBlueprintMutatablePart<TMetadata> {
