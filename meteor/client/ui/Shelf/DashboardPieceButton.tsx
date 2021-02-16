@@ -53,6 +53,7 @@ export interface IDashboardButtonProps {
 	editableName?: boolean
 	onNameChanged?: (e: any, value: string) => void
 	toggleOnSingleClick?: boolean
+	canOverflowHorizontally?: boolean
 }
 export const DEFAULT_BUTTON_WIDTH = 6.40625
 export const DEFAULT_BUTTON_HEIGHT = 5.625
@@ -206,7 +207,7 @@ export class DashboardPieceButtonBase<T = {}> extends MeteorReactComponent<
 		}
 	}
 
-	private handleOnMouseEnter = (e: React.MouseEvent<HTMLDivElement>) => {
+	private handleOnMouseEnter = (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
 		if (this.element) {
 			const { top, left, width, height } = this.element.getBoundingClientRect()
 			this.positionAndSize = {
@@ -219,15 +220,25 @@ export class DashboardPieceButtonBase<T = {}> extends MeteorReactComponent<
 		this.setState({ isHovered: true })
 	}
 
-	private handleOnMouseLeave = (e: React.MouseEvent<HTMLDivElement>) => {
+	private handleOnMouseLeave = (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
 		this.setState({ isHovered: false })
 		this.positionAndSize = null
 	}
 
 	private handleOnMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+		this.handleMove(e.clientX)
+	}
+
+	private handleOnTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+		if (e.changedTouches && e.changedTouches.length) {
+			this.handleMove(e.changedTouches[0].clientX)
+		}
+	}
+
+	private handleMove = (clientX: number) => {
 		const timePercentage = Math.max(
 			0,
-			Math.min((e.clientX - (this.positionAndSize?.left || 0) - 5) / ((this.positionAndSize?.width || 1) - 10), 1)
+			Math.min((clientX - (this.positionAndSize?.left || 0) - 5) / ((this.positionAndSize?.width || 1) - 10), 1)
 		)
 		const sourceDuration = (this.props.piece.content as VTContent | undefined)?.sourceDuration || 0
 		this.setState({
@@ -298,6 +309,7 @@ export class DashboardPieceButtonBase<T = {}> extends MeteorReactComponent<
 		} else {
 			this.props.onSelectAdLib(this.props.piece, e)
 		}
+		this.handleOnMouseLeave(e)
 	}
 
 	private handleDoubleClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -399,6 +411,9 @@ export class DashboardPieceButtonBase<T = {}> extends MeteorReactComponent<
 				onMouseEnter={this.handleOnMouseEnter}
 				onMouseLeave={this.handleOnMouseLeave}
 				onMouseMove={this.handleOnMouseMove}
+				onTouchStart={!this.props.canOverflowHorizontally ? this.handleOnMouseEnter : undefined}
+				onTouchEnd={!this.props.canOverflowHorizontally ? this.handleOnMouseLeave : undefined}
+				onTouchMove={!this.props.canOverflowHorizontally ? this.handleOnTouchMove : undefined}
 				data-obj-id={this.props.piece._id}>
 				{!this.props.layer
 					? null
