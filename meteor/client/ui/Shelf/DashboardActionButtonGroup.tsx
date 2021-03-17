@@ -63,6 +63,7 @@ export const DashboardActionButtonGroup = withTranslation()(
 
 		klarOnAir = (e: any) => {
 			const { t } = this.props
+			if (e.persist) e.persist()
 			if (this.props.studioMode) {
 				if (this.props.playlist.active) {
 					doModalDialog({
