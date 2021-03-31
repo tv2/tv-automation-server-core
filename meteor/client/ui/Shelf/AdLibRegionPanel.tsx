@@ -22,6 +22,12 @@ import { translateWithTracker, Translated } from '../../lib/ReactMeteorData/Reac
 import { MeteorReactComponent } from '../../lib/MeteorReactComponent'
 import { NotificationCenter, Notification, NoticeLevel } from '../../lib/notifications/notifications'
 import { MeteorCall } from '../../../lib/api/methods'
+import { Accessor, ISourceLayer } from '@sofie-automation/blueprints-integration'
+import { withMediaObjectStatus } from '../SegmentTimeline/withMediaObjectStatus'
+import { PieceUi } from '../SegmentTimeline/SegmentTimelineContainer'
+import { PieceInstance } from '../../../lib/collections/PieceInstances'
+import { ensureHasTrailingSlash } from '../../lib/lib'
+import { getThumbnailPackageSettings } from '../../../lib/collections/ExpectedPackages'
 
 interface IState {}
 
@@ -30,16 +36,23 @@ interface IAdLibRegionPanelProps {
 	panel: RundownLayoutAdLibRegion
 	visible: boolean
 	adlibRank?: number
+	mediaPreviewUrl?: string
 }
 
-interface IAdLibRegionPanelTrackedProps extends IDashboardPanelTrackedProps {}
+interface IAdLibRegionPanelTrackedProps extends IDashboardPanelTrackedProps {
+	piece?: PieceUi | undefined
+	layer?: ISourceLayer
+	isLiveLine: boolean
+}
 
-export class AdLibRegionPanelInner extends MeteorReactComponent<
+export class AdLibRegionPanelBase extends MeteorReactComponent<
 	Translated<IAdLibPanelProps & IAdLibRegionPanelProps & AdLibFetchAndFilterProps & IAdLibRegionPanelTrackedProps>,
 	IState
 > {
 	constructor(props: Translated<IAdLibPanelProps & AdLibFetchAndFilterProps>) {
 		super(props)
+
+		this.state = {}
 	}
 
 	isAdLibOnAir(adLib: AdLibPieceUi) {
@@ -131,6 +144,63 @@ export class AdLibRegionPanelInner extends MeteorReactComponent<
 		}
 	}
 
+	getThumbnailUrl = (): string | undefined => {
+		const { piece } = this.props
+		if (piece?.instance.piece.expectedPackages) {
+			// use Expected packages:
+			// Just use the first one we find.
+			// TODO: support multiple expected packages?
+			let thumbnailContainerId: string | undefined
+			let packageThumbnailPath: string | undefined
+			for (const expectedPackage of piece.instance.piece.expectedPackages) {
+				const sideEffect =
+					expectedPackage.sideEffect.thumbnailPackageSettings || getThumbnailPackageSettings(expectedPackage)
+				packageThumbnailPath = sideEffect?.path
+				thumbnailContainerId = expectedPackage.sideEffect.thumbnailContainerId
+
+				if (packageThumbnailPath && thumbnailContainerId) {
+					break // don't look further
+				}
+			}
+			if (packageThumbnailPath && thumbnailContainerId) {
+				const packageContainer = this.props.studio?.packageContainers[thumbnailContainerId]
+				if (packageContainer) {
+					// Look up an accessor we can use:
+					for (const accessor of Object.values(packageContainer.container.accessors)) {
+						if (accessor.type === Accessor.AccessType.HTTP && accessor.baseUrl) {
+							// TODO: add fiter for accessor.networkId ?
+							return [
+								accessor.baseUrl.replace(/\/$/, ''), // trim trailing slash
+								encodeURIComponent(
+									packageThumbnailPath.replace(/^\//, '') // trim leading slash
+								),
+							].join('/')
+						}
+					}
+				}
+			}
+		} else {
+			// Fallback to media objects
+			if (this.props.mediaPreviewUrl && piece?.contentMetaData) {
+				if (piece.contentMetaData && piece.contentMetaData.previewPath && this.props.mediaPreviewUrl) {
+					return (
+						ensureHasTrailingSlash(this.props.mediaPreviewUrl) +
+						'media/thumbnail/' +
+						encodeURIComponent(piece.contentMetaData.mediaId)
+					)
+				}
+			}
+		}
+		return undefined
+	}
+
+	renderPreview() {
+		const thumbnailUrl = this.getThumbnailUrl()
+		if (thumbnailUrl) {
+			return <img src={thumbnailUrl} className="adlib-region-panel__image" />
+		}
+	}
+
 	render() {
 		const piece =
 			this.props.panel.tags && this.props.rundownBaselineAdLibs
@@ -156,9 +226,11 @@ export class AdLibRegionPanelInner extends MeteorReactComponent<
 					className={ClassNames('adlib-region-panel__image-container', {
 						next: piece && this.isAdLibNext(piece),
 						'on-air': piece && this.isAdLibOnAir(piece),
+						blackout: !!this.props.piece || (this.props.panel.showBlackIfNoThumbnailPiece && !this.getThumbnailUrl()),
 					})}
 				>
 					<div className="adlib-region-panel__button" onClick={(e) => this.onAction(e, piece)}>
+						{this.renderPreview()}
 						{
 							<span
 								className={ClassNames('adlib-region-panel__label', {
@@ -175,6 +247,11 @@ export class AdLibRegionPanelInner extends MeteorReactComponent<
 	}
 }
 
+export const AdLibRegionPanelWithStatus = withMediaObjectStatus<
+	Translated<IAdLibPanelProps & IAdLibRegionPanelProps & AdLibFetchAndFilterProps & IAdLibRegionPanelTrackedProps>,
+	{}
+>()(AdLibRegionPanelBase)
+
 export const AdLibRegionPanel = translateWithTracker<
 	Translated<IAdLibPanelProps & IAdLibRegionPanelProps>,
 	IState,
@@ -182,19 +259,52 @@ export const AdLibRegionPanel = translateWithTracker<
 >(
 	(props: Translated<IAdLibPanelProps & IAdLibRegionPanelProps>) => {
 		const studio = props.playlist.getStudio()
-		const { unfinishedAdLibIds, unfinishedTags } = getUnfinishedPieceInstancesGrouped(
+		const { unfinishedAdLibIds, unfinishedTags, unfinishedPieceInstances } = getUnfinishedPieceInstancesGrouped(
 			props.playlist.currentPartInstanceId
 		)
-		const { nextAdLibIds, nextTags } = getNextPieceInstancesGrouped(props.playlist.nextPartInstanceId)
+		const { nextAdLibIds, nextTags, nextPieceInstances } = getNextPieceInstancesGrouped(
+			props.showStyleBase,
+			props.playlist.nextPartInstanceId
+		)
+
+		// Pick thumbnails to display
+		const nextThumbnail: PieceInstance | undefined = nextPieceInstances.find((p) =>
+			props.panel.thumbnailSourceLayerIds?.includes(p.piece.sourceLayerId)
+		)
+		const currentThumbnail: PieceInstance | undefined = !props.panel.hideThumbnailsForActivePieces
+			? unfinishedPieceInstances.find((p) => props.panel.thumbnailSourceLayerIds?.includes(p.piece.sourceLayerId))
+			: undefined
+		const thumbnailPiece: PieceInstance | undefined = props.panel.thumbnailPriorityNextPieces
+			? nextThumbnail ?? currentThumbnail
+			: currentThumbnail ?? nextThumbnail
+
+		const pieceUi: PieceUi | undefined = thumbnailPiece
+			? {
+					instance: {
+						...thumbnailPiece,
+						priority: 0,
+					},
+					renderedInPoint: null,
+					renderedDuration: null,
+			  }
+			: undefined
+
+		const sourceLayer =
+			thumbnailPiece &&
+			props.showStyleBase.sourceLayers.find((layer) => thumbnailPiece.piece.sourceLayerId === layer._id)
+
 		return Object.assign({}, fetchAndFilter(props), {
-			studio: studio,
+			studio,
+			piece: pieceUi,
+			layer: sourceLayer,
 			unfinishedAdLibIds,
 			unfinishedTags,
 			nextAdLibIds,
 			nextTags,
+			isLiveLine: false,
 		})
 	},
 	(data, props: IAdLibPanelProps, nextProps: IAdLibPanelProps) => {
 		return !_.isEqual(props, nextProps)
 	}
-)(AdLibRegionPanelInner)
+)(AdLibRegionPanelWithStatus)

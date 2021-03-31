@@ -64,6 +64,10 @@ export interface RundownLayoutAdLibRegion extends RundownLayoutElementBase {
 	role: RundownLayoutAdLibRegionRole
 	adlibRank: number
 	labelBelowPanel: boolean
+	thumbnailSourceLayerIds: string[] | undefined
+	thumbnailPriorityNextPieces: boolean
+	hideThumbnailsForActivePieces: boolean
+	showBlackIfNoThumbnailPiece: boolean
 }
 
 export interface RundownLayoutPieceCountdown extends RundownLayoutElementBase {

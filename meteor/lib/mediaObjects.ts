@@ -5,6 +5,7 @@ import {
 	ISourceLayer,
 	IBlueprintPieceGeneric,
 	ExpectedPackageStatusAPI,
+	GraphicsContent,
 } from '@sofie-automation/blueprints-integration'
 import { RundownAPI } from './api/rundown'
 import { MediaObjects, MediaInfo, MediaObject, FieldOrder, MediaStream, Anomaly } from './collections/MediaObjects'

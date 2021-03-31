@@ -1081,6 +1081,71 @@ export default translateWithTracker<IProps, IState, ITrackedProps>((props: IProp
 									</div>
 								</React.Fragment>
 							)}
+							<div className="mod mvs mhs">
+								<label className="field">{t('Thumbnail Source Layers')}</label>
+								<EditAttribute
+									modifiedClassName="bghl"
+									attribute={`filters.${index}.thumbnailSourceLayerIds`}
+									obj={item}
+									type="checkbox"
+									collection={RundownLayouts}
+									className="mod mas"
+									mutateDisplayValue={(v) => (v === undefined || v.length === 0 ? false : true)}
+									mutateUpdateValue={(v) => undefined}
+								/>
+								<EditAttribute
+									modifiedClassName="bghl"
+									attribute={`filters.${index}.thumbnailSourceLayerIds`}
+									obj={item}
+									options={this.props.showStyleBase.sourceLayers.map((l) => {
+										return { name: l.name, value: l._id }
+									})}
+									type="multiselect"
+									label={t('Thumbnail Disabled')}
+									collection={RundownLayouts}
+									className="input text-input input-l dropdown"
+									mutateUpdateValue={(v) => (v && v.length > 0 ? v : undefined)}
+								/>
+							</div>
+							<div className="mod mvs mhs">
+								<label className="field">
+									{t('Give priority to thumbnails for next pieces')}
+									<EditAttribute
+										modifiedClassName="bghl"
+										attribute={`filters.${index}.thumbnailPriorityNextPieces`}
+										obj={item}
+										type="checkbox"
+										collection={RundownLayouts}
+										className="mod mas"
+									/>
+								</label>
+							</div>
+							<div className="mod mvs mhs">
+								<label className="field">
+									{t('Hide thumbnails for active pieces')}
+									<EditAttribute
+										modifiedClassName="bghl"
+										attribute={`filters.${index}.hideThumbnailsForActivePieces`}
+										obj={item}
+										type="checkbox"
+										collection={RundownLayouts}
+										className="mod mas"
+									/>
+								</label>
+							</div>
+							<div className="mod mvs mhs">
+								<label className="field">
+									{t('Show black if no thumbnail is found')}
+									<EditAttribute
+										modifiedClassName="bghl"
+										attribute={`filters.${index}.showBlackIfNoThumbnailPiece`}
+										obj={item}
+										type="checkbox"
+										collection={RundownLayouts}
+										className="mod mas"
+									/>
+								</label>
+							</div>
 						</React.Fragment>
 					)}
 				</React.Fragment>

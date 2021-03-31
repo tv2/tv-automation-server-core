@@ -32,7 +32,7 @@ import { getThumbnailPackageSettings } from '../../../lib/collections/ExpectedPa
 
 export interface IDashboardButtonProps {
 	piece: IAdLibListItem
-	studio: Studio | undefined
+	studio: Studio
 	layer?: ISourceLayer
 	outputLayer?: IOutputLayer
 	onToggleAdLib: (aSLine: IAdLibListItem, queue: boolean, context: any) => void
