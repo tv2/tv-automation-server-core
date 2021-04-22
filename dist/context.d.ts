@@ -68,6 +68,8 @@ export interface ActionExecutionContext extends ShowStyleContext {
         excludeCurrentPart?: boolean;
         pieceMetaDataFilter?: any;
     }): IBlueprintPiece | undefined;
+    getPartInstanceForPreviousPiece(piece: IBlueprintPieceInstance): IBlueprintPartInstance;
+    getPartForPreviousPiece(pieceId: string): IBlueprintPart | undefined;
     /** Fetch the showstyle config for the specified part */
     /** Creative actions */
     /** Insert a pieceInstance. Returns id of new PieceInstance. Any timelineObjects will have their ids changed, so are not safe to reference from another piece */
