@@ -26,6 +26,7 @@ export namespace MediaManagerIntegration {
 			return _.map(
 				MediaWorkFlowSteps.find({
 					studioId: peripheralDevice.studioId,
+					deviceId
 				}).fetch(),
 				(ws: MediaWorkFlowStep) => {
 					return {
@@ -51,6 +52,7 @@ export namespace MediaManagerIntegration {
 			return _.map(
 				MediaWorkFlows.find({
 					studioId: peripheralDevice.studioId,
+					deviceId
 				}).fetch(),
 				(wf: MediaWorkFlow) => {
 					return {
