@@ -41,15 +41,19 @@ export const MicSourceRenderer = withTranslation()(
 			this.lineItem.classList.remove(className)
 		}
 
+		calcTimeScale = (time: number) => {
+			return Math.round(this.props.timeScale * time)
+		}
+
 		refreshLine = () => {
 			if (this.itemElement && !this.props.relative) {
 				this.itemPosition = this.itemElement.offsetLeft
 				const content = this.props.piece.instance.piece.content as ScriptContent | undefined
 				if (content && content.sourceDuration) {
-					const scriptReadTime = content.sourceDuration * this.props.timeScale
+					const scriptReadTime = this.calcTimeScale(content.sourceDuration)
 					this.readTime = content.sourceDuration
 					const positionByReadTime = this.itemPosition + scriptReadTime
-					const positionByPartEnd = this.props.partDuration * this.props.timeScale
+					const positionByPartEnd =this.calcTimeScale(this.props.partDuration)
 
 					if (
 						positionByReadTime !== this.linePosition ||

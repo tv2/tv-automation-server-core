@@ -61,7 +61,7 @@ export class CustomLayerItemRenderer<
 
 	getFloatingInspectorStyle(): React.CSSProperties {
 		return {
-			left: (this.props.elementPosition.left + this.props.cursorPosition.left).toString() + 'px',
+			left: Math.round(this.props.elementPosition.left + this.props.cursorPosition.left).toString() + 'px',
 			top: this.props.elementPosition.top + 'px',
 		}
 	}
@@ -138,8 +138,8 @@ export class CustomLayerItemRenderer<
 					className="segment-timeline__piece__source-finished"
 					style={{
 						left: this.props.relative
-							? (((vtContent.sourceDuration - seek) / (this.getItemDuration() || 1)) * 100).toString() + '%'
-							: ((vtContent.sourceDuration - seek) * this.props.timeScale).toString() + 'px',
+							? (Math.round((vtContent.sourceDuration - seek) / (this.getItemDuration() || 1)) * 100).toString() + '%'
+							: (Math.round((vtContent.sourceDuration - seek) * this.props.timeScale)).toString() + 'px',
 					}}
 				></div>
 			)

@@ -11,6 +11,7 @@ import { checkPieceContentStatus } from '../../../lib/mediaObjects'
 import { Studio } from '../../../lib/collections/Studios'
 import { IAdLibListItem } from '../Shelf/AdLibListItem'
 import { BucketAdLibUi, BucketAdLibActionUi } from '../Shelf/RundownViewBuckets'
+import _ from 'underscore'
 
 type AnyPiece = {
 	piece: BucketAdLibUi | IAdLibListItem | AdLibPieceUi | PieceUi | BucketAdLibActionUi | undefined
@@ -151,10 +152,13 @@ export function withMediaObjectStatus<IProps extends AnyPiece, IState>(): (
 							}
 						}
 					}
-
-					this.forceUpdate()
+					this.throttledForceUpdate()
 				})
 			}
+			
+			throttledForceUpdate = _.throttle(() => {
+				this.forceUpdate()
+			}, 50)
 
 			componentDidMount() {
 				window.requestIdleCallback(

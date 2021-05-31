@@ -722,7 +722,7 @@ export const SegmentTimelineContainer = translateWithTracker<IProps, IState, ITr
 				this.setState({
 					livePosition: newLivePosition,
 					scrollLeft: this.state.followLiveLine
-						? Math.max(newLivePosition - LIVELINE_HISTORY_SIZE / this.state.timeScale, 0)
+						? Math.max(newLivePosition - Math.round(LIVELINE_HISTORY_SIZE / this.state.timeScale), 0)
 						: this.state.scrollLeft,
 				})
 			}
@@ -735,6 +735,10 @@ export const SegmentTimelineContainer = translateWithTracker<IProps, IState, ITr
 			} else {
 				this.isVisible = true
 			}
+		}
+
+		calcTimeScale = (time: number) => {
+			return Math.round(this.props.timeScale * time)
 		}
 
 		startLive = () => {
@@ -762,7 +766,7 @@ export const SegmentTimelineContainer = translateWithTracker<IProps, IState, ITr
 		onFollowLiveLine = (state: boolean, event: any) => {
 			this.setState({
 				followLiveLine: state,
-				scrollLeft: Math.max(this.state.livePosition - LIVELINE_HISTORY_SIZE / this.state.timeScale, 0),
+				scrollLeft: Math.max(this.state.livePosition - this.calcTimeScale(LIVELINE_HISTORY_SIZE), 0),
 			})
 		}
 

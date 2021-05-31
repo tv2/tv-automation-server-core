@@ -59,7 +59,7 @@ export class TimelineGrid extends React.Component<ITimelineGridProps> {
 	shortLineColor: string = SHORT_LINE_GRID_COLOR
 	longLineColor: string = LONG_LINE_GRID_COLOR
 
-	contextResize = _.throttle((parentElementWidth: number, parentElementHeight: number) => {
+	contextResize = (parentElementWidth: number, parentElementHeight: number) => {
 		if (this.ctx && this.canvasElement) {
 			let devicePixelRatio = window.devicePixelRatio || 1
 
@@ -83,7 +83,7 @@ export class TimelineGrid extends React.Component<ITimelineGridProps> {
 		if (this.props.onResize) {
 			this.props.onResize([parentElementWidth || 1, parentElementHeight || 1])
 		}
-	}, Math.ceil(1000 / 15)) // don't repaint faster than 15 fps
+	}
 
 	setParentRef = (element: HTMLDivElement) => {
 		this.parentElement = element
@@ -168,7 +168,7 @@ export class TimelineGrid extends React.Component<ITimelineGridProps> {
 
 			const fps = Settings.frameRate
 
-			const secondTimeScale = this.props.timeScale * 1000
+			const secondTimeScale = Math.round(this.props.timeScale * 1000)
 
 			// timeScale is how many pixels does a second take
 			// secondsStep - draw the big, labeled line very X seconds
@@ -213,8 +213,8 @@ export class TimelineGrid extends React.Component<ITimelineGridProps> {
 				interStep = fps || 25
 			}
 
-			let step = (secondsStep * secondTimeScale * this.pixelRatio) / interStep
-			let pixelOffset = this.props.scrollLeft * this.props.timeScale * this.pixelRatio
+			let step = Math.round((secondsStep * secondTimeScale * this.pixelRatio) / interStep)
+			let pixelOffset = Math.round(this.props.scrollLeft * this.props.timeScale * this.pixelRatio)
 
 			this.ctx.clearRect(0, 0, this.width, this.height)
 
@@ -240,7 +240,7 @@ export class TimelineGrid extends React.Component<ITimelineGridProps> {
 				let isLabel = i % interStep === 0
 
 				if (isLabel === true) {
-					let t = xPosition / this.pixelRatio / this.props.timeScale + this.props.scrollLeft
+					let t = Math.round(xPosition / this.pixelRatio / this.props.timeScale + this.props.scrollLeft)
 
 					this.ctx.fillText(
 						RundownUtils.formatDiffToTimecode(t, false, false, true, false, true),

@@ -567,7 +567,7 @@ export const SegmentTimelinePart = withTranslation()(
 			}
 
 			static getLiveLineTimePadding(timeScale): number {
-				return LIVE_LINE_TIME_PADDING / timeScale
+				return Math.round(LIVE_LINE_TIME_PADDING / timeScale)
 			}
 
 			static getCurrentLiveLinePosition(part: PartUi, currentTime: number): number {
@@ -617,13 +617,17 @@ export const SegmentTimelinePart = withTranslation()(
 				}
 			}
 
+			calcTimeScale = (time: number) => {
+				return Math.round(this.props.timeScale * time)
+			}
+
 			getLayerStyle() {
 				// this.props.part.expectedDuration ||
 				if (this.props.relative) {
 					return {
 						width:
 							(
-								(SegmentTimelinePart0.getPartDuration(this.props, this.state.liveDuration) /
+								Math.round(SegmentTimelinePart0.getPartDuration(this.props, this.state.liveDuration) /
 									(this.props.totalSegmentDuration || 1)) *
 								100
 							).toString() + '%',
@@ -633,8 +637,8 @@ export const SegmentTimelinePart = withTranslation()(
 				} else {
 					return {
 						minWidth:
-							Math.floor(
-								SegmentTimelinePart0.getPartDuration(this.props, this.state.liveDuration) * this.props.timeScale
+							this.calcTimeScale(
+								SegmentTimelinePart0.getPartDuration(this.props, this.state.liveDuration)
 							).toString() + 'px',
 						// minWidth: (Math.max(this.state.liveDuration, this.props.part.duration || this.props.part.expectedDuration || 3000) * this.props.timeScale).toString() + 'px',
 						willChange: this.state.isLive ? 'minWidth' : undefined,
@@ -739,6 +743,7 @@ export const SegmentTimelinePart = withTranslation()(
 			getFutureShadeStyle = () => {
 				return {
 					width:
+					Math.round(
 						Math.min(
 							Math.max(
 								0,
@@ -748,7 +753,7 @@ export const SegmentTimelinePart = withTranslation()(
 							),
 							SegmentTimelinePart0.getLiveLineTimePadding(this.props.timeScale)
 						) *
-							this.props.timeScale +
+							this.props.timeScale) +
 						'px',
 				}
 			}
@@ -849,11 +854,11 @@ export const SegmentTimelinePart = withTranslation()(
 										})}
 										style={{
 											left: this.props.relative
-												? (this.props.playlist.nextTimeOffset /
+												? Math.round(this.props.playlist.nextTimeOffset /
 														(SegmentTimelinePart0.getPartDuration(this.props, this.state.liveDuration) || 1)) *
 														100 +
 												  '%'
-												: this.props.playlist.nextTimeOffset * this.props.timeScale + 'px',
+												: this.calcTimeScale(this.props.playlist.nextTimeOffset) + 'px',
 										}}
 									>
 										<div

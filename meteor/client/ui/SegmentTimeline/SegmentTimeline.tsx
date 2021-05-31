@@ -153,6 +153,10 @@ const SegmentTimelineZoom = class SegmentTimelineZoom extends React.Component<
 		return this.props.isLiveSegment ? this.calculateSegmentDuration() : this.state.totalSegmentDuration
 	}
 
+	calcTimeScale = (time: number) => {
+		return Math.round(this.props.timeScale * time)
+	}
+
 	renderZoomTimeline() {
 		return this.props.parts.map((part, index, array) => {
 			return (
@@ -194,6 +198,7 @@ const SegmentTimelineZoom = class SegmentTimelineZoom extends React.Component<
 		}
 	}
 
+
 	render() {
 		return (
 			<div
@@ -208,7 +213,7 @@ const SegmentTimelineZoom = class SegmentTimelineZoom extends React.Component<
 					<div className="segment-timeline__timeline">{this.renderZoomTimeline()}</div>
 					<SegmentTimelineZoomControls
 						scrollLeft={this.props.scrollLeft}
-						scrollWidth={this.props.timelineWidth / this.props.timeScale}
+						scrollWidth={this.calcTimeScale(this.props.timelineWidth)}
 						onScroll={this.props.onScroll}
 						segmentDuration={this.getSegmentDuration()}
 						liveLineHistorySize={this.props.liveLineHistorySize}
@@ -367,6 +372,10 @@ export class SegmentTimelineClass extends React.Component<Translated<IProps>, IS
 		this.timeline = el
 	}
 
+	calcTimeScale = (time: number) => {
+		return Math.round(this.props.timeScale * time)
+	}
+
 	onTimelineResize = (size: number[]) => {
 		this.setState({
 			timelineWidth: size[0],
@@ -391,7 +400,7 @@ export class SegmentTimelineClass extends React.Component<Translated<IProps>, IS
 		if (e.touches.length === 2) {
 			let newSize = e.touches[1].clientX - e.touches[0].clientX
 			let prop = newSize / this._touchSize
-			this.props.onZoomChange(Math.min(500, this.props.timeScale * prop), e)
+			this.props.onZoomChange(Math.min(500, this.calcTimeScale(prop)), e)
 			this._touchSize = newSize
 		} else if (e.touches.length === 1 && this._lastPointer) {
 			let scrollAmount = this._lastPointer.clientX - e.touches[0].clientX
@@ -541,7 +550,7 @@ export class SegmentTimelineClass extends React.Component<Translated<IProps>, IS
 	onTimelineWheel = (e: WheelEvent) => {
 		if (e.ctrlKey && !e.altKey && !e.metaKey && !e.shiftKey) {
 			// ctrl + Scroll
-			this.props.onZoomChange(Math.min(500, this.props.timeScale * (1 + 0.001 * (e.deltaY * -1))), e)
+			this.props.onZoomChange(Math.min(500, this.calcTimeScale(1 + 0.001 * (e.deltaY * -1))), e)
 			e.preventDefault()
 			e.stopPropagation()
 		} else if (
@@ -588,7 +597,7 @@ export class SegmentTimelineClass extends React.Component<Translated<IProps>, IS
 	timelineStyle() {
 		return {
 			transform:
-				'translate3d(-' + Math.floor(this.props.scrollLeft * this.props.timeScale).toString() + 'px, 0, 0.1px)',
+				'translate3d(-' + (this.calcTimeScale(this.props.scrollLeft )).toString() + 'px, 0, 0.1px)',
 			willChange: 'transform',
 		}
 	}
@@ -597,10 +606,10 @@ export class SegmentTimelineClass extends React.Component<Translated<IProps>, IS
 		const { t } = this.props
 
 		if (this.props.isLiveSegment) {
-			let pixelPostion = Math.floor(
-				this.props.livePosition * this.props.timeScale -
+			let pixelPostion =(
+				this.calcTimeScale(this.props.livePosition) -
 					(!(this.props.followLiveLine && !this.props.showingAllSegment)
-						? this.props.scrollLeft * this.props.timeScale
+						? this.calcTimeScale(this.props.scrollLeft)
 						: 0)
 			)
 			let lineStyle = {

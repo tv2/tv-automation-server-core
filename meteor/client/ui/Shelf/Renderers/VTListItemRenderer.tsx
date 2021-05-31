@@ -118,7 +118,7 @@ export const VTListItemRenderer: React.FunctionComponent<ILayerItemRendererProps
 					content={vtContent}
 					floatingInspectorStyle={{
 						top: itemIconPosition?.top + 'px',
-						left: itemIconPosition?.left + 'px',
+						left: Math.round(itemIconPosition?.left || 0) + 'px',
 						transform: 'translate(0, -100%)',
 					}}
 					typeClass={props.layer && RundownUtils.getSourceLayerClassName(props.layer.type)}

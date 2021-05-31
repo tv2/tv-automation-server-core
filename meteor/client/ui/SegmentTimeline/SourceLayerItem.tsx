@@ -95,6 +95,10 @@ export const SourceLayerItem = withTranslation()(
 			})
 		}
 
+		calcTimeScale = (time: number) => {
+			return Math.round(this.props.timeScale * time)
+		}
+
 		getItemLabelOffsetLeft = (): React.CSSProperties => {
 			if (this.props.relative) {
 				return {}
@@ -130,31 +134,30 @@ export const SourceLayerItem = withTranslation()(
 					if (this.props.followLiveLine && this.props.isLiveLine) {
 						const liveLineHistoryWithMargin = this.props.liveLineHistorySize - 10
 						if (
-							this.props.scrollLeft + liveLineHistoryWithMargin / this.props.timeScale >
+							this.props.scrollLeft + this.calcTimeScale(liveLineHistoryWithMargin) >
 								inPoint +
 									this.props.partStartsAt +
 									inTransitionDuration +
-									this.state.leftAnchoredWidth / this.props.timeScale &&
-							this.props.scrollLeft + liveLineHistoryWithMargin / this.props.timeScale <
+									this.calcTimeScale(this.state.leftAnchoredWidth) &&
+							this.props.scrollLeft + this.calcTimeScale(liveLineHistoryWithMargin) <
 								inPoint + duration + this.props.partStartsAt - outTransitionDuration
 						) {
-							const targetPos =
-								(this.props.scrollLeft - inPoint - this.props.partStartsAt - inTransitionDuration) *
-								this.props.timeScale
+							const targetPos = this.calcTimeScale(
+								(this.props.scrollLeft - inPoint - this.props.partStartsAt - inTransitionDuration))
 
 							// || (this.state.leftAnchoredWidth === 0 || this.state.rightAnchoredWidth === 0)
 							let styleObj = {
 								maxWidth:
 									this.state.rightAnchoredWidth > 0
-										? (this.state.elementWidth - this.state.rightAnchoredWidth).toString() + 'px'
+										? Math.round(this.state.elementWidth - this.state.rightAnchoredWidth).toString() + 'px'
 										: maxLabelWidth !== undefined
-										? (maxLabelWidth * this.props.timeScale).toString() + 'px'
+										? this.calcTimeScale(maxLabelWidth).toString() + 'px'
 										: nextIsTouching
 										? '100%'
 										: 'none',
 								transform:
 									'translate3d(' +
-									Math.floor(
+									Math.round(
 										widthConstrictedMode
 											? targetPos
 											: Math.min(
@@ -174,25 +177,24 @@ export const SourceLayerItem = withTranslation()(
 						} else if (
 							this.state.rightAnchoredWidth < this.state.elementWidth &&
 							this.state.leftAnchoredWidth < this.state.elementWidth &&
-							this.props.scrollLeft + liveLineHistoryWithMargin / this.props.timeScale >=
+							this.props.scrollLeft + Math.round(liveLineHistoryWithMargin / this.props.timeScale) >=
 								inPoint + duration + this.props.partStartsAt - outTransitionDuration
 						) {
 							const targetPos =
-								(this.props.scrollLeft - inPoint - this.props.partStartsAt - inTransitionDuration) *
-								this.props.timeScale
+								this.calcTimeScale(this.props.scrollLeft - inPoint - this.props.partStartsAt - inTransitionDuration) 
 
 							let styleObj = {
 								maxWidth:
 									this.state.rightAnchoredWidth > 0
-										? (this.state.elementWidth - this.state.rightAnchoredWidth).toString() + 'px'
+										? Math.round(this.state.elementWidth - this.state.rightAnchoredWidth).toString() + 'px'
 										: maxLabelWidth !== undefined
-										? (maxLabelWidth * this.props.timeScale).toString() + 'px'
+										? this.calcTimeScale(maxLabelWidth).toString() + 'px'
 										: nextIsTouching
 										? '100%'
 										: 'none',
 								transform:
 									'translate3d(' +
-									Math.floor(
+									Math.round(
 										Math.min(
 											targetPos,
 											this.state.elementWidth - this.state.rightAnchoredWidth - liveLineHistoryWithMargin - 10
@@ -200,7 +202,7 @@ export const SourceLayerItem = withTranslation()(
 									).toString() +
 									'px, 0, 0) ' +
 									'translate3d(' +
-									Math.floor(liveLineHistoryWithMargin).toString() +
+									Math.round(liveLineHistoryWithMargin).toString() +
 									'px, 0, 0) ' +
 									'translate3d(-100%, 0, 5px)',
 								willChange: 'transform',
@@ -214,21 +216,20 @@ export const SourceLayerItem = withTranslation()(
 							this.props.scrollLeft < inPoint + duration + this.props.partStartsAt - outTransitionDuration
 						) {
 							const targetPos =
-								(this.props.scrollLeft - inPoint - this.props.partStartsAt - inTransitionDuration) *
-								this.props.timeScale
+								this.calcTimeScale(this.props.scrollLeft - inPoint - this.props.partStartsAt - inTransitionDuration)
 
 							let styleObj = {
 								maxWidth:
 									this.state.rightAnchoredWidth > 0
-										? (this.state.elementWidth - this.state.rightAnchoredWidth - 10).toString() + 'px'
+										? Math.round(this.state.elementWidth - this.state.rightAnchoredWidth - 10).toString() + 'px'
 										: maxLabelWidth !== undefined
-										? (maxLabelWidth * this.props.timeScale).toString() + 'px'
+										? this.calcTimeScale(maxLabelWidth).toString() + 'px'
 										: nextIsTouching
 										? '100%'
 										: 'none',
 								transform:
 									'translate3d(' +
-									Math.floor(
+									Math.round(
 										widthConstrictedMode || this.state.leftAnchoredWidth === 0 || this.state.rightAnchoredWidth === 0
 											? targetPos
 											: Math.min(
@@ -245,9 +246,9 @@ export const SourceLayerItem = withTranslation()(
 							let styleObj = {
 								maxWidth:
 									this.state.rightAnchoredWidth > 0
-										? (this.state.elementWidth - this.state.rightAnchoredWidth - 10).toString() + 'px'
+										? Math.round(this.state.elementWidth - this.state.rightAnchoredWidth - 10).toString() + 'px'
 										: maxLabelWidth !== undefined
-										? (maxLabelWidth * this.props.timeScale).toString() + 'px'
+										? this.calcTimeScale(maxLabelWidth).toString() + 'px'
 										: nextIsTouching
 										? '100%'
 										: 'none',
@@ -295,8 +296,8 @@ export const SourceLayerItem = withTranslation()(
 								this.props.scrollWidth -
 								outPoint -
 								this.props.partStartsAt -
-								outTransitionDuration) *
-								this.props.timeScale,
+								this.calcTimeScale(outTransitionDuration)
+							),
 							(this.state.elementWidth -
 								this.state.leftAnchoredWidth -
 								this.state.rightAnchoredWidth -
@@ -305,7 +306,7 @@ export const SourceLayerItem = withTranslation()(
 						)
 
 						return {
-							transform: 'translate3d(' + Math.floor(targetPos).toString() + 'px,  0, 15px)',
+							transform: 'translate3d(' + Math.round(targetPos).toString() + 'px,  0, 15px)',
 							willChange: 'transform',
 						}
 					}
@@ -376,17 +377,16 @@ export const SourceLayerItem = withTranslation()(
 			if (this.props.relative) {
 				return {
 					// also: don't render transitions in relative mode
-					left: (((piece.renderedInPoint || 0) / (this.props.partDuration || 1)) * 100).toString() + '%',
-					width: ((itemDuration / (this.props.partDuration || 1)) * 100).toString() + '%',
+					left: Math.round(((piece.renderedInPoint || 0) / (this.props.partDuration || 1)) * 100).toString() + '%',
+					width: Math.round((itemDuration / (this.props.partDuration || 1)) * 100).toString() + '%',
 				}
 			} else {
 				return {
 					left:
-						Math.floor(((piece.renderedInPoint || 0) + inTransitionDuration) * this.props.timeScale).toString() + 'px',
+						this.calcTimeScale((piece.renderedInPoint || 0) + inTransitionDuration).toString() + 'px',
 					width:
-						Math.round(
-							(itemDuration - inTransitionDuration - outTransitionDuration) * this.props.timeScale
-						).toString() + 'px',
+						this.calcTimeScale(
+							itemDuration - inTransitionDuration - outTransitionDuration).toString() + 'px',
 				}
 			}
 		}
@@ -544,7 +544,7 @@ export const SourceLayerItem = withTranslation()(
 				top: e.clientY - elementPos.top,
 			}
 
-			const cursorTimePosition = Math.max(cursorPosition.left, 0) / this.props.timeScale
+			const cursorTimePosition = Math.round(Math.max(cursorPosition.left, 0) / this.props.timeScale)
 
 			this.setState({
 				scrollLeftOffset: 0,
@@ -559,7 +559,7 @@ export const SourceLayerItem = withTranslation()(
 				left: e.clientX - this.state.elementPosition.left,
 				top: e.clientY - this.state.elementPosition.top,
 			}
-			const cursorTimePosition = Math.max(cursorPosition.left, 0) / this.props.timeScale + this.state.scrollLeftOffset
+			const cursorTimePosition = Math.round(Math.max(cursorPosition.left, 0) / this.props.timeScale + this.state.scrollLeftOffset)
 
 			this.setState({
 				cursorPosition: _.extend(this.state.cursorPosition, cursorPosition),
@@ -757,7 +757,7 @@ export const SourceLayerItem = withTranslation()(
 									wipe: innerPiece.transitions.inTransition.type === PieceTransitionType.WIPE,
 								})}
 								style={{
-									width: ((innerPiece.transitions.inTransition.duration || 0) * this.props.timeScale).toString() + 'px',
+									width: this.calcTimeScale(innerPiece.transitions.inTransition.duration || 0).toString() + 'px',
 								}}
 							/>
 						) : null}
@@ -771,7 +771,7 @@ export const SourceLayerItem = withTranslation()(
 								})}
 								style={{
 									width:
-										((innerPiece.transitions.outTransition.duration || 0) * this.props.timeScale).toString() + 'px',
+										this.calcTimeScale(innerPiece.transitions.outTransition.duration || 0).toString() + 'px',
 								}}
 							/>
 						) : null}
