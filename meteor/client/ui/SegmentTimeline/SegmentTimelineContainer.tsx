@@ -406,6 +406,10 @@ export const SegmentTimelineContainer = translateWithTracker<IProps, IState, ITr
 		}
 
 		componentDidUpdate(prevProps: IProps & ITrackedProps) {
+			if (this.props.followLiveSegments && !prevProps.followLiveSegments) {
+				this.onFollowLiveLine(true, {})
+			}
+
 			let isLiveSegment = false
 			let isNextSegment = false
 			let currentLivePart: PartExtended | undefined = undefined
@@ -445,7 +449,7 @@ export const SegmentTimelineContainer = translateWithTracker<IProps, IState, ITr
 			// segment is becoming live
 			if (this.isLiveSegment === false && isLiveSegment === true) {
 				this.isLiveSegment = true
-				this.onFollowLiveLine(true, {})
+				//this.onFollowLiveLine(true, {})
 				this.startLive()
 			}
 			// segment is stopping from being live
@@ -512,10 +516,6 @@ export const SegmentTimelineContainer = translateWithTracker<IProps, IState, ITr
 				this.setState({
 					livePosition: 0,
 				})
-			}
-
-			if (this.props.followLiveSegments && !prevProps.followLiveSegments) {
-				this.onFollowLiveLine(true, {})
 			}
 
 			if (this.pastInfinitesComp && !equalSets(this.props.segmentsIdsBefore, prevProps.segmentsIdsBefore)) {
