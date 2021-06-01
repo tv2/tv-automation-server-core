@@ -406,10 +406,6 @@ export const SegmentTimelineContainer = translateWithTracker<IProps, IState, ITr
 		}
 
 		componentDidUpdate(prevProps: IProps & ITrackedProps) {
-			if (this.props.followLiveSegments && !prevProps.followLiveSegments) {
-				this.onFollowLiveLine(true, {})
-			}
-
 			let isLiveSegment = false
 			let isNextSegment = false
 			let currentLivePart: PartExtended | undefined = undefined
@@ -449,7 +445,7 @@ export const SegmentTimelineContainer = translateWithTracker<IProps, IState, ITr
 			// segment is becoming live
 			if (this.isLiveSegment === false && isLiveSegment === true) {
 				this.isLiveSegment = true
-				//this.onFollowLiveLine(true, {})
+				this.onFollowLiveLine(true, {})
 				this.startLive()
 			}
 			// segment is stopping from being live
@@ -491,7 +487,7 @@ export const SegmentTimelineContainer = translateWithTracker<IProps, IState, ITr
 
 				if (this.state.scrollLeft > partOffset) {
 					this.setState({
-						scrollLeft: partOffset,
+						scrollLeft: this.calcTimeScale(partOffset),
 					})
 				}
 				this.nextPartDisplayStartsAt = nextPartDisplayStartsAt
@@ -516,6 +512,10 @@ export const SegmentTimelineContainer = translateWithTracker<IProps, IState, ITr
 				this.setState({
 					livePosition: 0,
 				})
+			}
+
+			if (this.props.followLiveSegments && !prevProps.followLiveSegments) {
+				this.onFollowLiveLine(true, {})
 			}
 
 			if (this.pastInfinitesComp && !equalSets(this.props.segmentsIdsBefore, prevProps.segmentsIdsBefore)) {
@@ -657,7 +657,7 @@ export const SegmentTimelineContainer = translateWithTracker<IProps, IState, ITr
 				const part = this.props.parts.find((part) => part.partId === e.partId)
 				if (part) {
 					this.setState({
-						scrollLeft: part.startsAt,
+						scrollLeft: this.calcTimeScale(part.startsAt),
 					})
 				}
 			}
@@ -668,7 +668,7 @@ export const SegmentTimelineContainer = translateWithTracker<IProps, IState, ITr
 				for (const part of this.props.parts) {
 					if (part.instance._id === e.partInstanceId) {
 						this.setState({
-							scrollLeft: part.startsAt,
+							scrollLeft: this.calcTimeScale(part.startsAt),
 						})
 					}
 				}
@@ -721,8 +721,7 @@ export const SegmentTimelineContainer = translateWithTracker<IProps, IState, ITr
 
 				this.setState({
 					livePosition: newLivePosition,
-					scrollLeft: this.state.followLiveLine
-						? Math.max(newLivePosition - Math.round(LIVELINE_HISTORY_SIZE / this.state.timeScale), 0)
+					scrollLeft: this.state.followLiveLine ? Math.max(newLivePosition - Math.round(LIVELINE_HISTORY_SIZE / this.state.timeScale), 0)
 						: this.state.scrollLeft,
 				})
 			}
@@ -766,7 +765,7 @@ export const SegmentTimelineContainer = translateWithTracker<IProps, IState, ITr
 		onFollowLiveLine = (state: boolean, event: any) => {
 			this.setState({
 				followLiveLine: state,
-				scrollLeft: Math.max(this.state.livePosition - this.calcTimeScale(LIVELINE_HISTORY_SIZE), 0),
+				scrollLeft: Math.max(this.calcTimeScale(this.state.livePosition - LIVELINE_HISTORY_SIZE), 0),
 			})
 		}
 

@@ -134,16 +134,16 @@ export const SourceLayerItem = withTranslation()(
 					if (this.props.followLiveLine && this.props.isLiveLine) {
 						const liveLineHistoryWithMargin = this.props.liveLineHistorySize - 10
 						if (
-							this.props.scrollLeft + this.calcTimeScale(liveLineHistoryWithMargin) >
+							this.calcTimeScale(this.props.scrollLeft + liveLineHistoryWithMargin) >
 								inPoint +
 									this.props.partStartsAt +
 									inTransitionDuration +
 									this.calcTimeScale(this.state.leftAnchoredWidth) &&
-							this.props.scrollLeft + this.calcTimeScale(liveLineHistoryWithMargin) <
+									this.calcTimeScale(this.props.scrollLeft+ liveLineHistoryWithMargin) <
 								inPoint + duration + this.props.partStartsAt - outTransitionDuration
 						) {
-							const targetPos = this.calcTimeScale(
-								(this.props.scrollLeft - inPoint - this.props.partStartsAt - inTransitionDuration))
+							const targetPos = this.props.scrollLeft - this.calcTimeScale(
+								(inPoint - this.props.partStartsAt - inTransitionDuration))
 
 							// || (this.state.leftAnchoredWidth === 0 || this.state.rightAnchoredWidth === 0)
 							let styleObj = {
@@ -181,7 +181,7 @@ export const SourceLayerItem = withTranslation()(
 								inPoint + duration + this.props.partStartsAt - outTransitionDuration
 						) {
 							const targetPos =
-								this.calcTimeScale(this.props.scrollLeft - inPoint - this.props.partStartsAt - inTransitionDuration) 
+								this.props.scrollLeft - this.calcTimeScale(inPoint - this.props.partStartsAt - inTransitionDuration) 
 
 							let styleObj = {
 								maxWidth:
@@ -212,11 +212,11 @@ export const SourceLayerItem = withTranslation()(
 						}
 					} else {
 						if (
-							this.props.scrollLeft > inPoint + this.props.partStartsAt + inTransitionDuration &&
-							this.props.scrollLeft < inPoint + duration + this.props.partStartsAt - outTransitionDuration
+							this.props.scrollLeft > this.calcTimeScale(inPoint + this.props.partStartsAt + inTransitionDuration) &&
+							this.props.scrollLeft < this.calcTimeScale(inPoint + duration + this.props.partStartsAt - outTransitionDuration)
 						) {
 							const targetPos =
-								this.calcTimeScale(this.props.scrollLeft - inPoint - this.props.partStartsAt - inTransitionDuration)
+								this.props.scrollLeft - this.calcTimeScale(inPoint - this.props.partStartsAt - inTransitionDuration)
 
 							let styleObj = {
 								maxWidth:
@@ -288,15 +288,15 @@ export const SourceLayerItem = withTranslation()(
 
 					if (
 						this.props.scrollLeft + this.props.scrollWidth <
-							outPoint - outTransitionDuration + this.props.partStartsAt &&
-						this.props.scrollLeft + this.props.scrollWidth > inPoint + this.props.partStartsAt
+							this.calcTimeScale(outPoint - outTransitionDuration + this.props.partStartsAt) &&
+						this.props.scrollLeft + this.props.scrollWidth > this.calcTimeScale(inPoint + this.props.partStartsAt)
 					) {
 						const targetPos = Math.max(
 							(this.props.scrollLeft +
 								this.props.scrollWidth -
-								outPoint -
+								this.calcTimeScale(outPoint -
 								this.props.partStartsAt -
-								this.calcTimeScale(outTransitionDuration)
+								outTransitionDuration)
 							),
 							(this.state.elementWidth -
 								this.state.leftAnchoredWidth -
