@@ -615,7 +615,7 @@ export class SegmentTimelineClass extends React.Component<Translated<IProps>, IS
 			let lineStyle = {
 				left:
 					(this.props.followLiveLine && !this.props.showingAllSegment
-						? Math.min(pixelPostion, this.props.liveLineHistorySize).toString()
+						? Math.min(pixelPostion, this.props.liveLineHistorySize / this.props.timeScale).toString()
 						: pixelPostion.toString()) + 'px',
 			}
 

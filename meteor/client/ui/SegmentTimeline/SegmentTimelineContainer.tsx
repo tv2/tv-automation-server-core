@@ -721,7 +721,7 @@ export const SegmentTimelineContainer = translateWithTracker<IProps, IState, ITr
 
 				this.setState({
 					livePosition: newLivePosition,
-					scrollLeft: this.state.followLiveLine ? Math.max(newLivePosition - Math.round(LIVELINE_HISTORY_SIZE / this.state.timeScale), 0)
+					scrollLeft: this.state.followLiveLine ? Math.max(Math.round(newLivePosition * this.state.timeScale - LIVELINE_HISTORY_SIZE / this.state.timeScale), 0)
 						: this.state.scrollLeft,
 				})
 			}
