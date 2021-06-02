@@ -81,90 +81,11 @@ export function withMediaObjectStatus<IProps extends AnyPiece, IState>(): (
 				}
 			}
 
-			updateDataTracker() {
-				if (this.destroyed) return
-
-				this.statusComp = this.autorun(() => {
-					const { piece, studio, layer } = this.props
-					this.overrides = {}
-					const overrides = this.overrides
-
-					// Check item status
-					if (piece && (piece.sourceLayer || layer) && studio) {
-						const { metadata, packageInfos, status, contentDuration, message } = checkPieceContentStatus(
-							WithMediaObjectStatusHOCComponent.unwrapPieceInstance(piece!),
-							piece.sourceLayer || layer,
-							studio
-						)
-						if (RundownUtils.isAdLibPieceOrAdLibListItem(piece!)) {
-							if (status !== piece.status || metadata || packageInfos) {
-								// Deep clone the required bits
-								const origPiece = (overrides.piece || this.props.piece) as AdLibPieceUi
-								const pieceCopy: AdLibPieceUi = {
-									...(origPiece as AdLibPieceUi),
-									status: status,
-									contentMetaData: metadata,
-									contentPackageInfos: packageInfos,
-									message,
-								}
-
-								if (
-									pieceCopy.content &&
-									pieceCopy.content.sourceDuration === undefined &&
-									contentDuration !== undefined
-								) {
-									pieceCopy.content.sourceDuration = contentDuration
-								}
-
-								overrides.piece = {
-									...pieceCopy,
-								}
-							}
-						} else {
-							if (status !== piece.instance.piece.status || metadata || packageInfos) {
-								// Deep clone the required bits
-								const origPiece = (overrides.piece || piece) as PieceUi
-								const pieceCopy: PieceUi = {
-									...((overrides.piece || piece) as PieceUi),
-									instance: {
-										...origPiece.instance,
-										piece: {
-											...origPiece.instance.piece,
-											status: status,
-										},
-									},
-									contentMetaData: metadata,
-									contentPackageInfos: packageInfos,
-									message,
-								}
-
-								if (
-									pieceCopy.instance.piece.content &&
-									pieceCopy.instance.piece.content.sourceDuration === undefined &&
-									contentDuration !== undefined
-								) {
-									pieceCopy.instance.piece.content.sourceDuration = contentDuration
-								}
-
-								overrides.piece = {
-									...pieceCopy,
-								}
-							}
-						}
-					}
-					this.throttledForceUpdate()
-				})
-			}
-			
-			throttledForceUpdate = _.throttle(() => {
-				this.forceUpdate()
-			}, 50)
 
 			componentDidMount() {
 				window.requestIdleCallback(
 					() => {
 						this.updateMediaObjectSubscription()
-						this.updateDataTracker()
 					},
 					{
 						timeout: 500,
