@@ -14,5 +14,6 @@ var PieceLifespan;
     PieceLifespan["OutOnSegmentEnd"] = "segment-end";
     PieceLifespan["OutOnRundownChange"] = "rundown-change";
     PieceLifespan["OutOnRundownEnd"] = "rundown-end";
+    PieceLifespan["OutOnShowStyleEnd"] = "showstyle-end";
 })(PieceLifespan = exports.PieceLifespan || (exports.PieceLifespan = {}));
 //# sourceMappingURL=rundown.js.map

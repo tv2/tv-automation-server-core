@@ -15,3 +15,4 @@ export interface BlueprintMapping extends Mapping {
     /** Maximum distance to search for lookahead. Default = undefined */
     lookaheadMaxSearchDistance?: number;
 }
+//# sourceMappingURL=studio.d.ts.map

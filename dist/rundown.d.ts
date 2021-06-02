@@ -1,6 +1,8 @@
-import { DeviceType as TSR_DeviceType, ExpectedPlayoutItemContentVizMSE } from 'timeline-state-resolver-types';
+import { DeviceType as TSR_DeviceType, ExpectedPlayoutItemContent } from 'timeline-state-resolver-types';
 import { Time } from './common';
-import { SomeContent } from './content';
+import { ExpectedPackage, ListenToPackageUpdate } from './package';
+import { SomeTimelineContent } from './content';
+import { ITranslatableMessage } from './translations';
 export interface IBlueprintRundownPlaylistInfo {
     /** Rundown playlist slug - user-presentable name */
     name: string;
@@ -80,8 +82,6 @@ export interface IBlueprintMutatablePart<TMetadata = unknown> {
     disableOutTransition?: boolean;
     /** Expected duration of the line, in milliseconds */
     expectedDuration?: number;
-    /** Budget duration of this part, in milliseconds */
-    budgetDuration?: number;
     /** Whether this segment line supports being used in HOLD */
     holdMode?: PartHoldMode;
     /** Set to true if ingest-device should be notified when this part starts playing */
@@ -94,12 +94,6 @@ export interface IBlueprintMutatablePart<TMetadata = unknown> {
     displayDuration?: number;
     /** User-facing identifier that can be used by the User to identify the contents of a segment in the Rundown source system */
     identifier?: string;
-    /** MediaObjects that when created/updated, should cause the blueprint to be rerun for the Segment of this Part */
-    hackListenToMediaObjectUpdates?: HackPartMediaObjectSubscription[];
-}
-export interface HackPartMediaObjectSubscription {
-    /** The playable reference (CasparCG clip name, quantel GUID, etc) */
-    mediaId: string;
 }
 /** The Part generated from Blueprint */
 export interface IBlueprintPart<TMetadata = unknown> extends IBlueprintMutatablePart<TMetadata> {
@@ -123,22 +117,32 @@ export interface IBlueprintPart<TMetadata = unknown> extends IBlueprintMutatable
      */
     invalid?: boolean;
     /**
-     * Provide additional information about the reason a part is invalid. The title should be a single, short sentence describing the reason. Additional
-     * information can be provided in the description property. The blueprints can also provide a color hint that the UI can use when displaying the part.
+     * Provide additional information about the reason a part is invalid. The `key` is the string key from blueprints
+     * translations. Args will be used to replace placeholders within the translated file. If `key` is not found in the
+     * translation, it will be interpollated using the `args` and used as the string to be displayed.
+     * The blueprints can also provide a color hint that the UI can use when displaying the part.
      * Color needs to be in #xxxxxx RGB hexadecimal format.
      *
      * @type {{
-     * 		title: string,
-     * 		description?: string
+     * 		message: ITranslatableMessage,
      * 		color?: string
      * 	}}
      * @memberof IBlueprintPart
      */
     invalidReason?: {
-        title: string;
-        description?: string;
+        message: ITranslatableMessage;
         color?: string;
     };
+    /**
+     * Take a part out of timing considerations for a Rundown & Rundown Playlist. This part can be TAKEN but will not
+     * update playlist's startedPlayback and will not count time in the GUI.
+     *
+     * Some parts shouldn't count towards the various timing information in Sofie. Specifically, it may be useful to
+     * have some Parts execute Timelines outside of the regular flow of time, such as when doing an ad break or
+     * performing some additional actions before a show actually begins (such as when there's a bit of a buffer before
+     * the On Air time of a Show and when the MCR cuts to the PGM, because the previous show ended quicker).
+     */
+    untimed?: boolean;
     /** When the NRCS informs us that the producer marked the part as floated, we can prevent the user from TAKE'ing and NEXT'ing it, but still have it visible and allow manipulation */
     floated?: boolean;
     /** When this part is just a filler to fill space in a segment. Generally, used with invalid: true */
@@ -149,8 +153,6 @@ export interface IBlueprintPartDB<TMetadata = unknown> extends IBlueprintPart<TM
     _id: string;
     /** The segment ("Title") this line belongs to */
     segmentId: string;
-    /** if the part was dunamically inserted (adlib) */
-    dynamicallyInsertedAfterPartId?: string;
 }
 /** The Part instance sent from Core */
 export interface IBlueprintPartInstance<TMetadata = unknown> {
@@ -158,6 +160,12 @@ export interface IBlueprintPartInstance<TMetadata = unknown> {
     /** The segment ("Title") this line belongs to */
     segmentId: string;
     part: IBlueprintPartDB<TMetadata>;
+    /** If the playlist was in rehearsal mode when the PartInstance was created */
+    rehearsal: boolean;
+    /** Playout timings, in here we log times when playout happens */
+    timings?: IBlueprintPartInstanceTimings;
+    /** Whether the PartInstance is an orphan (the Part referenced does not exist). Indicates the reason it is orphaned */
+    orphaned?: 'adlib-part' | 'deleted';
 }
 export interface IBlueprintPartInstanceTimings {
     /** Point in time the Part was taken, (ie the time of the user action) */
@@ -200,7 +208,7 @@ export interface IBlueprintPieceGeneric<TMetadata = unknown> {
     /** Layer output this piece belongs to */
     outputLayerId: string;
     /** The object describing the item in detail */
-    content?: SomeContent;
+    content: SomeTimelineContent;
     /** The transition used by this piece to transition to and from the piece */
     transitions?: {
         /** In transition for the piece */
@@ -212,7 +220,9 @@ export interface IBlueprintPieceGeneric<TMetadata = unknown> {
     adlibPreroll?: number;
     /** Whether the adlib should always be inserted queued */
     toBeQueued?: boolean;
-    /** Array of items expected to be played out. This is used by playout-devices to preload stuff. */
+    /** Array of items expected to be played out. This is used by playout-devices to preload stuff.
+     * @deprecated replaced by .expectedPackages
+     */
     expectedPlayoutItems?: ExpectedPlayoutItemGeneric[];
     /** When queued, should the adlib autonext */
     adlibAutoNext?: boolean;
@@ -220,11 +230,19 @@ export interface IBlueprintPieceGeneric<TMetadata = unknown> {
     adlibAutoNextOverlap?: number;
     /** When queued, block transition at the end of the part */
     adlibDisableOutTransition?: boolean;
-    /** When queued, how long to keep the old part alive */
-    adlibTransitionKeepAlive?: number;
     /** User-defined tags that can be used for filtering adlibs in the shelf and identifying pieces by actions */
     tags?: string[];
+    /**
+     * An array of which Packages this Piece uses. This is used by a Package Manager to ensure that the Package is in place for playout.
+     * @todo
+     */
+    expectedPackages?: ExpectedPackage.Any[];
+    /** @todo: to be defined */
+    listenToPackageInfoUpdates?: ListenToPackageUpdate[];
+    /** HACK: Some pieces have side effects on other pieces, and pruning them when they have finished playback will cause playout glitches. This will tell core to not always preserve it */
+    hasSideEffects?: boolean;
 }
+/** @deprecated */
 export interface ExpectedPlayoutItemGeneric {
     /** What type of playout device this item should be handled by */
     deviceSubType: TSR_DeviceType;
@@ -232,7 +250,7 @@ export interface ExpectedPlayoutItemGeneric {
     /** Content of the expectedPlayoutItem */
     content: ExpectedPlayoutItemContent;
 }
-export declare type ExpectedPlayoutItemContent = ExpectedPlayoutItemContentVizMSE;
+export { ExpectedPlayoutItemContent };
 /** A Single item in a "line": script, VT, cameras. Generated by Blueprint */
 export interface IBlueprintPiece<TMetadata = unknown> extends IBlueprintPieceGeneric<TMetadata> {
     /** Timeline enabler. When the piece should be active on the timeline. */
@@ -252,11 +270,19 @@ export interface IBlueprintPieceDB<TMetadata = unknown> extends IBlueprintPiece<
 }
 export interface IBlueprintPieceInstance<TMetadata = unknown> {
     _id: string;
+    /** The part instace this piece belongs to */
+    partInstanceId: string;
     /** If this piece has been created play-time using an AdLibPiece, this should be set to it's source piece */
     adLibSourceId?: string;
     /** If this piece has been insterted during run of rundown (such as adLibs), then this is set to the timestamp it was inserted */
     dynamicallyInserted?: Time;
     piece: IBlueprintPieceDB<TMetadata>;
+    /** The time the system started playback of this part, undefined if not yet played back (milliseconds since epoch) */
+    startedPlayback?: Time;
+    /** Whether the piece has stopped playback (the most recent time it was played), undefined if not yet played back or is currently playing.
+     * This is set from a callback from the playout gateway (milliseconds since epoch)
+     */
+    stoppedPlayback?: Time;
     infinite?: {
         infinitePieceId: string;
         /** When the instance was a copy made from hold */
@@ -284,7 +310,7 @@ export interface IBlueprintAdLibPiece<TMetadata = unknown> extends IBlueprintPie
     currentPieceTags?: string[];
     /** Piece tags to use to determine if action is set as next */
     nextPieceTags?: string[];
-    /** Can be used by the UI to filter out identical AdLib Actions repeated across multiple segments */
+    /** String that can be used to identify adlibs that are equivalent to each other */
     uniquenessId?: string;
 }
 /** The AdLib piece sent from Core */
@@ -296,5 +322,7 @@ export declare enum PieceLifespan {
     OutOnSegmentChange = "segment-change",
     OutOnSegmentEnd = "segment-end",
     OutOnRundownChange = "rundown-change",
-    OutOnRundownEnd = "rundown-end"
+    OutOnRundownEnd = "rundown-end",
+    OutOnShowStyleEnd = "showstyle-end"
 }
+//# sourceMappingURL=rundown.d.ts.map

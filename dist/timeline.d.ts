@@ -2,6 +2,12 @@ import * as TSR from 'timeline-state-resolver-types';
 import { CombineArrayType } from './lib';
 export { TSR };
 export { Timeline } from 'timeline-state-resolver-types';
+export declare enum TimelineObjClassesCore {
+    RundownRehearsal = "rundown_rehersal",
+    RundownActive = "rundown_active",
+    BeforeFirstPart = "before_first_part",
+    NoNextPart = "last_part"
+}
 export declare enum TimelineObjHoldMode {
     NORMAL = 0,
     ONLY = 1,
@@ -23,3 +29,4 @@ export interface TimelineObjectCoreExt<TMetadata = unknown, TKeyframeMetadata = 
 export interface OnGenerateTimelineObj<TMetadata = unknown, TKeyframeMetadata = unknown> extends TimelineObjectCoreExt<TMetadata, TKeyframeMetadata> {
     pieceInstanceId?: string;
 }
+//# sourceMappingURL=timeline.d.ts.map

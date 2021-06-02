@@ -75,3 +75,4 @@ export interface ExternalMessageQueueObjRabbitMQ extends IBlueprintExternalMessa
         };
     };
 }
+//# sourceMappingURL=message.d.ts.map

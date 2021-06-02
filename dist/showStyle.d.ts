@@ -71,3 +71,4 @@ export interface IOutputLayer {
     /** is the output flattened (all source layers presented on the same layer) */
     isFlattened?: boolean;
 }
+//# sourceMappingURL=showStyle.d.ts.map

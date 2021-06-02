@@ -4,7 +4,10 @@ import { SourceLayerType } from './content';
 export declare enum ConfigManifestEntryType {
     STRING = "string",
     MULTILINE_STRING = "multiline_string",
+    /** @deprecated use INT/FLOAT instead */
     NUMBER = "number",
+    INT = "int",
+    FLOAT = "float",
     BOOLEAN = "boolean",
     ENUM = "enum",
     TABLE = "table",
@@ -13,7 +16,7 @@ export declare enum ConfigManifestEntryType {
     LAYER_MAPPINGS = "layer_mappings",
     JSON = "json"
 }
-export declare type BasicConfigManifestEntry = ConfigManifestEntryString | ConfigManifestEntryMultilineString | ConfigManifestEntryNumber | ConfigManifestEntryBoolean | ConfigManifestEntryEnum | ConfigManifestEntrySelectFromOptions<true> | ConfigManifestEntrySelectFromOptions<false> | ConfigManifestEntrySourceLayers<true> | ConfigManifestEntrySourceLayers<false> | ConfigManifestEntryLayerMappings<true> | ConfigManifestEntryLayerMappings<false> | ConfigManifestEntryJson;
+export declare type BasicConfigManifestEntry = ConfigManifestEntryString | ConfigManifestEntryMultilineString | ConfigManifestEntryNumber | ConfigManifestEntryInt | ConfigManifestEntryFloat | ConfigManifestEntryBoolean | ConfigManifestEntryEnum | ConfigManifestEntrySelectFromOptions<true> | ConfigManifestEntrySelectFromOptions<false> | ConfigManifestEntrySourceLayers<true> | ConfigManifestEntrySourceLayers<false> | ConfigManifestEntryLayerMappings<true> | ConfigManifestEntryLayerMappings<false> | ConfigManifestEntryJson;
 export declare type ConfigManifestEntry = BasicConfigManifestEntry | ConfigManifestEntryTable;
 export interface ConfigManifestEntryBase {
     id: string;
@@ -22,6 +25,7 @@ export interface ConfigManifestEntryBase {
     type: ConfigManifestEntryType;
     required: boolean;
     defaultVal: ConfigItemValue;
+    hint?: string;
 }
 export interface ConfigManifestEntryString extends ConfigManifestEntryBase {
     type: ConfigManifestEntryType.STRING;
@@ -32,6 +36,7 @@ export interface ConfigManifestEntryMultilineString extends ConfigManifestEntryB
     type: ConfigManifestEntryType.MULTILINE_STRING;
     defaultVal: string[];
 }
+/** @deprecated use INT/FLOAT instead */
 export interface ConfigManifestEntryNumber extends ConfigManifestEntryBase {
     type: ConfigManifestEntryType.NUMBER;
     defaultVal: number;
@@ -39,6 +44,18 @@ export interface ConfigManifestEntryNumber extends ConfigManifestEntryBase {
      * 	when rendered in settings pages they will appear as value + 1
      */
     zeroBased?: boolean;
+}
+export interface ConfigManifestEntryInt extends ConfigManifestEntryBase {
+    type: ConfigManifestEntryType.INT;
+    defaultVal: number;
+    /** Zero-based values will be stored in the database (and reported to blueprints) as values starting from 0, however,
+     * 	when rendered in settings pages they will appear as value + 1
+     */
+    zeroBased?: boolean;
+}
+export interface ConfigManifestEntryFloat extends ConfigManifestEntryBase {
+    type: ConfigManifestEntryType.FLOAT;
+    defaultVal: number;
 }
 export interface ConfigManifestEntryBoolean extends ConfigManifestEntryBase {
     type: ConfigManifestEntryType.BOOLEAN;
@@ -82,3 +99,4 @@ export interface ConfigManifestEntryLayerMappings<Multiple extends boolean> exte
     };
 }
 export {};
+//# sourceMappingURL=config.d.ts.map

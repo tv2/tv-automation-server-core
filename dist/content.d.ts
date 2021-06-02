@@ -10,85 +10,69 @@ export declare enum SourceLayerType {
     GRAPHICS = 5,
     SPLITS = 6,
     AUDIO = 7,
-    CAMERA_MOVEMENT = 8,
-    METADATA = 9,
     LOWER_THIRD = 10,
     LIVE_SPEAK = 11,
-    MIC = 12,
     TRANSITION = 13,
-    LIGHTS = 14,
     LOCAL = 15
 }
-export interface MetadataElement {
-    _id: string;
-    key: string;
-    value: string;
-    source: string;
-}
+export declare type WithTimeline<T extends BaseContent> = T & {
+    timelineObjects: TimelineObjectCoreExt[];
+};
 export interface BaseContent {
-    [key: string]: TimelineObjectCoreExt[] | number | string | boolean | object | undefined | null;
-    timelineObjects?: TimelineObjectCoreExt[];
     editable?: BaseEditableParameters;
+    sourceDuration?: number;
+    ignoreMediaObjectStatus?: boolean;
 }
 export interface BaseEditableParameters {
-    [key: string]: number | string | boolean | object | undefined | null;
 }
 export interface VTEditableParameters extends BaseEditableParameters {
     editorialStart: number;
     editorialDuration: number;
 }
-export declare type SomeContent = VTContent | CameraContent | RemoteContent | ScriptContent | GraphicsContent | NoraContent | SplitsContent | AudioContent | CameraMovementContent | LowerThirdContent | LiveSpeakContent | MicContent | TransitionContent;
+/** @todo Should all this be deprecated and replaced by expectedPackages altogether? */
+export declare type SomeContent = VTContent | CameraContent | RemoteContent | ScriptContent | NoraContent | SplitsContent | LiveSpeakContent | TransitionContent | UnknownContent;
+export declare type SomeTimelineContent = WithTimeline<SomeContent>;
+export declare type UnknownContent = BaseContent;
 export interface VTContent extends BaseContent {
     fileName: string;
     path: string;
-    firstWords: string;
-    lastWords: string;
-    proxyPath?: string;
-    thumbnail?: string;
     loop?: boolean;
-    sourceDuration?: number;
-    objectDuration?: number;
-    /** Frame that media manager should grab for thumbnail preview */
-    previewFrame?: number;
-    metadata?: MetadataElement[];
-    timelineObjects: TimelineObjectCoreExt[];
     mediaFlowIds?: string[];
     seek?: number;
     editable?: VTEditableParameters;
-    ignoreMediaObjectStatus?: boolean;
-    ignoreBlackFrames?: boolean;
-    ignoreFreezeFrame?: boolean;
 }
 export interface CameraContent extends BaseContent {
     studioLabel: string;
     switcherInput: number | string;
-    thumbnail?: string;
-    timelineObjects: TimelineObjectCoreExt[];
 }
 export interface RemoteContent extends BaseContent {
     studioLabel: string;
     switcherInput: number | string;
-    thumbnail?: string;
-    timelineObjects: TimelineObjectCoreExt[];
 }
 export interface ScriptContent extends BaseContent {
     firstWords: string;
     lastWords: string;
     fullScript?: string;
-    sourceDuration?: number;
     lastModified?: Time | null;
 }
-export interface GraphicsContent extends BaseContent {
-    fileName: string;
-    path: string;
-    thumbnail?: string;
-    templateData?: object;
-    metadata?: MetadataElement[];
-    timelineObjects: TimelineObjectCoreExt[];
+/** Data describing a Nora template's step attributes */
+export interface NoraPayloadStepData {
+    /** the step to move to - used when sending commands to nora */
+    to?: number | 'next';
+    /** the current step (which you are moving from) - provided by nora */
+    from?: number;
+    /** Enable/disable step. This is usually provided by the template it self, but can be overwritten by providing the value. */
+    enabled?: boolean;
+    /** -1 means unknown/infinite value of steps available, positive values are literal - provided by nora */
+    total?: number;
+    /** if true only forward linear advances are allowed, if false you can jump around */
+    orderLocked?: boolean;
+    /** if true the graphics will start at the first step again if given a next command when on the last. If false it will stay on the last step */
+    repeat?: boolean;
 }
 export interface NoraPayload {
     content: {
-        [key: string]: string | number | object;
+        [key: string]: unknown;
     };
     manifest: string;
     template: {
@@ -101,12 +85,12 @@ export interface NoraPayload {
         templateVariant: string | undefined;
     };
     changed?: Time;
+    step?: NoraPayloadStepData;
 }
 export interface NoraContent extends BaseContent {
     payload: NoraPayload;
     externalPayload: any;
     previewRenderer: string;
-    timelineObjects: TimelineObjectCoreExt[];
 }
 export interface SplitsContentBoxProperties {
     type: SourceLayerType;
@@ -125,31 +109,19 @@ export interface SplitsContentBoxProperties {
         };
     };
 }
-export declare type SplitsContentBoxContent = Omit<VTContent | CameraContent | RemoteContent | GraphicsContent, 'timelineObjects'>;
+export declare type SplitsContentBoxContent = Omit<VTContent | CameraContent | RemoteContent | NoraContent, 'timelineObjects'>;
 export interface SplitsContent extends BaseContent {
     /** Array of contents, 0 is towards the rear */
     boxSourceConfiguration: (SplitsContentBoxContent & SplitsContentBoxProperties)[];
-    timelineObjects: TimelineObjectCoreExt[];
 }
 export interface AudioContent extends BaseContent {
     fileName: string;
     path: string;
-    proxyPath?: string;
     loop?: boolean;
-    sourceDuration: number;
-    metadata?: MetadataElement[];
-    timelineObjects: TimelineObjectCoreExt[];
 }
-export interface CameraMovementContent extends BaseContent {
-    cameraConfiguration: any;
-    timelineObjects: TimelineObjectCoreExt[];
-}
-export declare type LowerThirdContent = GraphicsContent;
 export declare type LiveSpeakContent = VTContent;
-export interface MicContent extends ScriptContent {
-    mixConfiguration: any;
-    timelineObjects: any;
-}
 export interface TransitionContent extends BaseContent {
     icon?: string;
+    preview?: string;
 }
+//# sourceMappingURL=content.d.ts.map

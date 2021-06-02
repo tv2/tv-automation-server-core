@@ -15,3 +15,4 @@ export declare function iterateDeeply(obj: any, iteratee: (val: any, key?: strin
  * @param iteratee function to apply on every attribute
  */
 export declare function iterateDeeplyAsync(obj: any, iteratee: (val: any, key?: string | number) => Promise<any | iterateDeeplyEnum>, key?: string | number): Promise<any>;
+//# sourceMappingURL=util.d.ts.map

@@ -1,17 +1,9 @@
 import { IBlueprintRundownDBData } from './rundown';
-export interface IngestPlaylist {
-    externalId: string;
-    rundowns: IngestRundown[];
-    name: string;
-    loop: boolean;
-}
 export interface IngestRundown {
     /** Id of the rundown as reported by the ingest gateway. Must be unique for each rundown owned by the gateway */
     externalId: string;
     /** Name of the rundown */
     name: string;
-    /** Rank in rundown playlist */
-    _rank?: number;
     /** Something that identified the data source. eg "spreadsheet", "mos" */
     type: string;
     /** Raw payload of rundown metadata. Only used by the blueprints */
@@ -54,3 +46,4 @@ export interface IngestAdlib {
 export interface ExtendedIngestRundown extends IngestRundown {
     coreData: IBlueprintRundownDBData | undefined;
 }
+//# sourceMappingURL=ingest.d.ts.map

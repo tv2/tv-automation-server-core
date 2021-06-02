@@ -115,3 +115,4 @@ export interface MigrationStepShowStyle extends MigrationStep {
     migrate?: MigrateFunctionShowStyle;
     input?: MigrationStepInput[] | InputFunctionShowStyle;
 }
+//# sourceMappingURL=migrations.d.ts.map

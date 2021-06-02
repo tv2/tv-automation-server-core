@@ -5,7 +5,10 @@ var ConfigManifestEntryType;
 (function (ConfigManifestEntryType) {
     ConfigManifestEntryType["STRING"] = "string";
     ConfigManifestEntryType["MULTILINE_STRING"] = "multiline_string";
+    /** @deprecated use INT/FLOAT instead */
     ConfigManifestEntryType["NUMBER"] = "number";
+    ConfigManifestEntryType["INT"] = "int";
+    ConfigManifestEntryType["FLOAT"] = "float";
     ConfigManifestEntryType["BOOLEAN"] = "boolean";
     ConfigManifestEntryType["ENUM"] = "enum";
     ConfigManifestEntryType["TABLE"] = "table";

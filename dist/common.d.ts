@@ -8,3 +8,4 @@ export declare type TableConfigItemValue = {
     [key: string]: BasicConfigItemValue;
 }[];
 export declare type BasicConfigItemValue = string | number | boolean | string[];
+//# sourceMappingURL=common.d.ts.map
