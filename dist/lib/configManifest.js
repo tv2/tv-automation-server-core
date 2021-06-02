@@ -8,6 +8,7 @@ var ConfigManifestEntryType;
     ConfigManifestEntryType["STRING"] = "string";
     ConfigManifestEntryType["MULTILINE_STRING"] = "multiline_string";
     ConfigManifestEntryType["BOOLEAN"] = "boolean";
+    /** @deprecated use INT/FLOAT instead */
     ConfigManifestEntryType["NUMBER"] = "float";
     ConfigManifestEntryType["FLOAT"] = "float";
     ConfigManifestEntryType["INT"] = "int";

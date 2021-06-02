@@ -10,7 +10,7 @@ export declare namespace PeripheralDeviceAPI {
         GOOD = 1,
         /** Everything is not OK, but normal operation should not be affected. An optional/backup service might be offline, etc. */
         WARNING_MINOR = 2,
-        /** Everything is not OK, operation might be affected. Like when having switched to a backup, or have taken action to fix an error. */
+        /** Everything is not OK, operation might be affected. Like when having switched to a backup, or have taken action to fix an error. Sofie will show a restart device button for this and all higher severity warnings. */
         WARNING_MAJOR = 3,
         /** Not good. Operation is affected. Will be able to recover on it's own when the situation changes. */
         BAD = 4,
@@ -81,8 +81,6 @@ export declare namespace PeripheralDeviceAPI {
         'getPeripheralDevice' = "peripheralDevice.getPeripheralDevice",
         'pingWithCommand' = "peripheralDevice.pingWithCommand",
         'killProcess' = "peripheralDevice.killProcess",
-        'removePeripheralDevice' = "peripheralDevice.removePeripheralDevice",
-        'reportResolveDone' = "peripheralDevice.reportResolveDone",
         'determineDiffTime' = "systemTime.determineDiffTime",
         'getTimeDiff' = "systemTime.getTimeDiff",
         'getTime' = "systemTime.getTime",
@@ -91,6 +89,7 @@ export declare namespace PeripheralDeviceAPI {
         'partPlaybackStopped' = "peripheralDevice.rundown.partPlaybackStopped",
         'piecePlaybackStarted' = "peripheralDevice.rundown.piecePlaybackStarted",
         'piecePlaybackStopped' = "peripheralDevice.rundown.piecePlaybackStopped",
+        'reportCommandError' = "peripheralDevice.playout.reportCommandError",
         'mosRoCreate' = "peripheralDevice.mos.roCreate",
         'mosRoReplace' = "peripheralDevice.mos.roReplace",
         'mosRoDelete' = "peripheralDevice.mos.roDelete",
@@ -111,11 +110,6 @@ export declare namespace PeripheralDeviceAPI {
         'mosRoItemSwap' = "peripheralDevice.mos.roItemSwap",
         'mosRoReadyToAir' = "peripheralDevice.mos.roReadyToAir",
         'mosRoFullStory' = "peripheralDevice.mos.roFullStory",
-        'dataPlaylistList' = "peripheralDevice.playlist.playlistList",
-        'dataPlaylistGet' = "peripheralDevice.playlist.playlistGet",
-        'dataPlaylistDelete' = "peripheralDevice.playlist.playlistDelete",
-        'dataPlaylistCreate' = "peripheralDevice.playlist.playlistCreate",
-        'dataPlaylistUpdate' = "peripheralDevice.playlist.playlistUpdate",
         'dataRundownList' = "peripheralDevice.rundown.rundownList",
         'dataRundownGet' = "peripheralDevice.rundown.rundownGet",
         'dataRundownDelete' = "peripheralDevice.rundown.rundownDelete",
@@ -130,7 +124,6 @@ export declare namespace PeripheralDeviceAPI {
         'dataPartCreate' = "peripheralDevice.rundown.partCreate",
         'dataPartUpdate' = "peripheralDevice.rundown.partUpdate",
         'resyncRundown' = "peripheralDevice.mos.roResync",
-        'resyncSegment' = "peripheralDevice.mos.segmentResync",
         'getMediaObjectRevisions' = "peripheralDevice.mediaScanner.getMediaObjectRevisions",
         'updateMediaObject' = "peripheralDevice.mediaScanner.updateMediaObject",
         'clearMediaObjectCollection' = "peripheralDevice.mediaScanner.clearMediaObjectCollection",
@@ -138,6 +131,14 @@ export declare namespace PeripheralDeviceAPI {
         'updateMediaWorkFlow' = "peripheralDevice.mediaManager.updateMediaWorkFlow",
         'getMediaWorkFlowStepRevisions' = "peripheralDevice.mediaManager.getMediaWorkFlowStepRevisions",
         'updateMediaWorkFlowStep' = "peripheralDevice.mediaManager.updateMediaWorkFlowStep",
+        'insertExpectedPackageWorkStatus' = "peripheralDevice.packageManager.insertExpectedPackageWorkStatus",
+        'updateExpectedPackageWorkStatus' = "peripheralDevice.packageManager.updateExpectedPackageWorkStatus",
+        'removeExpectedPackageWorkStatus' = "peripheralDevice.packageManager.removeExpectedPackageWorkStatus",
+        'removeAllExpectedPackageWorkStatusOfDevice' = "peripheralDevice.packageManager.removeAllExpectedPackageWorkStatusOfDevice",
+        'updatePackageContainerPackageStatus' = "peripheralDevice.packageManager.updatePackageContainerPackageStatus",
+        'fetchPackageInfoMetadata' = "peripheralDevice.packageManager.fetchPackageInfoMetadata",
+        'updatePackageInfo' = "peripheralDevice.packageManager.updatePackageInfo",
+        'removePackageInfo' = "peripheralDevice.packageManager.removePackageInfo",
         'requestUserAuthToken' = "peripheralDevice.spreadsheet.requestUserAuthToken",
         'storeAccessToken' = "peripheralDevice.spreadsheet.storeAccessToken"
     }
