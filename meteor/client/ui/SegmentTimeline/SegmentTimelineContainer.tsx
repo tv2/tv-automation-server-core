@@ -528,11 +528,11 @@ export const SegmentTimelineContainer = translateWithTracker<IProps, IState, ITr
 			}
 
 			this.setState({
-				isLiveSegment,
-				isNextSegment,
-				currentLivePart,
-				currentNextPart,
-				autoNextPart,
+				isLiveSegment: isLiveSegment,
+				isNextSegment: isNextSegment,
+				currentLivePart: currentLivePart,
+				currentNextPart: currentNextPart,
+				autoNextPart: autoNextPart,
 			})
 		}
 
