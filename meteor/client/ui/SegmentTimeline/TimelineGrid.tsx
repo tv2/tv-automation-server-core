@@ -168,7 +168,7 @@ export class TimelineGrid extends React.Component<ITimelineGridProps> {
 
 			const fps = Settings.frameRate
 
-			const secondTimeScale = Math.round(this.props.timeScale * 1000)
+			const secondTimeScale = this.props.timeScale * 1000
 
 			// timeScale is how many pixels does a second take
 			// secondsStep - draw the big, labeled line very X seconds
