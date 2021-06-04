@@ -412,6 +412,7 @@ interface IState {
 	isLive: boolean
 	isNext: boolean
 	isDurationSettling: boolean
+	durationSettlingStartsAt: number
 	liveDuration: number
 
 	isInsideViewport: boolean
@@ -463,6 +464,7 @@ export const SegmentTimelinePart = withTranslation()(
 					isLive,
 					isNext,
 					isDurationSettling: false,
+					durationSettlingStartsAt: 0,
 					isInsideViewport: false,
 					highlight: false,
 					liveDuration: isLive
@@ -502,6 +504,16 @@ export const SegmentTimelinePart = withTranslation()(
 					!!startedPlayback &&
 					!nextProps.part.instance.timings?.duration
 
+				let durationSettlingStartsAt = nextState.durationSettlingStartsAt
+				if (!nextState.isDurationSettling && isDurationSettling) {
+					durationSettlingStartsAt = SegmentTimelinePart0.getCurrentLiveLinePosition(
+						nextProps.part,
+						nextProps.timingDurations.currentTime || getCurrentTime()
+					)
+					//console.log('Start Duration Settling in Part : ', nextState.partId)
+					
+				}
+
 				let liveDuration = 0
 				if (!isDurationSettling) {
 					// if the duration isn't settling, calculate the live line postion and add some liveLive time padding
@@ -525,25 +537,8 @@ export const SegmentTimelinePart = withTranslation()(
 								: 0
 						)
 					}
-				} else {
-					// if the duration is settling, just calculate the current liveLine position and show without any padding
-					if (!nextProps.autoNextPart && !nextPartInner.autoNext) {
-						liveDuration = Math.max(
-							(startedPlayback &&
-								nextProps.timingDurations.partDurations &&
-								SegmentTimelinePart0.getCurrentLiveLinePosition(
-									nextProps.part,
-									nextProps.timingDurations.currentTime || getCurrentTime()
-								)) ||
-								0,
-							nextProps.timingDurations.partDurations
-								? nextPartInner.displayDuration ||
-										nextProps.timingDurations.partDurations[unprotectString(nextPartInner._id)]
-								: 0
-						)
-					}
+					durationSettlingStartsAt = 0
 				}
-
 				const isInsideViewport =
 					nextProps.relative ||
 					isLive ||
@@ -552,13 +547,14 @@ export const SegmentTimelinePart = withTranslation()(
 						nextProps.scrollWidth,
 						nextProps.part,
 						SegmentTimelinePart0.getPartStartsAt(nextProps),
-						SegmentTimelinePart0.getPartDuration(nextProps, liveDuration)
+						SegmentTimelinePart0.getPartDuration(nextProps, liveDuration, isDurationSettling, durationSettlingStartsAt)
 					)
 
 				const partial = {
 					isLive,
 					isNext,
 					isDurationSettling,
+					durationSettlingStartsAt,
 					liveDuration,
 					isInsideViewport,
 				}
@@ -627,9 +623,14 @@ export const SegmentTimelinePart = withTranslation()(
 					return {
 						width:
 							(
-								Math.round(SegmentTimelinePart0.getPartDuration(this.props, this.state.liveDuration) /
-									(this.props.totalSegmentDuration || 1)) *
-								100
+								Math.round(
+									SegmentTimelinePart0.getPartDuration(
+										this.props,
+										this.state.liveDuration,
+										this.state.isDurationSettling,
+										this.state.durationSettlingStartsAt
+									) / (this.props.totalSegmentDuration || 1)
+								) * 100
 							).toString() + '%',
 						// width: (Math.max(this.state.liveDuration, this.props.part.duration || this.props.part.expectedDuration || 3000) / (this.props.totalSegmentDuration || 1) * 100).toString() + '%',
 						willChange: this.state.isLive ? 'width' : undefined,
@@ -638,7 +639,12 @@ export const SegmentTimelinePart = withTranslation()(
 					return {
 						minWidth:
 							this.calcTimeScale(
-								SegmentTimelinePart0.getPartDuration(this.props, this.state.liveDuration)
+								SegmentTimelinePart0.getPartDuration(
+									this.props,
+									this.state.liveDuration,
+									this.state.isDurationSettling,
+									this.state.durationSettlingStartsAt
+								)
 							).toString() + 'px',
 						// minWidth: (Math.max(this.state.liveDuration, this.props.part.duration || this.props.part.expectedDuration || 3000) * this.props.timeScale).toString() + 'px',
 						willChange: this.state.isLive ? 'minWidth' : undefined,
@@ -656,9 +662,17 @@ export const SegmentTimelinePart = withTranslation()(
 				)
 			}
 
-			static getPartDuration(props: WithTiming<IProps>, liveDuration: number): number {
+			static getPartDuration(
+				props: WithTiming<IProps>,
+				liveDuration: number,
+				isDurationSettling: boolean,
+				durationSettlingStartsAt: number
+			): number {
 				// const part = this.props.part
 
+				if (isDurationSettling) {
+					return durationSettlingStartsAt
+				}
 				return Math.max(
 					liveDuration,
 					props.part.instance.timings?.duration ||
@@ -725,7 +739,12 @@ export const SegmentTimelinePart = withTranslation()(
 										playlist={this.props.playlist}
 										studio={this.props.studio}
 										startsAt={SegmentTimelinePart0.getPartStartsAt(this.props) || this.props.part.startsAt || 0}
-										duration={SegmentTimelinePart0.getPartDuration(this.props, this.state.liveDuration)}
+										duration={SegmentTimelinePart0.getPartDuration(
+											this.props,
+											this.state.liveDuration,
+											this.state.isDurationSettling,
+											this.state.durationSettlingStartsAt
+										)}
 										expectedDuration={SegmentTimelinePart0.getPartExpectedDuration(this.props)}
 										isLiveLine={this.props.playlist.currentPartInstanceId === part.instance._id}
 										isNextLine={this.props.playlist.nextPartInstanceId === part.instance._id}
@@ -743,18 +762,17 @@ export const SegmentTimelinePart = withTranslation()(
 			getFutureShadeStyle = () => {
 				return {
 					width:
-					Math.round(
-						Math.min(
-							Math.max(
-								0,
-								(this.props.livePosition || 0) +
-									SegmentTimelinePart0.getLiveLineTimePadding(this.props.timeScale) -
-									(this.props.part.instance.part.expectedDuration || this.props.part.renderedDuration || 0)
-							),
-							SegmentTimelinePart0.getLiveLineTimePadding(this.props.timeScale)
-						) *
-							this.props.timeScale) +
-						'px',
+						Math.round(
+							Math.min(
+								Math.max(
+									0,
+									(this.props.livePosition || 0) +
+										SegmentTimelinePart0.getLiveLineTimePadding(this.props.timeScale) -
+										(this.props.part.instance.part.expectedDuration || this.props.part.renderedDuration || 0)
+								),
+								SegmentTimelinePart0.getLiveLineTimePadding(this.props.timeScale)
+							) * this.props.timeScale
+						) + 'px',
 				}
 			}
 
@@ -854,8 +872,15 @@ export const SegmentTimelinePart = withTranslation()(
 										})}
 										style={{
 											left: this.props.relative
-												? Math.round(this.props.playlist.nextTimeOffset /
-														(SegmentTimelinePart0.getPartDuration(this.props, this.state.liveDuration) || 1)) *
+												? Math.round(
+														this.props.playlist.nextTimeOffset /
+															(SegmentTimelinePart0.getPartDuration(
+																this.props,
+																this.state.liveDuration,
+																this.state.isDurationSettling,
+																this.state.durationSettlingStartsAt
+															) || 1)
+												  ) *
 														100 +
 												  '%'
 												: this.calcTimeScale(this.props.playlist.nextTimeOffset) + 'px',

@@ -294,6 +294,8 @@ export const SegmentTimelineContainer = translateWithTracker<IProps, IState, ITr
 		playbackSimulationPercentage: number = 0
 		nextPartDisplayStartsAt: number
 
+		debugLastValue: number = 0
+
 		private pastInfinitesComp: Tracker.Computation | undefined
 
 		constructor(props: IProps & ITrackedProps) {
@@ -528,11 +530,11 @@ export const SegmentTimelineContainer = translateWithTracker<IProps, IState, ITr
 			}
 
 			this.setState({
-				isLiveSegment: isLiveSegment,
-				isNextSegment: isNextSegment,
-				currentLivePart: currentLivePart,
-				currentNextPart: currentNextPart,
-				autoNextPart: autoNextPart,
+				isLiveSegment,
+				isNextSegment,
+				currentLivePart,
+				currentNextPart,
+				autoNextPart,
 			})
 		}
 
@@ -712,9 +714,16 @@ export const SegmentTimelineContainer = translateWithTracker<IProps, IState, ITr
 						? partOffset + e.detail.currentTime - virtualStartedPlayback + lastTakeOffset
 						: partOffset + lastTakeOffset
 
+				if (partOffset > this.debugLastValue && lastTake && lastTake + SIMULATED_PLAYBACK_HARD_MARGIN > e.detail.currentTime) {
+					newLivePosition = partOffset + lastTakeOffset
+				}
+
 				if (lastStartedPlayback && simulationPercentage < 1) {
 					this.playbackSimulationPercentage = Math.min(simulationPercentage + SIMULATED_PLAYBACK_CROSSFADE_STEP, 1)
 				}
+
+				this.debugLastValue = partOffset
+//				console.log('Timing factors :', this.context.durations.partDisplayStartsAt[unprotectString(currentLivePart._id)], ' : ',this.context.durations.partDisplayStartsAt[unprotectString(this.props.parts[0].instance.part._id)])
 
 				this.setState({
 					livePosition: newLivePosition,
