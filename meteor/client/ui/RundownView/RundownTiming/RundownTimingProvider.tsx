@@ -121,6 +121,9 @@ export const RundownTimingProvider = withTracker<
 		private temporaryPartInstances: Map<PartId, PartInstance> = new Map<PartId, PartInstance>()
 
 		private linearParts: Array<[PartId, number | null]> = []
+		private prevPartId: string = ''
+		private lastTakeAt: number | undefined = undefined
+
 		// look at the comments on RundownTimingContext to understand what these do
 		private partDurations: Record<string, number> = {}
 		private partExpectedDurations: Record<string, number> = {}
@@ -129,7 +132,6 @@ export const RundownTimingProvider = withTracker<
 		private partDisplayStartsAt: Record<string, number> = {}
 		private partDisplayDurations: Record<string, number> = {}
 		private partDisplayDurationsNoPlayback: Record<string, number> = {}
-		private displayDurationGroups: Record<string, number> = {}
 
 		constructor(props: IRundownTimingProviderProps & IRundownTimingProviderTrackedProps) {
 			super(props)
@@ -145,8 +147,12 @@ export const RundownTimingProvider = withTracker<
 			}
 		}
 
+		calmDownTiming = (time: number) => {
+			return Math.round(time/70)*70
+		}
+
 		onRefreshTimer = () => {
-			const now = getCurrentTime()
+			const now = this.calmDownTiming(getCurrentTime())
 			const isLowResolution = this.refreshDecimator % LOW_RESOLUTION_TIMING_DECIMATOR === 0
 			this.updateDurations(now, isLowResolution)
 			this.dispatchHREvent(now)
@@ -231,7 +237,7 @@ export const RundownTimingProvider = withTracker<
 			let startsAtAccumulator = 0
 			let displayStartsAtAccumulator = 0
 
-			Object.keys(this.displayDurationGroups).forEach((key) => delete this.displayDurationGroups[key])
+			let displayDurationGroups: Record<string, number> = {}
 			this.linearParts.length = 0
 
 			let debugConsole = ''
@@ -288,27 +294,27 @@ export const RundownTimingProvider = withTracker<
 					if (
 						partInstance.part.displayDurationGroup &&
 						// either this is not the first element of the displayDurationGroup
-						(this.displayDurationGroups[partInstance.part.displayDurationGroup] !== undefined ||
+						(displayDurationGroups[partInstance.part.displayDurationGroup] !== undefined ||
 							// or there is a following member of this displayDurationGroup
 							(parts[itIndex + 1] &&
 								parts[itIndex + 1].displayDurationGroup === partInstance.part.displayDurationGroup)) &&
 						!partInstance.part.floated &&
 						!partIsUntimed
 					) {
-						this.displayDurationGroups[partInstance.part.displayDurationGroup] =
-							(this.displayDurationGroups[partInstance.part.displayDurationGroup] || 0) +
+						displayDurationGroups[partInstance.part.displayDurationGroup] =
+							(displayDurationGroups[partInstance.part.displayDurationGroup] || 0) +
 							(partInstance.part.expectedDuration || 0)
 						displayDurationFromGroup =
 							partInstance.part.displayDuration ||
 							Math.max(
 								0,
-								this.displayDurationGroups[partInstance.part.displayDurationGroup],
+								displayDurationGroups[partInstance.part.displayDurationGroup],
 								partInstance.part.gap
 									? MINIMAL_NONZERO_DURATION
 									: this.props.defaultDuration || Settings.defaultDisplayDuration
 							)
 						partExpectedDuration =
-							partExpectedDuration || this.displayDurationGroups[partInstance.part.displayDurationGroup] || 0
+							partExpectedDuration || displayDurationGroups[partInstance.part.displayDurationGroup] || 0
 						memberOfDisplayDurationGroup = true
 					}
 
@@ -401,8 +407,8 @@ export const RundownTimingProvider = withTracker<
 						!partIsUntimed &&
 						(partInstance.timings?.duration || partInstance.timings?.takeOut || partCounts)
 					) {
-						this.displayDurationGroups[partInstance.part.displayDurationGroup] =
-							this.displayDurationGroups[partInstance.part.displayDurationGroup] - partDisplayDuration
+						displayDurationGroups[partInstance.part.displayDurationGroup] =
+							displayDurationGroups[partInstance.part.displayDurationGroup] - partDisplayDuration
 					}
 					const partInstancePartId = unprotectString(partInstance.part._id)
 					this.partExpectedDurations[partInstancePartId] = partExpectedDuration
@@ -412,7 +418,18 @@ export const RundownTimingProvider = withTracker<
 					this.partDisplayDurations[partInstancePartId] = partDisplayDuration
 					this.partDisplayDurationsNoPlayback[partInstancePartId] = partDisplayDurationNoPlayback
 					startsAtAccumulator += this.partDurations[partInstancePartId]
-					displayStartsAtAccumulator += this.partDisplayDurations[partInstancePartId] // || this.props.defaultDuration || 3000
+
+					if (playlist.previousPartInstanceId !== partInstance._id) {
+						displayStartsAtAccumulator += this.partDisplayDurations[partInstancePartId] // || this.props.defaultDuration || 3000
+					} else {
+						if (this.prevPartId !== unprotectString(playlist.previousPartInstanceId)) {
+								this.lastTakeAt = now
+							this.prevPartId = unprotectString(playlist.previousPartInstanceId) || ''
+						}
+						let durationToTake = (this.lastTakeAt && lastStartedPlayback) ? this.lastTakeAt - lastStartedPlayback : undefined
+						displayStartsAtAccumulator += (durationToTake || this.partDisplayDurations[partInstancePartId])
+					}
+
 					// waitAccumulator is used to calculate the countdowns for Parts relative to the current Part
 					// always add the full duration, in case by some manual intervention this segment should play twice
 					if (memberOfDisplayDurationGroup) {
