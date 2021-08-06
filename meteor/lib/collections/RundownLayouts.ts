@@ -331,6 +331,8 @@ export interface RundownViewLayout extends RundownLayoutBase {
 	showBreaksAsSegments: boolean
 	/** Only count down to the segment if it contains pieces on these layers */
 	countdownToSegmentRequireLayers: string[]
+	/** SourceLayer ids for which a piece duration label should be shown */
+	showDurationSourceLayers: string[]
 }
 
 export interface RundownLayoutShelfBase extends RundownLayoutBase {

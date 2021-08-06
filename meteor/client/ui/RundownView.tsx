@@ -2255,6 +2255,9 @@ export const RundownView = translateWithTracker<IProps, IState, ITrackedProps>((
 			if (this.props.matchedSegments) {
 				let globalIndex = 0
 				const rundowns = this.props.matchedSegments.map((m) => m.rundown._id)
+				const showDurationSourceLayers = this.state.rundownViewLayout?.showDurationSourceLayers
+					? new Set(this.state.rundownViewLayout?.showDurationSourceLayers)
+					: undefined
 				return this.props.matchedSegments.map((rundownAndSegments, rundownIndex, rundownArray) => {
 					const rundownIdsBefore = rundowns.slice(0, rundownIndex)
 					return (
@@ -2321,6 +2324,7 @@ export const RundownView = translateWithTracker<IProps, IState, ITrackedProps>((
 													countdownToSegmentRequireLayers={
 														this.state.rundownViewLayout?.countdownToSegmentRequireLayers
 													}
+													showDurationSourceLayers={showDurationSourceLayers}
 												/>
 											</VirtualElement>
 										</ErrorBoundary>

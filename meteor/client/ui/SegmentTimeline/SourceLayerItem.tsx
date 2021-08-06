@@ -52,6 +52,7 @@ export interface ISourceLayerItemProps {
 	liveLinePadding: number
 	layerIndex: number
 	studio: Studio | undefined
+	showDurationSourceLayers?: Set<string>
 }
 interface ISourceLayerItemState {
 	showMiniInspector: boolean
@@ -97,6 +98,13 @@ export const SourceLayerItem = withTranslation()(
 				itemElement: e,
 			})
 			this.itemElement = e
+		}
+
+		shouldSwapDurationLabel = (): boolean => {
+			if (this.props.part && this.props.partStartsAt !== undefined && !this.props.isLiveLine) {
+				return this.state.leftAnchoredWidth > this.state.elementWidth - 10
+			}
+			return false
 		}
 
 		getItemLabelOffsetLeft = (): React.CSSProperties => {
@@ -608,6 +616,7 @@ export const SourceLayerItem = withTranslation()(
 							key={unprotectString(this.props.piece.instance._id)}
 							typeClass={typeClass}
 							getItemDuration={this.getItemDuration}
+							shouldSwapDurationLabel={this.shouldSwapDurationLabel}
 							getItemLabelOffsetLeft={this.getItemLabelOffsetLeft}
 							getItemLabelOffsetRight={this.getItemLabelOffsetRight}
 							setAnchoredElsWidths={this.setAnchoredElsWidths}
@@ -678,6 +687,7 @@ export const SourceLayerItem = withTranslation()(
 							key={unprotectString(this.props.piece.instance._id)}
 							typeClass={typeClass}
 							getItemDuration={this.getItemDuration}
+							shouldSwapDurationLabel={this.shouldSwapDurationLabel}
 							getItemLabelOffsetLeft={this.getItemLabelOffsetLeft}
 							getItemLabelOffsetRight={this.getItemLabelOffsetRight}
 							setAnchoredElsWidths={this.setAnchoredElsWidths}

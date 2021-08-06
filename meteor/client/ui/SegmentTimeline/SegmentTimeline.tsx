@@ -80,6 +80,7 @@ interface IProps {
 	isLastSegment: boolean
 	lastValidPartIndex: number | undefined
 	showCountdownToSegment: boolean
+	showDurationSourceLayers?: Set<string>
 }
 interface IStateHeader {
 	timelineWidth: number
@@ -773,6 +774,7 @@ export class SegmentTimelineClass extends React.Component<Translated<IProps>, IS
 							previousPartIsLive &&
 							!!this.props.playlist.nextPartInstanceId
 						}
+						showDurationSourceLayers={this.props.showDurationSourceLayers}
 						part={part}
 					/>
 					{emitSmallPartsInFlag && emitSmallPartsInFlagAtEnd && (
