@@ -2,7 +2,7 @@ import * as React from 'react'
 import { Translated, translateWithTracker } from '../../lib/ReactMeteorData/react-meteor-data'
 import { doModalDialog } from '../../lib/ModalDialog'
 import { MeteorReactComponent } from '../../lib/MeteorReactComponent'
-import { SnapshotItem, Snapshots, SnapshotId } from '../../../lib/collections/Snapshots'
+import { SnapshotItem, Snapshots, SnapshotId, SnapshotType } from '../../../lib/collections/Snapshots'
 import { getCurrentTime, unprotectString } from '../../../lib/lib'
 import * as _ from 'underscore'
 import { logger } from '../../../lib/logging'
@@ -15,6 +15,7 @@ import { NotificationCenter, Notification, NoticeLevel } from '../../lib/notific
 import { UploadButton } from '../../lib/uploadButton'
 import { PubSub } from '../../../lib/api/pubsub'
 import { MeteorCall } from '../../../lib/api/methods'
+import { getAllowDeveloper } from '../../lib/localStorage'
 
 interface IProps {
 	match: {
@@ -129,9 +130,14 @@ export default translateWithTracker<IProps, IState, ITrackedProps>(() => {
 				doModalDialog({
 					title: 'Restore Snapshot',
 					message: `Do you really want to restore the snapshot ${snapshot.name}?`,
-					onAccept: () => {
+					inputs:
+						getAllowDeveloper() &&
+						(snapshot.type === SnapshotType.RUNDOWNPLAYLIST || snapshot.type === SnapshotType.RUNDOWN)
+							? { restoreTimeline: { type: 'checkbox', label: 'Restore Timeline', defaultValue: false } }
+							: {},
+					onAccept: (_e, result) => {
 						MeteorCall.snapshot
-							.restoreSnapshot(snapshotId)
+							.restoreSnapshot(snapshotId, result.restoreTimeline)
 							.then(() => {
 								// todo: replace this with something else
 								doModalDialog({

@@ -79,6 +79,7 @@ import {
 import { migrateConfigToBlueprintConfigOnObject } from '../migration/1_12_0'
 import { saveIntoDb, sumChanges } from '../lib/database'
 import * as fs from 'fs'
+import { getActiveRundownPlaylistsInStudioFromDb } from './studio/lib'
 
 interface DeprecatedRundownSnapshot {
 	// Old, from the times before rundownPlaylists
@@ -120,6 +121,7 @@ interface RundownPlaylistSnapshot {
 	expectedMediaItems: Array<ExpectedMediaItem>
 	expectedPlayoutItems: Array<ExpectedPlayoutItem>
 	expectedPackages: Array<ExpectedPackageDB>
+	timeline?: TimelineComplete
 }
 interface SystemSnapshot {
 	version: string
@@ -202,6 +204,7 @@ async function createRundownPlaylistSnapshot(
 	const expectedPlayoutItems = await ExpectedPlayoutItems.findFetchAsync({ rundownId: { $in: rundownIds } })
 	const expectedPackages = await ExpectedPackages.findFetchAsync({ rundownId: { $in: rundownIds } })
 	const baselineObjs = await RundownBaselineObjs.findFetchAsync({ rundownId: { $in: rundownIds } })
+	const timeline = await Timeline.findOneAsync({ _id: playlist.studioId })
 
 	logger.info(`Snapshot generation done`)
 	return {
@@ -235,6 +238,7 @@ async function createRundownPlaylistSnapshot(
 		expectedMediaItems,
 		expectedPlayoutItems,
 		expectedPackages,
+		timeline,
 	}
 }
 
@@ -507,7 +511,7 @@ async function retreiveSnapshot(snapshotId: SnapshotId, cred0: Credentials): Pro
 
 	return readSnapshot
 }
-function restoreFromSnapshot(snapshot: AnySnapshot) {
+function restoreFromSnapshot(snapshot: AnySnapshot, restoreTimeline?: boolean) {
 	// Determine what kind of snapshot
 
 	if (!_.isObject(snapshot)) throw new Meteor.Error(500, `Restore input data is not an object`)
@@ -531,13 +535,13 @@ function restoreFromSnapshot(snapshot: AnySnapshot) {
 		// A snapshot of a rundown (to be deprecated)
 		if ((snapshot as RundownPlaylistSnapshot).playlistId) {
 			// temporary check, from snapshots where the type was rundown, but it actually was a rundownPlaylist
-			return restoreFromRundownPlaylistSnapshot(snapshot as RundownPlaylistSnapshot)
+			return restoreFromRundownPlaylistSnapshot(snapshot as RundownPlaylistSnapshot, restoreTimeline)
 		} else {
 			return restoreFromDeprecatedRundownSnapshot(snapshot as DeprecatedRundownSnapshot)
 		}
 	} else if (snapshot.snapshot.type === SnapshotType.RUNDOWNPLAYLIST) {
 		// A snapshot of a rundownPlaylist
-		return restoreFromRundownPlaylistSnapshot(snapshot as RundownPlaylistSnapshot)
+		return restoreFromRundownPlaylistSnapshot(snapshot as RundownPlaylistSnapshot, restoreTimeline)
 	} else if (snapshot.snapshot.type === SnapshotType.SYSTEM) {
 		// A snapshot of a system
 		return restoreFromSystemSnapshot(snapshot as SystemSnapshot)
@@ -565,6 +569,7 @@ async function restoreFromDeprecatedRundownSnapshot(snapshot0: DeprecatedRundown
 }
 export async function restoreFromRundownPlaylistSnapshot(
 	snapshot: RundownPlaylistSnapshot,
+	restoreTimeline?: boolean,
 	studioId?: StudioId,
 	showStyleId?: ShowStyleBaseId
 ): Promise<void> {
@@ -799,6 +804,15 @@ export async function restoreFromRundownPlaylistSnapshot(
 			{ rundownId: { $in: rundownIds } },
 			updateItemIds(snapshot.expectedPackages || [], true)
 		),
+		new Promise(() => {
+			if (restoreTimeline && snapshot.timeline) {
+				return getActiveRundownPlaylistsInStudioFromDb(snapshot.playlist.studioId).then((activePlaylists) => {
+					if (activePlaylists.length) {
+						return saveIntoDb(Timeline, { _id: snapshot.playlist.studioId }, [snapshot.timeline!])
+					}
+				})
+			}
+		}),
 	])
 
 	logger.info(`Restore done`)
@@ -887,14 +901,18 @@ export async function storeDebugSnapshot(
 	const s = await createDebugSnapshot(studioId, organizationId)
 	return storeSnaphot(s, organizationId, reason)
 }
-export async function restoreSnapshot(context: MethodContext, snapshotId: SnapshotId): Promise<void> {
+export async function restoreSnapshot(
+	context: MethodContext,
+	snapshotId: SnapshotId,
+	restoreTimeline?: boolean
+): Promise<void> {
 	check(snapshotId, String)
 	const { cred } = OrganizationContentWriteAccess.snapshot(context)
 	if (Settings.enableUserAccounts && isResolvedCredentials(cred)) {
-		if (cred.user && !cred.user.superAdmin) throw new Meteor.Error(401, 'Only Super Admins can store Snapshots')
+		if (cred.user && !cred.user.superAdmin) throw new Meteor.Error(401, 'Only Super Admins can restore Snapshots')
 	}
 	const snapshot = await retreiveSnapshot(snapshotId, context)
-	return restoreFromSnapshot(snapshot)
+	return restoreFromSnapshot(snapshot, restoreTimeline)
 }
 export async function removeSnapshot(context: MethodContext, snapshotId: SnapshotId): Promise<void> {
 	check(snapshotId, String)
@@ -1028,8 +1046,8 @@ class ServerSnapshotAPI extends MethodContextAPI implements NewSnapshotAPI {
 	async storeDebugSnapshot(studioId: StudioId, reason: string) {
 		return storeDebugSnapshot(this, studioId, reason)
 	}
-	async restoreSnapshot(snapshotId: SnapshotId) {
-		return restoreSnapshot(this, snapshotId)
+	async restoreSnapshot(snapshotId: SnapshotId, restoreTimeline?: boolean) {
+		return restoreSnapshot(this, snapshotId, restoreTimeline)
 	}
 	async removeSnapshot(snapshotId: SnapshotId) {
 		return removeSnapshot(this, snapshotId)

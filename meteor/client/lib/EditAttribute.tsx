@@ -441,6 +441,7 @@ const EditAttributeCheckbox = wrapEditAttribute(
 							<FontAwesomeIcon icon={faSquare} />
 						</span>
 					</span>
+					{this.props.label}
 				</label>
 			)
 		}

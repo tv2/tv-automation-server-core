@@ -172,6 +172,7 @@ export class ModalDialog extends React.Component<IModalDialogAttributes> {
 														<EditAttribute
 															type={input.type}
 															label={input.label}
+															obj={this.inputResult}
 															options={input.options}
 															overrideDisplayValue={input.defaultValue}
 															attribute={attribute}

@@ -6,7 +6,7 @@ export interface NewSnapshotAPI {
 	storeSystemSnapshot(studioId: StudioId | null, reason: string): Promise<SnapshotId>
 	storeRundownPlaylist(playlistId: RundownPlaylistId, reason: string): Promise<SnapshotId>
 	storeDebugSnapshot(studioId: StudioId, reason: string): Promise<SnapshotId>
-	restoreSnapshot(snapshotId: SnapshotId): Promise<void>
+	restoreSnapshot(snapshotId: SnapshotId, restoreTimeline?: boolean): Promise<void>
 	removeSnapshot(snapshotId: SnapshotId): Promise<void>
 }
 
