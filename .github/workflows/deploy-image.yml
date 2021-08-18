@@ -1,0 +1,21 @@
+name: Node CI
+on:
+  push:
+    branches:
+      - '**'
+    tags:
+      - 'v**'
+  workflow_dispatch:
+
+jobs:
+  test-core:
+    runs-on: ubuntu-latest
+    container: sofietv/tv-automation-meteor-base:1.11.1
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2 
+      - name: Npm install & build libs
+        run: cd meteor && meteor npm install && meteor npm run ci:prepare
+
+      - name: Run tests and send coverage
+        run: cd meteor && meteor npm run ci
