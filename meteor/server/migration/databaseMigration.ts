@@ -455,9 +455,12 @@ export function runMigration(
 	hash: string,
 	inputResults: Array<MigrationStepInputResult>,
 	isFirstOfPartialMigrations: boolean = true,
-	chunksLeft: number = 20
+	stepsExecuted?: { [id: string]: number }
 ): RunMigrationResult {
-	if (chunksLeft < 0) {
+	if (!stepsExecuted) {
+		stepsExecuted = {}
+	}
+	if (_.any(Object.values(stepsExecuted), (count) => count > 2)) {
 		logger.error(`Migration: Bailing out, looks like we're in a loop`)
 		throw new Meteor.Error(500, 'Infinite loop in migrations')
 	}
@@ -559,6 +562,8 @@ export function runMigration(
 					const migration = step.migrate as MigrateFunctionShowStyle
 					migration(getMigrationShowStyleContext(step.chunk), stepInput)
 				} else throw new Meteor.Error(500, `Unknown step.chunk.sourceType "${step.chunk.sourceType}"`)
+
+				stepsExecuted![step.id] = (stepsExecuted![step.id] ?? 0) + 1
 			}
 
 			// After migration, run the validation again
@@ -603,7 +608,7 @@ export function runMigration(
 		const s = getMigrationStatus()
 		if (s.migration.automaticStepCount > 0 || s.migration.manualStepCount > 0) {
 			try {
-				const res = runMigration(s.migration.chunks, s.migration.hash, inputResults, false, chunksLeft - 1)
+				const res = runMigration(s.migration.chunks, s.migration.hash, inputResults, false, stepsExecuted)
 				if (res.migrationCompleted) {
 					return res
 				}
