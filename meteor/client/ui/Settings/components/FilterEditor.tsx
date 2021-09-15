@@ -971,6 +971,19 @@ export default withTranslation()(
 							/>
 						</label>
 					</div>
+					<div className="mod mvs mhs">
+						<label className="field">
+							{t('Hide Next Break Time')}
+							<EditAttribute
+								modifiedClassName="bghl"
+								attribute={`filters.${index}.hideNextBreak`}
+								obj={item}
+								type="checkbox"
+								collection={RundownLayouts}
+								className="mod mas"
+							/>
+						</label>
+					</div>
 					{isDashboardLayout && this.renderDashboardLayoutSettings(item, index, true)}
 				</React.Fragment>
 			)
