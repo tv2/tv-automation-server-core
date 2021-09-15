@@ -126,6 +126,7 @@ export interface RundownLayoutPlaylistEndTimer extends RundownLayoutElementBase 
 	hidePlannedEndLabel: boolean
 	hideDiffLabel: boolean
 	hideCountdown: boolean
+	hideNextBreak: boolean
 	hideDiff: boolean
 	hidePlannedEnd: boolean
 }

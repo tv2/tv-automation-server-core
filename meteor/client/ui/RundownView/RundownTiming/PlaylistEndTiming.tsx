@@ -20,6 +20,7 @@ interface IEndTimingProps {
 	hidePlannedEnd?: boolean
 	hideCountdown?: boolean
 	hideDiff?: boolean
+	hideNextBreak?: boolean
 	rundownCount: number
 }
 
@@ -129,6 +130,11 @@ export const PlaylistEndTiming = withTranslation()(
 									)}
 								</span>
 							) : null
+						) : null}
+						{!this.props.hideNextBreak ? (
+							<span>
+								Hello world
+							</span>
 						) : null}
 					</React.Fragment>
 				)

@@ -54,6 +54,7 @@ class PlaylistEndTimerPanelInner extends MeteorReactComponent<Translated<IPlayli
 					hideCountdown={panel.hideCountdown}
 					hideDiff={panel.hideDiff}
 					hidePlannedEnd={panel.hidePlannedEnd}
+					hideNextBreak={panel.hideNextBreak}
 					rundownCount={0}
 				/>
 			</div>
