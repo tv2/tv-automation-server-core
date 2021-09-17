@@ -15,7 +15,7 @@ import { withTranslation } from 'react-i18next'
 import { PlaylistEndTiming } from '../RundownView/RundownTiming/PlaylistEndTiming'
 import { PlaylistTiming } from '../../../lib/rundown/rundownTiming'
 
-interface IPlaylistStartTimerPanelProps {
+interface IPlaylistEndTimerPanelProps {
 	visible?: boolean
 	layout: RundownLayoutBase
 	panel: RundownLayoutPlaylistEndTimer
@@ -54,7 +54,6 @@ class PlaylistEndTimerPanelInner extends MeteorReactComponent<Translated<IPlayli
 					hideCountdown={panel.hideCountdown}
 					hideDiff={panel.hideDiff}
 					hidePlannedEnd={panel.hidePlannedEnd}
-					hideNextBreak={panel.hideNextBreak}
 					rundownCount={0}
 				/>
 			</div>

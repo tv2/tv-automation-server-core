@@ -22,6 +22,7 @@ import {
 	RundownLayoutPlaylistEndTimer,
 	RundownLayoutPlaylistName,
 	RundownLayoutPlaylistStartTimer,
+	RundownLayoutNextBreakTiming,
 	RundownLayouts,
 	RundownLayoutSegmentName,
 	RundownLayoutSegmentTiming,
@@ -971,16 +972,31 @@ export default withTranslation()(
 							/>
 						</label>
 					</div>
+					{isDashboardLayout && this.renderDashboardLayoutSettings(item, index, true)}
+				</React.Fragment>
+			)
+		}
+
+		renderNextBreakTiming(
+			item: RundownLayoutBase,
+			tab: RundownLayoutNextBreakTiming,
+			index: number,
+			isRundownLayout: boolean,
+			isDashboardLayout: boolean
+		) {
+			const { t } = this.props
+			return (
+				<React.Fragment>
 					<div className="mod mvs mhs">
 						<label className="field">
-							{t('Hide Next Break Time')}
+							{t('Name')}
 							<EditAttribute
 								modifiedClassName="bghl"
-								attribute={`filters.${index}.hideNextBreak`}
+								attribute={`filters.${index}.name`}
 								obj={item}
-								type="checkbox"
+								type="text"
 								collection={RundownLayouts}
-								className="mod mas"
+								className="input text-input input-l"
 							/>
 						</label>
 					</div>
