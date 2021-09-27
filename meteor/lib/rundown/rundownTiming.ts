@@ -70,7 +70,14 @@ export class RundownTimingCalculator {
 	private displayDurationGroups: Record<string, number> = {}
 	private breakProps: {
 		props: BreakProps | undefined
-		state: string | undefined
+		state:
+			| {
+				expectedEnd: number | undefined
+				endOfRundownIsShowBreak: boolean | undefined
+				currentPartInstanceId: PartInstanceId | null
+				nextPartInstanceId: PartInstanceId | null
+			  }[]
+			| undefined
 	} = { props: undefined, state: undefined }
 
 	/**
@@ -120,7 +127,9 @@ export class RundownTimingCalculator {
 		let currentAIndex = -1
 
 		if (playlist) {
-			const breakProps = currentRundown ? this.getRundownsBeforeNextBreak(rundowns, currentRundown, playlist) : undefined
+			const breakProps = currentRundown
+				? this.getRundownsBeforeNextBreak(rundowns, currentRundown, playlist)
+				: undefined
 
 			if (breakProps) {
 				rundownsBeforeNextBreak = breakProps.rundownsBeforeNextBreak
@@ -485,13 +494,13 @@ export class RundownTimingCalculator {
 		currentRundown: Rundown | undefined,
 		playlist: RundownPlaylist
 	): BreakProps | undefined {
-		const currentState = JSON.stringify(orderedRundowns.map((r) => ({
+		const currentState = orderedRundowns.map((r) => ({
 			expectedEnd: PlaylistTiming.getExpectedEnd(r.timing),
 			endOfRundownIsShowBreak: r.endOfRundownIsShowBreak,
 			currentPartInstanceId: playlist.currentPartInstanceId,
 			nextPartInstanceId: playlist.nextPartInstanceId,
-		})))
-		if (this.breakProps.state !== currentState) {
+		}))
+		if (!_.isEqual(this.breakProps.state, currentState)) {
 			this.recalculateBreaks(orderedRundowns, currentRundown)
 		}
 
