@@ -39,6 +39,13 @@ interface BreakProps {
 	breakIsLastRundown
 }
 
+interface BreakPropsStateItem {
+	expectedEnd: number | undefined
+	endOfRundownIsShowBreak: boolean | undefined
+	currentPartInstanceId: PartInstanceId | null
+	nextPartInstanceId: PartInstanceId | null
+}
+
 /**
  * This is a class for calculating timings in a Rundown playlist used by RundownTimingProvider.
  *
@@ -71,12 +78,7 @@ export class RundownTimingCalculator {
 	private breakProps: {
 		props: BreakProps | undefined
 		state:
-			| {
-				expectedEnd: number | undefined
-				endOfRundownIsShowBreak: boolean | undefined
-				currentPartInstanceId: PartInstanceId | null
-				nextPartInstanceId: PartInstanceId | null
-			  }[]
+			| BreakPropsStateItem[]
 			| undefined
 	} = { props: undefined, state: undefined }
 
