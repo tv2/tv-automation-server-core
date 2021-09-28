@@ -39,6 +39,13 @@ interface BreakProps {
 	breakIsLastRundown
 }
 
+interface BreakPropsStateItem {
+	expectedEnd: number | undefined
+	endOfRundownIsShowBreak: boolean | undefined
+	currentPartInstanceId: PartInstanceId | null
+	nextPartInstanceId: PartInstanceId | null
+}
+
 /**
  * This is a class for calculating timings in a Rundown playlist used by RundownTimingProvider.
  *
@@ -70,7 +77,9 @@ export class RundownTimingCalculator {
 	private displayDurationGroups: Record<string, number> = {}
 	private breakProps: {
 		props: BreakProps | undefined
-		state: string | undefined
+		state:
+			| BreakPropsStateItem[]
+			| undefined
 	} = { props: undefined, state: undefined }
 
 	/**
@@ -120,7 +129,9 @@ export class RundownTimingCalculator {
 		let currentAIndex = -1
 
 		if (playlist) {
-			const breakProps = currentRundown ? this.getRundownsBeforeNextBreak(rundowns, currentRundown) : undefined
+			const breakProps = currentRundown
+				? this.getRundownsBeforeNextBreak(rundowns, currentRundown, playlist)
+				: undefined
 
 			if (breakProps) {
 				rundownsBeforeNextBreak = breakProps.rundownsBeforeNextBreak
@@ -482,10 +493,16 @@ export class RundownTimingCalculator {
 
 	private getRundownsBeforeNextBreak(
 		orderedRundowns: Rundown[],
-		currentRundown: Rundown | undefined
+		currentRundown: Rundown | undefined,
+		playlist: RundownPlaylist
 	): BreakProps | undefined {
-		const currentState = orderedRundowns.map((r) => r.endOfRundownIsShowBreak ?? '_').join('')
-		if (this.breakProps.state !== currentState) {
+		const currentState = orderedRundowns.map((r) => ({
+			expectedEnd: PlaylistTiming.getExpectedEnd(r.timing),
+			endOfRundownIsShowBreak: r.endOfRundownIsShowBreak,
+			currentPartInstanceId: playlist.currentPartInstanceId,
+			nextPartInstanceId: playlist.nextPartInstanceId,
+		}))
+		if (!_.isEqual(this.breakProps.state, currentState)) {
 			this.recalculateBreaks(orderedRundowns, currentRundown)
 		}
 

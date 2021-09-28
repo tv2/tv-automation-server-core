@@ -17,6 +17,7 @@ import {
 	CustomizableRegions,
 	RundownLayoutPlaylistStartTimer,
 	RundownLayoutPlaylistEndTimer,
+	RundownLayoutNextBreakTiming,
 	RundownLayoutEndWords,
 	RundownLayoutSegmentTiming,
 	RundownLayoutPartTiming,
@@ -200,6 +201,7 @@ export namespace RundownLayoutsAPI {
 			RundownLayoutElementType.PIECE_COUNTDOWN,
 			RundownLayoutElementType.PLAYLIST_START_TIMER,
 			RundownLayoutElementType.PLAYLIST_END_TIMER,
+			RundownLayoutElementType.NEXT_BREAK_TIMING,
 			RundownLayoutElementType.END_WORDS,
 			RundownLayoutElementType.SEGMENT_TIMING,
 			RundownLayoutElementType.PART_TIMING,
@@ -221,6 +223,7 @@ export namespace RundownLayoutsAPI {
 			RundownLayoutElementType.TEXT_LABEL,
 			RundownLayoutElementType.SEGMENT_TIMING,
 			RundownLayoutElementType.PLAYLIST_END_TIMER,
+			RundownLayoutElementType.NEXT_BREAK_TIMING,
 			RundownLayoutElementType.TIME_OF_DAY,
 			RundownLayoutElementType.PLAYLIST_NAME,
 			RundownLayoutElementType.STUDIO_NAME,
@@ -300,6 +303,10 @@ export namespace RundownLayoutsAPI {
 
 	export function isPlaylistEndTimer(element: RundownLayoutElementBase): element is RundownLayoutPlaylistEndTimer {
 		return element.type === RundownLayoutElementType.PLAYLIST_END_TIMER
+	}
+
+	export function isNextBreakTiming(element: RundownLayoutElementBase): element is RundownLayoutNextBreakTiming {
+		return element.type === RundownLayoutElementType.NEXT_BREAK_TIMING
 	}
 
 	export function isEndWords(element: RundownLayoutElementBase): element is RundownLayoutEndWords {
