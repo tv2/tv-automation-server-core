@@ -152,6 +152,22 @@ body.tv2 {
 			.segment-timeline__part .segment-timeline__part__nextline {
 				bottom: 0;
 			}
+
+			.segment-timeline__part {
+				.segment-timeline__output-group {
+					.segment-timeline__layer {
+						.segment-timeline__piece {
+							&.hide-overflow-labels {
+								.segment-timeline__piece__label {
+									&.overflow-label {
+										display: block;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
 		}
 
 		.segment-timeline__timeline-background {
