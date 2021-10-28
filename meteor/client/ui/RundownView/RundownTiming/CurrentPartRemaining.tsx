@@ -4,6 +4,7 @@ import { withTiming, WithTiming } from './withTiming'
 import { RundownUtils } from '../../../lib/rundown'
 import { PartInstanceId } from '../../../../lib/collections/PartInstances'
 import { SpeechSynthesiser } from '../../../lib/speechSynthesis'
+import { SyncedDiffTimecode } from '../../../lib/Moment'
 
 const SPEAK_ADVANCE = 500
 
@@ -36,7 +37,17 @@ export const CurrentPartRemaining = withTiming<IPartRemainingProps, {}>({
 						Math.floor((displayTimecode || 0) / 1000) > 0 ? this.props.heavyClassName : undefined
 					)}
 				>
-					{RundownUtils.formatDiffToTimecode(displayTimecode || 0, true, false, true, false, true, '', false, true)}
+					<SyncedDiffTimecode
+						diff={displayTimecode || 0}
+						showPlus={true}
+						showHours={false}
+						enDashAsMinus={true}
+						useSmartFloor={false}
+						useSmartHours={true}
+						minusPrefix={''}
+						floorTime={false}
+						hardFloor={true}
+					/>
 				</span>
 			)
 		}

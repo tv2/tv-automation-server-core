@@ -23,6 +23,7 @@ import { RundownUtils } from '../../../lib/rundown'
 import { FreezeFrameIcon } from '../../../lib/ui/icons/freezeFrame'
 import StudioContext from '../../RundownView/StudioContext'
 import { Studio } from '../../../../lib/collections/Studios'
+import { SyncedDiffTimecode } from '../../../lib/Moment'
 
 interface IProps extends ICustomLayerItemProps {
 	studio: Studio | undefined
@@ -488,7 +489,17 @@ export class VTSourceRendererBase extends CustomLayerItemRenderer<IProps & WithT
 						}}
 					>
 						<span className="segment-timeline__liveline__appendage--piece-countdown__content">
-							{RundownUtils.formatDiffToTimecode(counter || 0, false, false, true, false, true, '', false, false)}
+							<SyncedDiffTimecode
+								diff={counter || 0}
+								showPlus={false}
+								showHours={false}
+								enDashAsMinus={true}
+								useSmartFloor={false}
+								useSmartHours={true}
+								minusPrefix={''}
+								floorTime={false}
+								hardFloor={false}
+							/>
 						</span>
 						<FreezeFrameIcon className="segment-timeline__liveline__appendage--piece-countdown__icon" />
 					</div>

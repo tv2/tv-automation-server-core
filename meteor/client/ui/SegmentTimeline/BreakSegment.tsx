@@ -3,6 +3,7 @@ import { withTranslation } from 'react-i18next'
 import Moment from 'react-moment'
 import { getCurrentTime } from '../../../lib/lib'
 import { MeteorReactComponent } from '../../lib/MeteorReactComponent'
+import { SyncedDiffTimecode, SyncedMoment } from '../../lib/Moment'
 import { Translated } from '../../lib/ReactMeteorData/ReactMeteorData'
 import { RundownUtils } from '../../lib/rundown'
 import { RundownTiming } from '../RundownView/RundownTiming/RundownTiming'
@@ -47,7 +48,8 @@ class BreakSegmentInner extends MeteorReactComponent<Translated<IProps>, IState>
 			<div className="segment-timeline has-break">
 				<div className="segment-timeline__title">
 					<h2 className="segment-timeline__title__label">
-						{this.props.breakTime && <Moment interval={0} format="HH:mm:ss" date={this.props.breakTime} />}&nbsp;
+						{this.props.breakTime && <SyncedMoment interval={0} format="HH:mm:ss" lockedDate={this.props.breakTime} />}
+						&nbsp;
 						{t('BREAK')}
 					</h2>
 				</div>
@@ -55,14 +57,7 @@ class BreakSegmentInner extends MeteorReactComponent<Translated<IProps>, IState>
 					<div className="segment-timeline__timeUntil">
 						<span className="segment-timeline__timeUntil__label">{t('Break In')}</span>
 						<span>
-							{RundownUtils.formatDiffToTimecode(
-								this.state.displayTimecode,
-								false,
-								undefined,
-								undefined,
-								undefined,
-								true
-							)}
+							<SyncedDiffTimecode diff={this.state.displayTimecode} showPlus={false} useSmartHours={true} />
 						</span>
 					</div>
 				)}

@@ -4,6 +4,7 @@ import { withTiming, WithTiming } from './withTiming'
 import { RundownUtils } from '../../../lib/rundown'
 import { PartId } from '../../../../lib/collections/Parts'
 import { unprotectString } from '../../../../lib/lib'
+import { SyncedDiffTimecode } from '../../../lib/Moment'
 
 interface IPartElapsedProps {
 	currentPartId: PartId | undefined
@@ -27,7 +28,17 @@ export const CurrentPartElapsed = withTiming<IPartElapsedProps, {}>({
 
 			return (
 				<span className={ClassNames(this.props.className)}>
-					{RundownUtils.formatDiffToTimecode(displayTimecode || 0, true, false, true, false, true, '', false, true)}
+					<SyncedDiffTimecode
+						diff={displayTimecode || 0}
+						showPlus={true}
+						showHours={false}
+						enDashAsMinus={true}
+						useSmartFloor={false}
+						useSmartHours={true}
+						minusPrefix={''}
+						floorTime={false}
+						hardFloor={true}
+					/>
 				</span>
 			)
 		}

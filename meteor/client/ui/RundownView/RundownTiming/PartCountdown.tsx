@@ -1,11 +1,11 @@
 import React, { ReactNode } from 'react'
-import Moment from 'react-moment'
 import { PartId } from '../../../../lib/collections/Parts'
 import { withTiming, WithTiming } from './withTiming'
 import { unprotectString } from '../../../../lib/lib'
 import { RundownUtils } from '../../../lib/rundown'
 import { RundownPlaylist } from '../../../../lib/collections/RundownPlaylists'
 import { PlaylistTiming } from '../../../../lib/rundown/rundownTiming'
+import { SyncedMoment } from '../../../lib/Moment'
 
 interface IPartCountdownProps {
 	partId?: PartId
@@ -33,10 +33,10 @@ export const PartCountdown = withTiming<IPartCountdownProps, {}>()(function Part
 			{props.label}
 			<span>
 				{props.useWallClock ? (
-					<Moment
+					<SyncedMoment
 						interval={0}
 						format="HH:mm:ss"
-						date={
+						lockedDate={
 							(props.playlist.activationId
 								? // if show is activated, use currentTime as base
 								  props.timingDurations.currentTime ?? 0

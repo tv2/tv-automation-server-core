@@ -9,6 +9,7 @@ import { PieceNameContainer } from '../PieceIcons/PieceName'
 import { Timediff } from './Timediff'
 import { getPresenterScreenReactive, PresenterScreenBase, RundownOverviewTrackedProps } from './PresenterScreen'
 import { StudioId } from '../../../lib/collections/Studios'
+import { SyncedMoment } from '../../lib/Moment'
 
 interface TimeMap {
 	[key: string]: number
@@ -97,7 +98,7 @@ export const OverlayScreen = withTranslation()(
 										)}
 									</div>
 									<span className="clocks-time-now">
-										<Moment interval={0} format="HH:mm:ss" date={currentTime} />
+										<SyncedMoment interval={0} format="HH:mm:ss" lockedDate={currentTime} />
 									</span>
 								</div>
 							</div>

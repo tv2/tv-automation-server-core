@@ -1,12 +1,12 @@
 import * as React from 'react'
 import { Rundown } from '../../../lib/collections/Rundowns'
 import { Translated } from '../../lib/ReactMeteorData/ReactMeteorData'
-import Moment from 'react-moment'
 import { withTiming, WithTiming } from './RundownTiming/withTiming'
 import { RundownUtils } from '../../lib/rundown'
 import { withTranslation } from 'react-i18next'
 import { RundownPlaylist } from '../../../lib/collections/RundownPlaylists'
 import { PlaylistTiming } from '../../../lib/rundown/rundownTiming'
+import { SyncedDiffTimecode, SyncedMoment } from '../../lib/Moment'
 
 interface IProps {
 	rundown: Rundown
@@ -78,14 +78,13 @@ export const RundownDividerHeader = withTranslation()(function RundownDividerHea
 			{expectedStart ? (
 				<div className="rundown-divider-timeline__expected-start">
 					<span>{t('Planned Start')}</span>&nbsp;
-					<Moment
+					<SyncedMoment
 						interval={1000}
 						calendar={{
 							sameElse: 'lll',
 						}}
-					>
-						{expectedStart}
-					</Moment>
+						lockedDate={expectedStart}
+					/>
 					&nbsp;
 					<MarkerCountdownText
 						className="rundown-divider-timeline__expected-start__countdown"
@@ -96,20 +95,26 @@ export const RundownDividerHeader = withTranslation()(function RundownDividerHea
 			{expectedDuration ? (
 				<div className="rundown-divider-timeline__expected-duration">
 					<span>{t('Planned Duration')}</span>&nbsp;
-					{RundownUtils.formatDiffToTimecode(expectedDuration, false, true, true, false, true)}
+					<SyncedDiffTimecode
+						diff={expectedDuration}
+						showPlus={false}
+						showHours={true}
+						enDashAsMinus={true}
+						useSmartFloor={false}
+						useSmartHours={true}
+					/>
 				</div>
 			) : null}
 			{expectedEnd ? (
 				<div className="rundown-divider-timeline__expected-end">
 					<span>{t('Planned End')}</span>&nbsp;
-					<Moment
+					<SyncedMoment
 						interval={1000}
 						calendar={{
 							sameElse: 'lll',
 						}}
-					>
-						{expectedEnd}
-					</Moment>
+						lockedDate={expectedEnd}
+					/>
 					&nbsp;
 					<MarkerCountdownText
 						className="rundown-divider-timeline__expected-end__countdown"

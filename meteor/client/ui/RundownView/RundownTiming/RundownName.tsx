@@ -9,6 +9,7 @@ import { Rundown } from '../../../../lib/collections/Rundowns'
 import { RundownUtils } from '../../../lib/rundown'
 import { getCurrentTime } from '../../../../lib/lib'
 import { PlaylistTiming } from '../../../../lib/rundown/rundownTiming'
+import { SyncedDiffTimecode } from '../../../lib/Moment'
 
 interface IRundownNameProps {
 	rundownPlaylist: RundownPlaylist
@@ -74,17 +75,26 @@ export const RundownName = withTranslation()(
 						rundownPlaylist.startedPlayback &&
 						rundownPlaylist.activationId &&
 						!rundownPlaylist.rehearsal
-							? expectedStart &&
-							  RundownUtils.formatDiffToTimecode(
-									rundownPlaylist.startedPlayback - expectedStart,
-									true,
-									false,
-									true,
-									true,
-									true
+							? expectedStart && (
+									<SyncedDiffTimecode
+										diff={rundownPlaylist.startedPlayback - expectedStart}
+										showPlus={true}
+										showHours={false}
+										enDashAsMinus={true}
+										useSmartFloor={true}
+										useSmartHours={true}
+									/>
 							  )
-							: expectedStart &&
-							  RundownUtils.formatDiffToTimecode(getCurrentTime() - expectedStart, true, false, true, true, true)}
+							: expectedStart && (
+									<SyncedDiffTimecode
+										diff={getCurrentTime() - expectedStart}
+										showPlus={true}
+										showHours={false}
+										enDashAsMinus={true}
+										useSmartFloor={true}
+										useSmartHours={true}
+									/>
+							  )}
 					</span>
 				)
 			}

@@ -16,6 +16,7 @@ import { RundownPlaylist } from '../../../lib/collections/RundownPlaylists'
 import { PieceInstance } from '../../../lib/collections/PieceInstances'
 import { VTContent } from '@sofie-automation/blueprints-integration'
 import { getUnfinishedPieceInstancesReactive } from '../../lib/rundownLayouts'
+import { SyncedDiffTimecode } from '../../lib/Moment'
 interface IPieceCountdownPanelProps {
 	visible?: boolean
 	layout: RundownLayoutBase
@@ -91,17 +92,17 @@ export class PieceCountdownPanelInner extends MeteorReactComponent<
 							: undefined,
 					}}
 				>
-					{RundownUtils.formatDiffToTimecode(
-						this.state.displayTimecode || 0,
-						true,
-						false,
-						true,
-						false,
-						true,
-						'',
-						false,
-						true
-					)}
+					<SyncedDiffTimecode
+						diff={this.state.displayTimecode || 0}
+						showPlus={true}
+						showHours={false}
+						enDashAsMinus={true}
+						useSmartFloor={false}
+						useSmartHours={true}
+						minusPrefix={''}
+						floorTime={false}
+						hardFloor={true}
+					/>
 				</span>
 			</div>
 		)

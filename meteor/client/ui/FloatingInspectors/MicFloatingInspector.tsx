@@ -5,6 +5,7 @@ import Moment from 'react-moment'
 import { FloatingInspector } from '../FloatingInspector'
 import { ScriptContent } from '@sofie-automation/blueprints-integration'
 import { GetScriptPreview } from '../scriptPreview'
+import { SyncedMoment } from '../../lib/Moment'
 
 interface IProps {
 	typeClass?: string
@@ -47,7 +48,7 @@ export function MicFloatingInspector(props: IProps) {
 				{props.content && props.content.lastModified ? (
 					<div className="mini-inspector__footer">
 						<span className="mini-inspector__changed">
-							<Moment date={props.content.lastModified} calendar={true} />
+							<SyncedMoment lockedDate={props.content.lastModified} calendar={true} />
 						</span>
 					</div>
 				) : null}

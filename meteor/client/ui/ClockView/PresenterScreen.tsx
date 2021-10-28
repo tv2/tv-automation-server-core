@@ -33,6 +33,7 @@ import {
 import { ShelfDashboardLayout } from '../Shelf/ShelfDashboardLayout'
 import { ShowStyleVariant, ShowStyleVariantId, ShowStyleVariants } from '../../../lib/collections/ShowStyleVariants'
 import { Studio, StudioId, Studios } from '../../../lib/collections/Studios'
+import { SyncedDiffTimecode } from '../../lib/Moment'
 
 interface SegmentUi extends DBSegment {
 	items: Array<PartUi>
@@ -542,7 +543,15 @@ export class PresenterScreenBase extends MeteorReactComponent<
 								over: Math.floor(overUnderClock / 1000) >= 0,
 							})}
 						>
-							{RundownUtils.formatDiffToTimecode(overUnderClock, true, false, true, true, true, undefined, true)}
+							<SyncedDiffTimecode
+								diff={overUnderClock}
+								showPlus={true}
+								showHours={false}
+								enDashAsMinus={true}
+								useSmartFloor={true}
+								useSmartHours={true}
+								floorTime={true}
+							/>
 						</div>
 					</div>
 				</div>

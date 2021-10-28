@@ -8,6 +8,7 @@ import { withTiming, WithTiming } from './withTiming'
 import ClassNames from 'classnames'
 import { RundownPlaylist } from '../../../../lib/collections/RundownPlaylists'
 import { PlaylistTiming } from '../../../../lib/rundown/rundownTiming'
+import { SyncedDiffTimecode, SyncedMoment } from '../../../lib/Moment'
 
 interface IEndTimingProps {
 	rundownPlaylist: RundownPlaylist
@@ -55,14 +56,14 @@ export const PlaylistEndTiming = withTranslation()(
 										{!this.props.hidePlannedEndLabel && (
 											<span className="timing-clock-label right">{this.props.endLabel ?? t('Planned End')}</span>
 										)}
-										<Moment interval={0} format="HH:mm:ss" date={expectedEnd} />
+										<SyncedMoment interval={0} format="HH:mm:ss" lockedDate={expectedEnd} />
 									</span>
 								) : (
 									<span className="timing-clock plan-end right visual-last-child">
 										{!this.props.hidePlannedEndLabel && (
 											<span className="timing-clock-label right">{this.props.endLabel ?? t('Expected End')}</span>
 										)}
-										<Moment interval={0} format="HH:mm:ss" date={expectedEnd} />
+										<SyncedMoment interval={0} format="HH:mm:ss" lockedDate={expectedEnd} />
 									</span>
 								)
 							) : this.props.timingDurations ? (
@@ -74,10 +75,10 @@ export const PlaylistEndTiming = withTranslation()(
 											{!this.props.hidePlannedEndLabel && (
 												<span className="timing-clock-label right">{t('Next Loop at')}</span>
 											)}
-											<Moment
+											<SyncedMoment
 												interval={0}
 												format="HH:mm:ss"
-												date={
+												lockedDate={
 													now +
 													(this.props.timingDurations.partCountdown[
 														Object.keys(this.props.timingDurations.partCountdown)[0]
@@ -91,10 +92,10 @@ export const PlaylistEndTiming = withTranslation()(
 										{!this.props.hidePlannedEndLabel && (
 											<span className="timing-clock-label right">{this.props.endLabel ?? t('Expected End')}</span>
 										)}
-										<Moment
+										<SyncedMoment
 											interval={0}
 											format="HH:mm:ss"
-											date={(expectedStart || now) + (this.props.timingDurations.remainingPlaylistDuration || 0)}
+											lockedDate={(expectedStart || now) + (this.props.timingDurations.remainingPlaylistDuration || 0)}
 										/>
 									</span>
 								)
@@ -104,16 +105,16 @@ export const PlaylistEndTiming = withTranslation()(
 							!this.props.hideCountdown &&
 							(expectedEnd ? (
 								<span className="timing-clock countdown plan-end right">
-									{RundownUtils.formatDiffToTimecode(now - expectedEnd, true, true, true)}
+									<SyncedDiffTimecode diff={now - expectedEnd} showPlus={true} showHours={true} enDashAsMinus={true} />
 								</span>
 							) : expectedStart && expectedDuration ? (
 								<span className="timing-clock countdown plan-end right">
-									{RundownUtils.formatDiffToTimecode(
-										getCurrentTime() - (expectedStart + expectedDuration),
-										true,
-										true,
-										true
-									)}
+									<SyncedDiffTimecode
+										diff={getCurrentTime() - (expectedStart + expectedDuration)}
+										showPlus={true}
+										showHours={true}
+										enDashAsMinus={true}
+									/>
 								</span>
 							) : null)}
 						{!this.props.hideDiff ? (
@@ -125,7 +126,15 @@ export const PlaylistEndTiming = withTranslation()(
 									})}
 								>
 									{!this.props.hideDiffLabel && <span className="timing-clock-label right">{t('Diff')}</span>}
-									{RundownUtils.formatDiffToTimecode(diff, true, false, true, true, true, undefined, true)}
+									<SyncedDiffTimecode
+										diff={diff}
+										showPlus={true}
+										showHours={false}
+										enDashAsMinus={true}
+										useSmartFloor={true}
+										useSmartHours={true}
+										floorTime={true}
+									/>
 								</span>
 							) : null
 						) : null}

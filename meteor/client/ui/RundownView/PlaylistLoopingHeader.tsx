@@ -6,6 +6,7 @@ import Moment from 'react-moment'
 import { LoopingIcon } from '../../lib/ui/icons/looping'
 import { WithTiming, withTiming } from './RundownTiming/withTiming'
 import { RundownUtils } from '../../lib/rundown'
+import { SyncedMoment } from '../../lib/Moment'
 
 const NextLoopClock = withTiming<{ useWallClock?: boolean }, {}>()(
 	class NextLoopClock extends React.Component<
@@ -24,10 +25,10 @@ const NextLoopClock = withTiming<{ useWallClock?: boolean }, {}>()(
 			return (
 				<span>
 					{useWallClock ? (
-						<Moment
+						<SyncedMoment
 							interval={0}
 							format="HH:mm:ss"
-							date={(timingDurations.currentTime || 0) + (thisPartCountdown || 0)}
+							lockedDate={(timingDurations.currentTime || 0) + (thisPartCountdown || 0)}
 						/>
 					) : (
 						RundownUtils.formatTimeToShortTime(

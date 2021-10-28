@@ -11,6 +11,7 @@ import { NoraFloatingInspector } from './NoraFloatingInspector'
 import { FloatingInspector } from '../FloatingInspector'
 import { Time } from '../../../lib/lib'
 import { PieceInstancePiece } from '../../../lib/collections/PieceInstances'
+import { SyncedMoment } from '../../lib/Moment'
 
 interface IProps {
 	piece: PieceInstancePiece
@@ -137,7 +138,7 @@ export const L3rdFloatingInspector: React.FunctionComponent<IProps> = ({
 								)}
 								{changed && (
 									<span className="mini-inspector__changed">
-										<Moment date={changed} calendar={true} />
+										<SyncedMoment lockedDate={changed} calendar={true} />
 									</span>
 								)}
 							</td>

@@ -7,6 +7,7 @@ import { faCut } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { PieceLifespan, VTContent } from '@sofie-automation/blueprints-integration'
 import { OffsetPosition } from '../../../utils/positions'
+import { SyncedDiffTimecode } from '../../../lib/Moment'
 
 export type SourceDurationLabelAlignment = 'left' | 'right'
 
@@ -129,7 +130,7 @@ export class CustomLayerItemRenderer<
 		) {
 			return (
 				<div className="segment-timeline__piece__label label-overflow-time">
-					{RundownUtils.formatDiffToTimecode(overflowTime, true, false, true)}
+					<SyncedDiffTimecode diff={overflowTime} showPlus={true} showHours={false} enDashAsMinus={true} />
 				</div>
 			)
 		}

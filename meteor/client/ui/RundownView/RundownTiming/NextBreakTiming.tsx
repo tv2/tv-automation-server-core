@@ -6,6 +6,7 @@ import { Translated } from '../../../lib/ReactMeteorData/ReactMeteorData'
 import { WithTiming, withTiming } from './withTiming'
 import ClassNames from 'classnames'
 import { PlaylistTiming } from '../../../../lib/rundown/rundownTiming'
+import { SyncedMoment } from '../../../lib/Moment'
 
 interface INextBreakTimingProps {
 	loop?: boolean
@@ -34,7 +35,7 @@ export const NextBreakTiming = withTranslation()(
 					<React.Fragment>
 						<span className={ClassNames('timing-clock plan-end right', { 'visual-last-child': this.props.lastChild })}>
 							<span className="timing-clock-label right">{t(this.props.breakText || 'Next Break')}</span>
-							<Moment interval={0} format="HH:mm:ss" date={expectedEnd} />
+							<SyncedMoment interval={0} format="HH:mm:ss" lockedDate={expectedEnd} />
 						</span>
 					</React.Fragment>
 				)

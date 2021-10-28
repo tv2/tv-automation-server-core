@@ -6,6 +6,7 @@ import { unprotectString } from '../../../../lib/lib'
 import { RundownUtils } from '../../../lib/rundown'
 import { PartUi, SegmentUi } from '../SegmentTimelineContainer'
 import { SegmentTimelinePart } from '../SegmentTimelinePart'
+import { SyncedDiffTimecode } from '../../../lib/Moment'
 
 export const SegmentTimelinePartHoverPreview = ({
 	t,
@@ -69,7 +70,14 @@ export const SegmentTimelinePartHoverPreview = ({
 		>
 			<div className="segment-timeline__mini-inspector--small-parts__duration">
 				<span className="segment-timeline__mini-inspector--small-parts__duration__label">{t('Parts Duration')}</span>
-				{RundownUtils.formatDiffToTimecode(totalSegmentDuration, false, false, true, false, true)}
+				<SyncedDiffTimecode
+					diff={totalSegmentDuration}
+					showPlus={false}
+					showHours={false}
+					enDashAsMinus={true}
+					useSmartFloor={false}
+					useSmartHours={true}
+				/>
 			</div>
 			<div className="segment-timeline__mini-inspector__mini-timeline">
 				{parts.map((part, index) => {

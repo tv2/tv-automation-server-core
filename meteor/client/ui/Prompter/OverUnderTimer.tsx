@@ -5,6 +5,7 @@ import { RundownUtils } from '../../lib/rundown'
 import ClassNames from 'classnames'
 import { getCurrentTime } from '../../../lib/lib'
 import { PlaylistTiming } from '../../../lib/rundown/rundownTiming'
+import { SyncedDiffTimecode } from '../../lib/Moment'
 
 interface IProps {
 	rundownPlaylist: RundownPlaylist
@@ -32,16 +33,15 @@ export const OverUnderTimer = withTiming<IProps, {}>()(
 						light: (this.props.timingDurations.totalPlaylistDuration || 0) > target,
 					})}
 				>
-					{RundownUtils.formatDiffToTimecode(
-						(this.props.timingDurations.totalPlaylistDuration || 0) - target,
-						true,
-						false,
-						true,
-						true,
-						true,
-						undefined,
-						true
-					)}
+					<SyncedDiffTimecode
+						diff={(this.props.timingDurations.totalPlaylistDuration || 0) - target}
+						showPlus={true}
+						showHours={false}
+						enDashAsMinus={true}
+						useSmartFloor={true}
+						useSmartHours={true}
+						floorTime={true}
+					/>
 				</span>
 			) : null
 		}

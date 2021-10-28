@@ -41,6 +41,7 @@ import { doUserAction, UserAction } from '../../lib/userAction'
 import { RundownViewLayoutSelection } from './RundownViewLayoutSelection'
 import { RundownLayoutsAPI } from '../../../lib/api/rundownLayouts'
 import { PlaylistTiming } from '../../../lib/rundown/rundownTiming'
+import { SyncedDiffTimecode } from '../../lib/Moment'
 
 export interface RundownPlaylistUi extends RundownPlaylist {
 	rundowns: Rundown[]
@@ -310,7 +311,14 @@ export const RundownPlaylistUi = DropTarget(
 							</span>
 						</Tooltip>
 					) : (
-						RundownUtils.formatDiffToTimecode(playlistExpectedDuration, false, true, true, false, true)
+						<SyncedDiffTimecode
+							diff={playlistExpectedDuration}
+							showPlus={false}
+							showHours={true}
+							enDashAsMinus={true}
+							useSmartFloor={false}
+							useSmartHours={true}
+						/>
 					))
 
 				const classNames = ClassNames(['rundown-playlist', { droptarget: isActiveDropZone }])

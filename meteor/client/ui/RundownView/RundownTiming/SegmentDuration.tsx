@@ -5,6 +5,7 @@ import { getCurrentTime, unprotectString } from '../../../../lib/lib'
 import { RundownUtils } from '../../../lib/rundown'
 import { PartUi } from '../../SegmentTimeline/SegmentTimelineContainer'
 import { SegmentId } from '../../../../lib/collections/Segments'
+import { SyncedDiffTimecode } from '../../../lib/Moment'
 
 interface ISegmentDurationProps {
 	segmentId: SegmentId
@@ -61,15 +62,39 @@ export const SegmentDuration = withTiming<ISegmentDurationProps, {}>()(function 
 				{props.label}
 				{props.fixed ? (
 					<span className={ClassNames(props.className)}>
-						{RundownUtils.formatDiffToTimecode(budget, false, false, true, false, true, '+')}
+						<SyncedDiffTimecode
+							diff={budget}
+							showPlus={false}
+							showHours={false}
+							enDashAsMinus={true}
+							useSmartFloor={false}
+							useSmartHours={true}
+							minusPrefix={'+'}
+						/>
 					</span>
 				) : props.countUp ? (
 					<span className={ClassNames(props.className)}>
-						{RundownUtils.formatDiffToTimecode(playedOut, false, false, true, false, true, '+')}
+						<SyncedDiffTimecode
+							diff={playedOut}
+							showPlus={false}
+							showHours={false}
+							enDashAsMinus={true}
+							useSmartFloor={false}
+							useSmartHours={true}
+							minusPrefix={'+'}
+						/>
 					</span>
 				) : (
 					<span className={ClassNames(props.className, duration < 0 ? 'negative' : undefined)}>
-						{RundownUtils.formatDiffToTimecode(duration, false, false, true, false, true, '+')}
+						<SyncedDiffTimecode
+							diff={duration}
+							showPlus={false}
+							showHours={false}
+							enDashAsMinus={true}
+							useSmartFloor={false}
+							useSmartHours={true}
+							minusPrefix={'+'}
+						/>
 					</span>
 				)}
 			</>

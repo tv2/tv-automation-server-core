@@ -13,6 +13,7 @@ import { RundownUtils } from '../../lib/rundown'
 import { RundownPlaylists, RundownPlaylist, RundownPlaylistId } from '../../../lib/collections/RundownPlaylists'
 import { findPartInstanceOrWrapToTemporary } from '../../../lib/collections/PartInstances'
 import { PlaylistTiming } from '../../../lib/rundown/rundownTiming'
+import { SyncedDiffTimecode } from '../../lib/Moment'
 
 interface SegmentUi extends DBSegment {
 	items: Array<PartUi>
@@ -200,7 +201,14 @@ export const RundownOverview = withTracker<RundownOverviewProps, RundownOverview
 									{segment.name}
 									{segmentDuration && _.isNumber(segmentDuration) && (
 										<span className="rundown__overview__segment__part__label__duration">
-											{RundownUtils.formatDiffToTimecode(segmentDuration, false, false, false, false, true)}
+											<SyncedDiffTimecode
+												diff={segmentDuration}
+												showPlus={false}
+												showHours={false}
+												enDashAsMinus={false}
+												useSmartFloor={false}
+												useSmartHours={true}
+											/>
 										</span>
 									)}
 								</div>

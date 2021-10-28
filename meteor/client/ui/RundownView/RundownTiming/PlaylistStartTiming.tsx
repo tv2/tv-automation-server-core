@@ -1,13 +1,12 @@
 import React from 'react'
 import { WithTranslation, withTranslation } from 'react-i18next'
-import Moment from 'react-moment'
 import { Translated } from '../../../lib/ReactMeteorData/ReactMeteorData'
 import { withTiming, WithTiming } from './withTiming'
 import { RundownPlaylist } from '../../../../lib/collections/RundownPlaylists'
-import { RundownUtils } from '../../../lib/rundown'
 import { getCurrentTime } from '../../../../lib/lib'
 import ClassNames from 'classnames'
 import { PlaylistTiming } from '../../../../lib/rundown/rundownTiming'
+import { SyncedDiffTimecode, SyncedMoment } from '../../../lib/Moment'
 
 interface IEndTimingProps {
 	rundownPlaylist: RundownPlaylist
@@ -36,17 +35,21 @@ export const PlaylistStartTiming = withTranslation()(
 							(rundownPlaylist.startedPlayback && rundownPlaylist.activationId && !rundownPlaylist.rehearsal ? (
 								<span className="timing-clock plan-start left">
 									<span className="timing-clock-label left">{t('Started')}</span>
-									<Moment interval={0} format="HH:mm:ss" date={rundownPlaylist.startedPlayback} />
+									<SyncedMoment interval={0} format="HH:mm:ss" lockedDate={rundownPlaylist.startedPlayback} />
 								</span>
 							) : playlistExpectedStart ? (
 								<span className="timing-clock plan-start left">
 									<span className="timing-clock-label left">{this.props.plannedStartText || t('Planned Start')}</span>
-									<Moment interval={0} format="HH:mm:ss" date={playlistExpectedStart} />
+									<SyncedMoment interval={0} format="HH:mm:ss" lockedDate={playlistExpectedStart} />
 								</span>
 							) : playlistExpectedEnd && playlistExpectedDuration ? (
 								<span className="timing-clock plan-start left">
 									<span className="timing-clock-label left">{this.props.plannedStartText || t('Expected Start')}</span>
-									<Moment interval={0} format="HH:mm:ss" date={playlistExpectedEnd - playlistExpectedDuration} />
+									<SyncedMoment
+										interval={0}
+										format="HH:mm:ss"
+										lockedDate={playlistExpectedEnd - playlistExpectedDuration}
+									/>
 								</span>
 							) : null)}
 						{!this.props.hideDiff && expectedStart && (
@@ -57,16 +60,25 @@ export const PlaylistStartTiming = withTranslation()(
 								})}
 							>
 								<span className="timing-clock-label">{t('Diff')}</span>
-								{rundownPlaylist.startedPlayback
-									? RundownUtils.formatDiffToTimecode(
-											rundownPlaylist.startedPlayback - expectedStart,
-											true,
-											false,
-											true,
-											true,
-											true
-									  )
-									: RundownUtils.formatDiffToTimecode(getCurrentTime() - expectedStart, true, false, true, true, true)}
+								{rundownPlaylist.startedPlayback ? (
+									<SyncedDiffTimecode
+										diff={rundownPlaylist.startedPlayback - expectedStart}
+										showPlus={true}
+										showHours={false}
+										enDashAsMinus={true}
+										useSmartFloor={true}
+										useSmartHours={true}
+									/>
+								) : (
+									<SyncedDiffTimecode
+										diff={getCurrentTime() - expectedStart}
+										showPlus={true}
+										showHours={false}
+										enDashAsMinus={true}
+										useSmartFloor={true}
+										useSmartHours={true}
+									/>
+								)}
 							</span>
 						)}
 					</React.Fragment>

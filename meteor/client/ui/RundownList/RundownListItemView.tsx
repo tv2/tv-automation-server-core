@@ -14,6 +14,7 @@ import { RundownViewLayoutSelection } from './RundownViewLayoutSelection'
 import { RundownLayoutBase } from '../../../lib/collections/RundownLayouts'
 import { RundownLayoutsAPI } from '../../../lib/api/rundownLayouts'
 import { PlaylistTiming } from '../../../lib/rundown/rundownTiming'
+import { SyncedDiffTimecode } from '../../lib/Moment'
 
 interface IRundownListItemViewProps {
 	isActive: boolean
@@ -133,7 +134,14 @@ export default withTranslation()(function RundownListItemView(props: Translated<
 							</span>
 						</Tooltip>
 					) : (
-						RundownUtils.formatDiffToTimecode(expectedDuration, false, true, true, false, true)
+						<SyncedDiffTimecode
+							diff={expectedDuration}
+							showPlus={false}
+							showHours={true}
+							enDashAsMinus={true}
+							useSmartFloor={false}
+							useSmartHours={true}
+						/>
 					)
 				) : isOnlyRundownInPlaylist && playlist.loop ? (
 					<Tooltip overlay={t('This rundown will loop indefinitely')} placement="top">
