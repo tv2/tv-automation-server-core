@@ -8,7 +8,7 @@ import { RundownUtils } from './rundown'
 import _ from 'underscore'
 import { RundownTiming } from '../ui/RundownView/RundownTiming/RundownTiming'
 
-const MAX_TIME_WITHOUT_UPDATE = 1000
+const MAX_TIME_WITHOUT_UPDATE = 2000
 
 /**
  * Use instead of <Moment fromNow></Moment>, its result is synced with getCurrentTime()
