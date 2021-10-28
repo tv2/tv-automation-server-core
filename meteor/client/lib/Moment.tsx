@@ -18,30 +18,46 @@ export const MomentFromNow = timer(60000)(function MomentFromNow(args: MomentPro
 	return <Moment {...args} from={moment(getCurrentTime())} interval={0}></Moment>
 })
 
-type SyncedTimeReadyFunction = () => boolean
+type SyncedTimeIsReadyFunction = () => boolean
 type SyncedTimeUpdateFunction = () => void
 class SyncedTimeDisplays {
-	displays: Map<string, { ready: SyncedTimeReadyFunction; update: SyncedTimeUpdateFunction }> = new Map()
+	displays: Map<string, { isReady: SyncedTimeIsReadyFunction; update: SyncedTimeUpdateFunction }> = new Map()
 	lastUpdated: number = 0
 
 	constructor() {
-		window.addEventListener(RundownTiming.Events.timeupdate, () => this.updateMoments())
+		window.addEventListener(RundownTiming.Events.timeupdate, () => this.updateTimers())
 	}
 
-	addMoment(readyFunc: SyncedTimeReadyFunction, updateFunc: SyncedTimeUpdateFunction): string {
+	/**
+	 * Adds a synced time display. Should be called when the component is mounted or otherwise ready to recieve state.
+	 * @param isReadyFunc Called to check whether the timer is ready to switch to the next value, should return true if the timer is ready.
+	 * @param updateFunc Called to update the timer, when called the timer should switch to the next value.
+	 * @returns A unique id that should be stored on the timer element to refer back to later.
+	 */
+	addDisplay(isReadyFunc: SyncedTimeIsReadyFunction, updateFunc: SyncedTimeUpdateFunction): string {
 		let id = uniqueId('synced_moment')
-		this.displays.set(id, { ready: readyFunc, update: updateFunc })
+		this.displays.set(id, { isReady: isReadyFunc, update: updateFunc })
 		return id
 	}
-	removeMoment(id: string): void {
+
+	/**
+	 * Expected to be called when a timer is unmounter / no longer alive.
+	 * After this call the component will no longer recieve update calls and will appear frozen.
+	 * @param id The id the component was assigned by `addDisplay`
+	 */
+	removeDisplay(id: string): void {
 		this.displays.delete(id)
 	}
 
-	updateMoments() {
+	/**
+	 * Checks whether timers should be updated and issues update calls.
+	 */
+	private updateTimers() {
 		let timeSinceLastUpdate = Date.now() - this.lastUpdated
 		if (
 			timeSinceLastUpdate >= MAX_TIME_WITHOUT_UPDATE ||
-			Array.from(this.displays.values()).every((display) => display.ready())
+			// Iterate over every display and check if it's ready
+			Array.from(this.displays.values()).every((display) => display.isReady())
 		) {
 			this.lastUpdated = Date.now()
 			for (const display of this.displays.values()) {
@@ -53,9 +69,9 @@ class SyncedTimeDisplays {
 const syncedTimeDisplays = new SyncedTimeDisplays()
 
 /**
- * Rounds time to the nearest second
- * @param time Time in ms
- * @returns Time value rounded down to nearest second
+ * Rounds time to the nearest second.
+ * @param time Time in ms.
+ * @returns Time value rounded down to nearest second.
  */
 function toNearestSecond(time: number): number {
 	return (time / 1000) * 1000
@@ -78,7 +94,7 @@ export class SyncedMoment extends React.Component<SyncedMomentProps & MomentProp
 	}
 
 	componentDidMount() {
-		let id = syncedTimeDisplays.addMoment(
+		let id = syncedTimeDisplays.addDisplay(
 			() => this.hasNextState(),
 			() => this.updateMoment()
 		)
@@ -87,27 +103,30 @@ export class SyncedMoment extends React.Component<SyncedMomentProps & MomentProp
 
 	componentWillUnmount() {
 		if (this.state.id) {
-			syncedTimeDisplays.removeMoment(this.state.id)
+			syncedTimeDisplays.removeDisplay(this.state.id)
 		}
 	}
 
 	hasNextState(): boolean {
+		// Already got the next state prepared.
 		if (this.state.nextDate !== undefined && this.state.nextDate !== this.state.date) {
 			return true
 		}
 
-		const now = toNearestSecond(Date.now())
-		if (this.props.lockedDate === undefined && this.state.date !== now) {
-			this.setState({ nextDate: now })
+		// This is the base state.
+		if (this.state.nextDate === undefined && this.props.lockedDate !== undefined) {
+			this.setState({ nextDate: this.props.lockedDate })
 			return true
 		}
 
+		// Props differ.
 		if (this.state.date !== this.props.lockedDate) {
 			this.setState({ nextDate: this.props.lockedDate })
 			return true
 		}
 
-		return true
+		// Moment counts to a date, so all we care about is that the next state has a value.
+		return this.state.nextDate !== undefined
 	}
 
 	updateMoment() {
@@ -147,7 +166,7 @@ export class SyncedDiffTimecode extends React.Component<SyncedDiffTimecodeProps,
 	}
 
 	componentDidMount() {
-		let id = syncedTimeDisplays.addMoment(
+		let id = syncedTimeDisplays.addDisplay(
 			() => this.hasNextState(),
 			() => this.updateMoment()
 		)
@@ -156,15 +175,17 @@ export class SyncedDiffTimecode extends React.Component<SyncedDiffTimecodeProps,
 
 	componentWillUnmount() {
 		if (this.state.id) {
-			syncedTimeDisplays.removeMoment(this.state.id)
+			syncedTimeDisplays.removeDisplay(this.state.id)
 		}
 	}
 
 	hasNextState(): boolean {
+		// Already have a next value selected.
 		if (this.state.nextDiff !== undefined && this.state.nextDiff !== this.state.diff) {
 			return true
 		}
 
+		// Work out the next display value.
 		const next = this.props.diff
 			? RundownUtils.formatDiffToTimecode(
 					this.props.diff,
@@ -183,6 +204,7 @@ export class SyncedDiffTimecode extends React.Component<SyncedDiffTimecodeProps,
 			return false
 		}
 
+		// Next differs from current.
 		if (next !== this.state.diff) {
 			this.setState({ nextDiff: next })
 			return true
