@@ -2,7 +2,7 @@ name: Sync Fork release38 to mirror/release38
 
 on:
   schedule:
-    - cron: '0 0 * * *' # at midnight
+    - cron: '0 0 * * 0' # every sunday at midnight
   workflow_dispatch: # on button click
 
 jobs:
@@ -11,8 +11,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: tgymnich/fork-sync@v1.4
+      - uses: tgymnich/fork-sync@v1.6
         with:
           owner: nrkno
           base: mirror/release38
           head: release38
+          pr_title: Automerge NRK release38
