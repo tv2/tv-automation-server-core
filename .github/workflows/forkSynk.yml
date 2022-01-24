@@ -1,0 +1,17 @@
+name: Sync Fork release38 to mirror/release38
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # at midnight
+  workflow_dispatch: # on button click
+
+jobs:
+  sync:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: tgymnich/fork-sync@v1.4
+        with:
+          base: mirror/release38
+          head: release38
