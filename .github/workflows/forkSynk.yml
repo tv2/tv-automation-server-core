@@ -17,3 +17,4 @@ jobs:
           base: mirror/release38
           head: release38
           pr_title: Automerge NRK release38
+          auto_merge: false
