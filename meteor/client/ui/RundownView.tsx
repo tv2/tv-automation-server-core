@@ -1166,7 +1166,9 @@ export const RundownView = translateWithTracker<IProps, IState, ITrackedProps>((
 		? undefined
 		: (params['buckets'] as string).split(',').map((v) => parseInt(v))
 
-	const showStyleBase = rundowns.length > 0 ? ShowStyleBases.findOne(rundowns[0].showStyleBaseId) : undefined
+	const showStyleVariantId = currentRundown?.showStyleVariantId ?? rundowns[0]?.showStyleVariantId
+	const showStyleBaseId = currentRundown?.showStyleBaseId ?? rundowns[0]?.showStyleBaseId
+	const showStyleBase = showStyleBaseId ? ShowStyleBases.findOne(showStyleBaseId) : undefined
 
 	const rundownsToShowstyles: Map<RundownId, ShowStyleBaseId> = new Map()
 	for (const rundown of rundowns) {
@@ -1174,8 +1176,7 @@ export const RundownView = translateWithTracker<IProps, IState, ITrackedProps>((
 	}
 
 	const rundownLayouts =
-		rundowns.length > 0 ? RundownLayouts.find({ showStyleBaseId: rundowns[0].showStyleBaseId }).fetch() : undefined
-
+		rundowns.length > 0 ? RundownLayouts.find({ showStyleBaseId: showStyleBaseId }).fetch() : undefined
 	// let rundownDurations = calculateDurations(rundown, parts)
 	return {
 		rundownPlaylistId: playlistId,
@@ -1199,7 +1200,7 @@ export const RundownView = translateWithTracker<IProps, IState, ITrackedProps>((
 		playlist,
 		studio: studio,
 		showStyleBase,
-		showStyleVariant: rundowns.length > 0 ? ShowStyleVariants.findOne(rundowns[0].showStyleVariantId) : undefined,
+		showStyleVariant: rundowns.length > 0 ? ShowStyleVariants.findOne(showStyleVariantId) : undefined,
 		rundownLayouts,
 		buckets:
 			(playlist &&
