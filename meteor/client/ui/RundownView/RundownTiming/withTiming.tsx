@@ -9,16 +9,26 @@ export type TimingFilterFunction = (durations: RundownTimingContext) => any
 export enum TimingTickResolution {
 	/** Used for things that we want to "tick" at the same time (every full second) for all things in the GUI. */
 	Synced = 0,
-	/** Updated with Low accuracy (ie about 4 times a second - based on LOW_RESOLUTION_TIMING_DECIMATOR). */
+	/** Updated with low frequency (i.e. 4 times a second, based on LOW_RESOLUTION_TIMING_DECIMATOR). */
 	Low = 1,
-	/** Updated with high accuracy (ie many times per second), to be used for things like countdowns. */
+	/**
+	 * Updated with high frequency (i.e. 60 times a second, based on TIMING_DEFAULT_REFRESH_INTERVAL),
+	 * to be used for things like precise countdowns.
+	 */
 	High = 2,
 }
 
 export enum TimingDataResolution {
-	/** Data for the last synced (full-second) "tick". Whenever a component with TimingTickResolutionupdates for reasons other than timing, the durations will not change randomly. */
+	/**
+	 * Data for the last synced (full-second) "tick".
+	 * It might be used by components with TimingTickResolution.Synced or TimingTickResolution.Low.
+	 * When a component updates for reasons other than a timing event, the durations will not change.
+	 */
 	Synced = 0,
-	/** The most accurate data, whenever accessed. Used by components with TimingTickResolution.Low and TimingTickResolution.High. */
+	/**
+	 * The most accurate data available whenever the component updates.
+	 * It might be used by components with TimingTickResolution.Low or TimingTickResolution.High.
+	 */
 	High = 2,
 }
 
