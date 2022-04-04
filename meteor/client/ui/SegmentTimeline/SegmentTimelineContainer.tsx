@@ -68,7 +68,6 @@ interface IState {
 	currentLivePart: PartUi | undefined
 	currentNextPart: PartUi | undefined
 	autoNextPart: boolean
-	budgetDuration: number | undefined
 	budgetGap: number
 	timeScale: number
 	maxTimeScale: number
@@ -113,7 +112,6 @@ export const SegmentTimelineContainer = withResolvedSegment(
 				autoNextPart: false,
 				currentLivePart: undefined,
 				currentNextPart: undefined,
-				budgetDuration: undefined,
 				budgetGap: 0,
 				timeScale: props.timeScale,
 				maxTimeScale: props.timeScale,
@@ -343,8 +341,6 @@ export const SegmentTimelineContainer = withResolvedSegment(
 				this.pastInfinitesComp.invalidate()
 			}
 
-			const budgetDuration = this.getSegmentBudgetDuration()
-
 			if (!isLiveSegment && this.props.parts !== prevProps.parts) {
 				this.updateMaxTimeScale().catch(console.error)
 			}
@@ -359,7 +355,6 @@ export const SegmentTimelineContainer = withResolvedSegment(
 				currentLivePart,
 				currentNextPart,
 				autoNextPart,
-				budgetDuration,
 			})
 		}
 
@@ -579,14 +574,11 @@ export const SegmentTimelineContainer = withResolvedSegment(
 							? partOffset + e.detail.currentTime - virtualStartedPlayback + lastTakeOffset
 							: partOffset + lastTakeOffset
 
-					const budgetDuration = this.getSegmentBudgetDuration()
-
 					return {
 						livePosition: newLivePosition,
 						scrollLeft: state.followLiveLine
 							? Math.max(newLivePosition - LIVELINE_HISTORY_SIZE / state.timeScale, 0)
 							: state.scrollLeft,
-						budgetDuration,
 					}
 				}
 				return null
