@@ -1558,10 +1558,10 @@
   resolved "https://registry.yarnpkg.com/@tootallnate/once/-/once-1.1.2.tgz#ccb91445360179a04e7fe6aff78c00ffc1eeaf82"
   integrity sha512-RbzJvlNzmRq5c3O09UipeuXno4tA1FE6ikOjxZK0tuxVv3412l64l5t1W5pj4+rJq9vpkm/kwiR07aZXnsKPxw==
 
-"@tv2media/v-connection@^5.1.2":
-  version "5.1.2"
-  resolved "https://registry.yarnpkg.com/@tv2media/v-connection/-/v-connection-5.1.2.tgz#fb6b839fd129e496af4fa968857b632a883b91d3"
-  integrity sha512-auKVbVSksxv9SVa2T4a7/bQXzvayhNQOYqcD7L+Pa2aO0LYDGwsyy/NzR7rBKnASnG+bqAjbokFRar4awoNMJA==
+"@tv2media/v-connection@^6.0.0":
+  version "6.0.0"
+  resolved "https://registry.yarnpkg.com/@tv2media/v-connection/-/v-connection-6.0.0.tgz#6b9a5e7f9bb7ee929c51085b3da63f60092eb301"
+  integrity sha512-CxJDIUypXxorZaypDZ0u9IYo3pswfXGRWy9Mc5WvnJ+xi356cFFBNdQx6XAUTRON5MCbiGzSMfgipzwbd4Wmcg==
   dependencies:
     request "^2.88.2"
     request-promise-native "^1.0.9"
@@ -8539,12 +8539,12 @@ timeline-state-resolver-types@6.2.0-release37.4:
   dependencies:
     tslib "^2.3.1"
 
-"timeline-state-resolver@npm:@tv2media/timeline-state-resolver@1.0.0-release37.6":
-  version "1.0.0-release37.6"
-  resolved "https://registry.yarnpkg.com/@tv2media/timeline-state-resolver/-/timeline-state-resolver-1.0.0-release37.6.tgz#8fbbafce3573bb690480a14d4e30e53048f03f6d"
-  integrity sha512-xtejw6knhx/bEGzHpZJGTvj/1Zxs6dyONIuVUzSJjxP5Fhux2kloWQdwSbsKKJJtaKpJ+jqgyZ2dD+FziJJfTA==
+"timeline-state-resolver@npm:@tv2media/timeline-state-resolver@1.0.0-release37.7":
+  version "1.0.0-release37.7"
+  resolved "https://registry.yarnpkg.com/@tv2media/timeline-state-resolver/-/timeline-state-resolver-1.0.0-release37.7.tgz#077c3e8509168d42d23646c6ff0df9cceae46bc6"
+  integrity sha512-G/ZPQdFRPDQqVcHB2LwTjQqo/u9yWU95sbYZRcENfLQtQcZ35rt6ybka2x0ch2iXpPYwumnxIlEb8oBZuJsNEA==
   dependencies:
-    "@tv2media/v-connection" "^5.1.2"
+    "@tv2media/v-connection" "^6.0.0"
     atem-connection "^2.3.0"
     atem-state "0.12.2-nightly-latest-20211007-163338-78e7dca.0"
     casparcg-connection "^5.1.0"
