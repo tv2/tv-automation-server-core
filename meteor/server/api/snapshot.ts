@@ -135,6 +135,7 @@ interface RundownPlaylistSnapshot {
 	adLibActions: Array<AdLibAction>
 	baselineAdLibActions: Array<RundownBaselineAdLibAction>
 	mediaObjects: Array<MediaObject>
+	timeline: TimelineComplete | undefined
 	expectedMediaItems: Array<ExpectedMediaItem>
 	expectedPlayoutItems: Array<ExpectedPlayoutItem>
 	expectedPackages: Array<ExpectedPackageDB>
@@ -247,6 +248,7 @@ async function createRundownPlaylistSnapshot(
 	const expectedPlayoutItems = await ExpectedPlayoutItems.findFetchAsync({ rundownId: { $in: rundownIds } })
 	const expectedPackages = await ExpectedPackages.findFetchAsync({ rundownId: { $in: rundownIds } })
 	const baselineObjs = await RundownBaselineObjs.findFetchAsync({ rundownId: { $in: rundownIds } })
+	const timeline = await Timeline.findOneAsync({ _id: playlist.studioId })
 
 	const expectedPackageWorkStatuses = await ExpectedPackageWorkStatuses.findFetchAsync({
 		studioId: playlist.studioId,
@@ -293,6 +295,7 @@ async function createRundownPlaylistSnapshot(
 		expectedPackageWorkStatuses,
 		packageContainerPackageStatuses,
 		packageInfos,
+		timeline,
 	}
 }
 
