@@ -363,8 +363,9 @@ const PLAYOUT_SUBDEVICE_CONFIG: ImplementedSubDeviceConfig = {
 			type: ConfigManifestEntryType.INT,
 		},
 		{
-			id: 'options.showID',
-			name: 'Show ID',
+			id: 'options.showDirectoryPath',
+			name: '(Optional) Show Directory Path',
+			hint: 'Path where the show references are stored, relative to /directory/shows/',
 			type: ConfigManifestEntryType.STRING,
 		},
 		{
