@@ -1,5 +1,6 @@
 import { addMigrationSteps } from './databaseMigration'
 import { CURRENT_SYSTEM_VERSION } from './currentSystemVersion'
+import { TriggeredActions } from '../../lib/collections/TriggeredActions'
 
 /*
  * **************************************************************************************
@@ -13,4 +14,20 @@ import { CURRENT_SYSTEM_VERSION } from './currentSystemVersion'
 
 export const addSteps = addMigrationSteps(CURRENT_SYSTEM_VERSION, [
 	// Add some migrations!
+	{
+		id: 'Add "useLabelAsName" attribute to TriggeredActions',
+		canBeRunAutomatically: true,
+		validate: () => {
+			return (
+				TriggeredActions.find({
+					useLabelAsName: { $exists: false },
+				}).count() > 0
+			)
+		},
+		migrate: () => {
+			TriggeredActions.find({}).forEach((action) => {
+				TriggeredActions.update(action._id, { $set: { useLabelAsName: false } })
+			})
+		},
+	},
 ])

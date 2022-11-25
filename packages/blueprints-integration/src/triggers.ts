@@ -299,4 +299,6 @@ export interface IBlueprintTriggeredActions {
 	triggers: SomeBlueprintTrigger[]
 	/** A list of actions to execute */
 	actions: SomeAction[]
+
+	useLabelAsName?: boolean
 }
