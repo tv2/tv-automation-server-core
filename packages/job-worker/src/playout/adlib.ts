@@ -345,7 +345,7 @@ export async function innerStartOrQueueAdLibPiece(
 			currentPartInstance,
 			queue
 		)
-		innerStartAdLibPiece(context, cache, rundown, currentPartInstance, newPieceInstance)
+		innerStartAdLibPiece(context, cache, rundown, currentPartInstance, newPieceInstance, false)
 
 		await syncPlayheadInfinitesForNextPartInstance(context, cache)
 	}
@@ -545,7 +545,10 @@ export async function innerStartQueuedAdLib(
 
 	newPieceInstances.forEach((pieceInstance) => {
 		// Ensure it is labelled as dynamic
-		pieceInstance.dynamicallyInserted = getCurrentTime()
+		pieceInstance.dynamicallyInserted = {
+			time: getCurrentTime(),
+			intoNextPart: true,
+		}
 		pieceInstance.partInstanceId = newPartInstance._id
 		pieceInstance.piece.startPartId = newPartInstance.part._id
 
@@ -583,13 +586,17 @@ export function innerStartAdLibPiece(
 	cache: CacheForPlayout,
 	_rundown: DBRundown,
 	existingPartInstance: DBPartInstance,
-	newPieceInstance: PieceInstance
+	newPieceInstance: PieceInstance,
+	intoNextPart: boolean
 ): void {
 	const span = context.startSpan('innerStartAdLibPiece')
 	// Ensure it is labelled as dynamic
 	newPieceInstance.partInstanceId = existingPartInstance._id
 	newPieceInstance.piece.startPartId = existingPartInstance.part._id
-	newPieceInstance.dynamicallyInserted = getCurrentTime()
+	newPieceInstance.dynamicallyInserted = {
+		time: getCurrentTime(),
+		intoNextPart: intoNextPart || undefined,
+	}
 
 	setupPieceInstanceInfiniteProperties(newPieceInstance)
 
@@ -681,7 +688,9 @@ export function innerStopPieces(
 							currentPartInstance.rundownId,
 							currentPartInstance._id
 						),
-						dynamicallyInserted: getCurrentTime(),
+						dynamicallyInserted: {
+							time: getCurrentTime(),
+						},
 						infinite: {
 							infiniteInstanceId: getRandomId(),
 							infiniteInstanceIndex: 0,

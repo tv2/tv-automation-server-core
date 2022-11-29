@@ -57,10 +57,11 @@ import {
 import { defaultRundownPlaylist } from '../../__mocks__/defaultCollectionObjects'
 import { ShowStyleCompound } from '@sofie-automation/corelib/dist/dataModel/ShowStyleCompound'
 import { ReadonlyDeep } from 'type-fest'
-import { innerStartOrQueueAdLibPiece } from '../adlib'
-import { EmptyPieceTimelineObjectsBlob, PieceStatusCode } from '@sofie-automation/corelib/dist/dataModel/Piece'
+import { innerStartAdLibPiece, innerStartOrQueueAdLibPiece } from '../adlib'
+import { EmptyPieceTimelineObjectsBlob, Piece, PieceStatusCode } from '@sofie-automation/corelib/dist/dataModel/Piece'
 import { adjustFakeTime, useFakeCurrentTime, useRealCurrentTime } from '../../__mocks__/time'
 import { restartRandomId } from '../../__mocks__/nanoid'
+import { wrapPieceToInstance } from '@sofie-automation/corelib/dist/dataModel/PieceInstance'
 
 interface PartTimelineTimings {
 	previousPart: TimelineEnableExt | null
@@ -983,6 +984,20 @@ describe('Timeline', () => {
 			})
 		}
 
+		async function doStartAdlibPieceInNextPart(
+			playlistId: RundownPlaylistId,
+			partInstance: DBPartInstance,
+			piece: Piece
+		) {
+			await runJobWithPlayoutCache(context, { playlistId }, null, async (cache) => {
+				const rundown = cache.Rundowns.findOne(partInstance.rundownId) as Rundown
+				expect(rundown).toBeTruthy()
+				const newPieceInstance = wrapPieceToInstance(piece, partInstance.playlistActivationId, partInstance._id)
+
+				return innerStartAdLibPiece(context, cache, rundown, partInstance, newPieceInstance, true)
+			})
+		}
+
 		async function doSimulatePiecePlaybackTimings(playlistId: RundownPlaylistId, time: Time, objectCount: number) {
 			const timelineComplete = (await context.directCollections.Timelines.findOne(
 				context.studioId
@@ -1313,6 +1328,132 @@ describe('Timeline', () => {
 									preroll: 340,
 									postroll: 0,
 								},
+							},
+						},
+						currentInfinitePieces: {},
+						previousOutTransition: undefined,
+					})
+				}
+			))
+
+		// eslint-disable-next-line jest/expect-expect
+		test('Next part with inTransition + dynamicallyInserted adlib piece', async () =>
+			runTimelineTimings(
+				setupRundownWithInTransitionPlannedPiece,
+				async (playlistId, _rundownId, parts, getPartInstances, checkTimings) => {
+					// Take the first Part:
+					await doTakePart(context, playlistId, null, parts[0]._id, parts[1]._id)
+
+					const { nextPartInstance } = await getPartInstances()
+					// Insert an adlib piece
+					await doStartAdlibPieceInNextPart(
+						playlistId,
+						nextPartInstance!,
+						literal<Piece>({
+							_id: protectString('adlib1'),
+							startRundownId: nextPartInstance!.rundownId,
+							startSegmentId: nextPartInstance!.segmentId,
+							startPartId: parts[1]._id,
+							status: PieceStatusCode.OK,
+							externalId: 'fake',
+							name: 'Adlibbed piece',
+							lifespan: PieceLifespan.WithinPart,
+							sourceLayerId: showStyle.sourceLayers[1]._id,
+							outputLayerId: showStyle.outputLayers[0]._id,
+							content: {},
+							timelineObjectsString: EmptyPieceTimelineObjectsBlob,
+							enable: { start: 0 },
+							invalid: false,
+							pieceType: IBlueprintPieceType.Normal,
+						})
+					)
+
+					await doTakePart(context, playlistId, parts[0]._id, parts[1]._id, null)
+
+					await checkTimings({
+						// old part is extended by 1000ms due to transition keepalive
+						previousPart: { end: `#${getPartGroupId(nextPartInstance!)}.start + 1000` },
+						currentPieces: {
+							// exclusive group between layers 0 and 1
+							piece010: null,
+							// transition piece
+							piece011: {
+								controlObj: { start: 0 },
+								childGroup: { preroll: 0, postroll: 0 },
+							},
+							// pieces are delayed by the content delay
+							piece012: {
+								controlObj: { start: 1500, duration: 1000 },
+								childGroup: { preroll: 0, postroll: 0 },
+							},
+							adlib1: {
+								controlObj: { start: 500 },
+								childGroup: { preroll: 0, postroll: 0 },
+							},
+						},
+						currentInfinitePieces: {},
+						previousOutTransition: undefined,
+					})
+				}
+			))
+
+		// eslint-disable-next-line jest/expect-expect
+		test('Current part with inTransition + dynamicallyInserted adlib piece', async () =>
+			runTimelineTimings(
+				setupRundownWithInTransitionPlannedPiece,
+				async (playlistId, _rundownId, parts, getPartInstances, checkTimings) => {
+					// Take the first Part:
+					await doTakePart(context, playlistId, null, parts[0]._id, parts[1]._id)
+					// Take the second part
+					await doTakePart(context, playlistId, parts[0]._id, parts[1]._id, null)
+
+					const { currentPartInstance } = await getPartInstances()
+					// Insert an adlib piece
+					await doStartAdlibPiece(
+						playlistId,
+						currentPartInstance!,
+						literal<AdLibPiece>({
+							_id: protectString('adlib1'),
+							rundownId: currentPartInstance!.rundownId,
+							status: PieceStatusCode.OK,
+							externalId: 'fake',
+							name: 'Adlibbed piece',
+							lifespan: PieceLifespan.WithinPart,
+							sourceLayerId: showStyle.sourceLayers[1]._id,
+							outputLayerId: showStyle.outputLayers[0]._id,
+							content: {},
+							timelineObjectsString: EmptyPieceTimelineObjectsBlob,
+							invalid: false,
+							_rank: 0,
+						})
+					)
+
+					const adlibbedPieceId = 'randomId9008'
+
+					const pieceOffset = 12560
+					// Simulate the piece timing confirmation from playout-gateway
+					await doSimulatePiecePlaybackTimings(playlistId, pieceOffset, 1)
+
+					await checkTimings({
+						// old part is extended by 1000ms due to transition keepalive
+						previousPart: { end: `#${getPartGroupId(currentPartInstance!)}.start + 1000` },
+						currentPieces: {
+							piece010: {
+								controlObj: { start: 500, end: 12560 },
+								childGroup: { preroll: 0, postroll: 0 },
+							},
+							// transition piece
+							piece011: {
+								controlObj: { start: 0 },
+								childGroup: { preroll: 0, postroll: 0 },
+							},
+							piece012: {
+								controlObj: { start: 1500, duration: 1000 },
+								childGroup: { preroll: 0, postroll: 0 },
+							},
+							[adlibbedPieceId]: {
+								controlObj: { start: 12560 },
+								childGroup: { preroll: 0, postroll: 0 },
 							},
 						},
 						currentInfinitePieces: {},

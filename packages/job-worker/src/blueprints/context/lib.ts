@@ -104,7 +104,7 @@ function convertPieceInstanceToBlueprintsInner(pieceInstance: PieceInstance): Co
 		_id: unprotectString(pieceInstance._id),
 		partInstanceId: unprotectString(pieceInstance.partInstanceId),
 		adLibSourceId: unprotectString(pieceInstance.adLibSourceId),
-		dynamicallyInserted: pieceInstance.dynamicallyInserted,
+		dynamicallyInserted: pieceInstance.dynamicallyInserted && { ...pieceInstance.dynamicallyInserted },
 		startedPlayback: pieceInstance.startedPlayback,
 		stoppedPlayback: pieceInstance.stoppedPlayback,
 		infinite: pieceInstance.infinite

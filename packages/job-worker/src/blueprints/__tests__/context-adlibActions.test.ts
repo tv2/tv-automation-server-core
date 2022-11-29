@@ -473,7 +473,7 @@ describe('Test blueprint api context', () => {
 						rundownId: rundown._id,
 						partInstanceId: allPartInstances[0]._id,
 						playlistActivationId: activationId,
-						dynamicallyInserted: getCurrentTime(),
+						dynamicallyInserted: { time: getCurrentTime() },
 						piece: {
 							_id: getRandomId(),
 							startPartId: allPartInstances[0].part._id,
@@ -508,7 +508,7 @@ describe('Test blueprint api context', () => {
 						rundownId: rundown._id,
 						partInstanceId: allPartInstances[0]._id,
 						playlistActivationId: activationId,
-						dynamicallyInserted: getCurrentTime(),
+						dynamicallyInserted: { time: getCurrentTime() },
 						piece: {
 							_id: getRandomId(),
 							startPartId: allPartInstances[0].part._id,
@@ -567,7 +567,7 @@ describe('Test blueprint api context', () => {
 						rundownId: rundown._id,
 						partInstanceId: allPartInstances[0]._id,
 						playlistActivationId: activationId,
-						dynamicallyInserted: getCurrentTime(),
+						dynamicallyInserted: { time: getCurrentTime() },
 						piece: {
 							_id: getRandomId(),
 							startPartId: allPartInstances[0].part._id,
@@ -591,7 +591,7 @@ describe('Test blueprint api context', () => {
 						rundownId: rundown._id,
 						partInstanceId: allPartInstances[2]._id,
 						playlistActivationId: activationId,
-						dynamicallyInserted: getCurrentTime(),
+						dynamicallyInserted: { time: getCurrentTime() },
 						piece: {
 							_id: getRandomId(),
 							startPartId: allPartInstances[2].part._id,
