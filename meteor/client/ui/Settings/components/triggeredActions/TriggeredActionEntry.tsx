@@ -386,6 +386,8 @@ export const TriggeredActionEntry: React.FC<IProps> = React.memo(function Trigge
 							}
 						/>
 						<span className="mls text-s dimmed">{t('Optional description of the action')}</span>
+					</label>
+					<label className="mln mts mbs">
 						<EditAttribute
 							type="checkbox"
 							className="mls"
@@ -393,7 +395,7 @@ export const TriggeredActionEntry: React.FC<IProps> = React.memo(function Trigge
 							collection={TriggeredActions}
 							attribute="useLabelAsName"
 						></EditAttribute>
-						<span className="text-s dimmed">{t('Use label as name')}</span>
+						<span className="text-s">{t('Use label as name')}</span>
 					</label>
 				</>
 			) : null}
