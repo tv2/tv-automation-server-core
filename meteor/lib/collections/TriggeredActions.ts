@@ -24,7 +24,7 @@ export interface DBTriggeredActions extends ProtectedStringProperties<IBlueprint
 
 	_rundownVersionHash: string
 
-	useLabelAsName?: boolean
+	useNameForDisplay?: boolean
 }
 
 /** Note: Use DBTriggeredActions instead */

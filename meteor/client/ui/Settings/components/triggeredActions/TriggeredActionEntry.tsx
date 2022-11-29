@@ -393,7 +393,7 @@ export const TriggeredActionEntry: React.FC<IProps> = React.memo(function Trigge
 							className="mls"
 							obj={triggeredAction}
 							collection={TriggeredActions}
-							attribute="useLabelAsName"
+							attribute="useNameForDisplay"
 						></EditAttribute>
 						<span className="text-s">{t('Use label as name')}</span>
 					</label>
