@@ -38,18 +38,18 @@ export const addSteps = addMigrationSteps(CURRENT_SYSTEM_VERSION, [
 		},
 	},
 	{
-		id: 'Add "useLabelAsName" attribute to TriggeredActions',
+		id: 'Add "useNameForDisplay" attribute to TriggeredActions',
 		canBeRunAutomatically: true,
 		validate: () => {
 			return (
 				TriggeredActions.find({
-					useLabelAsName: { $exists: false },
+					useNameForDisplay: { $exists: false },
 				}).count() > 0
 			)
 		},
 		migrate: () => {
 			TriggeredActions.find({}).forEach((action) => {
-				TriggeredActions.update(action._id, { $set: { useLabelAsName: false } })
+				TriggeredActions.update(action._id, { $set: { useNameForDisplay: false } })
 			})
 		},
 	},

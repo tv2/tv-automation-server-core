@@ -514,7 +514,7 @@ export const TriggersHandler: React.FC<IProps> = function TriggersHandler(
 								keys: hotkeyTriggers,
 								finalKeys: hotkeyFinalKeys,
 								name: pair.name,
-								targetName: pair.useLabelAsName && pair.name ? pair.name : adLib.label,
+								targetName: pair.useNameForDisplay && pair.name ? pair.name : adLib.label,
 								sourceLayerId: adLib.sourceLayerId,
 							},
 						})
