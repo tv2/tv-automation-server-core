@@ -984,7 +984,7 @@ describe('Timeline', () => {
 			})
 		}
 
-		async function doStartAdlibPieceInNextPart(
+		async function doWrapAndStartAdlibPiece(
 			playlistId: RundownPlaylistId,
 			partInstance: DBPartInstance,
 			piece: Piece
@@ -994,7 +994,7 @@ describe('Timeline', () => {
 				expect(rundown).toBeTruthy()
 				const newPieceInstance = wrapPieceToInstance(piece, partInstance.playlistActivationId, partInstance._id)
 
-				return innerStartAdLibPiece(context, cache, rundown, partInstance, newPieceInstance, true)
+				return innerStartAdLibPiece(context, cache, rundown, partInstance, newPieceInstance)
 			})
 		}
 
@@ -1346,7 +1346,7 @@ describe('Timeline', () => {
 
 					const { nextPartInstance } = await getPartInstances()
 					// Insert an adlib piece
-					await doStartAdlibPieceInNextPart(
+					await doWrapAndStartAdlibPiece(
 						playlistId,
 						nextPartInstance!,
 						literal<Piece>({

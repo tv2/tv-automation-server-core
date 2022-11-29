@@ -345,7 +345,7 @@ export async function innerStartOrQueueAdLibPiece(
 			currentPartInstance,
 			queue
 		)
-		innerStartAdLibPiece(context, cache, rundown, currentPartInstance, newPieceInstance, false)
+		innerStartAdLibPiece(context, cache, rundown, currentPartInstance, newPieceInstance)
 
 		await syncPlayheadInfinitesForNextPartInstance(context, cache)
 	}
@@ -586,8 +586,7 @@ export function innerStartAdLibPiece(
 	cache: CacheForPlayout,
 	_rundown: DBRundown,
 	existingPartInstance: DBPartInstance,
-	newPieceInstance: PieceInstance,
-	intoNextPart: boolean
+	newPieceInstance: PieceInstance
 ): void {
 	const span = context.startSpan('innerStartAdLibPiece')
 	// Ensure it is labelled as dynamic
@@ -595,7 +594,7 @@ export function innerStartAdLibPiece(
 	newPieceInstance.piece.startPartId = existingPartInstance.part._id
 	newPieceInstance.dynamicallyInserted = {
 		time: getCurrentTime(),
-		intoNextPart: intoNextPart || undefined,
+		intoNextPart: !existingPartInstance.isTaken || undefined,
 	}
 
 	setupPieceInstanceInfiniteProperties(newPieceInstance)

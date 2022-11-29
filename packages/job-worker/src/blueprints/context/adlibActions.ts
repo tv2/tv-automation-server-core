@@ -285,7 +285,7 @@ export class ActionExecutionContext extends ShowStyleUserContext implements IAct
 		const newPieceInstance = wrapPieceToInstance(piece, this.playlistActivationId, partInstance._id)
 
 		// Do the work
-		innerStartAdLibPiece(this._context, this._cache, rundown, partInstance, newPieceInstance, part === 'next')
+		innerStartAdLibPiece(this._context, this._cache, rundown, partInstance, newPieceInstance)
 
 		if (part === 'current') {
 			this.currentPartState = Math.max(this.currentPartState, ActionPartChange.SAFE_CHANGE)
