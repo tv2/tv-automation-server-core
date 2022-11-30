@@ -42,7 +42,13 @@ import {
 	ShowStyleVariantId,
 } from '../../lib/collections/ShowStyleVariants'
 import { Blueprint, BlueprintId } from '../../lib/collections/Blueprints'
-import { ICoreSystem, CoreSystem, SYSTEM_ID, stripVersion, parseCoreIntegrationCompatabilityRange } from '../../lib/collections/CoreSystem'
+import {
+	ICoreSystem,
+	CoreSystem,
+	SYSTEM_ID,
+	stripVersion,
+	parseCoreIntegrationCompatabilityRange,
+} from '../../lib/collections/CoreSystem'
 import { internalUploadBlueprint } from '../../server/api/blueprints/api'
 import { literal, getCurrentTime, protectString, unprotectString, getRandomId, getRandomString } from '../../lib/lib'
 import { DBRundown, Rundowns, RundownId } from '../../lib/collections/Rundowns'
@@ -83,7 +89,7 @@ function getBlueprintDependencyVersions(): { TSR_VERSION: string; INTEGRATION_VE
 	const version = integrationVersionRange.substring(1)
 
 	const INTEGRATION_VERSION = version
-	const TSR_VERSION = version	
+	const TSR_VERSION = version
 
 	return {
 		INTEGRATION_VERSION,
