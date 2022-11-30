@@ -197,7 +197,7 @@ describe('systemStatus', () => {
 })
 
 async function updateAndCheckSystemStatus(
-	setObj: Object,
+	setObj: object,
 	env: DefaultEnvironment,
 	expected: StatusCode
 ): Promise<void> {
