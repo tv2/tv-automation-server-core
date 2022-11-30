@@ -460,7 +460,9 @@ function startHold(
 				playlistActivationId: activationId,
 				rundownId: instance.rundownId,
 				partInstanceId: holdToPartInstance._id,
-				dynamicallyInserted: getCurrentTime(),
+				dynamicallyInserted: {
+					time: getCurrentTime(),
+				},
 				piece: {
 					...clone(instance.piece),
 					enable: { start: 0 },
