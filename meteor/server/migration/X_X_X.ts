@@ -31,7 +31,9 @@ export const addSteps = addMigrationSteps(CURRENT_SYSTEM_VERSION, [
 				if (typeof pieceInstance.dynamicallyInserted !== 'number') {
 					return
 				}
-				PieceInstances.update(pieceInstance._id, { $set: { dynamicallyInserted: { time: pieceInstance.dynamicallyInserted } } })
+				PieceInstances.update(pieceInstance._id, {
+					$set: { dynamicallyInserted: { time: pieceInstance.dynamicallyInserted } },
+				})
 			})
 		},
 	},
