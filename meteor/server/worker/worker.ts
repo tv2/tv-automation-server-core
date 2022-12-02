@@ -29,6 +29,8 @@ import { MongoQuery } from '../../lib/typings/meteor'
 const FREEZE_LIMIT = 1000 // how long to wait for a response to a Ping
 const RESTART_TIMEOUT = 30000 // how long to wait for a restart to complete before throwing an error
 const KILL_TIMEOUT = 30000 // how long to wait for a thread to terminate before throwing an error
+const AUTO_RESTART_RETRY_COUNT = 0 // how many autorestart attemps are allowed (0 means it will never stop retrying)
+const AUTO_RESTART_RETRY_DELAY = 1000 // how long to wait before retrying after a failed restart
 
 interface JobEntry {
 	spec: JobSpec
@@ -252,6 +254,8 @@ Meteor.startup(() => {
 			[workerId, jobFinished, interruptJobStream, getNextJob, queueJobWithoutResult, logLine, fastTrackTimeline],
 			{
 				autoRestart: true,
+				autoRestartRetryCount: AUTO_RESTART_RETRY_COUNT,
+				autoRestartRetryDelay: AUTO_RESTART_RETRY_DELAY,
 				freezeLimit: FREEZE_LIMIT,
 				restartTimeout: RESTART_TIMEOUT,
 				killTimeout: KILL_TIMEOUT,
@@ -259,6 +263,13 @@ Meteor.startup(() => {
 		)
 	)
 
+	ThreadedClassManager.onEvent(
+		worker,
+		'warning',
+		Meteor.bindEnvironment((message: string) => {
+			logger.warn(`Error in Worker threads IPC: ${message}`)
+		})
+	)
 	ThreadedClassManager.onEvent(
 		worker,
 		'error',

@@ -104,6 +104,9 @@ export abstract class WorkerParentBase {
 	}
 
 	protected registerStatusEvents(workerThread: Promisify<any>): void {
+		ThreadedClassManager.onEvent(workerThread, 'warning', (message: string) => {
+			logger.warn(`Warning in Worker ${this.#prettyName}: ${message}`)
+		})
 		ThreadedClassManager.onEvent(workerThread, 'error', (error: any) =>
 			logger.error(`Error in Worker ${this.#prettyName}.`, { data: error })
 		)
