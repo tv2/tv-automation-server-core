@@ -125,7 +125,7 @@ describe('systemStatus', () => {
 
 			// Change integration lib versions, simulate a major version mismatch
 			// Expected status is BAD, because the device expects a different major version
-			await updateAndCheckSystemStatus(
+			await updateAndAssertSystemStatus(
 				{
 					versions: {
 						'@sofie-automation/server-core-integration': coreVersion.format(),
@@ -143,7 +143,7 @@ describe('systemStatus', () => {
 
 			// Change integration lib versions, simulate a minor version mismatch
 			// Expected status is BAD, because the device expects a different minor version
-			await updateAndCheckSystemStatus(
+			await updateAndAssertSystemStatus(
 				{
 					versions: {
 						'@sofie-automation/server-core-integration': coreVersion.format(),
@@ -161,7 +161,7 @@ describe('systemStatus', () => {
 
 			// Change integration lib versions, simulate a patch version mismatch
 			// Expected status is GOOD, because this should have no effect
-			await updateAndCheckSystemStatus(
+			await updateAndAssertSystemStatus(
 				{
 					versions: {
 						'@sofie-automation/server-core-integration': coreVersion.format(),
@@ -174,7 +174,7 @@ describe('systemStatus', () => {
 
 		// Try some silly version
 		// Expected status is BAD, because the device expects a different version
-		await updateAndCheckSystemStatus(
+		await updateAndAssertSystemStatus(
 			{
 				versions: {
 					test: '0.1.2',
@@ -186,7 +186,7 @@ describe('systemStatus', () => {
 
 		// disableVersion check
 		// Expected status is GOOD, as the check has been skipped
-		await updateAndCheckSystemStatus(
+		await updateAndAssertSystemStatus(
 			{
 				disableVersionChecks: true,
 			},
@@ -196,10 +196,10 @@ describe('systemStatus', () => {
 	})
 })
 
-async function updateAndCheckSystemStatus(
+async function updateAndAssertSystemStatus(
 	setObj: object,
 	env: DefaultEnvironment,
-	expected: StatusCode
+	expectedStatusCode: StatusCode
 ): Promise<void> {
 	PeripheralDevices.update(env.ingestDevice._id, {
 		$set: setObj,
@@ -207,7 +207,7 @@ async function updateAndCheckSystemStatus(
 	const result: StatusResponse = await MeteorCall.systemStatus.getSystemStatus()
 
 	expect(result).toMatchObject({
-		status: status2ExternalStatus(expected),
-		_status: expected,
+		status: status2ExternalStatus(expectedStatusCode),
+		_status: expectedStatusCode,
 	})
 }
