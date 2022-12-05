@@ -9832,10 +9832,10 @@ timecode@0.0.4:
   resolved "https://registry.yarnpkg.com/timecode/-/timecode-0.0.4.tgz#cdea9d2352009700e50da657cb7fb7c1720f5704"
   integrity sha512-xFVZlWnqls5eVphtUJo0UuXeJa0grBmxESSn5QPQB7CMsaVgTnLdP9PTZqb4KyFmLdrE+PUu3eEt42zHsMxCtw==
 
-"timeline-state-resolver-types@npm:@tv2media/timeline-state-resolver-types@3.0.0":
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/@tv2media/timeline-state-resolver-types/-/timeline-state-resolver-types-3.0.0.tgz#d00f414ae0db9f558232b8cebaa92605a9847d89"
-  integrity sha512-UZPXNahpXj4Oxl0gUWv/qsmj64QJHDh60MoFklHejQvLA1Mz58p243p8fvLg/m8Ye57kShv8ZnLaxjvFt1eVlw==
+"timeline-state-resolver-types@npm:@tv2media/timeline-state-resolver-types@3.0.3":
+  version "3.0.3"
+  resolved "https://registry.yarnpkg.com/@tv2media/timeline-state-resolver-types/-/timeline-state-resolver-types-3.0.3.tgz#cb22a1dee460403c2a306e666003a1d57af7f8d2"
+  integrity sha512-PqqV2EFCfhQyphngRFh0K7UcO+pptB5e6vk73uT+gz0S+j/aV2uAtOKA3PPeEc7W37ov4KCsP10T4KVTntNkAw==
   dependencies:
     tslib "^2.3.1"
 
