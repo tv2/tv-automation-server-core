@@ -52,6 +52,7 @@ import { ReadonlyDeep } from 'type-fest'
 import { adjustFakeTime, getCurrentTime, useFakeCurrentTime } from '../../__mocks__/time'
 import { PieceLifespan } from '@sofie-automation/blueprints-integration'
 import { PlayoutChangedType } from '@sofie-automation/shared-lib/dist/peripheralDevice/peripheralDeviceAPI'
+import { adLibPieceStart } from '../adlib'
 
 // const mockGetCurrentTime = jest.spyOn(lib, 'getCurrentTime')
 const mockExecutePeripheralDeviceFunction = jest
@@ -820,6 +821,81 @@ describe('Playout API', () => {
 			expect(nextPartInstance?.part._id).toBe(parts[0]._id)
 		}
 	})
+
+	function testWithDefaultRundownPlaylist(
+		testFunction: (
+			playlistId: RundownPlaylistId,
+			adlibPieces: AdLibPiece[],
+			getPlaylist: () => Promise<DBRundownPlaylist>
+		) => Promise<void>
+	) {
+		return async () => {
+			const { rundownId, playlistId } = await setupDefaultRundownPlaylist(context)
+			expect(rundownId).toBeTruthy()
+			expect(playlistId).toBeTruthy()
+
+			const getRundown0 = async () => {
+				return (await context.directCollections.Rundowns.findOne(rundownId)) as DBRundown
+			}
+			const getPlaylist = async () => {
+				const playlist = (await context.directCollections.RundownPlaylists.findOne(
+					playlistId
+				)) as DBRundownPlaylist
+				playlist.activationId = playlist.activationId ?? undefined
+				return playlist
+			}
+			const { adLibPieces } = await getAllRundownData(await getRundown0())
+
+			// Prepare and activate in rehersal:
+			await resetRundownPlaylist(context, { playlistId: playlistId, activate: 'rehearsal' })
+
+			await takeNextPart(context, {
+				playlistId: playlistId,
+				fromPartInstanceId: null,
+			})
+			await testFunction(playlistId, adLibPieces, getPlaylist)
+		}
+	}
+
+	test(
+		'adLibPieceStart sets start to 0 when queue is true',
+		testWithDefaultRundownPlaylist(async (playlistId, adLibPieces, getPlaylist) => {
+			await adLibPieceStart(context, {
+				playlistId,
+				partInstanceId: (await getPlaylist()).currentPartInstanceId || protectString(''),
+				adLibPieceId: adLibPieces[0]._id,
+				pieceType: 'normal',
+				queue: true,
+			})
+			const nextPartInstance = (await getPlaylist()).nextPartInstanceId || protectString('')
+
+			const pieceInstances = await getAllPieceInstancesForPartInstance(nextPartInstance)
+
+			expect(pieceInstances.length).toBe(1)
+			expect(pieceInstances[0].piece.name).toBe(adLibPieces[0].name)
+			expect(pieceInstances[0].piece.enable.start).toBe(0)
+		})
+	)
+
+	test(
+		'adLibPieceStart sets start to 0 when toBeQueued is true',
+		testWithDefaultRundownPlaylist(async (playlistId, adLibPieces, getPlaylist) => {
+			await adLibPieceStart(context, {
+				playlistId,
+				partInstanceId: (await getPlaylist()).currentPartInstanceId || protectString(''),
+				adLibPieceId: adLibPieces[1]._id,
+				pieceType: 'normal',
+				queue: false,
+			})
+			const nextPartInstance = (await getPlaylist()).nextPartInstanceId || protectString('')
+
+			const pieceInstances = await getAllPieceInstancesForPartInstance(nextPartInstance)
+
+			expect(pieceInstances.length).toBe(1)
+			expect(pieceInstances[0].piece.name).toBe(adLibPieces[1].name)
+			expect(pieceInstances[0].piece.enable.start).toBe(0)
+		})
+	)
 })
 
 async function setupRundownWithAutoplayPart0(
@@ -887,7 +963,6 @@ async function setupRundownWithAutoplayPart0(
 		sourceLayerId: showStyle.sourceLayers[1]._id,
 		outputLayerId: showStyle.outputLayers[0]._id,
 	}
-
 	await context.directCollections.AdLibPieces.insertOne(adLibPiece000)
 
 	const part01: DBPart = {
