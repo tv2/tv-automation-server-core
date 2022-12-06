@@ -9,6 +9,8 @@ import { FastTrackTimelineFunc, LogLineWithSourceFunc } from '../../main'
 const FREEZE_LIMIT = 2500 // how long to wait for a response to a Ping
 const RESTART_TIMEOUT = 10000 // how long to wait for a restart to complete before throwing an error
 const KILL_TIMEOUT = 10000 // how long to wait for a thread to terminate before throwing an error
+const AUTO_RESTART_RETRY_COUNT = 0 // how many autorestart attemps are allowed (0 means it will never stop retrying)
+const AUTO_RESTART_RETRY_DELAY = 1000 // how long to wait before retrying after a failed restart
 
 export class StudioWorkerParent extends WorkerParentBase {
 	readonly #thread: Promisify<StudioWorkerChild>
@@ -36,6 +38,8 @@ export class StudioWorkerParent extends WorkerParentBase {
 			{
 				instanceName: `Studio: ${baseOptions.studioId}`,
 				autoRestart: true,
+				autoRestartRetryCount: AUTO_RESTART_RETRY_COUNT,
+				autoRestartRetryDelay: AUTO_RESTART_RETRY_DELAY,
 				freezeLimit: FREEZE_LIMIT,
 				restartTimeout: RESTART_TIMEOUT,
 				killTimeout: KILL_TIMEOUT,
