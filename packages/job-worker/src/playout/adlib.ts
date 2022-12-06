@@ -299,7 +299,8 @@ export async function innerStartOrQueueAdLibPiece(
 
 	const span = context.startSpan('innerStartOrQueueAdLibPiece')
 	let queuedPartInstanceId: PartInstanceId | undefined
-	if (queue || adLibPiece.toBeQueued) {
+	const shouldPieceBeQueued = queue || !!adLibPiece.toBeQueued
+	if (shouldPieceBeQueued) {
 		const newPartInstance: DBPartInstance = {
 			_id: getRandomId(),
 			rundownId: rundown._id,
@@ -325,7 +326,7 @@ export async function innerStartOrQueueAdLibPiece(
 			playlist.activationId,
 			adLibPiece,
 			newPartInstance,
-			queue
+			shouldPieceBeQueued
 		)
 
 		newPartInstance.part.expectedDurationWithPreroll = calculatePartExpectedDurationWithPreroll(
@@ -343,7 +344,7 @@ export async function innerStartOrQueueAdLibPiece(
 			playlist.activationId,
 			adLibPiece,
 			currentPartInstance,
-			queue
+			shouldPieceBeQueued
 		)
 		innerStartAdLibPiece(context, cache, rundown, currentPartInstance, newPieceInstance)
 
