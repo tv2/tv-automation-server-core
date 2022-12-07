@@ -131,6 +131,7 @@ export function dashboardElementStyle(el: DashboardPositionableElement): React.C
 					? `calc(${-1 * el.y}% + var(--dashboard-panel-margin-height) / 2)`
 					: `calc(${-1 * el.y - 1} * var(--dashboard-button-grid-height))`
 				: getVerticalOffsetFromHeight(el),
+		fontSize: `calc(var(--dashboard-panel-scale) * 1.5em)`,
 
 		// @ts-expect-error css variables
 		'--dashboard-panel-scale': el.scale || 1,
