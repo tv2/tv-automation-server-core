@@ -1,7 +1,6 @@
 import { addMigrationSteps } from './databaseMigration'
 import { CURRENT_SYSTEM_VERSION } from './currentSystemVersion'
 import { ShowStyleVariant, ShowStyleVariants } from '../../lib/collections/ShowStyleVariants'
-import { TriggeredActions } from '../../lib/collections/TriggeredActions'
 
 /*
  * **************************************************************************************
@@ -34,22 +33,6 @@ export const addSteps = addMigrationSteps(CURRENT_SYSTEM_VERSION, [
 						_rank: index,
 					},
 				})
-			})
-		},
-	},
-	{
-		id: 'Add "useNameForDisplay" attribute to TriggeredActions',
-		canBeRunAutomatically: true,
-		validate: () => {
-			return (
-				TriggeredActions.find({
-					useNameForDisplay: { $exists: false },
-				}).count() > 0
-			)
-		},
-		migrate: () => {
-			TriggeredActions.find({}).forEach((action) => {
-				TriggeredActions.update(action._id, { $set: { useNameForDisplay: false } })
 			})
 		},
 	},
