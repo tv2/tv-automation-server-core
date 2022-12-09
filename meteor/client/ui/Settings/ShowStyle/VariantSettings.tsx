@@ -28,9 +28,9 @@ import { Identifier } from 'dnd-core'
 import { HTML5Backend } from 'react-dnd-html5-backend'
 import update from 'immutability-helper'
 import { ShowStyleDragDropTypes } from './DragDropTypesShowStyle'
-import { NoticeLevel, Notification, NotificationCenter } from '../../../lib/notifications/notifications'
 import { logger } from '../../../../lib/logging'
 import { Meteor } from 'meteor/meteor'
+import { variantImporter } from '../../../lib/VariantImporter'
 
 interface IShowStyleVariantsProps {
 	showStyleBase: ShowStyleBase
@@ -105,65 +105,10 @@ export const ShowStyleVariantsSettings = withTranslation()(
 		}
 
 		private importShowStyleVariants = (event: React.ChangeEvent<HTMLInputElement>): void => {
-			const { t } = this.props
-
-			const file = event.target.files?.[0]
-			if (!file) {
-				return
-			}
-
-			const reader = new FileReader()
-
-			reader.onload = () => {
-				this.setState({
-					timestampedFileKey: Date.now(),
-				})
-
-				const fileContents = reader.result as string
-
-				const newShowStyleVariants: ShowStyleVariant[] = []
-				try {
-					JSON.parse(fileContents).map((showStyleVariant: ShowStyleVariant) =>
-						newShowStyleVariants.push(showStyleVariant)
-					)
-					if (!Array.isArray(newShowStyleVariants)) {
-						throw new Error('Imported file did not contain an array')
-					}
-				} catch (error) {
-					NotificationCenter.push(
-						new Notification(
-							undefined,
-							NoticeLevel.WARNING,
-							t('Failed to import new showstyle variants: {{errorMessage}}', { errorMessage: error + '' }),
-							'VariantSettings'
-						)
-					)
-					return
-				}
-
-				this.importShowStyleVariantsFromArray(newShowStyleVariants)
-			}
-			reader.readAsText(file)
-		}
-
-		private importShowStyleVariantsFromArray = (showStyleVariants: ShowStyleVariant[]): void => {
-			const { t } = this.props
-			showStyleVariants.forEach((showStyleVariant: ShowStyleVariant, index: number) => {
-				const rank = this.state.dndVariants.length
-				showStyleVariant._rank = rank + index
-				MeteorCall.showstyles.importShowStyleVariant(showStyleVariant).catch(() => {
-					NotificationCenter.push(
-						new Notification(
-							undefined,
-							NoticeLevel.WARNING,
-							t('Failed to import Variant {{name}}. Make sure it is not already imported.', {
-								name: showStyleVariant.name,
-							}),
-							'VariantSettings'
-						)
-					)
-				})
+			this.setState({
+				timestampedFileKey: Date.now(),
 			})
+			variantImporter.importShowStyleVariants(event, this.state.dndVariants)
 		}
 
 		private copyShowStyleVariant = (showStyleVariant: ShowStyleVariant): void => {
