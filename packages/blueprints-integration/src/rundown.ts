@@ -501,8 +501,13 @@ export interface IBlueprintPieceInstance<TMetadata = unknown> {
 
 	/** If this piece has been created play-time using an AdLibPiece, this should be set to it's source piece */
 	adLibSourceId?: string
-	/** If this piece has been insterted during run of rundown (such as adLibs), then this is set to the timestamp it was inserted */
-	dynamicallyInserted?: Time
+	/** If this piece has been insterted during run of rundown (such as adLibs), then this is set and includes the timestamp when it was inserted */
+	dynamicallyInserted?: {
+		/** Timestamp when this piece was inserted */
+		time: Time
+		/** If this piece has been inserted into the next part (not yet playing at the time of insertion) */
+		intoNextPart?: boolean
+	}
 
 	piece: IBlueprintPieceDB<TMetadata>
 

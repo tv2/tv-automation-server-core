@@ -1064,7 +1064,7 @@ function timelineTriggerTimeInner(
 							},
 						})
 
-						const takeTime = pieceInstance.dynamicallyInserted
+						const takeTime = pieceInstance.dynamicallyInserted?.time
 						lastTakeTime = lastTakeTime === undefined ? takeTime : Math.max(lastTakeTime, takeTime)
 					}
 				}
@@ -1079,7 +1079,7 @@ function timelineTriggerTimeInner(
 				disabled: { $ne: true },
 			})
 			for (const piece of remainingNowPieces) {
-				const pieceTakeTime = piece.dynamicallyInserted
+				const pieceTakeTime = piece.dynamicallyInserted?.time
 				if (pieceTakeTime && pieceTakeTime <= lastTakeTime && piece.piece.enable.start === 'now') {
 					// Disable and hide the instance
 					pieceInstanceCache.update(piece._id, {

@@ -33,7 +33,7 @@ export const LinePartPieceIndicator: React.FC<IProps> = function LinePartPieceIn
 						sourceLayerIds.includes(piece.sourceLayer._id) &&
 						(piece.renderedDuration === null || piece.renderedDuration > 0)
 				)
-				.sort((a, b) => (b.instance.dynamicallyInserted ?? 0) - (a.instance.dynamicallyInserted ?? 0)), // TODO: This is a quick & dirty way to handle someone switching a Backscreen from a graphic to a clip
+				.sort((a, b) => (b.instance.dynamicallyInserted?.time ?? 0) - (a.instance.dynamicallyInserted?.time ?? 0)), // TODO: This is a quick & dirty way to handle someone switching a Backscreen from a graphic to a clip
 		[pieces, sourceLayerIds]
 	)
 
