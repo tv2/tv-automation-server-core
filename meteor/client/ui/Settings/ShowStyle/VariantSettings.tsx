@@ -28,7 +28,7 @@ import update from 'immutability-helper'
 import { ShowStyleDragDropTypes } from './DragDropTypesShowStyle'
 import { logger } from '../../../../lib/logging'
 import { Meteor } from 'meteor/meteor'
-import { VariantImport } from '../../../lib/VariantImport'
+import { ShowStyleVariantImportButton } from '../../../lib/ShowStyleVariantImportButton'
 
 interface IShowStyleVariantsProps {
 	showStyleBase: ShowStyleBase
@@ -399,7 +399,7 @@ export const ShowStyleVariantsSettings = withTranslation()(
 								<FontAwesomeIcon icon={faDownload} />
 								&nbsp;{t('Export')}
 							</button>
-							<VariantImport showStyleVariants={this.state.dndVariants}></VariantImport>
+							<ShowStyleVariantImportButton showStyleVariants={this.state.dndVariants}></ShowStyleVariantImportButton>
 							<button className="btn btn-secondary right" onClick={this.confirmRemoveAllShowStyleVariants}>
 								<FontAwesomeIcon icon={faTrash} />
 							</button>

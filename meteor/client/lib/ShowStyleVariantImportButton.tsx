@@ -10,16 +10,20 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faUpload } from '@fortawesome/free-solid-svg-icons'
 import { withTranslation } from 'react-i18next'
 
-interface IVariantImportProps {
+interface IShowStyleVariantImportProps {
 	showStyleVariants: ShowStyleVariant[]
 }
 
-interface IVariantImportState {
+interface IShowStyleVariantImportState {
 	timestampedFileKey: number
 }
-export const VariantImport = withTranslation()(
-	class VariantImport extends React.Component<IVariantImportProps, IVariantImportState> {
-		constructor(props: IVariantImportProps) {
+
+export const ShowStyleVariantImportButton = withTranslation()(
+	class ShowStyleVariantImportButton extends React.Component<
+		IShowStyleVariantImportProps,
+		IShowStyleVariantImportState
+	> {
+		constructor(props: IShowStyleVariantImportProps) {
 			super(props)
 
 			this.state = {
@@ -27,7 +31,7 @@ export const VariantImport = withTranslation()(
 			}
 		}
 
-		private getDuplicatedVariantAmount(showStyleVariant: ShowStyleVariant): number {
+		private getDuplicatedShowStyleVariantAmount(showStyleVariant: ShowStyleVariant): number {
 			const importedName = showStyleVariant.name.split(' ')[0]
 			return this.props.showStyleVariants.filter((variant: ShowStyleVariant) => {
 				const existingName = variant.name.split(' ')[0]
@@ -102,7 +106,7 @@ export const VariantImport = withTranslation()(
 					this.replaceShowStyleVariant(showStyleVariant)
 				},
 				onSecondary: () => {
-					const resemblingNameCount = this.getDuplicatedVariantAmount(showStyleVariant)
+					const resemblingNameCount = this.getDuplicatedShowStyleVariantAmount(showStyleVariant)
 					showStyleVariant.name += ' (' + resemblingNameCount + ')'
 					this.importShowStyleVariant(showStyleVariant)
 				},
