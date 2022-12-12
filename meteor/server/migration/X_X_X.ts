@@ -1,6 +1,7 @@
 import { addMigrationSteps } from './databaseMigration'
 import { CURRENT_SYSTEM_VERSION } from './currentSystemVersion'
 import { ShowStyleVariant, ShowStyleVariants } from '../../lib/collections/ShowStyleVariants'
+import { PieceInstances } from '../../lib/collections/PieceInstances'
 import { TriggeredActions } from '../../lib/collections/TriggeredActions'
 
 /*
@@ -33,6 +34,29 @@ export const addSteps = addMigrationSteps(CURRENT_SYSTEM_VERSION, [
 					$set: {
 						_rank: index,
 					},
+				})
+			})
+		},
+	},
+	{
+		id: 'Change PieceInstances.dynamicallyInserted type',
+		canBeRunAutomatically: true,
+		validate: () => {
+			return (
+				PieceInstances.find({
+					dynamicallyInserted: { $type: 'number' },
+				}).count() > 0
+			)
+		},
+		migrate: () => {
+			PieceInstances.find({
+				dynamicallyInserted: { $type: 'number' },
+			}).forEach((pieceInstance) => {
+				if (typeof pieceInstance.dynamicallyInserted !== 'number') {
+					return
+				}
+				PieceInstances.update(pieceInstance._id, {
+					$set: { dynamicallyInserted: { time: pieceInstance.dynamicallyInserted } },
 				})
 			})
 		},

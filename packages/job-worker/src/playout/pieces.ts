@@ -331,7 +331,11 @@ export function convertAdLibToPieceInstance(
 		partInstanceId: partInstance._id,
 		playlistActivationId,
 		adLibSourceId: adLibPiece._id,
-		dynamicallyInserted: queue ? undefined : getCurrentTime(),
+		dynamicallyInserted: queue
+			? undefined
+			: {
+					time: getCurrentTime(),
+			  },
 		piece: literal<PieceInstancePiece>({
 			...(_.omit(adLibPiece, '_rank', 'expectedDuration', 'partId', 'rundownId') as PieceInstancePiece), // TODO - this could be typed stronger
 			_id: newPieceId,

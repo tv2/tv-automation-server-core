@@ -91,7 +91,10 @@ export function getPieceEnableInsidePart(
 	partGroupId: string
 ): TSR.Timeline.TimelineEnable {
 	const pieceEnable: TSR.Timeline.TimelineEnable = { ...pieceInstance.piece.enable }
-	if (typeof pieceEnable.start === 'number' && !pieceInstance.dynamicallyInserted) {
+	if (
+		typeof pieceEnable.start === 'number' &&
+		(!pieceInstance.dynamicallyInserted || pieceInstance.dynamicallyInserted.intoNextPart)
+	) {
 		// timed pieces should be offset based on the preroll of the part
 		pieceEnable.start += partTimings.toPartDelay
 	}

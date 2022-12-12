@@ -257,7 +257,7 @@ export function getPlayheadTrackingInfinitesForPart(
 
 function markPieceInstanceAsContinuation(previousInstance: PieceInstance, instance: PieceInstance) {
 	instance._id = protectString(`${instance._id}_continue`)
-	instance.dynamicallyInserted = previousInstance.dynamicallyInserted
+	instance.dynamicallyInserted = previousInstance.dynamicallyInserted && { ...previousInstance.dynamicallyInserted }
 	instance.adLibSourceId = previousInstance.adLibSourceId
 	instance.startedPlayback = previousInstance.startedPlayback
 }
@@ -644,7 +644,7 @@ function isCandidateMoreImportant(best: PieceInstance, candidate: PieceInstance)
 	// If we have adlibs, prefer the newest
 	if (best.dynamicallyInserted && candidate.dynamicallyInserted) {
 		// prefer the one which starts later
-		return best.dynamicallyInserted < candidate.dynamicallyInserted
+		return best.dynamicallyInserted.time < candidate.dynamicallyInserted.time
 	} else if (best.dynamicallyInserted) {
 		// Prefer the adlib
 		return false
