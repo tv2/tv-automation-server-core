@@ -6,7 +6,6 @@ import {
 	faCheck,
 	faPlus,
 	faDownload,
-	faUpload,
 	faCopy,
 	faGripLines,
 } from '@fortawesome/free-solid-svg-icons'
@@ -22,7 +21,6 @@ import { EditAttribute } from '../../../lib/EditAttribute'
 import { doModalDialog } from '../../../lib/ModalDialog'
 import { Translated } from '../../../lib/ReactMeteorData/ReactMeteorData'
 import { ConfigManifestSettings } from '../ConfigManifestSettings'
-import { UploadButton } from '../../../lib/uploadButton'
 import { DndProvider, DragSourceMonitor, DropTargetMonitor, useDrag, useDrop, XYCoord } from 'react-dnd'
 import { Identifier } from 'dnd-core'
 import { HTML5Backend } from 'react-dnd-html5-backend'
@@ -30,7 +28,7 @@ import update from 'immutability-helper'
 import { ShowStyleDragDropTypes } from './DragDropTypesShowStyle'
 import { logger } from '../../../../lib/logging'
 import { Meteor } from 'meteor/meteor'
-import { variantImporter } from '../../../lib/VariantImporter'
+import { VariantImport } from '../../../lib/VariantImport'
 
 interface IShowStyleVariantsProps {
 	showStyleBase: ShowStyleBase
@@ -43,7 +41,6 @@ interface IShowStyleVariantsProps {
 
 interface IShowStyleVariantsSettingsState {
 	editedMappings: ProtectedString<any>[]
-	timestampedFileKey: number
 	dndVariants: ShowStyleVariant[]
 }
 
@@ -66,7 +63,6 @@ export const ShowStyleVariantsSettings = withTranslation()(
 
 			this.state = {
 				editedMappings: [],
-				timestampedFileKey: Date.now(),
 				dndVariants: this.props.showStyleVariants,
 			}
 		}
@@ -102,13 +98,6 @@ export const ShowStyleVariantsSettings = withTranslation()(
 
 		private noShowStyleVariantsPresentInState = (): boolean => {
 			return this.props.showStyleVariants.length > 0 && this.state.dndVariants.length === 0
-		}
-
-		private importShowStyleVariants = (event: React.ChangeEvent<HTMLInputElement>): void => {
-			this.setState({
-				timestampedFileKey: Date.now(),
-			})
-			variantImporter.importShowStyleVariants(event, this.state.dndVariants)
 		}
 
 		private copyShowStyleVariant = (showStyleVariant: ShowStyleVariant): void => {
@@ -410,15 +399,7 @@ export const ShowStyleVariantsSettings = withTranslation()(
 								<FontAwesomeIcon icon={faDownload} />
 								&nbsp;{t('Export')}
 							</button>
-							<UploadButton
-								className="btn btn-secondary mls"
-								accept="application/json,.json"
-								onChange={(event) => this.importShowStyleVariants(event)}
-								key={this.state.timestampedFileKey}
-							>
-								<FontAwesomeIcon icon={faUpload} />
-								&nbsp;{t('Import')}
-							</UploadButton>
+							<VariantImport showStyleVariants={this.state.dndVariants}></VariantImport>
 							<button className="btn btn-secondary right" onClick={this.confirmRemoveAllShowStyleVariants}>
 								<FontAwesomeIcon icon={faTrash} />
 							</button>
