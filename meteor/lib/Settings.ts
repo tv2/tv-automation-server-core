@@ -85,7 +85,7 @@ const DEFAULT_SETTINGS = Object.freeze<ISettings>({
 	enableKeyboardPreview: false,
 	keyboardMapLayout: KeyboardLayouts.Names.STANDARD_102_TKL,
 	useCountdownToFreezeFrame: true,
-	confirmKeyCode: 'Enter',
+	confirmKeyCode: 'AnyEnter',
 })
 
 /**
