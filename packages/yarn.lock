@@ -3092,7 +3092,7 @@
     webpack-sources "^3.2.2"
 
 "@sofie-automation/blueprints-integration@link:blueprints-integration":
-  version "46.0.3"
+  version "46.0.4"
   dependencies:
     "@sofie-automation/shared-lib" "link:shared-lib"
     timeline-state-resolver-types "npm:@tv2media/timeline-state-resolver-types@3.0.3"
@@ -3687,6 +3687,11 @@
   version "2.4.1"
   resolved "https://registry.yarnpkg.com/@types/normalize-package-data/-/normalize-package-data-2.4.1.tgz#d3357479a0fdfdd5907fe67e17e0a85c906e1301"
   integrity sha512-Gj7cI7z+98M282Tqmp2K5EIsoouUEzbBJhQQzDE3jSIRk6r9gsz0oUokqIUR4u1R3dMHo0pDHM7sNOHyhulypw==
+
+"@types/object-hash@^3.0.1":
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/@types/object-hash/-/object-hash-3.0.1.tgz#6e9adda54582dac92fff9f2ea3e2d7651c17d15e"
+  integrity sha512-AeyooJR4pesRnPLXONFEpxrdvwYVkBiq26j4Uo4QYcJO2FQhAFmHHWBfRpEzwMtItz7q9JiD50s7HDbHS7PleQ==
 
 "@types/object-path@^0.11.1":
   version "0.11.1"
@@ -10842,6 +10847,11 @@ object-filter-sequence@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/object-filter-sequence/-/object-filter-sequence-1.0.0.tgz#10bb05402fff100082b80d7e83991b10db411692"
   integrity sha512-CsubGNxhIEChNY4cXYuA6KXafztzHqzLLZ/y3Kasf3A+sa3lL9thq3z+7o0pZqzEinjXT6lXDPAfVWI59dUyzQ==
+
+object-hash@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/object-hash/-/object-hash-3.0.0.tgz#73f97f753e7baffc0e2cc9d6e079079744ac82e9"
+  integrity sha512-RSn9F68PjH9HqtltsSnqYC1XXoWe9Bju5+213R98cNGttag9q9yAOTzdbsqvIa7aNm5WffBZFpWYr2aWrklWAw==
 
 object-identity-map@^1.0.2:
   version "1.0.2"
