@@ -1,5 +1,5 @@
 import React from 'react'
-import { faTrash, faPlus, faDownload } from '@fortawesome/free-solid-svg-icons'
+import { faDownload, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { ConfigManifestEntry, SourceLayerType } from '@sofie-automation/blueprints-integration'
 import { MappingsExt } from '@sofie-automation/corelib/dist/dataModel/Studio'
@@ -10,14 +10,12 @@ import { ShowStyleBase } from '../../../../lib/collections/ShowStyleBases'
 import { ShowStyleVariant } from '../../../../lib/collections/ShowStyleVariants'
 import { doModalDialog } from '../../../lib/ModalDialog'
 import { Translated } from '../../../lib/ReactMeteorData/ReactMeteorData'
-import { DndProvider } from 'react-dnd'
-import { HTML5Backend } from 'react-dnd-html5-backend'
-import update from 'immutability-helper'
 import { logger } from '../../../../lib/logging'
-import { Meteor } from 'meteor/meteor'
 import { ShowStyleVariantImportButton } from '../../../lib/ShowStyleVariantImportButton'
 import { ShowStyleVariantItem } from './ShowStyleVariantItem'
-import { ShowStyleVariantList } from './ShowStyleVariantList'
+import { DndListWrapper } from '../../DndListWrapper'
+import { DragDropItemTypes } from '../../DragDropItemTypes'
+import { Meteor } from 'meteor/meteor'
 
 interface IShowStyleVariantsProps {
 	showStyleBase: ShowStyleBase
@@ -123,40 +121,26 @@ export const ShowStyleVariantsSettings = withTranslation()(
 			})
 		}
 
-		private persistStateVariants = (): void => {
+		private persistStateVariants = (showStyleVariants: ShowStyleVariant[]): void => {
 			MeteorCall.showstyles
-				.reorderAllShowStyleVariants(this.props.showStyleBase._id, this.state.dndVariants)
+				.reorderAllShowStyleVariants(this.props.showStyleBase._id, showStyleVariants)
 				.catch(logger.warn)
 		}
 
-		private moveVariantHandler = (dragIndex: number, hoverIndex: number): void => {
-			const prevState = this.state.dndVariants
-			this.setState({
-				dndVariants: update(prevState, {
-					$splice: [
-						[dragIndex, 1],
-						[hoverIndex, 0, prevState[dragIndex] as ShowStyleVariant],
-					],
-				}),
-			})
-		}
-
-		private returnVariantsForList = (): JSX.Element[] => {
-			return this.state.dndVariants.map((variant: ShowStyleVariant, index: number) => (
+		private provideShowStyleVariantItem = (variant: ShowStyleVariant, index: number) => {
+			return (
 				<ShowStyleVariantItem
 					key={unprotectString(variant._id)}
 					index={index}
 					showStyleVariant={variant}
 					showStyleBase={this.props.showStyleBase}
-					dndVariants={this.state.dndVariants}
+					dndVariants={this.props.showStyleVariants}
 					blueprintConfigManifest={this.props.blueprintConfigManifest}
 					t={this.props.t}
 					i18n={this.props.i18n}
 					tReady={this.props.tReady}
-					moveVariantHandler={this.moveVariantHandler}
-					persistStateVariants={this.persistStateVariants}
 				></ShowStyleVariantItem>
-			))
+			)
 		}
 
 		render() {
@@ -164,29 +148,30 @@ export const ShowStyleVariantsSettings = withTranslation()(
 			return (
 				<div>
 					<h2 className="mhn">{t('Show Style Variants')}</h2>
-					<DndProvider backend={HTML5Backend}>
-						<div>
-							<ShowStyleVariantList
-								className="table expando settings-studio-showStyleVariants-table"
-								persistStateVariants={this.persistStateVariants}
-							>
-								{this.returnVariantsForList()}
-							</ShowStyleVariantList>
-						</div>
-						<div className="mod mhs">
-							<button className="btn btn-primary" onClick={this.onAddShowStyleVariant}>
-								<FontAwesomeIcon icon={faPlus} />
-							</button>
-							<button className="btn btn-secondary mls" onClick={this.downloadAllShowStyleVariants}>
-								<FontAwesomeIcon icon={faDownload} />
-								&nbsp;{t('Export')}
-							</button>
-							<ShowStyleVariantImportButton showStyleVariants={this.state.dndVariants}></ShowStyleVariantImportButton>
-							<button className="btn btn-secondary right" onClick={this.confirmRemoveAllShowStyleVariants}>
-								<FontAwesomeIcon icon={faTrash} />
-							</button>
-						</div>
-					</DndProvider>
+					<div>
+						<DndListWrapper
+							className="table expando settings-studio-showStyleVariants-table"
+							onDrop={this.persistStateVariants}
+							dndType={DragDropItemTypes.VARIANT}
+							stateUIArray={this.state.dndVariants}
+							provideItemForRender={this.provideShowStyleVariantItem}
+						></DndListWrapper>
+					</div>
+					<div className="mod mhs">
+						<button className="btn btn-primary" onClick={this.onAddShowStyleVariant}>
+							<FontAwesomeIcon icon={faPlus} />
+						</button>
+						<button className="btn btn-secondary mls" onClick={this.downloadAllShowStyleVariants}>
+							<FontAwesomeIcon icon={faDownload} />
+							&nbsp;{t('Export')}
+						</button>
+						<ShowStyleVariantImportButton
+							showStyleVariants={this.props.showStyleVariants}
+						></ShowStyleVariantImportButton>
+						<button className="btn btn-secondary right" onClick={this.confirmRemoveAllShowStyleVariants}>
+							<FontAwesomeIcon icon={faTrash} />
+						</button>
+					</div>
 				</div>
 			)
 		}

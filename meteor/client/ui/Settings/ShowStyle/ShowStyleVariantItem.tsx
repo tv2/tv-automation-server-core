@@ -1,7 +1,4 @@
-import React, { useRef, useState } from 'react'
-import { DragSourceMonitor, DropTargetMonitor, useDrag, useDrop, XYCoord } from 'react-dnd'
-import { Identifier } from 'dnd-core'
-import { ShowStyleDragDropTypes } from './DragDropTypesShowStyle'
+import React, { useState } from 'react'
 import ClassNames from 'classnames'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCheck, faCopy, faDownload, faGripLines, faPencilAlt, faTrash } from '@fortawesome/free-solid-svg-icons'
@@ -30,72 +27,14 @@ interface IShowStyleVariantItemProps {
 	t: TFunction<'translation', undefined>
 	i18n: i18n
 	tReady: boolean
-
-	moveVariantHandler: (dragIndex: number, hoverIndex: number) => void
-	persistStateVariants: () => void
-}
-
-interface DraggableVariant {
-	index: number
-	type: ShowStyleDragDropTypes
 }
 
 export const ShowStyleVariantItem: React.FunctionComponent<IShowStyleVariantItemProps> = (
 	props: IShowStyleVariantItemProps
 ) => {
 	const { t } = props
-	const ref = useRef<HTMLTableRowElement>(null)
-	const index = props.index
 	const initialEditedMappings: ProtectedString<any>[] = []
 	const [editedMappings, setEditedMappings] = useState(initialEditedMappings)
-
-	const [{ handlerId }, drop] = useDrop<DraggableVariant, void, { handlerId: Identifier | null }>({
-		accept: ShowStyleDragDropTypes.VARIANT,
-		collect: (monitor: DropTargetMonitor) => ({ handlerId: monitor.getHandlerId() }),
-		hover(variant: DraggableVariant, monitor: DropTargetMonitor) {
-			if (!ref.current) {
-				return
-			}
-			const dragIndex = variant.index
-			const hoverIndex = index
-
-			if (dragIndex === hoverIndex) {
-				return
-			}
-
-			const hoverBoundingRect = ref.current?.getBoundingClientRect()
-			const hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2
-			const clientOffset = monitor.getClientOffset()
-			const hoverClientY = (clientOffset as XYCoord).y - hoverBoundingRect.top
-
-			if (dragIndex < hoverIndex && hoverClientY < hoverMiddleY) {
-				return
-			}
-
-			if (dragIndex > hoverIndex && hoverClientY > hoverMiddleY) {
-				return
-			}
-
-			props.moveVariantHandler(dragIndex, hoverIndex)
-			variant.index = hoverIndex
-		},
-	})
-
-	const [{ isDragging }, drag] = useDrag({
-		item: { index, type: ShowStyleDragDropTypes.VARIANT },
-		collect: (monitor: DragSourceMonitor) => ({
-			isDragging: monitor.isDragging(),
-		}),
-		end: (_item, monitor) => {
-			if (!monitor.didDrop()) {
-				props.persistStateVariants()
-			}
-		},
-	})
-
-	const opacity = isDragging ? 0.4 : 1
-
-	drag(drop(ref))
 
 	function copyShowStyleVariant(showStyleVariant: ShowStyleVariant): void {
 		showStyleVariant.name = `Copy of ${showStyleVariant.name}`
@@ -161,82 +100,75 @@ export const ShowStyleVariantItem: React.FunctionComponent<IShowStyleVariantItem
 
 	return (
 		<React.Fragment key={unprotectString(props.showStyleVariant._id)}>
-			<tbody>
-				<tr
-					data-handler-id={handlerId}
-					ref={ref}
-					style={{ opacity }}
-					className={ClassNames({
-						hl: isItemEdited(props.showStyleVariant._id),
-					})}
-				>
-					<th className="settings-studio-showStyleVariant__name c3">
-						<span className="settings-studio-showStyleVariants-table__drag">
-							<FontAwesomeIcon icon={faGripLines} />
-						</span>
-						{props.showStyleVariant.name || t('Unnamed variant')}
-					</th>
-					<td className="settings-studio-showStyleVariant__actions table-item-actions c3">
-						<button className="action-btn" onClick={() => downloadShowStyleVariant(props.showStyleVariant)}>
-							<FontAwesomeIcon icon={faDownload} />
-						</button>
-						<button className="action-btn" onClick={() => copyShowStyleVariant(props.showStyleVariant)}>
-							<FontAwesomeIcon icon={faCopy} />
-						</button>
-						<button className="action-btn" onClick={() => editItem(props.showStyleVariant._id)}>
-							<FontAwesomeIcon icon={faPencilAlt} />
-						</button>
-						<button className="action-btn" onClick={() => confirmRemove(props.showStyleVariant)}>
-							<FontAwesomeIcon icon={faTrash} />
-						</button>
+			<tr
+				className={ClassNames({
+					hl: isItemEdited(props.showStyleVariant._id),
+				})}
+			>
+				<th className="settings-studio-showStyleVariant__name c3">
+					<span className="settings-studio-showStyleVariants-table__drag">
+						<FontAwesomeIcon icon={faGripLines} />
+					</span>
+					{props.showStyleVariant.name || t('Unnamed variant')}
+				</th>
+				<td className="settings-studio-showStyleVariant__actions table-item-actions c3">
+					<button className="action-btn" onClick={() => downloadShowStyleVariant(props.showStyleVariant)}>
+						<FontAwesomeIcon icon={faDownload} />
+					</button>
+					<button className="action-btn" onClick={() => copyShowStyleVariant(props.showStyleVariant)}>
+						<FontAwesomeIcon icon={faCopy} />
+					</button>
+					<button className="action-btn" onClick={() => editItem(props.showStyleVariant._id)}>
+						<FontAwesomeIcon icon={faPencilAlt} />
+					</button>
+					<button className="action-btn" onClick={() => confirmRemove(props.showStyleVariant)}>
+						<FontAwesomeIcon icon={faTrash} />
+					</button>
+				</td>
+			</tr>
+			{isItemEdited(props.showStyleVariant._id) && (
+				<tr className="expando-details hl">
+					<td colSpan={5}>
+						<div>
+							<div className="mod mvs mhs">
+								<label className="field">
+									{t('Name')}
+									<EditAttribute
+										modifiedClassName="bghl"
+										attribute={'name'}
+										obj={props.showStyleVariant}
+										type="text"
+										collection={ShowStyleVariants}
+										className="input text-input input-l"
+									></EditAttribute>
+								</label>
+							</div>
+						</div>
+						<div className="row">
+							<div className="col c12 r1-c12 phs">
+								<ConfigManifestSettings
+									t={props.t}
+									i18n={props.i18n}
+									tReady={props.tReady}
+									manifest={props.blueprintConfigManifest}
+									collection={ShowStyleVariants}
+									configPath={'blueprintConfig'}
+									alternateObject={props.showStyleBase}
+									object={props.showStyleVariant}
+									layerMappings={props.layerMappings}
+									sourceLayers={props.sourceLayers}
+									subPanel={true}
+								/>
+							</div>
+						</div>
+						<div className="mod alright">
+							<button className="btn btn-primary" onClick={() => finishEditItem(props.showStyleVariant._id)}>
+								<FontAwesomeIcon icon={faCheck} />
+							</button>
+						</div>
 					</td>
 				</tr>
-			</tbody>
-			<tbody>
-				{isItemEdited(props.showStyleVariant._id) && (
-					<tr className="expando-details hl">
-						<td colSpan={5}>
-							<div>
-								<div className="mod mvs mhs">
-									<label className="field">
-										{t('Name')}
-										<EditAttribute
-											modifiedClassName="bghl"
-											attribute={'name'}
-											obj={props.showStyleVariant}
-											type="text"
-											collection={ShowStyleVariants}
-											className="input text-input input-l"
-										></EditAttribute>
-									</label>
-								</div>
-							</div>
-							<div className="row">
-								<div className="col c12 r1-c12 phs">
-									<ConfigManifestSettings
-										t={props.t}
-										i18n={props.i18n}
-										tReady={props.tReady}
-										manifest={props.blueprintConfigManifest}
-										collection={ShowStyleVariants}
-										configPath={'blueprintConfig'}
-										alternateObject={props.showStyleBase}
-										object={props.showStyleVariant}
-										layerMappings={props.layerMappings}
-										sourceLayers={props.sourceLayers}
-										subPanel={true}
-									/>
-								</div>
-							</div>
-							<div className="mod alright">
-								<button className="btn btn-primary" onClick={() => finishEditItem(props.showStyleVariant._id)}>
-									<FontAwesomeIcon icon={faCheck} />
-								</button>
-							</div>
-						</td>
-					</tr>
-				)}
-			</tbody>
+			)}
 		</React.Fragment>
 	)
 }
