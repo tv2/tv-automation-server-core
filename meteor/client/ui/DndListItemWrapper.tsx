@@ -2,11 +2,14 @@ import { DragDropItemTypes } from './DragDropItemTypes'
 import React, { useRef } from 'react'
 import { DragSourceMonitor, DropTargetMonitor, useDrag, useDrop, XYCoord } from 'react-dnd'
 import { Identifier } from 'dnd-core'
+import { faGripLines } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
 interface IDndItemWrapperProps {
 	index: number
 	dndType: DragDropItemTypes
-	child: any
+	listItem: any
+	className: string
 
 	onDropOutside: () => void
 	moveHandler: (dragIndex: number, hoverIndex: number) => void
@@ -17,8 +20,8 @@ interface DraggableItem {
 	type: DragDropItemTypes
 }
 
-export const DndItemWrapper: React.FunctionComponent<IDndItemWrapperProps> = (props: IDndItemWrapperProps) => {
-	const ref = useRef<HTMLTableSectionElement>(null)
+export const DndListItemWrapper: React.FunctionComponent<IDndItemWrapperProps> = (props: IDndItemWrapperProps) => {
+	const ref = useRef<HTMLTableRowElement>(null)
 	const index = props.index
 
 	const [{ handlerId }, drop] = useDrop<DraggableItem, void, { handlerId: Identifier | null }>({
@@ -70,8 +73,15 @@ export const DndItemWrapper: React.FunctionComponent<IDndItemWrapperProps> = (pr
 	drag(drop(ref))
 
 	return (
-		<tbody data-handler-id={handlerId} ref={ref} style={{ opacity }}>
-			{props.child}
+		<tbody>
+			<tr style={{ opacity }} data-handler-id={handlerId} ref={ref}>
+				<td className="settings-studio-table__drag table expando">
+					<FontAwesomeIcon icon={faGripLines} />
+				</td>
+				<td>
+					<table className={props.className}>{props.listItem}</table>
+				</td>
+			</tr>
 		</tbody>
 	)
 }

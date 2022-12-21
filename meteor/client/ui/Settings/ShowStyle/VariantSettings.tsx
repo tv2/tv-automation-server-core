@@ -12,7 +12,7 @@ import { doModalDialog } from '../../../lib/ModalDialog'
 import { Translated } from '../../../lib/ReactMeteorData/ReactMeteorData'
 import { logger } from '../../../../lib/logging'
 import { ShowStyleVariantImportButton } from '../../../lib/ShowStyleVariantImportButton'
-import { ShowStyleVariantItem } from './ShowStyleVariantItem'
+import { VariantListItem } from './VariantListItem'
 import { DndListWrapper } from '../../DndListWrapper'
 import { DragDropItemTypes } from '../../DragDropItemTypes'
 import { Meteor } from 'meteor/meteor'
@@ -129,7 +129,7 @@ export const ShowStyleVariantsSettings = withTranslation()(
 
 		private provideShowStyleVariantItem = (variant: ShowStyleVariant, index: number) => {
 			return (
-				<ShowStyleVariantItem
+				<VariantListItem
 					key={unprotectString(variant._id)}
 					index={index}
 					showStyleVariant={variant}
@@ -139,7 +139,7 @@ export const ShowStyleVariantsSettings = withTranslation()(
 					t={this.props.t}
 					i18n={this.props.i18n}
 					tReady={this.props.tReady}
-				></ShowStyleVariantItem>
+				></VariantListItem>
 			)
 		}
 

@@ -2,7 +2,7 @@ import { DropTargetMonitor, useDrop } from 'react-dnd'
 import { DragDropItemTypes } from './DragDropItemTypes'
 import React, { useEffect, useState } from 'react'
 import update from 'immutability-helper'
-import { DndItemWrapper } from './DndItemWrapper'
+import { DndListItemWrapper } from './DndListItemWrapper'
 
 interface IDndListWrapperProps {
 	className: string
@@ -44,20 +44,21 @@ export const DndListWrapper: React.FunctionComponent<IDndListWrapperProps> = (pr
 	}, [props.stateUIArray])
 
 	return (
-		<table ref={drop} className={props.className}>
+		<table ref={drop}>
 			{uiArray.map((child: any, index: number) => {
 				const renderItem = props.provideItemForRender(child, index)
 				return (
-					<DndItemWrapper
+					<DndListItemWrapper
 						key={index}
 						index={index}
 						moveHandler={moveHandler}
 						onDropOutside={() => {
 							props.onDrop(uiArray)
 						}}
-						child={renderItem}
+						listItem={renderItem}
 						dndType={props.dndType}
-					></DndItemWrapper>
+						className={props.className}
+					></DndListItemWrapper>
 				)
 			})}
 		</table>
