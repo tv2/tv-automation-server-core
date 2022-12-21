@@ -299,7 +299,8 @@ export async function innerStartOrQueueAdLibPiece(
 
 	const span = context.startSpan('innerStartOrQueueAdLibPiece')
 	let queuedPartInstanceId: PartInstanceId | undefined
-	if (queue || adLibPiece.toBeQueued) {
+	const shouldPieceBeQueued = queue || !!adLibPiece.toBeQueued
+	if (shouldPieceBeQueued) {
 		const newPartInstance: DBPartInstance = {
 			_id: getRandomId(),
 			rundownId: rundown._id,
@@ -325,7 +326,7 @@ export async function innerStartOrQueueAdLibPiece(
 			playlist.activationId,
 			adLibPiece,
 			newPartInstance,
-			queue
+			shouldPieceBeQueued
 		)
 
 		newPartInstance.part.expectedDurationWithPreroll = calculatePartExpectedDurationWithPreroll(
@@ -343,7 +344,7 @@ export async function innerStartOrQueueAdLibPiece(
 			playlist.activationId,
 			adLibPiece,
 			currentPartInstance,
-			queue
+			shouldPieceBeQueued
 		)
 		innerStartAdLibPiece(context, cache, rundown, currentPartInstance, newPieceInstance)
 
@@ -545,7 +546,10 @@ export async function innerStartQueuedAdLib(
 
 	newPieceInstances.forEach((pieceInstance) => {
 		// Ensure it is labelled as dynamic
-		pieceInstance.dynamicallyInserted = getCurrentTime()
+		pieceInstance.dynamicallyInserted = {
+			time: getCurrentTime(),
+			intoNextPart: true,
+		}
 		pieceInstance.partInstanceId = newPartInstance._id
 		pieceInstance.piece.startPartId = newPartInstance.part._id
 
@@ -589,7 +593,10 @@ export function innerStartAdLibPiece(
 	// Ensure it is labelled as dynamic
 	newPieceInstance.partInstanceId = existingPartInstance._id
 	newPieceInstance.piece.startPartId = existingPartInstance.part._id
-	newPieceInstance.dynamicallyInserted = getCurrentTime()
+	newPieceInstance.dynamicallyInserted = {
+		time: getCurrentTime(),
+		intoNextPart: !existingPartInstance.isTaken || undefined,
+	}
 
 	setupPieceInstanceInfiniteProperties(newPieceInstance)
 
@@ -619,8 +626,6 @@ export function innerStopPieces(
 	const stopAt = getCurrentTime() + (timeOffset || 0)
 	const relativeStopAt = stopAt - lastStartedPlayback
 
-	const stoppedInfiniteIds = new Set<PieceId>()
-
 	for (const pieceInstance of resolvedPieces) {
 		if (
 			!pieceInstance.userDuration &&
@@ -639,9 +644,6 @@ export function innerStopPieces(
 						userDuration: {
 							end: relativeStopAt,
 						},
-					}
-					if (pieceInstance.infinite) {
-						stoppedInfiniteIds.add(pieceInstance.infinite.infinitePieceId)
 					}
 
 					cache.PieceInstances.update(
@@ -686,7 +688,9 @@ export function innerStopPieces(
 							currentPartInstance.rundownId,
 							currentPartInstance._id
 						),
-						dynamicallyInserted: getCurrentTime(),
+						dynamicallyInserted: {
+							time: getCurrentTime(),
+						},
 						infinite: {
 							infiniteInstanceId: getRandomId(),
 							infiniteInstanceIndex: 0,

@@ -26,14 +26,13 @@ import { getSelectedPartInstances, getSortedPartsForRundown } from './lib'
 import { PieceLifespan, IBlueprintPieceType } from '@sofie-automation/blueprints-integration'
 import { AdLibPiece } from '@sofie-automation/corelib/dist/dataModel/AdLibPiece'
 import { RundownPlaylistId, RundownId, PartId, PartInstanceId } from '@sofie-automation/corelib/dist/dataModel/Ids'
-import { PieceInstance } from '@sofie-automation/corelib/dist/dataModel/PieceInstance'
 import {
 	TimelineEnableExt,
 	TimelineComplete,
 	deserializeTimelineBlob,
 } from '@sofie-automation/corelib/dist/dataModel/Timeline'
 import { normalizeArrayToMap, literal, getRandomId } from '@sofie-automation/corelib/dist/lib'
-import { getPartGroupId, getPieceGroupId } from '@sofie-automation/corelib/dist/playout/ids'
+import { getPartGroupId, getPieceControlObjectId, getPieceGroupId } from '@sofie-automation/corelib/dist/playout/ids'
 import { unprotectString, protectString } from '@sofie-automation/corelib/dist/protectedString'
 import { Time } from 'superfly-timeline'
 import { DBPartInstance } from '@sofie-automation/corelib/dist/dataModel/PartInstance'
@@ -56,23 +55,89 @@ import {
 	setupRundownBase,
 } from './helpers/rundowns'
 import { defaultRundownPlaylist } from '../../__mocks__/defaultCollectionObjects'
-import { ShowStyleCompound } from '@sofie-automation/corelib/dist/dataModel/ShowStyleBase'
+import { ShowStyleCompound } from '@sofie-automation/corelib/dist/dataModel/ShowStyleCompound'
 import { ReadonlyDeep } from 'type-fest'
-import { innerStartOrQueueAdLibPiece } from '../adlib'
-import { EmptyPieceTimelineObjectsBlob, PieceStatusCode } from '@sofie-automation/corelib/dist/dataModel/Piece'
+import { innerStartAdLibPiece, innerStartOrQueueAdLibPiece } from '../adlib'
+import { EmptyPieceTimelineObjectsBlob, Piece, PieceStatusCode } from '@sofie-automation/corelib/dist/dataModel/Piece'
 import { adjustFakeTime, useFakeCurrentTime, useRealCurrentTime } from '../../__mocks__/time'
-import { restartRandomId } from '../../__mocks__/random'
+import { restartRandomId } from '../../__mocks__/nanoid'
+import { wrapPieceToInstance } from '@sofie-automation/corelib/dist/dataModel/PieceInstance'
 
 interface PartTimelineTimings {
 	previousPart: TimelineEnableExt | null
-	currentPieces: { [id: string]: TimelineEnableExt | TimelineEnableExt[] | null }
+	currentPieces: {
+		[id: string]: {
+			childGroup: PreAndPostRoll | PreAndPostRoll[]
+			controlObj: TimelineEnableExt | TimelineEnableExt[]
+		} | null
+	}
 	currentInfinitePieces: {
 		[id: string]: {
 			partGroup: TimelineEnableExt | TimelineEnableExt[]
-			pieceGroup: TimelineEnableExt | TimelineEnableExt[]
+			pieceGroup: {
+				childGroup: PreAndPostRoll | PreAndPostRoll[]
+				controlObj: TimelineEnableExt | TimelineEnableExt[]
+			}
 		} | null
 	}
-	previousOutTransition: TimelineEnableExt | TimelineEnableExt[] | null | undefined
+	previousOutTransition:
+		| {
+				childGroup: PreAndPostRoll | PreAndPostRoll[]
+				controlObj: TimelineEnableExt | TimelineEnableExt[]
+		  }
+		| null
+		| undefined
+}
+
+interface PreAndPostRoll {
+	preroll: number
+	postroll: number
+	invalid?: string
+}
+function getPrerollAndPostroll(enable: TimelineEnableExt | TimelineEnableExt[]): PreAndPostRoll | PreAndPostRoll[] {
+	const doIt = (enable: TimelineEnableExt): PreAndPostRoll => {
+		const res: PreAndPostRoll = {
+			preroll: 0,
+			postroll: 0,
+		}
+
+		if (typeof enable.start === 'string') {
+			const start = enable.start
+
+			const match = start.match(/^#piece_group_control_(.*)\.start - (\d+)$/)
+			if (match) {
+				res.preroll = Number(match[2])
+			} else {
+				res.invalid = 'Failed to parse start'
+			}
+		} else {
+			res.invalid = 'Failed to parse start'
+		}
+		if (typeof enable.end === 'string') {
+			const end = enable.end
+
+			const match = end.match(/^#piece_group_control_(.*)\.end \+ (\d+)$/)
+			if (match) {
+				res.postroll = Number(match[2])
+			} else {
+				res.invalid = 'Failed to parse end'
+			}
+		} else {
+			res.invalid = 'Failed to parse end'
+		}
+
+		if (Object.keys(enable).length !== 2) {
+			res.invalid = 'Extra keys!'
+		}
+
+		return res
+	}
+
+	if (Array.isArray(enable)) {
+		return enable.map(doIt)
+	} else {
+		return doIt(enable)
+	}
 }
 
 /**
@@ -114,8 +179,14 @@ async function checkTimingsRaw(
 
 		if (piece.piece.lifespan === PieceLifespan.WithinPart) {
 			const pieceObj = objs.get(getPieceGroupId(piece))
+			const controlObj = objs.get(getPieceControlObjectId(piece))
 
-			targetCurrentPieces[entryId] = pieceObj ? pieceObj.enable : null
+			targetCurrentPieces[entryId] = controlObj
+				? {
+						childGroup: getPrerollAndPostroll(pieceObj?.enable ?? []),
+						controlObj: controlObj.enable,
+				  }
+				: null
 		} else {
 			const partGroupId = getPartGroupId(protectString<PartInstanceId>(unprotectString(piece._id))) + '_infinite'
 			const partObj = objs.get(partGroupId)
@@ -123,10 +194,14 @@ async function checkTimingsRaw(
 				targetCurrentInfinitePieces[entryId] = null
 			} else {
 				const pieceObj = objs.get(getPieceGroupId(piece))
+				const controlObj = objs.get(getPieceControlObjectId(piece))
 
 				targetCurrentInfinitePieces[entryId] = {
 					partGroup: partObj.enable,
-					pieceGroup: pieceObj?.enable ?? [],
+					pieceGroup: {
+						childGroup: getPrerollAndPostroll(pieceObj?.enable ?? []),
+						controlObj: controlObj?.enable ?? [],
+					},
 				}
 			}
 		}
@@ -145,7 +220,13 @@ async function checkTimingsRaw(
 				if (previousOutTransition !== undefined) throw new Error('Too many out transition pieces were found')
 
 				const pieceObj = objs.get(getPieceGroupId(piece))
-				previousOutTransition = pieceObj?.enable ?? null
+				const controlObj = objs.get(getPieceControlObjectId(piece))
+				previousOutTransition = controlObj
+					? {
+							childGroup: getPrerollAndPostroll(pieceObj?.enable ?? []),
+							controlObj: controlObj.enable,
+					  }
+					: null
 			}
 		}
 		expect(previousOutTransition).toEqual(expectedTimings.previousOutTransition)
@@ -520,7 +601,10 @@ describe('Timeline', () => {
 					previousPart: { end: `#${getPartGroupId(currentPartInstance)}.start + 1000` },
 					currentPieces: {
 						// pieces are delayed by the content delay
-						piece010: { start: 0 },
+						piece010: {
+							controlObj: { start: 0 },
+							childGroup: { preroll: 0, postroll: 0 },
+						},
 					},
 					currentInfinitePieces: {},
 					previousOutTransition: undefined,
@@ -537,11 +621,20 @@ describe('Timeline', () => {
 					previousPart: { end: `#${getPartGroupId(currentPartInstance)}.start + 1000` },
 					currentPieces: {
 						// pieces are delayed by the content delay
-						piece010: { start: 500 },
+						piece010: {
+							controlObj: { start: 500 },
+							childGroup: { preroll: 0, postroll: 0 },
+						},
 						// transition piece
-						piece011: { start: 0 },
+						piece011: {
+							controlObj: { start: 0 },
+							childGroup: { preroll: 0, postroll: 0 },
+						},
 						// pieces are delayed by the content delay
-						piece012: { start: 1500, duration: 1000 },
+						piece012: {
+							controlObj: { start: 1500, duration: 1000 },
+							childGroup: { preroll: 0, postroll: 0 },
+						},
 					},
 					currentInfinitePieces: {},
 					previousOutTransition: undefined,
@@ -558,7 +651,10 @@ describe('Timeline', () => {
 					previousPart: { end: `#${getPartGroupId(currentPartInstance)}.start + 500` },
 					currentPieces: {
 						// main piece
-						piece010: { start: 0 },
+						piece010: {
+							controlObj: { start: 500 },
+							childGroup: { preroll: 500, postroll: 0 },
+						},
 					},
 					currentInfinitePieces: {},
 					previousOutTransition: undefined,
@@ -575,9 +671,15 @@ describe('Timeline', () => {
 					previousPart: { end: `#${getPartGroupId(currentPartInstance)}.start + 1000` },
 					currentPieces: {
 						// pieces are delayed by the content delay
-						piece010: { start: 500 },
+						piece010: {
+							controlObj: { start: 500 },
+							childGroup: { preroll: 0, postroll: 0 },
+						},
 						// transition piece
-						piece011: { start: 0 },
+						piece011: {
+							controlObj: { start: 0 },
+							childGroup: { preroll: 0, postroll: 0 },
+						},
 					},
 					currentInfinitePieces: {},
 					previousOutTransition: undefined,
@@ -594,9 +696,15 @@ describe('Timeline', () => {
 					previousPart: { end: `#${getPartGroupId(currentPartInstance)}.start + 1000` },
 					currentPieces: {
 						// pieces are delayed by the content delay
-						piece010: { start: 250 },
+						piece010: {
+							controlObj: { start: 500 },
+							childGroup: { preroll: 250, postroll: 0 },
+						},
 						// transition piece
-						piece011: { start: 0 },
+						piece011: {
+							controlObj: { start: 0 },
+							childGroup: { preroll: 0, postroll: 0 },
+						},
 					},
 					currentInfinitePieces: {},
 					previousOutTransition: undefined,
@@ -613,15 +721,24 @@ describe('Timeline', () => {
 					previousPart: { end: `#${getPartGroupId(currentPartInstance)}.start + 1000` },
 					currentPieces: {
 						// pieces are delayed by the content delay
-						piece010: { start: 500 },
+						piece010: {
+							controlObj: { start: 500 },
+							childGroup: { preroll: 0, postroll: 0 },
+						},
 						// transition piece
-						piece011: { start: 0 },
+						piece011: {
+							controlObj: { start: 0 },
+							childGroup: { preroll: 0, postroll: 0 },
+						},
 					},
 					currentInfinitePieces: {
 						piece002: {
 							// No delay applied as it started before this part, so should be left untouched
 							partGroup: { start: `#part_group_${currentPartInstance?._id}.start` },
-							pieceGroup: { start: 0 },
+							pieceGroup: {
+								controlObj: { start: 0 },
+								childGroup: { preroll: 0, postroll: 0 },
+							},
 						},
 					},
 					previousOutTransition: undefined,
@@ -638,15 +755,24 @@ describe('Timeline', () => {
 					previousPart: { end: `#${getPartGroupId(currentPartInstance)}.start + 1000` },
 					currentPieces: {
 						// pieces are delayed by the content delay
-						piece010: { start: 500 },
+						piece010: {
+							controlObj: { start: 500 },
+							childGroup: { preroll: 0, postroll: 0 },
+						},
 						// transition piece
-						piece011: { start: 0 },
+						piece011: {
+							controlObj: { start: 0 },
+							childGroup: { preroll: 0, postroll: 0 },
+						},
 					},
 					currentInfinitePieces: {
 						piece012: {
 							// Delay get applied to the pieceGroup inside the partGroup
 							partGroup: { start: `#${getPartGroupId(currentPartInstance)}.start` },
-							pieceGroup: { start: 500 },
+							pieceGroup: {
+								controlObj: { start: 500 },
+								childGroup: { preroll: 0, postroll: 0 },
+							},
 						},
 					},
 					previousOutTransition: undefined,
@@ -673,7 +799,10 @@ describe('Timeline', () => {
 						previousPart: { end: `#${getPartGroupId(currentPartInstance!)}.start + 0` },
 						currentPieces: {
 							// pieces are not delayed
-							piece010: { start: 0 },
+							piece010: {
+								controlObj: { start: 0 },
+								childGroup: { preroll: 0, postroll: 0 },
+							},
 							// no in transition
 							piece011: null,
 						},
@@ -692,7 +821,10 @@ describe('Timeline', () => {
 					previousPart: { end: `#${getPartGroupId(currentPartInstance)}.start + 0` },
 					currentPieces: {
 						// pieces are not delayed
-						piece010: { start: 0 },
+						piece010: {
+							controlObj: { start: 0 },
+							childGroup: { preroll: 0, postroll: 0 },
+						},
 						// no transition piece
 						piece011: null,
 					},
@@ -713,12 +845,16 @@ describe('Timeline', () => {
 					previousPart: { end: `#${getPartGroupId(currentPartInstance)}.start + 1000` },
 					currentPieces: {
 						// pieces are delayed by outTransition time
-						piece010: { start: 1000 },
+						piece010: {
+							controlObj: { start: 1000 },
+							childGroup: { preroll: 0, postroll: 0 },
+						},
 					},
 					currentInfinitePieces: {},
 					// outTransitionPiece is inserted
 					previousOutTransition: {
-						start: `#${getPartGroupId(previousPartInstance)}.end - 1000`,
+						controlObj: { start: `#${getPartGroupId(previousPartInstance)}.end - 1000` },
+						childGroup: { preroll: 0, postroll: 0 },
 					},
 				})
 			}
@@ -733,12 +869,17 @@ describe('Timeline', () => {
 					previousPart: { end: `#${getPartGroupId(currentPartInstance)}.start + 1000` },
 					currentPieces: {
 						// pieces are delayed by outTransition time
-						piece010: { start: 750 }, /// 1000ms out transition, 250ms preroll
+						piece010: {
+							// 1000ms out transition, 250ms preroll
+							controlObj: { start: 1000 },
+							childGroup: { preroll: 250, postroll: 0 },
+						},
 					},
 					currentInfinitePieces: {},
 					// outTransitionPiece is inserted
 					previousOutTransition: {
-						start: `#${getPartGroupId(previousPartInstance)}.end - 1000`,
+						controlObj: { start: `#${getPartGroupId(previousPartInstance)}.end - 1000` },
+						childGroup: { preroll: 0, postroll: 0 },
 					},
 				})
 			}
@@ -753,12 +894,17 @@ describe('Timeline', () => {
 					previousPart: { end: `#${getPartGroupId(currentPartInstance)}.start + 1000` },
 					currentPieces: {
 						// pieces are delayed by outTransition time
-						piece010: { start: 0 }, /// 250ms out transition, 1000ms preroll. preroll takes precedence
+						piece010: {
+							// 250ms out transition, 1000ms preroll. preroll takes precedence
+							controlObj: { start: 1000 },
+							childGroup: { preroll: 1000, postroll: 0 },
+						},
 					},
 					currentInfinitePieces: {},
 					// outTransitionPiece is inserted
 					previousOutTransition: {
-						start: `#${getPartGroupId(previousPartInstance)}.end - 250`,
+						controlObj: { start: `#${getPartGroupId(previousPartInstance)}.end - 250` },
+						childGroup: { preroll: 0, postroll: 0 },
 					},
 				})
 			}
@@ -773,14 +919,23 @@ describe('Timeline', () => {
 					previousPart: { end: `#${getPartGroupId(currentPartInstance)}.start + 600` }, // 600ms outtransiton & 250ms transition keepalive
 					currentPieces: {
 						// pieces are delayed by in transition preroll time
-						piece010: { start: 650 }, // inTransPieceTlObj + 300 contentDelay
+						piece010: {
+							// inTransPieceTlObj + 300 contentDelay
+							controlObj: { start: 650 },
+							childGroup: { preroll: 0, postroll: 0 },
+						},
 						// in transition is delayed by outTransition time
-						piece011: { start: 350, duration: 500 }, // 600 - 250 = 350
+						piece011: {
+							// 600 - 250 = 350
+							controlObj: { start: 350, duration: 500 },
+							childGroup: { preroll: 0, postroll: 0 },
+						},
 					},
 					currentInfinitePieces: {},
 					// outTransitionPiece is inserted
 					previousOutTransition: {
-						start: `#${getPartGroupId(previousPartInstance)}.end - 600`,
+						controlObj: { start: `#${getPartGroupId(previousPartInstance)}.end - 600` },
+						childGroup: { preroll: 0, postroll: 0 },
 					},
 				})
 			}
@@ -803,7 +958,10 @@ describe('Timeline', () => {
 					await checkTimings({
 						previousPart: { end: `#${getPartGroupId(currentPartInstance!)}.start + 500` }, // note: this seems odd, but the pieces are delayed to compensate
 						currentPieces: {
-							piece010: { start: 500 }, // note: Offset matches extension of previous partGroup
+							piece010: {
+								controlObj: { start: 500 }, // note: Offset matches extension of previous partGroup
+								childGroup: { preroll: 0, postroll: 0 },
+							},
 						},
 						currentInfinitePieces: {},
 						previousOutTransition: undefined,
@@ -826,26 +984,42 @@ describe('Timeline', () => {
 			})
 		}
 
-		async function doSimulatePiecePlaybackTimings(
+		async function doWrapAndStartAdlibPiece(
 			playlistId: RundownPlaylistId,
-			currentPartInstance: DBPartInstance,
-			adlibbedPieceId: string,
-			time: Time
+			partInstance: DBPartInstance,
+			piece: Piece
 		) {
-			const pieceInstance = (await context.directCollections.PieceInstances.findOne({
-				partInstanceId: currentPartInstance._id,
-				'piece._id': adlibbedPieceId,
-			})) as PieceInstance
-			expect(pieceInstance).toBeTruthy()
+			await runJobWithPlayoutCache(context, { playlistId }, null, async (cache) => {
+				const rundown = cache.Rundowns.findOne(partInstance.rundownId) as Rundown
+				expect(rundown).toBeTruthy()
+				const newPieceInstance = wrapPieceToInstance(piece, partInstance.playlistActivationId, partInstance._id)
 
-			await handleTimelineTriggerTime(context, {
-				results: [
-					{
-						id: getPieceGroupId(pieceInstance),
-						time: time,
-					},
-				],
+				return innerStartAdLibPiece(context, cache, rundown, partInstance, newPieceInstance)
 			})
+		}
+
+		async function doSimulatePiecePlaybackTimings(playlistId: RundownPlaylistId, time: Time, objectCount: number) {
+			const timelineComplete = (await context.directCollections.Timelines.findOne(
+				context.studioId
+			)) as TimelineComplete
+			expect(timelineComplete).toBeTruthy()
+
+			const rawTimelineObjs = deserializeTimelineBlob(timelineComplete.timelineBlob)
+			const nowObjs = rawTimelineObjs.filter((obj) => !Array.isArray(obj.enable) && obj.enable.start === 'now')
+			expect(nowObjs).toHaveLength(objectCount)
+
+			// All should be inside a PartGroup
+			expect(
+				nowObjs.find((obj) => !obj.inGroup || !obj.inGroup.startsWith(getPartGroupId(protectString(''))))
+			).toBeFalsy()
+
+			const results = nowObjs.map((obj) => ({
+				id: obj.id,
+				time: time,
+			}))
+			// console.log('Sending trigger for:', results)
+
+			await handleTimelineTriggerTime(context, { results })
 
 			await doUpdateTimeline(context, playlistId)
 		}
@@ -880,8 +1054,14 @@ describe('Timeline', () => {
 					await checkTimings({
 						previousPart: null,
 						currentPieces: {
-							piece000: { start: 0 }, // This one gave the preroll
-							piece001: { start: 450 },
+							piece000: {
+								controlObj: { start: 500 }, // This one gave the preroll
+								childGroup: { preroll: 500, postroll: 0 },
+							},
+							piece001: {
+								controlObj: { start: 500 },
+								childGroup: { preroll: 50, postroll: 0 },
+							},
 						},
 						currentInfinitePieces: {},
 						previousOutTransition: undefined,
@@ -916,15 +1096,33 @@ describe('Timeline', () => {
 						previousPart: null,
 						currentPieces: {
 							piece000: {
-								start: 0, // This one gave the preroll
-								end: `#piece_group_${currentPartInstance!._id}_${
-									currentPartInstance!.rundownId
-								}_piece000_cap_now.start`,
+								controlObj: {
+									start: 500, // This one gave the preroll
+									end: `#piece_group_control_${currentPartInstance!._id}_${adlibbedPieceId}.start`,
+								},
+								childGroup: {
+									preroll: 500,
+									postroll: 0,
+								},
 							},
-							piece001: { start: 450 },
+							piece001: {
+								controlObj: {
+									start: 500,
+								},
+								childGroup: {
+									preroll: 50,
+									postroll: 0,
+								},
+							},
 							[adlibbedPieceId]: {
 								// Our adlibbed piece
-								start: 'now',
+								controlObj: {
+									start: 'now',
+								},
+								childGroup: {
+									preroll: 0,
+									postroll: 0,
+								},
 							},
 						},
 						currentInfinitePieces: {},
@@ -933,20 +1131,40 @@ describe('Timeline', () => {
 
 					const pieceOffset = 12560
 					// Simulate the piece timing confirmation from playout-gateway
-					await doSimulatePiecePlaybackTimings(playlistId, currentPartInstance!, adlibbedPieceId, pieceOffset)
+					await doSimulatePiecePlaybackTimings(playlistId, pieceOffset, 1)
 
 					// Now we have a concrete time
 					await checkTimings({
 						previousPart: null,
 						currentPieces: {
 							piece000: {
-								start: 0, // This one gave the preroll
-								end: pieceOffset, // This is expected to match the start of the adlib
+								controlObj: {
+									start: 500, // This one gave the preroll
+									end: pieceOffset, // This is expected to match the start of the adlib
+								},
+								childGroup: {
+									preroll: 500,
+									postroll: 0,
+								},
 							},
-							piece001: { start: 450 },
+							piece001: {
+								controlObj: {
+									start: 500,
+								},
+								childGroup: {
+									preroll: 50,
+									postroll: 0,
+								},
+							},
 							[adlibbedPieceId]: {
 								// Our adlibbed piece
-								start: pieceOffset,
+								controlObj: {
+									start: pieceOffset,
+								},
+								childGroup: {
+									preroll: 0,
+									postroll: 0,
+								},
 							},
 						},
 						currentInfinitePieces: {},
@@ -985,8 +1203,25 @@ describe('Timeline', () => {
 					await checkTimings({
 						previousPart: null,
 						currentPieces: {
-							piece000: { start: 0 }, // This one gave the preroll
-							piece001: { start: 450 },
+							piece000: {
+								// This one gave the preroll
+								controlObj: {
+									start: 500,
+								},
+								childGroup: {
+									preroll: 500,
+									postroll: 0,
+								},
+							},
+							piece001: {
+								controlObj: {
+									start: 500,
+								},
+								childGroup: {
+									preroll: 50,
+									postroll: 0,
+								},
+							},
 						},
 						currentInfinitePieces: {},
 						previousOutTransition: undefined,
@@ -1022,13 +1257,35 @@ describe('Timeline', () => {
 						previousPart: null,
 						currentPieces: {
 							piece000: {
-								start: 0, // This one gave the preroll
-								end: `#piece_group_${currentPartInstance!._id}_${adlibbedPieceId}.start + 340`,
+								controlObj: {
+									start: 500, // This one gave the preroll
+									end: `#piece_group_control_${currentPartInstance!._id}_${adlibbedPieceId}.start`,
+								},
+								childGroup: {
+									preroll: 500,
+									postroll: 0,
+								},
 							},
-							piece001: { start: 450 },
+							piece001: {
+								controlObj: {
+									start: 500,
+								},
+								childGroup: {
+									preroll: 50,
+									postroll: 0,
+								},
+							},
 							[adlibbedPieceId]: {
 								// Our adlibbed piece
-								start: 'now',
+								controlObj: {
+									start: `#piece_group_control_${
+										currentPartInstance!._id
+									}_${adlibbedPieceId}_start_now + 340`,
+								},
+								childGroup: {
+									preroll: 340,
+									postroll: 0,
+								},
 							},
 						},
 						currentInfinitePieces: {},
@@ -1037,20 +1294,166 @@ describe('Timeline', () => {
 
 					const pieceOffset = 12560
 					// Simulate the piece timing confirmation from playout-gateway
-					await doSimulatePiecePlaybackTimings(playlistId, currentPartInstance!, adlibbedPieceId, pieceOffset)
+					await doSimulatePiecePlaybackTimings(playlistId, pieceOffset, 1)
 
 					// Now we have a concrete time
 					await checkTimings({
 						previousPart: null,
 						currentPieces: {
 							piece000: {
-								start: 0, // This one gave the preroll
-								end: pieceOffset + 340,
+								controlObj: {
+									start: 500, // This one gave the preroll
+									end: pieceOffset,
+								},
+								childGroup: {
+									preroll: 500,
+									postroll: 0,
+								},
 							},
-							piece001: { start: 450 },
+							piece001: {
+								controlObj: {
+									start: 500,
+								},
+								childGroup: {
+									preroll: 50,
+									postroll: 0,
+								},
+							},
 							[adlibbedPieceId]: {
 								// Our adlibbed piece
-								start: pieceOffset,
+								controlObj: {
+									start: pieceOffset,
+								},
+								childGroup: {
+									preroll: 340,
+									postroll: 0,
+								},
+							},
+						},
+						currentInfinitePieces: {},
+						previousOutTransition: undefined,
+					})
+				}
+			))
+
+		// eslint-disable-next-line jest/expect-expect
+		test('Next part with inTransition + dynamicallyInserted adlib piece', async () =>
+			runTimelineTimings(
+				setupRundownWithInTransitionPlannedPiece,
+				async (playlistId, _rundownId, parts, getPartInstances, checkTimings) => {
+					// Take the first Part:
+					await doTakePart(context, playlistId, null, parts[0]._id, parts[1]._id)
+
+					const { nextPartInstance } = await getPartInstances()
+					// Insert an adlib piece
+					await doWrapAndStartAdlibPiece(
+						playlistId,
+						nextPartInstance!,
+						literal<Piece>({
+							_id: protectString('adlib1'),
+							startRundownId: nextPartInstance!.rundownId,
+							startSegmentId: nextPartInstance!.segmentId,
+							startPartId: parts[1]._id,
+							status: PieceStatusCode.OK,
+							externalId: 'fake',
+							name: 'Adlibbed piece',
+							lifespan: PieceLifespan.WithinPart,
+							sourceLayerId: showStyle.sourceLayers[1]._id,
+							outputLayerId: showStyle.outputLayers[0]._id,
+							content: {},
+							timelineObjectsString: EmptyPieceTimelineObjectsBlob,
+							enable: { start: 0 },
+							invalid: false,
+							pieceType: IBlueprintPieceType.Normal,
+						})
+					)
+
+					await doTakePart(context, playlistId, parts[0]._id, parts[1]._id, null)
+
+					await checkTimings({
+						// old part is extended by 1000ms due to transition keepalive
+						previousPart: { end: `#${getPartGroupId(nextPartInstance!)}.start + 1000` },
+						currentPieces: {
+							// exclusive group between layers 0 and 1
+							piece010: null,
+							// transition piece
+							piece011: {
+								controlObj: { start: 0 },
+								childGroup: { preroll: 0, postroll: 0 },
+							},
+							// pieces are delayed by the content delay
+							piece012: {
+								controlObj: { start: 1500, duration: 1000 },
+								childGroup: { preroll: 0, postroll: 0 },
+							},
+							adlib1: {
+								controlObj: { start: 500 },
+								childGroup: { preroll: 0, postroll: 0 },
+							},
+						},
+						currentInfinitePieces: {},
+						previousOutTransition: undefined,
+					})
+				}
+			))
+
+		// eslint-disable-next-line jest/expect-expect
+		test('Current part with inTransition + dynamicallyInserted adlib piece', async () =>
+			runTimelineTimings(
+				setupRundownWithInTransitionPlannedPiece,
+				async (playlistId, _rundownId, parts, getPartInstances, checkTimings) => {
+					// Take the first Part:
+					await doTakePart(context, playlistId, null, parts[0]._id, parts[1]._id)
+					// Take the second part
+					await doTakePart(context, playlistId, parts[0]._id, parts[1]._id, null)
+
+					const { currentPartInstance } = await getPartInstances()
+					// Insert an adlib piece
+					await doStartAdlibPiece(
+						playlistId,
+						currentPartInstance!,
+						literal<AdLibPiece>({
+							_id: protectString('adlib1'),
+							rundownId: currentPartInstance!.rundownId,
+							status: PieceStatusCode.OK,
+							externalId: 'fake',
+							name: 'Adlibbed piece',
+							lifespan: PieceLifespan.WithinPart,
+							sourceLayerId: showStyle.sourceLayers[1]._id,
+							outputLayerId: showStyle.outputLayers[0]._id,
+							content: {},
+							timelineObjectsString: EmptyPieceTimelineObjectsBlob,
+							invalid: false,
+							_rank: 0,
+						})
+					)
+
+					const adlibbedPieceId = 'randomId9008'
+
+					const pieceOffset = 12560
+					// Simulate the piece timing confirmation from playout-gateway
+					await doSimulatePiecePlaybackTimings(playlistId, pieceOffset, 1)
+
+					await checkTimings({
+						// old part is extended by 1000ms due to transition keepalive
+						previousPart: { end: `#${getPartGroupId(currentPartInstance!)}.start + 1000` },
+						currentPieces: {
+							piece010: {
+								controlObj: { start: 500, end: 12560 },
+								childGroup: { preroll: 0, postroll: 0 },
+							},
+							// transition piece
+							piece011: {
+								controlObj: { start: 0 },
+								childGroup: { preroll: 0, postroll: 0 },
+							},
+							piece012: {
+								controlObj: { start: 1500, duration: 1000 },
+								childGroup: { preroll: 0, postroll: 0 },
+							},
+							[adlibbedPieceId]: {
+								controlObj: { start: 12560 },
+								childGroup: { preroll: 0, postroll: 0 },
 							},
 						},
 						currentInfinitePieces: {},

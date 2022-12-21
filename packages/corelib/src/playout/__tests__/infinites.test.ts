@@ -23,6 +23,10 @@ describe('Infinites', () => {
 		clearOrAdlib?: boolean | number,
 		infinite?: PieceInstance['infinite']
 	): PieceInstance {
+		let dynamicallyInserted = undefined
+		if (clearOrAdlib) {
+			dynamicallyInserted = clearOrAdlib === true ? { time: Date.now() } : { time: clearOrAdlib }
+		}
 		return literal<PieceInstance>({
 			_id: protectString(id),
 			rundownId: protectString(''),
@@ -44,7 +48,7 @@ describe('Infinites', () => {
 				timelineObjectsString: EmptyPieceTimelineObjectsBlob,
 				pieceType: IBlueprintPieceType.Normal,
 			}),
-			dynamicallyInserted: clearOrAdlib === true ? Date.now() : clearOrAdlib || undefined,
+			dynamicallyInserted,
 			infinite,
 		})
 	}
@@ -499,7 +503,7 @@ describe('Infinites', () => {
 					timelineObjectsString: EmptyPieceTimelineObjectsBlob,
 					pieceType: IBlueprintPieceType.Normal,
 				}),
-				dynamicallyInserted: clear ? Date.now() : undefined,
+				dynamicallyInserted: clear ? { time: Date.now() } : undefined,
 				infinite: {
 					infiniteInstanceId: protectString(`${id}_inf`),
 					infiniteInstanceIndex: 0,
@@ -516,7 +520,6 @@ describe('Infinites', () => {
 			externalId: string
 		): Rundown {
 			return literal<DBRundown>({
-				_rank: 0,
 				_id: id,
 				externalId,
 				organizationId: protectString('test'),
@@ -574,7 +577,7 @@ describe('Infinites', () => {
 						'one',
 						PieceLifespan.OutOnRundownChange
 					),
-					dynamicallyInserted: Date.now() + 5000,
+					dynamicallyInserted: { time: Date.now() + 5000 },
 				},
 			]
 			const part = { rundownId, segmentId }

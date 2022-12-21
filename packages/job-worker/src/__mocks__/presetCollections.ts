@@ -20,11 +20,12 @@ import {
 	StatusCode,
 } from '@sofie-automation/blueprints-integration'
 import { JobContext } from '../jobs'
-import { DBShowStyleBase, ShowStyleCompound } from '@sofie-automation/corelib/dist/dataModel/ShowStyleBase'
+import { DBShowStyleBase } from '@sofie-automation/corelib/dist/dataModel/ShowStyleBase'
+import { ShowStyleCompound } from '@sofie-automation/corelib/dist/dataModel/ShowStyleCompound'
 import { DBShowStyleVariant } from '@sofie-automation/corelib/dist/dataModel/ShowStyleVariant'
 import { getRandomId, literal } from '@sofie-automation/corelib/dist/lib'
 import _ = require('underscore')
-import { defaultRundownPlaylist } from './defaultCollectionObjects'
+import { defaultAdLibPiece, defaultRundownPlaylist } from './defaultCollectionObjects'
 import {
 	PeripheralDeviceCategory,
 	PeripheralDeviceType,
@@ -175,7 +176,6 @@ export async function setupDefaultRundown(
 		showStyleVariantId: showStyleCompound.showStyleVariantId,
 
 		playlistId: playlistId,
-		_rank: 0,
 
 		_id: rundownId,
 		externalId: 'MOCK_RUNDOWN',
@@ -275,8 +275,19 @@ export async function setupDefaultRundown(
 		content: {},
 		timelineObjectsString: EmptyPieceTimelineObjectsBlob,
 	}
-
 	await context.directCollections.AdLibPieces.insertOne(adLibPiece000)
+
+	const adLibPiece001: AdLibPiece = {
+		...defaultAdLibPiece(protectString(rundownId + '_adLib001'), rundownId, part00._id),
+		expectedDuration: 1000,
+		externalId: 'MOCK_ADLIB_001',
+		status: PieceStatusCode.UNKNOWN,
+		name: 'AdLib 1',
+		sourceLayerId: showStyleCompound.sourceLayers[1]._id,
+		outputLayerId: showStyleCompound.outputLayers[0]._id,
+		toBeQueued: true,
+	}
+	await context.directCollections.AdLibPieces.insertOne(adLibPiece001)
 
 	const part01: DBPart = {
 		_id: protectString(rundownId + '_part0_1'),
@@ -409,6 +420,7 @@ export async function setupMockPeripheralDevice(
 		name: 'mockDevice',
 		organizationId: null,
 		studioId: context.studioId,
+		settings: {},
 
 		category: category,
 		type: type,

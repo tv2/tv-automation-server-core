@@ -122,6 +122,7 @@ export interface IBlueprintRundown<TMetadata = unknown> {
 export interface IBlueprintRundownDB<TMetadata = unknown>
 	extends IBlueprintRundown<TMetadata>,
 		IBlueprintRundownDBData {}
+
 /** Properties added to a rundown in Core */
 export interface IBlueprintRundownDBData {
 	_id: string
@@ -131,9 +132,6 @@ export interface IBlueprintRundownDBData {
 
 	/** RundownPlaylist this rundown is member of */
 	playlistId?: string
-
-	/** Rundown's place in the RundownPlaylist */
-	_rank?: number
 
 	/** Air-status, comes from NCS, examples: "READY" | "NOT READY" */
 	airStatus?: string
@@ -149,6 +147,7 @@ export interface IBlueprintSegmentRundown<TMetadata = unknown> {
 export enum SegmentDisplayMode {
 	Timeline = 'timeline',
 	Storyboard = 'storyboard',
+	List = 'list',
 }
 
 /** The Segment generated from Blueprint */
@@ -225,7 +224,16 @@ export interface IBlueprintMutatablePart<TMetadata = unknown> {
 	/** Classes to set on the TimelineGroupObj for the following part */
 	classesForNext?: string[]
 
+	/**
+	 * Use and provide timing to a `displayDurationGroup` with the same ID. This allows Parts to "share" timing.
+	 *
+	 * **NOTE**: The behavior of the system is undefined when using both `displayDurationGroups` and `budgetDuration`
+	 */
 	displayDurationGroup?: string
+	/**
+	 * How long to make the Part appear in the UI, if other than expectedDuration.
+	 *
+	 * **NOTE**: The behavior of the system is undefined when using both `displayDurationGroups` and `budgetDuration` */
 	displayDuration?: number
 
 	/** User-facing identifier that can be used by the User to identify the contents of a segment in the Rundown source system */
@@ -415,6 +423,12 @@ export interface IBlueprintPieceGeneric<TMetadata = unknown> {
 	 */
 	prerollDuration?: number
 
+	/**
+	 * How long this piece needs to continue it's content after a take has been done to ensure a
+	 * seemless transition into the next part.
+	 */
+	postrollDuration?: number
+
 	/** Whether the adlib should always be inserted queued */
 	toBeQueued?: boolean
 	/** Array of items expected to be played out. This is used by playout-devices to preload stuff.
@@ -487,8 +501,13 @@ export interface IBlueprintPieceInstance<TMetadata = unknown> {
 
 	/** If this piece has been created play-time using an AdLibPiece, this should be set to it's source piece */
 	adLibSourceId?: string
-	/** If this piece has been insterted during run of rundown (such as adLibs), then this is set to the timestamp it was inserted */
-	dynamicallyInserted?: Time
+	/** If this piece has been insterted during run of rundown (such as adLibs), then this is set and includes the timestamp when it was inserted */
+	dynamicallyInserted?: {
+		/** Timestamp when this piece was inserted */
+		time: Time
+		/** If this piece has been inserted into the next part (not yet playing at the time of insertion) */
+		intoNextPart?: boolean
+	}
 
 	piece: IBlueprintPieceDB<TMetadata>
 

@@ -1,6 +1,7 @@
 import { addMigrationSteps } from './databaseMigration'
 import { CURRENT_SYSTEM_VERSION } from './currentSystemVersion'
-import { StudioRouteType, Studios } from '../../lib/collections/Studios'
+import { PieceInstances } from '../../lib/collections/PieceInstances'
+import { TriggeredActions } from '../../lib/collections/TriggeredActions'
 
 /*
  * **************************************************************************************
@@ -14,32 +15,42 @@ import { StudioRouteType, Studios } from '../../lib/collections/Studios'
 
 export const addSteps = addMigrationSteps(CURRENT_SYSTEM_VERSION, [
 	// Add some migrations!
-
 	{
-		id: 'Add new routeType property to routeSets where missing',
+		id: 'Change PieceInstances.dynamicallyInserted type',
 		canBeRunAutomatically: true,
 		validate: () => {
 			return (
-				Studios.find({
-					routeSets: { $exists: false },
+				PieceInstances.find({
+					dynamicallyInserted: { $type: 'number' },
 				}).count() > 0
 			)
 		},
 		migrate: () => {
-			Studios.find({}).forEach((studio) => {
-				const routeSets = studio.routeSets
-
-				Object.entries(routeSets).forEach(([routeSetId, routeSet]) => {
-					routeSet.routes.forEach((route) => {
-						if (!route.routeType) {
-							route.routeType = StudioRouteType.REROUTE
-						}
-					})
-
-					routeSets[routeSetId] = routeSet
+			PieceInstances.find({
+				dynamicallyInserted: { $type: 'number' },
+			}).forEach((pieceInstance) => {
+				if (typeof pieceInstance.dynamicallyInserted !== 'number') {
+					return
+				}
+				PieceInstances.update(pieceInstance._id, {
+					$set: { dynamicallyInserted: { time: pieceInstance.dynamicallyInserted } },
 				})
-
-				Studios.update(studio._id, { $set: { routeSets } })
+			})
+		},
+	},
+	{
+		id: 'Add "useNameForDisplay" attribute to TriggeredActions',
+		canBeRunAutomatically: true,
+		validate: () => {
+			return (
+				TriggeredActions.find({
+					useNameForDisplay: { $exists: false },
+				}).count() > 0
+			)
+		},
+		migrate: () => {
+			TriggeredActions.find({}).forEach((action) => {
+				TriggeredActions.update(action._id, { $set: { useNameForDisplay: false } })
 			})
 		},
 	},
