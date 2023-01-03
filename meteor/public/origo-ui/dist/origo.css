@@ -1699,8 +1699,7 @@ th, td {
 .expando > tbody > tr > th,
 .expando > tbody > tr > td {
   background: #f0f0f0;
-  border-top: 1px solid #ddd;
-}
+  border-top: 1px solid #ddd; }
 
 .expando > tbody > tr > th,
 .expando > tbody > tr > td {
