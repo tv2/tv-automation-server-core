@@ -1695,11 +1695,16 @@ th, td {
 .expando {
   border-bottom: 1px solid #ddd; }
 
+.expando-background,
 .expando > tbody > tr > th,
 .expando > tbody > tr > td {
   background: #f0f0f0;
   border-top: 1px solid #ddd;
-  padding: 9px 5px 8px 10px; }
+}
+
+.expando > tbody > tr > th,
+.expando > tbody > tr > td {
+	padding: 9px 5px 8px 10px; }
 
 .expando-tight > tbody > tr > th,
 .expando-tight > tbody > tr > td {

@@ -74,8 +74,8 @@ export const DndListItemWrapper: React.FunctionComponent<IDndItemWrapperProps> =
 
 	return (
 		<tbody>
-			<tr style={{ opacity }} data-handler-id={handlerId} ref={ref}>
-				<td className="settings-studio-table__drag table expando">
+			<tr data-handler-id={handlerId} ref={ref} style={{ opacity }}>
+				<td className="settings-studio-table-drag expando-background">
 					<FontAwesomeIcon icon={faGripLines} />
 				</td>
 				<td>
