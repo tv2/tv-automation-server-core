@@ -31,14 +31,6 @@ export const ShowStyleVariantImportButton = withTranslation()(
 			}
 		}
 
-		private getDuplicatedShowStyleVariantAmount(showStyleVariant: ShowStyleVariant): number {
-			const importedName = showStyleVariant.name.split(' ')[0]
-			return this.props.showStyleVariants.filter((variant: ShowStyleVariant) => {
-				const existingName = variant.name.split(' ')[0]
-				return existingName === importedName
-			}).length
-		}
-
 		private importShowStyleVariants(event: React.ChangeEvent<HTMLInputElement>): void {
 			const file = event.target.files?.[0]
 			if (!file) {
@@ -84,17 +76,16 @@ export const ShowStyleVariantImportButton = withTranslation()(
 				showStyleVariant._rank = rank + index
 				if (this.showStyleVariantAlreadyExists(showStyleVariant)) {
 					this.provideImportOptions(showStyleVariant)
-				} else {
-					this.importShowStyleVariant(showStyleVariant)
+					return
 				}
+				this.importShowStyleVariant(showStyleVariant)
 			})
 		}
 
 		private showStyleVariantAlreadyExists(importedShowStyleVariant: ShowStyleVariant): boolean {
-			const exists = this.props.showStyleVariants.find(
+			return !!this.props.showStyleVariants.find(
 				(variant: ShowStyleVariant) => variant.name === importedShowStyleVariant.name
 			)
-			return !!exists
 		}
 
 		private provideImportOptions(showStyleVariant: ShowStyleVariant) {
@@ -122,6 +113,28 @@ export const ShowStyleVariantImportButton = withTranslation()(
 			})
 		}
 
+		private replaceShowStyleVariant(newShowStyleVariant: ShowStyleVariant) {
+			const existingShowStyleVariant = this.props.showStyleVariants.find((variant: ShowStyleVariant) => {
+				return variant.name === newShowStyleVariant.name
+			})
+			if (existingShowStyleVariant) {
+				MeteorCall.showstyles
+					.removeShowStyleVariant(existingShowStyleVariant._id)
+					.then(() => {
+						MeteorCall.showstyles.importShowStyleVariantAsNew(newShowStyleVariant).catch(logger.warn)
+					})
+					.catch(logger.warn)
+			}
+		}
+
+		private getDuplicatedShowStyleVariantAmount(showStyleVariant: ShowStyleVariant): number {
+			const importedName = showStyleVariant.name.split(' ')[0]
+			return this.props.showStyleVariants.filter((variant: ShowStyleVariant) => {
+				const existingName = variant.name.split(' ')[0]
+				return existingName === importedName
+			}).length
+		}
+
 		private importShowStyleVariant(showStyleVariant: ShowStyleVariant) {
 			MeteorCall.showstyles.importShowStyleVariantAsNew(showStyleVariant).catch(() => {
 				NotificationCenter.push(
@@ -135,20 +148,6 @@ export const ShowStyleVariantImportButton = withTranslation()(
 					)
 				)
 			})
-		}
-
-		private replaceShowStyleVariant(newShowStyleVariant: ShowStyleVariant) {
-			const existingShowStyleVariant = this.props.showStyleVariants.find((variant: ShowStyleVariant) => {
-				return variant.name === newShowStyleVariant.name
-			})
-			if (existingShowStyleVariant) {
-				MeteorCall.showstyles
-					.removeShowStyleVariant(existingShowStyleVariant._id)
-					.then(() => {
-						MeteorCall.showstyles.importShowStyleVariantAsNew(newShowStyleVariant).catch(logger.warn)
-					})
-					.catch(logger.warn)
-			}
 		}
 
 		render() {

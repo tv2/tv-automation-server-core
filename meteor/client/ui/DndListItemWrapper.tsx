@@ -1,11 +1,11 @@
 import { DragDropItemTypes } from './DragDropItemTypes'
 import React, { useRef } from 'react'
-import { DragSourceMonitor, DropTargetMonitor, useDrag, useDrop, XYCoord } from 'react-dnd'
+import { DragSourceMonitor, DropTargetMonitor, useDrag, useDrop } from 'react-dnd'
 import { Identifier } from 'dnd-core'
 import { faGripLines } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
-interface IDndItemWrapperProps {
+interface IDndListItemWrapperProps {
 	index: number
 	dndType: DragDropItemTypes
 	listItem: any
@@ -20,44 +20,28 @@ interface DraggableItem {
 	type: DragDropItemTypes
 }
 
-export const DndListItemWrapper: React.FunctionComponent<IDndItemWrapperProps> = (props: IDndItemWrapperProps) => {
+export const DndListItemWrapper: React.FunctionComponent<IDndListItemWrapperProps> = (
+	props: IDndListItemWrapperProps
+) => {
 	const ref = useRef<HTMLTableRowElement>(null)
 	const index = props.index
 
 	const [{ handlerId }, drop] = useDrop<DraggableItem, void, { handlerId: Identifier | null }>({
 		accept: props.dndType,
 		collect: (monitor: DropTargetMonitor) => ({ handlerId: monitor.getHandlerId() }),
-		hover(variant: DraggableItem, monitor: DropTargetMonitor) {
-			if (!ref.current) {
-				return
-			}
-			const dragIndex = variant.index
+		hover(draggableItem: DraggableItem) {
+			const dragIndex = draggableItem.index
 			const hoverIndex = index
 
-			if (dragIndex === hoverIndex) {
-				return
+			if (dragIndex !== hoverIndex) {
+				props.moveHandler(dragIndex, hoverIndex)
+				draggableItem.index = hoverIndex
 			}
-
-			const hoverBoundingRect = ref.current?.getBoundingClientRect()
-			const hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2
-			const clientOffset = monitor.getClientOffset()
-			const hoverClientY = (clientOffset as XYCoord).y - hoverBoundingRect.top
-
-			if (dragIndex < hoverIndex && hoverClientY < hoverMiddleY) {
-				return
-			}
-
-			if (dragIndex > hoverIndex && hoverClientY > hoverMiddleY) {
-				return
-			}
-
-			props.moveHandler(dragIndex, hoverIndex)
-			variant.index = hoverIndex
 		},
 	})
 
 	const [{ isDragging }, drag] = useDrag({
-		item: { index, type: DragDropItemTypes.VARIANT },
+		item: { index, type: props.dndType },
 		collect: (monitor: DragSourceMonitor) => ({
 			isDragging: monitor.isDragging(),
 		}),

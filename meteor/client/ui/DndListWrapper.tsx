@@ -7,14 +7,14 @@ import { DndListItemWrapper } from './DndListItemWrapper'
 interface IDndListWrapperProps {
 	className: string
 	dndType: DragDropItemTypes
-	stateUIArray: any[]
+	list: any[]
 
 	onDrop: (newArray: any[]) => void
-	provideItemForRender: (item: any, index: number) => JSX.Element
+	renderItem: (item: any, index: number) => JSX.Element
 }
 
 export const DndListWrapper: React.FunctionComponent<IDndListWrapperProps> = (props: IDndListWrapperProps) => {
-	const [uiArray, setUiArray] = useState(props.stateUIArray)
+	const [uiArray, setUiArray] = useState(props.list)
 
 	const [, drop] = useDrop({
 		accept: props.dndType,
@@ -38,15 +38,15 @@ export const DndListWrapper: React.FunctionComponent<IDndListWrapperProps> = (pr
 	}
 
 	useEffect(() => {
-		if (uiArray.length === 0 || uiArray !== props.stateUIArray) {
-			setUiArray(props.stateUIArray)
+		if (uiArray.length === 0 || uiArray !== props.list) {
+			setUiArray(props.list)
 		}
-	}, [props.stateUIArray])
+	}, [props.list])
 
 	return (
 		<table ref={drop}>
 			{uiArray.map((child: any, index: number) => {
-				const renderItem = props.provideItemForRender(child, index)
+				const renderItem = props.renderItem(child, index)
 				return (
 					<DndListItemWrapper
 						key={index}

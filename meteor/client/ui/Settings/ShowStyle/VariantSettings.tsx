@@ -127,7 +127,7 @@ export const ShowStyleVariantsSettings = withTranslation()(
 				.catch(logger.warn)
 		}
 
-		private provideShowStyleVariantItem = (variant: ShowStyleVariant, index: number) => {
+		private renderShowStyleVariant = (variant: ShowStyleVariant, index: number) => {
 			return (
 				<VariantListItem
 					key={unprotectString(variant._id)}
@@ -153,8 +153,8 @@ export const ShowStyleVariantsSettings = withTranslation()(
 							className="table expando settings-studio-showStyleVariants-table"
 							onDrop={this.persistStateVariants}
 							dndType={DragDropItemTypes.VARIANT}
-							stateUIArray={this.state.dndVariants}
-							provideItemForRender={this.provideShowStyleVariantItem}
+							list={this.state.dndVariants}
+							renderItem={this.renderShowStyleVariant}
 						></DndListWrapper>
 					</div>
 					<div className="mod mhs">
