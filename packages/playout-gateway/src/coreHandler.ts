@@ -525,7 +525,6 @@ export class CoreHandler {
 export class CoreTSRDeviceHandler {
 	core!: CoreConnection
 	public _observers: Array<any> = []
-	public _deviceId: string
 	public _device: DeviceContainer<DeviceOptionsAny>
 	private _coreParentHandler: CoreHandler
 	private _tsrHandler: TSRHandler
@@ -536,10 +535,9 @@ export class CoreTSRDeviceHandler {
 		messages: ['Starting up...'],
 	}
 
-	constructor(device: DeviceContainer<DeviceOptionsAny>, deviceId: string, tsrHandler: TSRHandler) {
+	constructor(device: DeviceContainer<DeviceOptionsAny>, tsrHandler: TSRHandler) {
 		this._coreParentHandler = tsrHandler.coreHandler
 		this._device = device
-		this._deviceId = deviceId
 		this._tsrHandler = tsrHandler
 	}
 	async init(): Promise<void> {
@@ -646,15 +644,23 @@ export class CoreTSRDeviceHandler {
 			)
 	}
 
-	async dispose(expected: boolean): Promise<void> {
+	async disposeExpectedly(): Promise<void> {
+		return this.dispose(StatusCode.UNKNOWN)
+	}
+
+	async disposeUnexpectedly(): Promise<void> {
+		return this.dispose(StatusCode.BAD)
+	}
+
+	private async dispose(statusCode: StatusCode): Promise<void> {
 		this._observers.forEach((obs) => {
 			obs.stop()
 		})
 
-		await this._tsrHandler.tsr.removeDevice(this._deviceId)
+		await this._tsrHandler.tsr.removeDevice(this._device.deviceId)
 		if (this.core) {
 			await this.core.setStatus({
-				statusCode: expected ? StatusCode.UNKNOWN : StatusCode.BAD,
+				statusCode,
 				messages: ['Uninitialized'],
 			})
 			await this.core.destroy()

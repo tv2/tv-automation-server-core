@@ -1,17 +1,11 @@
-interface IJob<OwnResultType, PrevResultType> {
-	/**
-	 * Main logic of the Job
-	 */
-	run(previousResult?: PrevResultType, abortSignal?: AbortSignal): Promise<OwnResultType>
-	cleanup(): Promise<void>
-}
-
-export abstract class Job<OwnResultType, PrevResultType, ArtifactsType> implements IJob<OwnResultType, PrevResultType> {
+export abstract class Job<ResultType, ArtifactsType = undefined, PreviousResultType = unknown> {
 	protected abstract readonly artifacts: ArtifactsType
+
 	/**
 	 * Main logic of the Job
 	 */
-	abstract run(previousResult: PrevResultType, abortSignal?: AbortSignal): Promise<OwnResultType>
+	abstract run(previousResult: PreviousResultType, abortSignal?: AbortSignal): Promise<ResultType>
+
 	async cleanup(): Promise<void> {
 		return Promise.resolve()
 	}

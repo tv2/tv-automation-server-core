@@ -3,7 +3,7 @@ import { Conductor, ExpectedPlayoutItem, ExpectedPlayoutItemContent } from 'time
 import _ = require('underscore')
 import { CollectionObj } from '@sofie-automation/server-core-integration'
 
-export class UpdateExpectedPlayoutItemsJob extends Job<void, void, undefined> {
+export class UpdateExpectedPlayoutItemsJob extends Job<void, void> {
 	protected artifacts: undefined
 
 	constructor(
@@ -14,6 +14,7 @@ export class UpdateExpectedPlayoutItemsJob extends Job<void, void, undefined> {
 	) {
 		super()
 	}
+
 	async run(): Promise<void> {
 		const deviceContainer = this.conductor.getDevice(this.deviceId)
 		if (!deviceContainer) {

@@ -1,12 +1,13 @@
 import { Job } from './job'
 import { Conductor } from 'timeline-state-resolver'
 
-export class SetDebugLoggingJob extends Job<void, void, undefined> {
+export class SetDebugLoggingJob extends Job<void> {
 	protected artifacts: undefined
 
 	constructor(private deviceId: string, private conductor: Conductor, private debugLogging: boolean) {
 		super()
 	}
+
 	async run(): Promise<void> {
 		const deviceContainer = this.conductor.getDevice(this.deviceId)
 		if (!deviceContainer) {

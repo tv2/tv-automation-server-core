@@ -2,7 +2,7 @@ import { CoreTSRDeviceHandler } from '../coreHandler'
 import { Logger } from 'winston'
 import { Job } from './job'
 
-export class RemoveDeviceJob extends Job<void, any, undefined> {
+export class RemoveDeviceJob extends Job<void> {
 	protected artifacts: undefined
 
 	constructor(
@@ -13,10 +13,15 @@ export class RemoveDeviceJob extends Job<void, any, undefined> {
 	) {
 		super()
 	}
+
 	async run(): Promise<void> {
 		if (this.coreTsrHandlers[this.deviceId]) {
 			try {
-				await this.coreTsrHandlers[this.deviceId].dispose(this.expected)
+				if (this.expected) {
+					await this.coreTsrHandlers[this.deviceId].disposeExpectedly()
+				} else {
+					await this.coreTsrHandlers[this.deviceId].disposeUnexpectedly()
+				}
 				this.logger.debug('Disposed device ' + this.deviceId)
 			} catch (error) {
 				this.logger.error(`Error when removing device "${this.deviceId}"`, { data: error })

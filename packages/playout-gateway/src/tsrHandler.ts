@@ -42,7 +42,7 @@ import { InitDeviceJob } from './tsrHandlerJobs/initDeviceJob'
 import { RemoveDeviceJob } from './tsrHandlerJobs/removeDeviceJob'
 import * as hashObject from 'object-hash'
 import { UpdateExpectedPlayoutItemsJob } from './tsrHandlerJobs/updateExpectedPlayoutItemsJob'
-import { SetDebugLoggingJob } from './tsrHandlerJobs/setDebugLogging'
+import { SetDebugLoggingJob } from './tsrHandlerJobs/setDebugLoggingJob'
 import { JobImportance } from './tsrHandlerJobs/jobQueue'
 
 const debug = Debug('playout-gateway')
@@ -121,6 +121,9 @@ export interface TimelineContentObjectTmp extends TSRTimelineObjBase {
 }
 /** Max time for device-related jobs */
 const JOB_TIMEOUT = 10000
+
+/** Delay used for debouncing Expected Playout Items updates */
+const EXPECTED_PLAYOUT_ITEMS_DEBOUNCE_DELAY = 200
 
 enum JobFailure {
 	ADD_ERROR = 'add_error',
@@ -693,7 +696,7 @@ export class TSRHandler {
 
 	private enqueueSetDebugLogging(deviceId: string, debugLogging: boolean) {
 		const jobQueue = this._jobQueueManager.get(deviceId)
-		const jobId = 'updateExpectedPlayoutItems'
+		const jobId = 'enqueueSetDebugLogging'
 		jobQueue.removeJob(jobId)
 		jobQueue
 			.enqueue(new SetDebugLoggingJob(deviceId, this.tsr, debugLogging), JOB_TIMEOUT, JobImportance.LOW, jobId)
@@ -848,7 +851,7 @@ export class TSRHandler {
 			this.tsr.getDevices().forEach((device) => {
 				this.enqueueExpectedPlayoutItemsUpdate(groupedExpectedItems, rundowns, device.deviceId)
 			})
-		}, 200)
+		}, EXPECTED_PLAYOUT_ITEMS_DEBOUNCE_DELAY)
 	}
 	/**
 	 * Go through and transform timeline and generalize the Core-specific things

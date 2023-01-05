@@ -20,7 +20,7 @@ import { disableAtemUpload } from '../config'
 import { FinishedTrace, sendTrace } from '../influxdb'
 import debug = require('debug')
 
-export class InitDeviceJob extends Job<CreateDeviceJobsResult, CreateDeviceJobsResult, undefined> {
+export class InitDeviceJob extends Job<CreateDeviceJobsResult, undefined, CreateDeviceJobsResult> {
 	protected artifacts: undefined
 
 	constructor(
@@ -31,6 +31,7 @@ export class InitDeviceJob extends Job<CreateDeviceJobsResult, CreateDeviceJobsR
 	) {
 		super()
 	}
+
 	async run(previousResult: CreateDeviceJobsResult, abortSignal?: AbortSignal): Promise<CreateDeviceJobsResult> {
 		if (abortSignal?.aborted) {
 			throw new AbortError()
@@ -157,7 +158,6 @@ export class InitDeviceJob extends Job<CreateDeviceJobsResult, CreateDeviceJobsR
 		// otherwise there might be problems with threadedclass!
 
 		await deviceContainer.device.on('connectionChanged', onDeviceStatusChanged as () => void)
-		// await device.device.on('slowCommand', onSlowCommand)
 		await deviceContainer.device.on('slowSentCommand', onSlowSentCommand as () => void)
 		await deviceContainer.device.on('slowFulfilledCommand', onSlowFulfilledCommand as () => void)
 		await deviceContainer.device.on('commandError', onCommandError as () => void)

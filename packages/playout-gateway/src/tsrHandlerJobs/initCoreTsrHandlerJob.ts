@@ -4,7 +4,7 @@ import { AbortError } from 'timeline-state-resolver'
 
 type InitCoreTsrHandlerJobResult = CreateDeviceJobsResult
 
-export class InitCoreTsrHandlerJob extends Job<InitCoreTsrHandlerJobResult, CreateDeviceJobsResult, undefined> {
+export class InitCoreTsrHandlerJob extends Job<InitCoreTsrHandlerJobResult, undefined, CreateDeviceJobsResult> {
 	protected artifacts: undefined
 
 	async run(previousResult: CreateDeviceJobsResult, abortSignal?: AbortSignal): Promise<InitCoreTsrHandlerJobResult> {
