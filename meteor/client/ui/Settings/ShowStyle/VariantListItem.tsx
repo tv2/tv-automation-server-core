@@ -19,7 +19,7 @@ interface IShowStyleVariantItemProps {
 	index: number
 	showStyleVariant: ShowStyleVariant
 	showStyleBase: ShowStyleBase
-	dndVariants: ShowStyleVariant[]
+	dragDropVariants: ShowStyleVariant[]
 	blueprintConfigManifest: ConfigManifestEntry[]
 	layerMappings?: { [key: string]: MappingsExt }
 	sourceLayers?: Array<{ name: string; value: string; type: SourceLayerType }>
@@ -33,48 +33,47 @@ export const VariantListItem: React.FunctionComponent<IShowStyleVariantItemProps
 	props: IShowStyleVariantItemProps
 ) => {
 	const { t } = props
-	const initialEditedMappings: ProtectedString<any>[] = []
+	const initialEditedMappings: ProtectedString<'ShowStyleVariantId'>[] = []
 	const [editedMappings, setEditedMappings] = useState(initialEditedMappings)
-
-	function copyShowStyleVariant(showStyleVariant: ShowStyleVariant): void {
-		showStyleVariant.name = `Copy of ${showStyleVariant.name}`
-		showStyleVariant._rank = props.dndVariants.length
-		MeteorCall.showstyles.importShowStyleVariantAsNew(showStyleVariant).catch(logger.warn)
-	}
 
 	function downloadShowStyleVariant(showStyleVariant: ShowStyleVariant): void {
 		const showStyleVariants = [showStyleVariant]
-		const jsonStr = JSON.stringify(showStyleVariants)
+		const fileContent = JSON.stringify(showStyleVariants)
 		const fileName = `${showStyleVariant.name}_showstyleVariant_${showStyleVariant._id}.json`
-		download(jsonStr, fileName)
+		download(fileContent, fileName)
 	}
 
-	function download(jsonStr: string, fileName: string): void {
+	function download(fileContent: string, fileName: string): void {
 		const element = document.createElement('a')
-		element.href = URL.createObjectURL(new Blob([jsonStr], { type: 'application/json' }))
+		element.href = URL.createObjectURL(new Blob([fileContent], { type: 'application/json' }))
 		element.download = fileName
 
 		element.click()
 	}
 
-	function isItemEdited(layerId: ProtectedString<any>): boolean {
-		return editedMappings.indexOf(layerId) >= 0
+	function copyShowStyleVariant(showStyleVariant: ShowStyleVariant): void {
+		showStyleVariant.name = `Copy of ${showStyleVariant.name}`
+		showStyleVariant._rank = props.dragDropVariants.length
+		MeteorCall.showstyles.importShowStyleVariantAsNew(showStyleVariant).catch(logger.warn)
 	}
 
-	function finishEditItem(layerId: ProtectedString<any>): void {
+	function isItemEdited(layerId: ProtectedString<'ShowStyleVariantId'>): boolean {
+		return editedMappings.includes(layerId)
+	}
+
+	function editItem(layerId: ProtectedString<'ShowStyleVariantId'>): void {
+		if (isItemEdited(layerId)) {
+			finishEditItem(layerId)
+			return
+		}
+		setEditedMappings([...editedMappings, layerId])
+	}
+
+	function finishEditItem(layerId: ProtectedString<'ShowStyleVariantId'>): void {
 		const index = editedMappings.indexOf(layerId)
 		if (index >= 0) {
 			editedMappings.splice(index, 1)
 			setEditedMappings([...editedMappings])
-		}
-	}
-
-	function editItem(layerId: ProtectedString<any>): void {
-		if (editedMappings.indexOf(layerId) < 0) {
-			editedMappings.push(layerId)
-			setEditedMappings([...editedMappings])
-		} else {
-			finishEditItem(layerId)
 		}
 	}
 
@@ -83,9 +82,7 @@ export const VariantListItem: React.FunctionComponent<IShowStyleVariantItemProps
 			title: t('Remove this Variant?'),
 			no: t('Cancel'),
 			yes: t('Remove'),
-			onAccept: () => {
-				MeteorCall.showstyles.removeShowStyleVariant(showStyleVariant._id).catch(logger.warn)
-			},
+			onAccept: () => MeteorCall.showstyles.removeShowStyleVariant(showStyleVariant._id).catch(logger.warn),
 			message: (
 				<React.Fragment>
 					<p>

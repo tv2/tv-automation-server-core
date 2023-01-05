@@ -1,15 +1,15 @@
-import { DragDropItemTypes } from './DragDropItemTypes'
+import { DragDropItemType } from './DragDropItemType'
 import React, { useRef } from 'react'
 import { DragSourceMonitor, DropTargetMonitor, useDrag, useDrop } from 'react-dnd'
 import { Identifier } from 'dnd-core'
 import { faGripLines } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
-interface IDndListItemWrapperProps {
+interface DragDropListItemWrapperProps {
 	index: number
-	dndType: DragDropItemTypes
+	dragDropType: DragDropItemType
 	listItem: any
-	className: string
+	tableClassName: string
 
 	onDropOutside: () => void
 	moveHandler: (dragIndex: number, hoverIndex: number) => void
@@ -17,17 +17,17 @@ interface IDndListItemWrapperProps {
 
 interface DraggableItem {
 	index: number
-	type: DragDropItemTypes
+	type: DragDropItemType
 }
 
-export const DndListItemWrapper: React.FunctionComponent<IDndListItemWrapperProps> = (
-	props: IDndListItemWrapperProps
+export const DragDropListItemWrapper: React.FunctionComponent<DragDropListItemWrapperProps> = (
+	props: DragDropListItemWrapperProps
 ) => {
 	const ref = useRef<HTMLTableRowElement>(null)
 	const index = props.index
 
 	const [{ handlerId }, drop] = useDrop<DraggableItem, void, { handlerId: Identifier | null }>({
-		accept: props.dndType,
+		accept: props.dragDropType,
 		collect: (monitor: DropTargetMonitor) => ({ handlerId: monitor.getHandlerId() }),
 		hover(draggableItem: DraggableItem) {
 			const dragIndex = draggableItem.index
@@ -40,8 +40,8 @@ export const DndListItemWrapper: React.FunctionComponent<IDndListItemWrapperProp
 		},
 	})
 
-	const [{ isDragging }, drag] = useDrag({
-		item: { index, type: props.dndType },
+	const [, drag] = useDrag({
+		item: { index, type: props.dragDropType },
 		collect: (monitor: DragSourceMonitor) => ({
 			isDragging: monitor.isDragging(),
 		}),
@@ -52,18 +52,16 @@ export const DndListItemWrapper: React.FunctionComponent<IDndListItemWrapperProp
 		},
 	})
 
-	const opacity = isDragging ? 0.4 : 1
-
 	drag(drop(ref))
 
 	return (
 		<tbody>
-			<tr data-handler-id={handlerId} ref={ref} style={{ opacity }}>
+			<tr data-handler-id={handlerId} ref={ref}>
 				<td className="settings-studio-table-drag expando-background">
 					<FontAwesomeIcon icon={faGripLines} />
 				</td>
 				<td>
-					<table className={props.className}>{props.listItem}</table>
+					<table className={props.tableClassName}>{props.listItem}</table>
 				</td>
 			</tr>
 		</tbody>

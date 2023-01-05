@@ -1,23 +1,25 @@
 import { DropTargetMonitor, useDrop } from 'react-dnd'
-import { DragDropItemTypes } from './DragDropItemTypes'
+import { DragDropItemType } from './DragDropItemType'
 import React, { useEffect, useState } from 'react'
 import update from 'immutability-helper'
-import { DndListItemWrapper } from './DndListItemWrapper'
+import { DragDropListItemWrapper } from './DragDropListItemWrapper'
 
-interface IDndListWrapperProps {
-	className: string
-	dndType: DragDropItemTypes
+interface DragDropListWrapperProps {
+	tableClassName: string
+	dragDropType: DragDropItemType
 	list: any[]
 
 	onDrop: (newArray: any[]) => void
 	renderItem: (item: any, index: number) => JSX.Element
 }
 
-export const DndListWrapper: React.FunctionComponent<IDndListWrapperProps> = (props: IDndListWrapperProps) => {
+export const DragDropListWrapper: React.FunctionComponent<DragDropListWrapperProps> = (
+	props: DragDropListWrapperProps
+) => {
 	const [uiArray, setUiArray] = useState(props.list)
 
 	const [, drop] = useDrop({
-		accept: props.dndType,
+		accept: props.dragDropType,
 		drop: () => props.onDrop(uiArray),
 		collect: (monitor: DropTargetMonitor) => ({
 			isOver: monitor.isOver(),
@@ -48,7 +50,7 @@ export const DndListWrapper: React.FunctionComponent<IDndListWrapperProps> = (pr
 			{uiArray.map((child: any, index: number) => {
 				const renderItem = props.renderItem(child, index)
 				return (
-					<DndListItemWrapper
+					<DragDropListItemWrapper
 						key={index}
 						index={index}
 						moveHandler={moveHandler}
@@ -56,9 +58,9 @@ export const DndListWrapper: React.FunctionComponent<IDndListWrapperProps> = (pr
 							props.onDrop(uiArray)
 						}}
 						listItem={renderItem}
-						dndType={props.dndType}
-						className={props.className}
-					></DndListItemWrapper>
+						dragDropType={props.dragDropType}
+						tableClassName={props.tableClassName}
+					></DragDropListItemWrapper>
 				)
 			})}
 		</table>

@@ -13,8 +13,8 @@ import { Translated } from '../../../lib/ReactMeteorData/ReactMeteorData'
 import { logger } from '../../../../lib/logging'
 import { ShowStyleVariantImportButton } from '../../../lib/ShowStyleVariantImportButton'
 import { VariantListItem } from './VariantListItem'
-import { DndListWrapper } from '../../DndListWrapper'
-import { DragDropItemTypes } from '../../DragDropItemTypes'
+import { DragDropListWrapper } from '../../DragDropListWrapper'
+import { DragDropItemType } from '../../DragDropItemType'
 import { Meteor } from 'meteor/meteor'
 
 interface IShowStyleVariantsProps {
@@ -27,7 +27,7 @@ interface IShowStyleVariantsProps {
 }
 
 interface IShowStyleVariantsSettingsState {
-	dndVariants: ShowStyleVariant[]
+	dragDropVariants: ShowStyleVariant[]
 }
 
 const TIMEOUT_DELAY = 50
@@ -43,7 +43,7 @@ export const ShowStyleVariantsSettings = withTranslation()(
 			super(props)
 
 			this.state = {
-				dndVariants: this.props.showStyleVariants,
+				dragDropVariants: this.props.showStyleVariants,
 			}
 		}
 
@@ -61,7 +61,7 @@ export const ShowStyleVariantsSettings = withTranslation()(
 			}
 			this.timeout = Meteor.setTimeout(() => {
 				this.setState({
-					dndVariants: this.props.showStyleVariants,
+					dragDropVariants: this.props.showStyleVariants,
 				})
 			}, TIMEOUT_DELAY)
 		}
@@ -77,25 +77,47 @@ export const ShowStyleVariantsSettings = withTranslation()(
 		}
 
 		private noShowStyleVariantsPresentInState = (): boolean => {
-			return this.props.showStyleVariants.length > 0 && this.state.dndVariants.length === 0
+			return this.props.showStyleVariants.length > 0 && this.state.dragDropVariants.length === 0
 		}
 
-		private downloadAllShowStyleVariants = (): void => {
-			const jsonStr = JSON.stringify(this.state.dndVariants)
-			const fileName = `All variants_${this.props.showStyleBase._id}.json`
-			this.download(jsonStr, fileName)
+		private persistStateVariants = (showStyleVariants: ShowStyleVariant[]): void => {
+			MeteorCall.showstyles
+				.reorderAllShowStyleVariants(this.props.showStyleBase._id, showStyleVariants)
+				.catch(logger.warn)
 		}
 
-		private download = (jsonStr: string, fileName: string): void => {
-			const element = document.createElement('a')
-			element.href = URL.createObjectURL(new Blob([jsonStr], { type: 'application/json' }))
-			element.download = fileName
-
-			element.click()
+		private provideShowStyleVariantItem = (variant: ShowStyleVariant, index: number): JSX.Element => {
+			return (
+				<VariantListItem
+					key={unprotectString(variant._id)}
+					index={index}
+					showStyleVariant={variant}
+					showStyleBase={this.props.showStyleBase}
+					dragDropVariants={this.props.showStyleVariants}
+					blueprintConfigManifest={this.props.blueprintConfigManifest}
+					t={this.props.t}
+					i18n={this.props.i18n}
+					tReady={this.props.tReady}
+				></VariantListItem>
+			)
 		}
 
 		private onAddShowStyleVariant = (): void => {
 			MeteorCall.showstyles.createDefaultShowStyleVariant(this.props.showStyleBase._id).catch(logger.warn)
+		}
+
+		private downloadAllShowStyleVariants = (): void => {
+			const fileContent = JSON.stringify(this.state.dragDropVariants)
+			const fileName = `All variants_${this.props.showStyleBase._id}.json`
+			this.download(fileContent, fileName)
+		}
+
+		private download = (fileContent: string, fileName: string): void => {
+			const element = document.createElement('a')
+			element.href = URL.createObjectURL(new Blob([fileContent], { type: 'application/json' }))
+			element.download = fileName
+
+			element.click()
 		}
 
 		private confirmRemoveAllShowStyleVariants = (): void => {
@@ -116,31 +138,9 @@ export const ShowStyleVariantsSettings = withTranslation()(
 		}
 
 		private removeAllShowStyleVariants = (): void => {
-			this.state.dndVariants.forEach((variant: ShowStyleVariant) => {
+			this.state.dragDropVariants.forEach((variant: ShowStyleVariant) => {
 				MeteorCall.showstyles.removeShowStyleVariant(variant._id).catch(logger.warn)
 			})
-		}
-
-		private persistStateVariants = (showStyleVariants: ShowStyleVariant[]): void => {
-			MeteorCall.showstyles
-				.reorderAllShowStyleVariants(this.props.showStyleBase._id, showStyleVariants)
-				.catch(logger.warn)
-		}
-
-		private renderShowStyleVariant = (variant: ShowStyleVariant, index: number) => {
-			return (
-				<VariantListItem
-					key={unprotectString(variant._id)}
-					index={index}
-					showStyleVariant={variant}
-					showStyleBase={this.props.showStyleBase}
-					dndVariants={this.props.showStyleVariants}
-					blueprintConfigManifest={this.props.blueprintConfigManifest}
-					t={this.props.t}
-					i18n={this.props.i18n}
-					tReady={this.props.tReady}
-				></VariantListItem>
-			)
 		}
 
 		render() {
@@ -149,13 +149,13 @@ export const ShowStyleVariantsSettings = withTranslation()(
 				<div>
 					<h2 className="mhn">{t('Show Style Variants')}</h2>
 					<div>
-						<DndListWrapper
-							className="table expando settings-studio-showStyleVariants-table"
+						<DragDropListWrapper
+							tableClassName="table expando settings-studio-showStyleVariants-table"
 							onDrop={this.persistStateVariants}
-							dndType={DragDropItemTypes.VARIANT}
-							list={this.state.dndVariants}
-							renderItem={this.renderShowStyleVariant}
-						></DndListWrapper>
+							dragDropType={DragDropItemType.VARIANT}
+							list={this.state.dragDropVariants}
+							renderItem={this.provideShowStyleVariantItem}
+						></DragDropListWrapper>
 					</div>
 					<div className="mod mhs">
 						<button className="btn btn-primary" onClick={this.onAddShowStyleVariant}>

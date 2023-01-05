@@ -10,20 +10,17 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faUpload } from '@fortawesome/free-solid-svg-icons'
 import { withTranslation } from 'react-i18next'
 
-interface IShowStyleVariantImportProps {
+interface ShowStyleVariantImportProps {
 	showStyleVariants: ShowStyleVariant[]
 }
 
-interface IShowStyleVariantImportState {
+interface ShowStyleVariantImportState {
 	timestampedFileKey: number
 }
 
 export const ShowStyleVariantImportButton = withTranslation()(
-	class ShowStyleVariantImportButton extends React.Component<
-		IShowStyleVariantImportProps,
-		IShowStyleVariantImportState
-	> {
-		constructor(props: IShowStyleVariantImportProps) {
+	class ShowStyleVariantImportButton extends React.Component<ShowStyleVariantImportProps, ShowStyleVariantImportState> {
+		constructor(props: ShowStyleVariantImportProps) {
 			super(props)
 
 			this.state = {
@@ -33,48 +30,46 @@ export const ShowStyleVariantImportButton = withTranslation()(
 
 		private importShowStyleVariants(event: React.ChangeEvent<HTMLInputElement>): void {
 			const file = event.target.files?.[0]
+
 			if (!file) {
 				return
 			}
-
-			const reader = new FileReader()
-
-			reader.onload = () => {
-				this.setState({
-					timestampedFileKey: Date.now(),
-				})
-				const fileContents = reader.result as string
-
-				const newShowStyleVariants: ShowStyleVariant[] = []
-				try {
-					JSON.parse(fileContents).map((showStyleVariant: ShowStyleVariant) =>
-						newShowStyleVariants.push(showStyleVariant)
-					)
-					if (!Array.isArray(newShowStyleVariants)) {
-						throw new Error('Imported file did not contain an array')
-					}
-				} catch (error) {
-					NotificationCenter.push(
-						new Notification(
-							undefined,
-							NoticeLevel.WARNING,
-							t('Failed to import new showstyle variants: {{errorMessage}}', { errorMessage: error + '' }),
-							'VariantSettings'
-						)
-					)
-					return
-				}
-
-				this.importShowStyleVariantsFromArray(newShowStyleVariants)
-			}
-			reader.readAsText(file)
+			this.importShowStyleVariantsFile(file)
 		}
 
-		private importShowStyleVariantsFromArray(importedShowStyleVariants: ShowStyleVariant[]): void {
-			importedShowStyleVariants.forEach((showStyleVariant: ShowStyleVariant, index: number) => {
+		private importShowStyleVariantsFile(file: File): void {
+			const fileReader = new FileReader()
+			fileReader.onload = () => {
+				try {
+					this.importShowStyleVariantsFileContent(fileReader.result as string)
+				} catch (error: unknown) {
+					this.notifyAboutFailedImport(error)
+				}
+			}
+			fileReader.readAsText(file)
+		}
+
+		private importShowStyleVariantsFileContent(text: string): void {
+			this.setState({ timestampedFileKey: Date.now() })
+			const showStyleVariants = this.parseShowStyleVariants(text)
+			this.importShowStyleVariantsFromArray(showStyleVariants)
+		}
+
+		private parseShowStyleVariants(text: string): ShowStyleVariant[] {
+			const showStyleVariants: unknown = JSON.parse(text)
+
+			if (!Array.isArray(showStyleVariants)) {
+				throw new Error('Imported file did not contain an array')
+			}
+
+			return showStyleVariants
+		}
+
+		private importShowStyleVariantsFromArray(showStyleVariants: ShowStyleVariant[]): void {
+			showStyleVariants.forEach((showStyleVariant: ShowStyleVariant, index: number) => {
 				const rank = this.props.showStyleVariants.length
 				showStyleVariant._rank = rank + index
-				if (this.showStyleVariantAlreadyExists(showStyleVariant)) {
+				if (this.doesShowStyleVariantExist(showStyleVariant.name)) {
 					this.provideImportOptions(showStyleVariant)
 					return
 				}
@@ -82,10 +77,19 @@ export const ShowStyleVariantImportButton = withTranslation()(
 			})
 		}
 
-		private showStyleVariantAlreadyExists(importedShowStyleVariant: ShowStyleVariant): boolean {
-			return !!this.props.showStyleVariants.find(
-				(variant: ShowStyleVariant) => variant.name === importedShowStyleVariant.name
+		private notifyAboutFailedImport(error: unknown): void {
+			NotificationCenter.push(
+				new Notification(
+					undefined,
+					NoticeLevel.WARNING,
+					t('Failed to import new show style variants: {{errorMessage}}', { errorMessage: `${error}` }),
+					'VariantSettings'
+				)
 			)
+		}
+
+		private doesShowStyleVariantExist(showStyleVariantName: string): boolean {
+			return this.props.showStyleVariants.some((variant: ShowStyleVariant) => variant.name === showStyleVariantName)
 		}
 
 		private provideImportOptions(showStyleVariant: ShowStyleVariant) {
@@ -93,14 +97,8 @@ export const ShowStyleVariantImportButton = withTranslation()(
 				title: t('Do you want to replace this variant?'),
 				yes: t('Replace'),
 				no: t('Keep both variants'),
-				onAccept: () => {
-					this.replaceShowStyleVariant(showStyleVariant)
-				},
-				onSecondary: () => {
-					const resemblingNameCount = this.getDuplicatedShowStyleVariantAmount(showStyleVariant)
-					showStyleVariant.name += ' (' + resemblingNameCount + ')'
-					this.importShowStyleVariant(showStyleVariant)
-				},
+				onAccept: () => this.replaceShowStyleVariant(showStyleVariant),
+				onSecondary: () => this.importDuplicatedShowStyleVariant(showStyleVariant),
 				message: (
 					<React.Fragment>
 						<p>
@@ -113,30 +111,34 @@ export const ShowStyleVariantImportButton = withTranslation()(
 			})
 		}
 
-		private replaceShowStyleVariant(newShowStyleVariant: ShowStyleVariant) {
-			const existingShowStyleVariant = this.props.showStyleVariants.find((variant: ShowStyleVariant) => {
-				return variant.name === newShowStyleVariant.name
-			})
+		private replaceShowStyleVariant(showStyleVariant: ShowStyleVariant): void {
+			const existingShowStyleVariant = this.props.showStyleVariants.find(
+				(variant: ShowStyleVariant) => variant.name === showStyleVariant.name
+			)
 			if (existingShowStyleVariant) {
 				MeteorCall.showstyles
 					.removeShowStyleVariant(existingShowStyleVariant._id)
-					.then(() => {
-						MeteorCall.showstyles.importShowStyleVariantAsNew(newShowStyleVariant).catch(logger.warn)
-					})
+					.then(() => this.importShowStyleVariant(showStyleVariant))
 					.catch(logger.warn)
 			}
 		}
 
-		private getDuplicatedShowStyleVariantAmount(showStyleVariant: ShowStyleVariant): number {
-			const importedName = showStyleVariant.name.split(' ')[0]
+		private importDuplicatedShowStyleVariant(showStyleVariant: ShowStyleVariant) {
+			const resemblingNameCount = this.getDuplicatedShowStyleVariantCount(showStyleVariant)
+			showStyleVariant.name += ' (' + resemblingNameCount + ')'
+			this.importShowStyleVariant(showStyleVariant)
+		}
+
+		private getDuplicatedShowStyleVariantCount(showStyleVariant: ShowStyleVariant): number {
+			const showStyleVariantName = showStyleVariant.name.replace(/ +\(\d+\)$/, '')
 			return this.props.showStyleVariants.filter((variant: ShowStyleVariant) => {
-				const existingName = variant.name.split(' ')[0]
-				return existingName === importedName
+				const existingName = variant.name.replace(/ +\(\d+\)$/, '')
+				return existingName === showStyleVariantName
 			}).length
 		}
 
-		private importShowStyleVariant(showStyleVariant: ShowStyleVariant) {
-			MeteorCall.showstyles.importShowStyleVariantAsNew(showStyleVariant).catch(() => {
+		private importShowStyleVariant(showStyleVariant: ShowStyleVariant): void {
+			MeteorCall.showstyles.importShowStyleVariantAsNew(showStyleVariant).catch(() =>
 				NotificationCenter.push(
 					new Notification(
 						undefined,
@@ -147,7 +149,7 @@ export const ShowStyleVariantImportButton = withTranslation()(
 						'VariantSettings'
 					)
 				)
-			})
+			)
 		}
 
 		render() {
