@@ -608,7 +608,7 @@ export class TSRHandler {
 				}
 			}
 
-			for (const oldDevice of this.tsr.getDevices()) {
+			for (const oldDevice of this.tsr.getDevices(true)) {
 				const deviceId = oldDevice.deviceId
 				if (!deviceOptions.has(deviceId)) {
 					this.logger.info('Un-initializing device: ' + deviceId)
