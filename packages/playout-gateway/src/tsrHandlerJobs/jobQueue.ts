@@ -22,9 +22,9 @@ export enum JobImportance {
 	LOW = 'low',
 }
 
-type FulfilledCallback<ResultType> = (queue: IJobQueue, result: ResultType) => void
+type FulfilledCallback<ResultType> = (result: ResultType) => void
 type RejectedCallback = (reason: any) => void
-type TimeoutCallback = (queue: IJobQueue) => void
+type TimeoutCallback = () => void
 
 interface ChainableJobQueue<PreviousResultType> extends IJobQueue {
 	chain: <ResultType, ArtifactType>(
@@ -166,7 +166,7 @@ export class JobQueue extends EventEmitter implements IJobQueue {
 			this.currentJobChain.push(this.currentJob)
 		}
 		if (this.currentJob.onFulfilled) {
-			this.currentJob.onFulfilled(this, result)
+			this.currentJob.onFulfilled(result)
 		}
 	}
 
@@ -185,7 +185,7 @@ export class JobQueue extends EventEmitter implements IJobQueue {
 
 		const result = await Promise.allSettled(cleanupPromises)
 		if (this.currentJob.didTimeOut && lastChainedJob?.onTimeout) {
-			lastChainedJob.onTimeout(this)
+			lastChainedJob.onTimeout()
 		} else if (lastChainedJob?.onRejected) {
 			lastChainedJob.onRejected(reason)
 		}

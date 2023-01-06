@@ -643,11 +643,10 @@ export class TSRHandler {
 				jobId
 			)
 			.end(
-				(queue) => {
-					if (!queue.length) {
-						this.updateDeviceStatus(deviceId)
-						this._triggerUpdateDevices()
-					}
+				() => {
+					if (jobQueue.length) return
+					this.updateDeviceStatus(deviceId)
+					this._triggerUpdateDevices()
 				},
 				() => {
 					this.updateDeviceStatus(deviceId, JobFailure.REMOVE_ERROR)
@@ -677,7 +676,7 @@ export class TSRHandler {
 				jobId
 			)
 			.end(
-				(_queue, result) => {
+				(result) => {
 					this.updateDeviceStatus(deviceId)
 					this._coreTsrHandlers[deviceId] = result.coreTsrHandler
 					const { groupedExpectedItems, rundowns } = this.getExpectedPlayoutItems()
