@@ -54,10 +54,6 @@ class DummyReactiveVar<T> implements ReactiveVar<T> {
 
 export interface ReactivePlaylistActionContext {
 	rundownPlaylistId: ReactiveVar<RundownPlaylistId>
-	rundownPlaylist: ReactiveVar<
-		Pick<RundownPlaylist, '_id' | 'name' | 'activationId' | 'nextPartInstanceId' | 'currentPartInstanceId'>
-	>
-
 	currentRundownId: ReactiveVar<RundownId | null>
 	currentSegmentPartIds: ReactiveVar<PartId[]>
 	nextSegmentPartIds: ReactiveVar<PartId[]>
@@ -127,7 +123,6 @@ function createRundownPlaylistContext(
 		const playlistContext = context as PlainPlaylistContext
 		return {
 			rundownPlaylistId: new DummyReactiveVar(playlistContext.rundownPlaylist._id),
-			rundownPlaylist: new DummyReactiveVar(playlistContext.rundownPlaylist),
 			currentRundownId: new DummyReactiveVar(playlistContext.currentRundownId),
 			currentPartId: new DummyReactiveVar(playlistContext.currentPartId),
 			nextPartId: new DummyReactiveVar(playlistContext.nextPartId),
@@ -170,7 +165,6 @@ function createRundownPlaylistContext(
 
 			return {
 				rundownPlaylistId: new DummyReactiveVar(playlist?._id),
-				rundownPlaylist: new DummyReactiveVar(playlist),
 				currentRundownId: new DummyReactiveVar(
 					currentPartInstance?.rundownId ??
 						RundownPlaylistCollectionUtil.getRundownsOrdered(playlist)[0]?._id ??
@@ -226,7 +220,7 @@ function createAdLibAction(
 				logger.warn(`Could not create RundownPlaylist context for executable AdLib Action`, filterChain)
 				return
 			}
-			const currentPartInstanceId = innerCtx.rundownPlaylist.get().currentPartInstanceId
+			const currentPartInstanceId = innerCtx.currentPartInstanceId.get()
 
 			const sourceLayerIdsToClear: string[] = []
 			Tracker.nonreactive(() => compiledAdLibFilter(innerCtx)).forEach((wrappedAdLib) => {

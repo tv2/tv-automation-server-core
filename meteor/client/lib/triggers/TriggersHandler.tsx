@@ -381,7 +381,6 @@ export const TriggersHandler: React.FC<IProps> = function TriggersHandler(
 				if (context === null) {
 					context = {
 						rundownPlaylistId: new ReactiveVar(playlist._id),
-						rundownPlaylist: new ReactiveVar(playlist),
 						currentRundownId: new ReactiveVar(props.currentRundownId),
 						currentPartId: new ReactiveVar(props.currentPartId),
 						nextPartId: new ReactiveVar(props.nextPartId),
@@ -392,12 +391,12 @@ export const TriggersHandler: React.FC<IProps> = function TriggersHandler(
 					rundownPlaylistContext.set(context)
 				} else {
 					context.rundownPlaylistId.set(playlist._id)
-					context.rundownPlaylist.set(playlist)
 					context.currentRundownId.set(props.currentRundownId)
 					context.currentPartId.set(props.currentPartId)
 					context.nextPartId.set(props.nextPartId)
 					context.currentSegmentPartIds.set(props.currentSegmentPartIds)
 					context.nextSegmentPartIds.set(props.nextSegmentPartIds)
+					context.currentPartInstanceId.set(playlist.currentPartInstanceId)
 				}
 			}
 		})
