@@ -3092,10 +3092,10 @@
     webpack-sources "^3.2.2"
 
 "@sofie-automation/blueprints-integration@link:blueprints-integration":
-  version "46.0.3"
+  version "46.0.4"
   dependencies:
     "@sofie-automation/shared-lib" "link:shared-lib"
-    timeline-state-resolver-types "npm:@tv2media/timeline-state-resolver-types@3.0.3"
+    timeline-state-resolver-types "npm:@tv2media/timeline-state-resolver-types@3.1.0"
     tslib "^2.4.0"
     type-fest "^2.19.0"
 
@@ -3687,6 +3687,11 @@
   version "2.4.1"
   resolved "https://registry.yarnpkg.com/@types/normalize-package-data/-/normalize-package-data-2.4.1.tgz#d3357479a0fdfdd5907fe67e17e0a85c906e1301"
   integrity sha512-Gj7cI7z+98M282Tqmp2K5EIsoouUEzbBJhQQzDE3jSIRk6r9gsz0oUokqIUR4u1R3dMHo0pDHM7sNOHyhulypw==
+
+"@types/object-hash@^3.0.1":
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/@types/object-hash/-/object-hash-3.0.1.tgz#6e9adda54582dac92fff9f2ea3e2d7651c17d15e"
+  integrity sha512-AeyooJR4pesRnPLXONFEpxrdvwYVkBiq26j4Uo4QYcJO2FQhAFmHHWBfRpEzwMtItz7q9JiD50s7HDbHS7PleQ==
 
 "@types/object-path@^0.11.1":
   version "0.11.1"
@@ -10843,6 +10848,11 @@ object-filter-sequence@^1.0.0:
   resolved "https://registry.yarnpkg.com/object-filter-sequence/-/object-filter-sequence-1.0.0.tgz#10bb05402fff100082b80d7e83991b10db411692"
   integrity sha512-CsubGNxhIEChNY4cXYuA6KXafztzHqzLLZ/y3Kasf3A+sa3lL9thq3z+7o0pZqzEinjXT6lXDPAfVWI59dUyzQ==
 
+object-hash@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/object-hash/-/object-hash-3.0.0.tgz#73f97f753e7baffc0e2cc9d6e079079744ac82e9"
+  integrity sha512-RSn9F68PjH9HqtltsSnqYC1XXoWe9Bju5+213R98cNGttag9q9yAOTzdbsqvIa7aNm5WffBZFpWYr2aWrklWAw==
+
 object-identity-map@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/object-identity-map/-/object-identity-map-1.0.2.tgz#2b4213a4285ca3a8cd2e696782c9964f887524e7"
@@ -13983,17 +13993,17 @@ timecode@0.0.4:
   resolved "https://registry.yarnpkg.com/timecode/-/timecode-0.0.4.tgz#cdea9d2352009700e50da657cb7fb7c1720f5704"
   integrity sha512-xFVZlWnqls5eVphtUJo0UuXeJa0grBmxESSn5QPQB7CMsaVgTnLdP9PTZqb4KyFmLdrE+PUu3eEt42zHsMxCtw==
 
-"timeline-state-resolver-types@npm:@tv2media/timeline-state-resolver-types@3.0.3":
-  version "3.0.3"
-  resolved "https://registry.yarnpkg.com/@tv2media/timeline-state-resolver-types/-/timeline-state-resolver-types-3.0.3.tgz#cb22a1dee460403c2a306e666003a1d57af7f8d2"
-  integrity sha512-PqqV2EFCfhQyphngRFh0K7UcO+pptB5e6vk73uT+gz0S+j/aV2uAtOKA3PPeEc7W37ov4KCsP10T4KVTntNkAw==
+"timeline-state-resolver-types@npm:@tv2media/timeline-state-resolver-types@3.1.0":
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/@tv2media/timeline-state-resolver-types/-/timeline-state-resolver-types-3.1.0.tgz#1f5c2de4943c2d422ab6eb049da6f064a510e080"
+  integrity sha512-sjVvIdLAgR2ciX8oJZkLBaPwUt4WtU7TYlzaS3OdrfZMXQWhWnxwUmjYHfSB69VXIoiP1ZP4rknKh6Q73+N3Cg==
   dependencies:
     tslib "^2.3.1"
 
-"timeline-state-resolver@npm:@tv2media/timeline-state-resolver@3.0.3":
-  version "3.0.3"
-  resolved "https://registry.yarnpkg.com/@tv2media/timeline-state-resolver/-/timeline-state-resolver-3.0.3.tgz#126597abd24f049d80688eecb824bbe3e5a270c2"
-  integrity sha512-+8cbkuFVi8OAMn8McAghn/l5vmPYjFRxFNKqj2QQuFQA62W0UOmHxJlNsYXe3AJKooPjDZUC/PKs5g+FvW+nlw==
+"timeline-state-resolver@npm:@tv2media/timeline-state-resolver@3.1.0":
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/@tv2media/timeline-state-resolver/-/timeline-state-resolver-3.1.0.tgz#c85df55187682d953fb2fc965ad79a43a21c0fb7"
+  integrity sha512-IAQC70TVulL6nfYLYfucd8wb4SBPkPnyM4USxoA0YhazwJH9qyV8r/lmTLZbA67LgOOcIFvUbiJj340p8Lo/mg==
   dependencies:
     "@tv2media/v-connection" "^7.2.1"
     atem-connection "2.4.0"
@@ -14015,7 +14025,7 @@ timecode@0.0.4:
     sprintf-js "^1.1.2"
     superfly-timeline "^8.2.8"
     threadedclass "^1.1.1"
-    timeline-state-resolver-types "npm:@tv2media/timeline-state-resolver-types@3.0.3"
+    timeline-state-resolver-types "npm:@tv2media/timeline-state-resolver-types@3.1.0"
     tslib "^2.3.1"
     tv-automation-quantel-gateway-client "^2.0.5"
     underscore "^1.13.4"
