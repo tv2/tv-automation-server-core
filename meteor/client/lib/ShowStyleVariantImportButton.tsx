@@ -130,11 +130,15 @@ export const ShowStyleVariantImportButton = withTranslation()(
 		}
 
 		private getDuplicatedShowStyleVariantCount(showStyleVariant: ShowStyleVariant): number {
-			const showStyleVariantName = showStyleVariant.name.replace(/ +\(\d+\)$/, '')
+			const showStyleVariantName = this.removeDuplicationIndicatorFromName(showStyleVariant.name)
 			return this.props.showStyleVariants.filter((variant: ShowStyleVariant) => {
-				const existingName = variant.name.replace(/ +\(\d+\)$/, '')
+				const existingName = this.removeDuplicationIndicatorFromName(variant.name)
 				return existingName === showStyleVariantName
 			}).length
+		}
+
+		private removeDuplicationIndicatorFromName(name: String): string {
+			return name.replace(/ +\(\d+\)$/, '')
 		}
 
 		private importShowStyleVariant(showStyleVariant: ShowStyleVariant): void {
