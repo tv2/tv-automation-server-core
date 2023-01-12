@@ -43,7 +43,7 @@ import { Bucket, BucketId } from '../../../lib/collections/Buckets'
 import { Events as MOSEvents } from '../../lib/data/mos/plugin-support'
 import { RundownPlaylist, RundownPlaylistCollectionUtil } from '../../../lib/collections/RundownPlaylists'
 import { MeteorCall } from '../../../lib/api/methods'
-import { DragDropItemTypes } from '../DragDropItemTypes'
+import { DragDropItemType } from '../DragDropItemType'
 import { PieceId, PieceStatusCode } from '../../../lib/collections/Pieces'
 import { BucketPieceButton } from './BucketPieceButton'
 import { ContextMenuTrigger } from '@jstarpl/react-contextmenu'
@@ -108,7 +108,7 @@ const bucketTarget = {
 	},
 
 	hover(props: IBucketPanelProps, monitor: DropTargetMonitor, component: any) {
-		if (monitor.getItemType() === DragDropItemTypes.BUCKET) {
+		if (monitor.getItemType() === DragDropItemType.BUCKET) {
 			const { id: draggedId, size: draggedSize } = monitor.getItem()
 			const overId = props.bucket._id
 			let farEnough = true
@@ -148,9 +148,9 @@ const bucketTarget = {
 			index,
 			bucketId: props.bucket._id,
 			action:
-				monitor.getItemType() === DragDropItemTypes.BUCKET
+				monitor.getItemType() === DragDropItemType.BUCKET
 					? 'reorder'
-					: monitor.getItemType() === DragDropItemTypes.BUCKET_ADLIB_PIECE
+					: monitor.getItemType() === DragDropItemType.BUCKET_ADLIB_PIECE
 					? monitor.getItem().bucketId === props.bucket._id
 						? 'reorder'
 						: 'move'
@@ -345,10 +345,10 @@ export const BucketPanel = translateWithTracker<Translated<IBucketPanelProps>, I
 		return !_.isEqual(props, nextProps)
 	}
 )(
-	DropTarget([DragDropItemTypes.BUCKET, DragDropItemTypes.BUCKET_ADLIB_PIECE], bucketTarget, (connect) => ({
+	DropTarget([DragDropItemType.BUCKET, DragDropItemType.BUCKET_ADLIB_PIECE], bucketTarget, (connect) => ({
 		connectDropTarget: connect.dropTarget(),
 	}))(
-		DragSource(DragDropItemTypes.BUCKET, bucketSource, (connect, monitor) => ({
+		DragSource(DragDropItemType.BUCKET, bucketSource, (connect, monitor) => ({
 			connectDragSource: connect.dragSource(),
 			connectDragPreview: connect.dragPreview(),
 			isDragging: monitor.isDragging(),

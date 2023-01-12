@@ -10,7 +10,7 @@ import {
 	ConnectDragPreview,
 	ConnectableElement,
 } from 'react-dnd'
-import { DragDropItemTypes } from '../DragDropItemTypes'
+import { DragDropItemType } from '../DragDropItemType'
 import { BucketAdLib } from '../../../lib/collections/BucketAdlibs'
 import { PieceId } from '../../../lib/collections/Pieces'
 import { BucketId } from '../../../lib/collections/Buckets'
@@ -107,10 +107,10 @@ export class BucketPieceButtonBase extends DashboardPieceButtonBase<
 }
 
 export const BucketPieceButton = withMediaObjectStatus<IDashboardButtonProps & BucketPieceButtonBaseProps, {}>()(
-	DropTarget(DragDropItemTypes.BUCKET_ADLIB_PIECE, buttonTarget, (connect) => ({
+	DropTarget(DragDropItemType.BUCKET_ADLIB_PIECE, buttonTarget, (connect) => ({
 		connectDropTarget: connect.dropTarget(),
 	}))(
-		DragSource(DragDropItemTypes.BUCKET_ADLIB_PIECE, buttonSource, (connect, monitor) => ({
+		DragSource(DragDropItemType.BUCKET_ADLIB_PIECE, buttonSource, (connect, monitor) => ({
 			connectDragSource: connect.dragSource(),
 			connectDragPreview: connect.dragPreview(),
 			isDragging: monitor.isDragging(),

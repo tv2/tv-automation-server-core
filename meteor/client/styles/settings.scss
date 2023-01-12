@@ -39,6 +39,7 @@
 
 .settings-dialog {
 	table {
+	  border-collapse: separate;
 		.switch-tight {
 			padding: 0px 8px;
 			margin: -6px 0 -1px;
@@ -122,18 +123,19 @@
 		}
 	}
 
-  .settings-studio-showStyleVariants-table__drag {
-	color: #a2a2a2;
-	cursor: grab;
-	margin-right: 10px;
+	.settings-studio-table-drag {
+		cursor: grab;
+		width: 2.5%;
+		border-bottom: 1px solid #ddd;
 
-	svg {
-	  height: 1.2em;
-	  width: 1.2em;
-	  top: 0.125em;
-	  position: relative;
+		svg {
+			margin-top: 0.6em;
+			margin-right: 0.7em;
+			margin-left: 0.7em;
+			height: 1.5em;
+			width: 1.5em;
+		}
 	}
-  }
 
 	.settings-studio-accessors {
 		border-left: 0.5em solid #999;

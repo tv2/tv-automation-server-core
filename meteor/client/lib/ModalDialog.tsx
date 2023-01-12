@@ -307,7 +307,7 @@ class ModalDialogGlobalContainer0 extends React.Component<
 	}
 	onAccept = (e: SomeEvent, inputResult: ModalInputResult) => {
 		const queue = this.state.queue
-		const onQueue = queue.pop()
+		const onQueue = queue.shift()
 		if (onQueue) {
 			this.setState({ queue })
 			onQueue.onAccept(e, inputResult)
@@ -315,7 +315,7 @@ class ModalDialogGlobalContainer0 extends React.Component<
 	}
 	onDiscard = (e: SomeEvent, inputResult: ModalInputResult) => {
 		const queue = this.state.queue
-		const onQueue = queue.pop()
+		const onQueue = queue.shift()
 		if (onQueue) {
 			this.setState({ queue })
 			if (onQueue.onDiscard) {
@@ -325,7 +325,7 @@ class ModalDialogGlobalContainer0 extends React.Component<
 	}
 	onSecondary = (e: SomeEvent, inputResult: ModalInputResult) => {
 		const queue = this.state.queue
-		const onQueue = queue.pop()
+		const onQueue = queue.shift()
 		if (onQueue) {
 			this.setState({ queue })
 			if (onQueue.onSecondary) {
@@ -335,7 +335,7 @@ class ModalDialogGlobalContainer0 extends React.Component<
 	}
 	onAction = (e: SomeEvent, inputResult: ModalInputResult, on: OnAction) => {
 		const queue = this.state.queue
-		const onQueue = queue.pop()
+		const onQueue = queue.shift()
 		if (onQueue) {
 			this.setState({ queue })
 			on(e, inputResult)
