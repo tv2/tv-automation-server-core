@@ -138,7 +138,7 @@ function assignRoute(routeType: 'POST' | 'GET', resource: string, indexResource:
 
 	index[routeType].push(indexResource)
 	route.route(resource, async (params: Params, req: IncomingMessage, res: ServerResponse) => {
-		logger.info(`REST APIv0: ${req.connection.remoteAddress} ${routeType} "${req.url}"`, {
+		logger.info(`REST APIv0"`, {
 			url: req.url,
 			method: routeType,
 			remoteAddress: req.connection.remoteAddress,
