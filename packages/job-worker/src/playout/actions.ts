@@ -95,6 +95,7 @@ export async function activateRundownPlaylist(
 		}
 	}
 
+	console.log(`*#*#*#*#*#*#*#*#*#* Calling updateTimeline from {activateRundownPlaylist}`)
 	await updateTimeline(context, cache)
 
 	cache.defer(async () => {

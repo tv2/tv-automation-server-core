@@ -206,7 +206,7 @@ async function pieceTakeNowAsAdlib(
 	cache.PieceInstances.insert(newPieceInstance)
 
 	await syncPlayheadInfinitesForNextPartInstance(context, cache)
-
+	console.log(`*#*#*#*#*#*#*#*#*#* Calling updateTimeline from {pieceTakeNowAsAdlib}`)
 	await updateTimeline(context, cache)
 }
 
@@ -350,7 +350,7 @@ export async function innerStartOrQueueAdLibPiece(
 
 		await syncPlayheadInfinitesForNextPartInstance(context, cache)
 	}
-
+	console.log(`*#*#*#*#*#*#*#*#*#* Calling updateTimeline from {innerStartOrQueueAdLibPiece}`)
 	await updateTimeline(context, cache)
 
 	if (span) span.end()

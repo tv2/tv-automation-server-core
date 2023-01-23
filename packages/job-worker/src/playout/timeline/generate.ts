@@ -25,17 +25,16 @@ import {
 } from '@sofie-automation/corelib/dist/lib'
 import { CacheForPlayout, getSelectedPartInstancesFromCache } from '../cache'
 import { logger } from '../../logging'
-import _ = require('underscore')
 import { getCurrentTime, getSystemVersion } from '../../lib'
 import { getResolvedPiecesFromFullTimeline } from '../pieces'
 import { DBShowStyleBase } from '@sofie-automation/corelib/dist/dataModel/ShowStyleBase'
 import {
-	processAndPrunePieceInstanceTimings,
 	PieceInstanceWithTimings,
+	processAndPrunePieceInstanceTimings,
 } from '@sofie-automation/corelib/dist/playout/infinites'
 import { CacheForStudio, CacheForStudioBase } from '../../studio/cache'
 import { getLookeaheadObjects } from '../lookahead'
-import { StudioBaselineContext, OnTimelineGenerateContext } from '../../blueprints/context'
+import { OnTimelineGenerateContext, StudioBaselineContext } from '../../blueprints/context'
 import { ExpectedPackageDBType } from '@sofie-automation/corelib/dist/dataModel/ExpectedPackages'
 import { WatchedPackagesHelper } from '../../blueprints/context/watchedPackages'
 import { postProcessStudioBaselineObjects } from '../../blueprints/postProcess'
@@ -45,6 +44,7 @@ import { StudioLight } from '@sofie-automation/corelib/dist/dataModel/Studio'
 import { deserializePieceTimelineObjectsBlob } from '@sofie-automation/corelib/dist/dataModel/Piece'
 import { convertResolvedPieceInstanceToBlueprints } from '../../blueprints/context/lib'
 import { buildTimelineObjsForRundown } from './rundown'
+import _ = require('underscore')
 
 function isCacheForStudio(cache: CacheForStudioBase): cache is CacheForStudio {
 	const cache2 = cache as CacheForStudio
@@ -132,7 +132,7 @@ export async function updateTimeline(
 	forceNowToTime?: Time
 ): Promise<void> {
 	const span = context.startSpan('updateTimeline')
-	logger.debug('updateTimeline running...')
+	logger.info('updateTimeline running...')
 
 	if (!cache.Playlist.doc.activationId) {
 		throw new Error(`RundownPlaylist ("${cache.Playlist.doc._id}") is not active")`)
@@ -209,7 +209,7 @@ function processAndSaveTimelineObjects(
 
 	saveTimeline(context, cache, timelineObjs, versions)
 
-	logger.debug('updateTimeline done!')
+	logger.info('updateTimeline done!')
 }
 
 /** Store the timelineobjects into the cache, and perform any post-save actions */

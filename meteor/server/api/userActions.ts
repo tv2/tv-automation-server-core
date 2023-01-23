@@ -92,6 +92,7 @@ class ServerUserActionAPI
 		rundownPlaylistId: RundownPlaylistId,
 		fromPartInstanceId: PartInstanceId | null
 	) {
+		console.log(`######################### Hello from the ServerUserActionAPI.take side`)
 		return ServerClientAPI.runUserActionInLogForPlaylistOnWorker(
 			this,
 			userEvent,

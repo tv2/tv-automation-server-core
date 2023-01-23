@@ -43,7 +43,7 @@ export async function handleDebugRegenerateNextPartInstance(
 			if (part) {
 				await setNextPart(context, cache, null)
 				await setNextPart(context, cache, { part: part })
-
+				console.log(`*#*#*#*#*#*#*#*#*#* Calling updateTimeline from {handleDebugRegenerateNextPartInstance}`)
 				await updateTimeline(context, cache)
 			}
 		}

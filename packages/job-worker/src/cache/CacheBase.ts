@@ -70,9 +70,12 @@ export abstract class ReadOnlyCacheBase<T extends ReadOnlyCacheBase<never>> {
 		const span = this.context.startSpan('Cache.saveAllToDatabase')
 
 		// Execute cache.defer()'s
+		console.log(`############# Starting executing deferred`)
 		for (let i = 0; i < this._deferredFunctions.length; i++) {
 			await this._deferredFunctions[i](this as any)
 		}
+		console.log(`############# Done executing deferred`)
+
 		this._deferredFunctions.length = 0 // clear the array
 
 		const { highPrioDBs, lowPrioDBs } = this.getAllCollections()

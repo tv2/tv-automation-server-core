@@ -8,26 +8,25 @@ import {
 	ActivateRundownPlaylistProps,
 	DeactivateHoldProps,
 	DeactivateRundownPlaylistProps,
+	DisableNextPieceProps,
+	ExecuteActionProps,
+	ExecuteActionResult,
 	MoveNextPartProps,
+	OnPlayoutPlaybackChangedProps,
+	OnTimelineTriggerTimeProps,
 	PrepareRundownForBroadcastProps,
 	ResetRundownPlaylistProps,
 	SetNextPartProps,
-	StopPiecesOnSourceLayersProps,
-	ExecuteActionProps,
-	ExecuteActionResult,
-	TakeNextPartProps,
-	DisableNextPieceProps,
 	SetNextSegmentProps,
-	OnTimelineTriggerTimeProps,
+	StopPiecesOnSourceLayersProps,
+	TakeNextPartProps,
 	UpdateTimelineAfterIngestProps,
-	OnPlayoutPlaybackChangedProps,
 } from '@sofie-automation/corelib/dist/worker/studio'
 import { logger } from '../logging'
-import _ = require('underscore')
 import { JobContext } from '../jobs'
 import { innerStopPieces } from './adlib'
 import { CacheForPlayout, getOrderedSegmentsAndPartsFromPlayoutCache, getSelectedPartInstancesFromCache } from './cache'
-import { runJobWithPlayoutCache, runJobWithPlaylistLock, runWithPlaylistCache } from './lock'
+import { runJobWithPlaylistLock, runJobWithPlayoutCache, runWithPlaylistCache } from './lock'
 import { syncPlayheadInfinitesForNextPartInstance } from './infinites'
 import {
 	onPartHasStoppedPlaying,
@@ -88,6 +87,7 @@ import { MongoQuery } from '@sofie-automation/corelib/dist/mongo'
 import { deserializeTimelineBlob } from '@sofie-automation/corelib/dist/dataModel/Timeline'
 import { INCORRECT_PLAYING_PART_DEBOUNCE, RESET_IGNORE_ERRORS } from './constants'
 import { PlayoutChangedType } from '@sofie-automation/shared-lib/dist/peripheralDevice/peripheralDeviceAPI'
+import _ = require('underscore')
 
 let MINIMUM_TAKE_SPAN = 1000
 export function setMinimumTakeSpan(span: number): void {
@@ -197,6 +197,7 @@ export async function resetRundownPlaylist(context: JobContext, data: ResetRundo
 				await libActivateRundownPlaylist(context, cache, data.activate !== 'active') // Activate rundown
 			} else if (cache.Playlist.doc.activationId) {
 				// Only update the timeline if this is the active playlist
+				console.log(`*#*#*#*#*#*#*#*#*#* Calling updateTimeline from {resetRundownPlaylist}`)
 				await updateTimeline(context, cache)
 			}
 		}
@@ -373,6 +374,7 @@ export async function setNextPartInner(
 	await libSetNextPart(context, cache, nextPart ? { part: nextPart } : null, setManually, nextTimeOffset)
 
 	// update lookahead and the next part when we have an auto-next
+	console.log(`*#*#*#*#*#*#*#*#*#* Calling updateTimeline from {setNextPartInner}`)
 	await updateTimeline(context, cache)
 }
 export async function moveNextPart(context: JobContext, data: MoveNextPartProps): Promise<PartId | null> {
@@ -520,6 +522,7 @@ export async function setNextSegment(context: JobContext, data: SetNextSegmentPr
 			libSetNextSegment(context, cache, null)
 
 			// Update any future lookaheads
+			console.log(`*#*#*#*#*#*#*#*#*#* Calling updateTimeline from {setNextSegment}`)
 			await updateTimeline(context, cache)
 		}
 	)
@@ -564,7 +567,7 @@ export async function activateHold(context: JobContext, data: ActivateHoldProps)
 			if (hasDynamicallyInserted) throw UserError.create(UserErrorMessage.HoldAfterAdlib)
 
 			cache.Playlist.update({ $set: { holdState: RundownHoldState.PENDING } })
-
+			console.log(`*#*#*#*#*#*#*#*#*#* Calling updateTimeline from {activateHold}`)
 			await updateTimeline(context, cache)
 		}
 	)
@@ -584,7 +587,7 @@ export async function deactivateHold(context: JobContext, data: DeactivateHoldPr
 		},
 		async (cache) => {
 			cache.Playlist.update({ $set: { holdState: RundownHoldState.NONE } })
-
+			console.log(`*#*#*#*#*#*#*#*#*#* Calling updateTimeline from {deactivateHold}`)
 			await updateTimeline(context, cache)
 		}
 	)
@@ -686,7 +689,7 @@ export async function disableNextPiece(context: JobContext, data: DisableNextPie
 						disabled: !data.undo,
 					},
 				})
-
+				console.log(`*#*#*#*#*#*#*#*#*#* Calling updateTimeline from {disableNextPiece}`)
 				await updateTimeline(context, cache)
 			} else {
 				cache.assertNoChanges()
@@ -893,6 +896,7 @@ async function _onPartPlaybackStarted(
 		}
 
 		// complete the take
+		console.log(`### Hello from onPartPlaybackStarted`)
 		await afterTake(context, cache, playingPartInstance)
 	}
 }
@@ -973,6 +977,7 @@ export async function onPlayoutPlaybackChanged(
  * ( typically when using the "now"-feature )
  */
 export async function handleTimelineTriggerTime(context: JobContext, data: OnTimelineTriggerTimeProps): Promise<void> {
+	console.log(`########################### Hello from handleTimelineTriggerTime`)
 	if (data.results.length > 0) {
 		await runJobWithStudioCache(context, async (studioCache) => {
 			const activePlaylists = studioCache.getActiveRundownPlaylists()
@@ -1212,6 +1217,7 @@ export async function executeActionInner(
 			actionContext.currentPartState !== ActionPartChange.NONE ||
 			actionContext.nextPartState !== ActionPartChange.NONE
 		) {
+			console.log(`*#*#*#*#*#*#*#*#*#* Calling updateTimeline from {executeActionInner}`)
 			await updateTimeline(context, cache)
 		}
 	}
@@ -1266,7 +1272,7 @@ export async function stopPiecesOnSourceLayers(
 
 			if (changedIds.length) {
 				await syncPlayheadInfinitesForNextPartInstance(context, cache)
-
+				console.log(`*#*#*#*#*#*#*#*#*#* Calling updateTimeline from {stopPiecesOnSourceLayers}`)
 				await updateTimeline(context, cache)
 			}
 		}
@@ -1313,6 +1319,7 @@ export async function handleUpdateTimelineAfterIngest(
 				} else {
 					// It is safe enough (except adlibs) to update the timeline directly
 					// If the playlist is active, then updateTimeline as lookahead could have been affected
+					console.log(`*#*#*#*#*#*#*#*#*#* Calling updateTimeline from {handleUpdateTimelineAfterIngest}`)
 					await updateTimeline(context, cache)
 				}
 			})

@@ -11,7 +11,6 @@ import { ReadonlyDeep } from 'type-fest'
 import { RundownDataChangedEventContext, RundownTimingEventContext } from '../blueprints/context'
 import { IBlueprintExternalMessageQueueObj } from '@sofie-automation/blueprints-integration'
 import { protectString, unDeepString } from '@sofie-automation/corelib/dist/protectedString'
-import _ = require('underscore')
 import { getRandomId, omit, removeNullyProperties, stringifyError } from '@sofie-automation/corelib/dist/lib'
 import { ExternalMessageQueueObj } from '@sofie-automation/corelib/dist/dataModel/ExternalMessageQueue'
 import { ICollection, MongoModifier } from '../db'
@@ -26,6 +25,7 @@ import {
 import { MOS } from '@sofie-automation/corelib'
 import { executePeripheralDeviceFunction } from '../peripheralDevice'
 import { DEFAULT_MOS_TIMEOUT_TIME } from '@sofie-automation/shared-lib/dist/core/constants'
+import _ = require('underscore')
 
 async function getBlueprintAndDependencies(context: JobContext, rundown: ReadonlyDeep<DBRundown>) {
 	const pShowStyle = context.getShowStyleCompound(rundown.showStyleVariantId, rundown.showStyleBaseId)

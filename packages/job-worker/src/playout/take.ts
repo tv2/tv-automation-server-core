@@ -32,6 +32,7 @@ import { convertPartInstanceToBlueprints, convertResolvedPieceInstanceToBlueprin
 import { processAndPrunePieceInstanceTimings } from '@sofie-automation/corelib/dist/playout/infinites'
 
 export async function takeNextPartInnerSync(context: JobContext, cache: CacheForPlayout, now: number): Promise<void> {
+	const timeStart = new Date()
 	const span = context.startSpan('takeNextPartInner')
 
 	if (!cache.Playlist.doc.activationId) throw new Error(`Rundown Playlist "${cache.Playlist.doc._id}" is not active!`)
@@ -185,6 +186,10 @@ export async function takeNextPartInnerSync(context: JobContext, cache: CacheFor
 	})
 
 	if (span) span.end()
+
+	const timerEnd = new Date()
+	const elapsedTime = timerEnd.getMilliseconds() - timeStart.getMilliseconds()
+	console.log(`### ElapsedTime for {takeNextPartInnerSync}: ${elapsedTime}ms`)
 }
 
 export function clearNextSegmentId(cache: CacheForPlayout, takeOrCurrentPartInstance?: DBPartInstance): void {
@@ -236,6 +241,7 @@ async function afterTakeUpdateTimingsAndEvents(
 	isFirstTake: boolean,
 	takeDoneTime: number
 ): Promise<void> {
+	const timerStart = new Date()
 	const { currentPartInstance: takePartInstance, previousPartInstance } = getSelectedPartInstancesFromCache(cache)
 	const takeRundown = takePartInstance ? cache.Rundowns.findOne(takePartInstance.rundownId) : undefined
 
@@ -310,6 +316,10 @@ async function afterTakeUpdateTimingsAndEvents(
 			if (span) span.end()
 		}
 	}
+	const timerEnd = new Date()
+
+	const elapsedTime = timerEnd.getMilliseconds() - timerStart.getMilliseconds()
+	console.log(`### ElapsedTime for {afterTakeUpdateTimingsAndEvents}: ${elapsedTime}ms`)
 }
 
 export function updatePartInstanceOnTake(
@@ -400,6 +410,7 @@ export async function afterTake(
 		forceNowTime = getCurrentTime() - timeOffset
 	}
 	// or after a new part has started playing
+	console.log(`*#*#*#*#*#*#*#*#*#* Calling updateTimeline from {afterTake}`)
 	await updateTimeline(context, cache, forceNowTime)
 
 	cache.deferAfterSave(async () => {
@@ -510,5 +521,6 @@ async function completeHold(
 		innerStopPieces(context, cache, showStyleBase, currentPartInstance, (p) => !!p.infinite?.fromHold, undefined)
 	}
 
+	console.log(`*#*#*#*#*#*#*#*#*#* Calling updateTimeline from {completeHold}`)
 	await updateTimeline(context, cache)
 }

@@ -99,11 +99,18 @@ async function setupTimelinePublicationObservers(
 			removed: () => triggerUpdate({ invalidateStudio: true }),
 		}),
 		Timeline.find(args.studioId).observe({
-			added: (timeline) => triggerUpdate({ timeline }),
-			changed: (timeline) => triggerUpdate({ timeline }),
+			added: (timeline) => {
+				console.log(`################## I have been triggered from adding`)
+				triggerUpdate({ timeline })
+			},
+			changed: (timeline) => {
+				console.log(`################## I have been triggered from changing`)
+				triggerUpdate({ timeline })
+			},
 			removed: () => triggerUpdate({ timeline: null }),
 		}),
 		setupFastTrackObserver(FastTrackObservers.TIMELINE, [args.studioId], (timeline: TimelineComplete) => {
+			console.log(`################## I have been triggered from fastTrack`)
 			triggerUpdate({
 				timeline,
 			})
@@ -148,7 +155,6 @@ async function manipulateTimelinePublicationData(
 			)
 			state.timelineGenerated = 0
 		}
-
 		if (!state.timeline || !state.timelineGenerated || state.timelineGenerated <= updateProps.timeline.generated) {
 			state.timeline = updateProps.timeline
 			invalidateTimeline = true
