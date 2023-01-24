@@ -251,7 +251,7 @@ export async function takeNextPart(context: JobContext, data: TakeNextPartProps)
 	const timestampStart = Date.now()
 	const now = getCurrentTime()
 
-	const promise1 = runJobWithPlayoutCache(
+	const promise1 = await runJobWithPlayoutCache(
 		context,
 		// 'takeNextPartInner',
 		data,
@@ -295,7 +295,7 @@ export async function takeNextPart(context: JobContext, data: TakeNextPartProps)
 				}
 			}
 
-			const promise = takeNextPartInnerSync(context, cache, now)
+			const promise = await takeNextPartInnerSync(context, cache, now)
 			const timestampInnerFunctionEnd = Date.now()
 			logger.info(
 				`############ Elapsed time for inner function {takeNextPart}: ${
