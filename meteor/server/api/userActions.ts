@@ -42,6 +42,7 @@ import { PeripheralDeviceContentWriteAccess } from '../security/peripheralDevice
 import { StudioContentWriteAccess } from '../security/studio'
 import { BucketSecurity } from '../security/buckets'
 import { ShowStyleBaseId } from '../../lib/collections/ShowStyleBases'
+import { logger } from '../logging'
 
 async function pieceSetInOutPoints(
 	access: VerifiedRundownPlaylistContentAccess,
@@ -92,7 +93,7 @@ class ServerUserActionAPI
 		rundownPlaylistId: RundownPlaylistId,
 		fromPartInstanceId: PartInstanceId | null
 	) {
-		console.log(`######################### Hello from the ServerUserActionAPI.take side`)
+		logger.info(`######################### Hello from the ServerUserActionAPI.take side`)
 		return ServerClientAPI.runUserActionInLogForPlaylistOnWorker(
 			this,
 			userEvent,

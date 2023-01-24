@@ -36,6 +36,7 @@ import {
 	restoreRundownsInPlaylistToDefaultOrder,
 } from '../../rundownPlaylists'
 import { handleGeneratePlaylistSnapshot, handleRestorePlaylistSnapshot } from '../../playout/snapshot'
+import { logger } from '../../logging'
 
 type ExecutableFunction<T extends keyof StudioJobFunc> = (
 	context: JobContext,
@@ -95,7 +96,7 @@ async function updateTimelineDebug(context: JobContext, _data: void): Promise<vo
 			const playlist = activePlaylists[0]
 
 			await runJobWithPlayoutCache(context, { playlistId: playlist._id }, null, async (playoutCache) => {
-				console.log(`*#*#*#*#*#*#*#*#*#* Calling updateTimeline from {updateTimelineDebug}`)
+				logger.info(`*#*#*#*#*#*#*#*#*#* Calling updateTimeline from {updateTimelineDebug}`)
 				await updateTimeline(context, playoutCache)
 			})
 		} else {

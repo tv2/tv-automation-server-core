@@ -100,17 +100,16 @@ async function setupTimelinePublicationObservers(
 		}),
 		Timeline.find(args.studioId).observe({
 			added: (timeline) => {
-				console.log(`################## I have been triggered from adding`)
 				triggerUpdate({ timeline })
 			},
 			changed: (timeline) => {
-				console.log(`################## I have been triggered from changing`)
+				logger.info(`################## I have been triggered from changing`)
 				triggerUpdate({ timeline })
 			},
 			removed: () => triggerUpdate({ timeline: null }),
 		}),
 		setupFastTrackObserver(FastTrackObservers.TIMELINE, [args.studioId], (timeline: TimelineComplete) => {
-			console.log(`################## I have been triggered from fastTrack`)
+			logger.info(`################## I have been triggered from fastTrack`)
 			triggerUpdate({
 				timeline,
 			})

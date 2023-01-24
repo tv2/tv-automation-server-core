@@ -79,7 +79,7 @@ export async function handleRegenerateRundownPlaylist(
 			await resetRundownPlaylist(context, cache)
 
 			if (cache.Playlist.doc.activationId) {
-				console.log(`*#*#*#*#*#*#*#*#*#* Calling updateTimeline from {handleRegenerateRundownPlaylist}`)
+				logger.info(`*#*#*#*#*#*#*#*#*#* Calling updateTimeline from {handleRegenerateRundownPlaylist}`)
 				await updateTimeline(context, cache)
 			}
 		})

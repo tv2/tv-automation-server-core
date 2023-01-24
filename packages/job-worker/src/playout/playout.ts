@@ -197,7 +197,7 @@ export async function resetRundownPlaylist(context: JobContext, data: ResetRundo
 				await libActivateRundownPlaylist(context, cache, data.activate !== 'active') // Activate rundown
 			} else if (cache.Playlist.doc.activationId) {
 				// Only update the timeline if this is the active playlist
-				console.log(`*#*#*#*#*#*#*#*#*#* Calling updateTimeline from {resetRundownPlaylist}`)
+				logger.info(`*#*#*#*#*#*#*#*#*#* Calling updateTimeline from {resetRundownPlaylist}`)
 				await updateTimeline(context, cache)
 			}
 		}
@@ -248,9 +248,10 @@ export async function deactivateRundownPlaylist(
  * Take the currently Next:ed Part (start playing it)
  */
 export async function takeNextPart(context: JobContext, data: TakeNextPartProps): Promise<void> {
+	const timestampStart = Date.now()
 	const now = getCurrentTime()
 
-	return runJobWithPlayoutCache(
+	const promise1 = runJobWithPlayoutCache(
 		context,
 		// 'takeNextPartInner',
 		data,
@@ -266,6 +267,7 @@ export async function takeNextPart(context: JobContext, data: TakeNextPartProps)
 				throw UserError.create(UserErrorMessage.TakeFromIncorrectPart)
 		},
 		async (cache) => {
+			const timestampInnerFunctionStart = Date.now()
 			const playlist = cache.Playlist.doc
 
 			if (playlist.currentPartInstanceId) {
@@ -293,9 +295,19 @@ export async function takeNextPart(context: JobContext, data: TakeNextPartProps)
 				}
 			}
 
-			return takeNextPartInnerSync(context, cache, now)
+			const promise = takeNextPartInnerSync(context, cache, now)
+			const timestampInnerFunctionEnd = Date.now()
+			logger.info(
+				`############ Elapsed time for inner function {takeNextPart}: ${
+					timestampInnerFunctionEnd - timestampInnerFunctionStart
+				} ms`
+			)
+			return promise
 		}
 	)
+	const timestampEnd = Date.now()
+	logger.info(`############ Elapsed time for {takeNextPart}: ${timestampEnd - timestampStart} ms`)
+	return promise1
 }
 
 export async function setNextPart(context: JobContext, data: SetNextPartProps): Promise<void> {
@@ -374,7 +386,7 @@ export async function setNextPartInner(
 	await libSetNextPart(context, cache, nextPart ? { part: nextPart } : null, setManually, nextTimeOffset)
 
 	// update lookahead and the next part when we have an auto-next
-	console.log(`*#*#*#*#*#*#*#*#*#* Calling updateTimeline from {setNextPartInner}`)
+	logger.info(`*#*#*#*#*#*#*#*#*#* Calling updateTimeline from {setNextPartInner}`)
 	await updateTimeline(context, cache)
 }
 export async function moveNextPart(context: JobContext, data: MoveNextPartProps): Promise<PartId | null> {
@@ -522,7 +534,7 @@ export async function setNextSegment(context: JobContext, data: SetNextSegmentPr
 			libSetNextSegment(context, cache, null)
 
 			// Update any future lookaheads
-			console.log(`*#*#*#*#*#*#*#*#*#* Calling updateTimeline from {setNextSegment}`)
+			logger.info(`*#*#*#*#*#*#*#*#*#* Calling updateTimeline from {setNextSegment}`)
 			await updateTimeline(context, cache)
 		}
 	)
@@ -567,7 +579,7 @@ export async function activateHold(context: JobContext, data: ActivateHoldProps)
 			if (hasDynamicallyInserted) throw UserError.create(UserErrorMessage.HoldAfterAdlib)
 
 			cache.Playlist.update({ $set: { holdState: RundownHoldState.PENDING } })
-			console.log(`*#*#*#*#*#*#*#*#*#* Calling updateTimeline from {activateHold}`)
+			logger.info(`*#*#*#*#*#*#*#*#*#* Calling updateTimeline from {activateHold}`)
 			await updateTimeline(context, cache)
 		}
 	)
@@ -587,7 +599,7 @@ export async function deactivateHold(context: JobContext, data: DeactivateHoldPr
 		},
 		async (cache) => {
 			cache.Playlist.update({ $set: { holdState: RundownHoldState.NONE } })
-			console.log(`*#*#*#*#*#*#*#*#*#* Calling updateTimeline from {deactivateHold}`)
+			logger.info(`*#*#*#*#*#*#*#*#*#* Calling updateTimeline from {deactivateHold}`)
 			await updateTimeline(context, cache)
 		}
 	)
@@ -689,7 +701,7 @@ export async function disableNextPiece(context: JobContext, data: DisableNextPie
 						disabled: !data.undo,
 					},
 				})
-				console.log(`*#*#*#*#*#*#*#*#*#* Calling updateTimeline from {disableNextPiece}`)
+				logger.info(`*#*#*#*#*#*#*#*#*#* Calling updateTimeline from {disableNextPiece}`)
 				await updateTimeline(context, cache)
 			} else {
 				cache.assertNoChanges()
@@ -773,6 +785,7 @@ async function _onPartPlaybackStarted(
 		startedPlayback: Time
 	}
 ) {
+	const timestampStart = Date.now()
 	const playingPartInstance = cache.PartInstances.findOne(data.partInstanceId)
 	if (!playingPartInstance)
 		throw new Error(`PartInstance "${data.partInstanceId}" in RundownPlayst "${cache.PlaylistId}" not found!`)
@@ -896,8 +909,10 @@ async function _onPartPlaybackStarted(
 		}
 
 		// complete the take
-		console.log(`### Hello from onPartPlaybackStarted`)
+		logger.info(`### Hello from onPartPlaybackStarted`)
 		await afterTake(context, cache, playingPartInstance)
+		const timestampEnd = Date.now()
+		logger.info(`######### Elapsed time for {onPartPlaybackStarted}: ${timestampEnd - timestampStart} ms`)
 	}
 }
 
@@ -977,15 +992,19 @@ export async function onPlayoutPlaybackChanged(
  * ( typically when using the "now"-feature )
  */
 export async function handleTimelineTriggerTime(context: JobContext, data: OnTimelineTriggerTimeProps): Promise<void> {
-	console.log(`########################### Hello from handleTimelineTriggerTime`)
+	logger.info(`########################### Hello from handleTimelineTriggerTime`)
+	const timestampStart = Date.now()
 	if (data.results.length > 0) {
 		await runJobWithStudioCache(context, async (studioCache) => {
+			const timeStampCacheFunctionStart = Date.now()
+
 			const activePlaylists = studioCache.getActiveRundownPlaylists()
 
 			if (activePlaylists.length === 1) {
 				const activePlaylist = activePlaylists[0]
 				const playlistId = activePlaylist._id
 				await runJobWithPlaylistLock(context, { playlistId }, async () => {
+					const timeStampCacheWithLockStart = Date.now()
 					const rundownIDs = (
 						await context.directCollections.Rundowns.findFetch({ playlistId }, { projection: { _id: 1 } })
 					).map((r) => r._id)
@@ -1009,12 +1028,26 @@ export async function handleTimelineTriggerTime(context: JobContext, data: OnTim
 					timelineTriggerTimeInner(context, studioCache, data.results, pieceInstanceCache, activePlaylist)
 
 					await pieceInstanceCache.updateDatabaseWithData()
+					const timestampCacheWithLockEnd = Date.now()
+					logger.info(
+						`############# Time elapsed for cache with lock {handleTimelineTriggerTime}: ${
+							timestampCacheWithLockEnd - timeStampCacheWithLockStart
+						} ms`
+					)
 				})
 			} else {
 				timelineTriggerTimeInner(context, studioCache, data.results, undefined, undefined)
 			}
+			const timeStampCacheFunctionEnd = Date.now()
+			logger.info(
+				`############# Time elapsed for cache function {handleTimelineTriggerTime}: ${
+					timeStampCacheFunctionEnd - timeStampCacheFunctionStart
+				} ms`
+			)
 		})
 	}
+	const timestampEnd = Date.now()
+	logger.info(`############# Time elapsed for {handleTimelineTriggerTime}: ${timestampEnd - timestampStart} ms`)
 }
 
 function timelineTriggerTimeInner(
@@ -1217,7 +1250,7 @@ export async function executeActionInner(
 			actionContext.currentPartState !== ActionPartChange.NONE ||
 			actionContext.nextPartState !== ActionPartChange.NONE
 		) {
-			console.log(`*#*#*#*#*#*#*#*#*#* Calling updateTimeline from {executeActionInner}`)
+			logger.info(`*#*#*#*#*#*#*#*#*#* Calling updateTimeline from {executeActionInner}`)
 			await updateTimeline(context, cache)
 		}
 	}
@@ -1272,7 +1305,7 @@ export async function stopPiecesOnSourceLayers(
 
 			if (changedIds.length) {
 				await syncPlayheadInfinitesForNextPartInstance(context, cache)
-				console.log(`*#*#*#*#*#*#*#*#*#* Calling updateTimeline from {stopPiecesOnSourceLayers}`)
+				logger.info(`*#*#*#*#*#*#*#*#*#* Calling updateTimeline from {stopPiecesOnSourceLayers}`)
 				await updateTimeline(context, cache)
 			}
 		}
@@ -1319,7 +1352,7 @@ export async function handleUpdateTimelineAfterIngest(
 				} else {
 					// It is safe enough (except adlibs) to update the timeline directly
 					// If the playlist is active, then updateTimeline as lookahead could have been affected
-					console.log(`*#*#*#*#*#*#*#*#*#* Calling updateTimeline from {handleUpdateTimelineAfterIngest}`)
+					logger.info(`*#*#*#*#*#*#*#*#*#* Calling updateTimeline from {handleUpdateTimelineAfterIngest}`)
 					await updateTimeline(context, cache)
 				}
 			})

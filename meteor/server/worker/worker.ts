@@ -175,7 +175,7 @@ function queueJobAndWrapResult<TRes>(queueName: string, job: JobSpec, now: Time)
 }
 
 async function fastTrackTimeline(newTimeline: TimelineComplete): Promise<void> {
-	console.log(`############## Hello from fastTrackTimeline #############`)
+	logger.info(`############## Hello from fastTrackTimeline #############`)
 	const studio = await fetchStudioLight(newTimeline._id)
 	if (!studio) throw new Error(`Studio "${newTimeline._id}" was not found for timeline fast-track`)
 
