@@ -89,17 +89,11 @@ export class InitDeviceJob extends Job<CreateDeviceJobsResult, undefined, Create
 			// If the internalDelay is too large, it should be logged as an error,
 			// since something took too long internally.
 
-			if (info.internalDelay > 100) {
-				this.logger.error('slowSentCommand', {
-					deviceName: deviceContainer.deviceName,
-					...info,
-				})
-			} else {
-				this.logger.warn('slowSentCommand', {
-					deviceName: deviceContainer.deviceName,
-					...info,
-				})
-			}
+			const logAction = info.internalDelay > 100 ? this.logger.error : this.logger.warn
+			logAction('slowSentCommand', {
+				deviceName: deviceContainer.deviceName,
+				...info,
+			})
 		}
 		const onSlowFulfilledCommand = (info: SlowFulfilledCommandInfo) => {
 			// Note: we don't emit slow fulfilled commands as error, since
