@@ -93,8 +93,9 @@ class ServerUserActionAPI
 		rundownPlaylistId: RundownPlaylistId,
 		fromPartInstanceId: PartInstanceId | null
 	) {
+		const timerStart = Date.now()
 		logger.info(`######################### Hello from the ServerUserActionAPI.take side`)
-		return ServerClientAPI.runUserActionInLogForPlaylistOnWorker(
+		const promise = await ServerClientAPI.runUserActionInLogForPlaylistOnWorker(
 			this,
 			userEvent,
 			eventTime,
@@ -109,6 +110,10 @@ class ServerUserActionAPI
 				fromPartInstanceId,
 			}
 		)
+		const timerEnd = Date.now()
+		const timeElapsed = timerEnd - timerStart
+		logger.info(`###### Time elapsed for {ServerUserActionAPI.take}: ${timeElapsed}`)
+		return promise
 	}
 	async setNext(
 		userEvent: string,
