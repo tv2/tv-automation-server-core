@@ -3095,7 +3095,7 @@
   version "46.1.0"
   dependencies:
     "@sofie-automation/shared-lib" "link:shared-lib"
-    timeline-state-resolver-types "npm:@tv2media/timeline-state-resolver-types@2.3.1"
+    timeline-state-resolver-types "npm:@tv2media/timeline-state-resolver-types@3.1.0-gui-test-1"
     tslib "^2.4.0"
     type-fest "^2.19.0"
 
@@ -3393,10 +3393,10 @@
   resolved "https://registry.yarnpkg.com/@trysound/sax/-/sax-0.2.0.tgz#cccaab758af56761eb7bf37af6f03f326dd798ad"
   integrity sha512-L7z9BgrNEcYyUYtF+HaEfiS5ebkh9jXqbszz7pC0hRBPaatV0XjSD3+eHrpqFemQfgwiFF0QPIarnIihIDn7OA==
 
-"@tv2media/v-connection@^7.0.2":
-  version "7.0.2"
-  resolved "https://registry.yarnpkg.com/@tv2media/v-connection/-/v-connection-7.0.2.tgz#ddda77d687a961780b5d468f27aba61db4649566"
-  integrity sha512-KpqqrVuNrlKYe8wTw6QrmdvM95iQ8fRyKvIIfsJC741xfqi8PJtMR1ofmgxZ7CJDYQUVxxns01Luzv6bKYHI4Q==
+"@tv2media/v-connection@^7.2.1":
+  version "7.2.1"
+  resolved "https://registry.yarnpkg.com/@tv2media/v-connection/-/v-connection-7.2.1.tgz#cfcbd5f5199eb4e15ffcff77d4e5f762599c261a"
+  integrity sha512-BenalEiaJCWPAIALBsgH1ZY/XR9YIYrf++xSkSMzDkXgTSdSEdVfa3FbkHo1BMsdJ/6VFUGukSYzW3bqb7iNwg==
   dependencies:
     request "^2.88.2"
     request-promise-native "^1.0.9"
@@ -13918,6 +13918,16 @@ text-table@^0.2.0:
   resolved "https://registry.yarnpkg.com/text-table/-/text-table-0.2.0.tgz#7f5ee823ae805207c00af2df4a84ec3fcfa570b4"
   integrity sha512-N+8UisAXDGk8PFXP4HAzVR9nbfmVJ3zYLAWiTIoqC5v5isinhr+r5uaO8+7r3BMfuNIufIsA7RdpVgacC2cSpw==
 
+threadedclass@1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/threadedclass/-/threadedclass-1.0.2.tgz#c5574cac282198433b9f3685202c5081df23206b"
+  integrity sha512-xkKqzipcLV25TqI3Z3eykpl5TiAGwg+h0DUwvYEh9GXRxvNcKZJIfl2l5/Bn6UxOuHAKXGT/HBN9PWDRf2P34g==
+  dependencies:
+    callsites "^3.1.0"
+    eventemitter3 "^4.0.4"
+    is-running "^2.1.0"
+    tslib "^1.13.0"
+
 threadedclass@1.0.3-nightly--20220808-110410-b00ecb0.0:
   version "1.0.3-nightly--20220808-110410-b00ecb0.0"
   resolved "https://registry.yarnpkg.com/threadedclass/-/threadedclass-1.0.3-nightly--20220808-110410-b00ecb0.0.tgz#36d5adc0d0fdca70705933c847d7ae0c772a6d85"
@@ -13932,16 +13942,6 @@ threadedclass@^0.8.0:
   version "0.8.3"
   resolved "https://registry.yarnpkg.com/threadedclass/-/threadedclass-0.8.3.tgz#ee95a7d2c4fe6ca79e7265bba9baa7c6fff83309"
   integrity sha512-cI6tVYRIIVYxFG7Nykt8NMVflrrdMvyvzAQfgAZdARdU/PaFSGd5Y7wChvJ3DXLsLiFb3datLhfn26K5DTKf+A==
-  dependencies:
-    callsites "^3.1.0"
-    eventemitter3 "^4.0.4"
-    is-running "^2.1.0"
-    tslib "^1.13.0"
-
-threadedclass@^1.1.1:
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/threadedclass/-/threadedclass-1.1.1.tgz#6813b3c401b3d55264f6225c9d2c15516d7efa97"
-  integrity sha512-HffBjerRZGOlhUBt9Ue8nYCuV6khK9er86w4svTvf1Xn6ibAyJok290o2MJ/qJ1vy0A4UphEo3DSsxFN5g+TBQ==
   dependencies:
     callsites "^3.1.0"
     eventemitter3 "^4.0.4"
@@ -13983,19 +13983,19 @@ timecode@0.0.4:
   resolved "https://registry.yarnpkg.com/timecode/-/timecode-0.0.4.tgz#cdea9d2352009700e50da657cb7fb7c1720f5704"
   integrity sha512-xFVZlWnqls5eVphtUJo0UuXeJa0grBmxESSn5QPQB7CMsaVgTnLdP9PTZqb4KyFmLdrE+PUu3eEt42zHsMxCtw==
 
-"timeline-state-resolver-types@npm:@tv2media/timeline-state-resolver-types@2.3.1":
-  version "2.3.1"
-  resolved "https://registry.yarnpkg.com/@tv2media/timeline-state-resolver-types/-/timeline-state-resolver-types-2.3.1.tgz#8c29069c84ea086d9eb9e48e5f2f244cc5f1e823"
-  integrity sha512-T78ObNn8pd4we4fCdX4VcUDeSRV+X0L//tdmLFEaHqrAMY3TBAS36oTsLHvU+az5m1wqns7EBXFbu9FystVQFQ==
+"timeline-state-resolver-types@npm:@tv2media/timeline-state-resolver-types@3.1.0-gui-test-1":
+  version "3.1.0-gui-test-1"
+  resolved "https://registry.yarnpkg.com/@tv2media/timeline-state-resolver-types/-/timeline-state-resolver-types-3.1.0-gui-test-1.tgz#779bb161089c24e1ff3584ca3093f0673f727352"
+  integrity sha512-2XILLOHn6J3MFWOyK9sknHL3LJzC0RdNUdKrnd6anFafdNfKmx6vVkiCZ348CFQTrpxusZzhbrpZz7LDuBN82A==
   dependencies:
     tslib "^2.3.1"
 
-"timeline-state-resolver@npm:@tv2media/timeline-state-resolver@2.3.1":
-  version "2.3.1"
-  resolved "https://registry.yarnpkg.com/@tv2media/timeline-state-resolver/-/timeline-state-resolver-2.3.1.tgz#9a64f21d1d546e02bb211e78f45a864fbe8fad70"
-  integrity sha512-8rXj+B7mR3T6YsD4q+alWs/OhK/tLaRMv+r6/dZ+mFKsqsOnrtsnzApilmnYP9LZucstsZ5pCdPCO4vsutdR2w==
+"timeline-state-resolver@npm:@tv2media/timeline-state-resolver@3.1.0-gui-test-1":
+  version "3.1.0-gui-test-1"
+  resolved "https://registry.yarnpkg.com/@tv2media/timeline-state-resolver/-/timeline-state-resolver-3.1.0-gui-test-1.tgz#2e5c91d44120f252628e5360719319ada58ef6f9"
+  integrity sha512-Y+sqhuZj2sOLaLN6zCT5akqzzCG89nvq6qmx6MCVOGDtndbNeXkDeupAe0GyzE5BpgFAoEwOOvPe0Bbs4nZ0OQ==
   dependencies:
-    "@tv2media/v-connection" "^7.0.2"
+    "@tv2media/v-connection" "^7.2.1"
     atem-connection "2.4.0"
     atem-state "^0.12.2"
     casparcg-connection "^5.1.0"
@@ -14014,8 +14014,8 @@ timecode@0.0.4:
     request "^2.88.0"
     sprintf-js "^1.1.2"
     superfly-timeline "^8.2.8"
-    threadedclass "^1.1.1"
-    timeline-state-resolver-types "npm:@tv2media/timeline-state-resolver-types@2.3.1"
+    threadedclass "1.0.2"
+    timeline-state-resolver-types "npm:@tv2media/timeline-state-resolver-types@3.1.0-gui-test-1"
     tslib "^2.3.1"
     tv-automation-quantel-gateway-client "^2.0.5"
     underscore "^1.13.4"
