@@ -104,21 +104,29 @@ function setMeteorMethods(orgMethods: MethodsInner, secret?: boolean): void {
 					i: i,
 				}
 				try {
+					logger.info(`################## Running MeteorMethod: ${methodName}`)
 					const result = method.apply(this, args)
 
 					if (isPromise(result)) {
 						// The method result is a promise
 						return Promise.resolve(result)
 							.finally(() => {
+								const runningMethod = runningMethods[methodId]
+								const executionTime = Date.now() - runningMethod.startTime
+								logger.info(`################## MeteorMethod ${methodName} took ${executionTime} ms to execute`)
 								delete runningMethods[methodId]
 							})
 							.catch(async (e) => {
 								if (!_suppressExtraErrorLogging) {
 									logger.error(e.message || e.reason || (e.toString ? e.toString() : null) || e)
 								}
+								logger.info(`################## MeteorMethod ${methodName} failed to execute`)
 								return Promise.reject(e)
 							})
 					} else {
+						const runningMethod = runningMethods[methodId]
+						const executionTime = Date.now() - runningMethod.startTime
+						logger.info(`################## Non promised based MeteorMethod ${methodName} took ${executionTime} ms to execute`)
 						delete runningMethods[methodId]
 						return result
 					}
