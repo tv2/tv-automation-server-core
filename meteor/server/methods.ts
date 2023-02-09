@@ -105,7 +105,9 @@ function setMeteorMethods(orgMethods: MethodsInner, secret?: boolean): void {
 					i: i,
 				}
 				try {
-					logger.info(`################## Running MeteorMethod: ${methodName} args: ${JSON.stringify(args[0] ?? {})}`)
+					logger.info(
+						`################## Running MeteorMethod: ${methodName} args: ${JSON.stringify(args[0] ?? {})}`
+					)
 					const result = method.apply(this, args)
 
 					if (isPromise(result)) {
@@ -114,7 +116,9 @@ function setMeteorMethods(orgMethods: MethodsInner, secret?: boolean): void {
 							.finally(() => {
 								const runningMethod = runningMethods[methodId]
 								const executionTime = Date.now() - runningMethod.startTime
-								logger.info(`################## MeteorMethod ${methodName} took ${executionTime} ms to execute`)
+								logger.info(
+									`################## MeteorMethod ${methodName} took ${executionTime} ms to execute`
+								)
 								delete runningMethods[methodId]
 							})
 							.catch(async (e) => {
@@ -127,7 +131,9 @@ function setMeteorMethods(orgMethods: MethodsInner, secret?: boolean): void {
 					} else {
 						const runningMethod = runningMethods[methodId]
 						const executionTime = Date.now() - runningMethod.startTime
-						logger.info(`################## Non promised based MeteorMethod ${methodName} took ${executionTime} ms to execute`)
+						logger.info(
+							`################## Non promised based MeteorMethod ${methodName} took ${executionTime} ms to execute`
+						)
 						delete runningMethods[methodId]
 						return result
 					}
