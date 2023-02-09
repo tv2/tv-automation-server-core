@@ -95,6 +95,7 @@ function setMeteorMethods(orgMethods: MethodsInner, secret?: boolean): void {
 		const method = m.wrapped
 		if (method) {
 			methods[methodName] = function (...args: any[]) {
+				this.unblock()
 				const i = runningMethodsId++
 				const methodId = 'm' + i
 
@@ -104,7 +105,7 @@ function setMeteorMethods(orgMethods: MethodsInner, secret?: boolean): void {
 					i: i,
 				}
 				try {
-					logger.info(`################## Running MeteorMethod: ${methodName}`)
+					logger.info(`################## Running MeteorMethod: ${methodName} args: ${JSON.stringify(args[0] ?? {})}`)
 					const result = method.apply(this, args)
 
 					if (isPromise(result)) {
