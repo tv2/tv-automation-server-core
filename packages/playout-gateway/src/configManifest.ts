@@ -665,7 +665,7 @@ const MAPPING_MANIFEST: ImplementedMappingsManifest = {
 		{
 			id: 'mappingType',
 			type: ConfigManifestEntryType.ENUM,
-			values: MappingTriCasterType,
+			values: Object.values(MappingTriCasterType),
 			name: 'Mapping Type',
 			includeInSummary: true,
 		},
