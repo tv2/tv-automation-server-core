@@ -49,4 +49,4 @@
  */
 
 // Note: Only set this to release versions, (ie X.Y.Z), not pre-releases (ie X.Y.Z-0-pre-release)
-export const CURRENT_SYSTEM_VERSION = '46.1.0'
+export const CURRENT_SYSTEM_VERSION = '46.2.0'
