@@ -39,6 +39,7 @@
 
 .settings-dialog {
 	table {
+	  border-collapse: separate;
 		.switch-tight {
 			padding: 0px 8px;
 			margin: -6px 0 -1px;
@@ -119,6 +120,20 @@
 
 		.expando-details > td {
 			max-width: 0;
+		}
+	}
+
+	.settings-studio-table-drag {
+		cursor: grab;
+		width: 2.5%;
+		border-bottom: 1px solid #ddd;
+
+		svg {
+			margin-top: 0.6em;
+			margin-right: 0.7em;
+			margin-left: 0.7em;
+			height: 1.5em;
+			width: 1.5em;
 		}
 	}
 

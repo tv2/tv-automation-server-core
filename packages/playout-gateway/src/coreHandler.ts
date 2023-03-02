@@ -525,9 +525,7 @@ export class CoreHandler {
 export class CoreTSRDeviceHandler {
 	core!: CoreConnection
 	public _observers: Array<any> = []
-	public _devicePr: Promise<DeviceContainer<DeviceOptionsAny>>
-	public _deviceId: string
-	public _device!: DeviceContainer<DeviceOptionsAny>
+	public _device: DeviceContainer<DeviceOptionsAny>
 	private _coreParentHandler: CoreHandler
 	private _tsrHandler: TSRHandler
 	private _subscriptions: Array<string> = []
@@ -537,19 +535,12 @@ export class CoreTSRDeviceHandler {
 		messages: ['Starting up...'],
 	}
 
-	constructor(
-		parent: CoreHandler,
-		device: Promise<DeviceContainer<DeviceOptionsAny>>,
-		deviceId: string,
-		tsrHandler: TSRHandler
-	) {
-		this._coreParentHandler = parent
-		this._devicePr = device
-		this._deviceId = deviceId
+	constructor(device: DeviceContainer<DeviceOptionsAny>, tsrHandler: TSRHandler) {
+		this._coreParentHandler = tsrHandler.coreHandler
+		this._device = device
 		this._tsrHandler = tsrHandler
 	}
 	async init(): Promise<void> {
-		this._device = await this._devicePr
 		const deviceId = this._device.deviceId
 		const deviceName = `${deviceId} (${this._device.deviceName})`
 
@@ -653,16 +644,27 @@ export class CoreTSRDeviceHandler {
 			)
 	}
 
-	async dispose(): Promise<void> {
+	async disposeExpectedly(): Promise<void> {
+		return this.dispose(StatusCode.UNKNOWN)
+	}
+
+	async disposeUnexpectedly(): Promise<void> {
+		return this.dispose(StatusCode.BAD)
+	}
+
+	private async dispose(statusCode: StatusCode): Promise<void> {
 		this._observers.forEach((obs) => {
 			obs.stop()
 		})
 
-		await this._tsrHandler.tsr.removeDevice(this._deviceId)
-		await this.core.setStatus({
-			statusCode: StatusCode.BAD,
-			messages: ['Uninitialized'],
-		})
+		await this._tsrHandler.tsr.removeDevice(this._device.deviceId)
+		if (this.core) {
+			await this.core.setStatus({
+				statusCode,
+				messages: ['Uninitialized'],
+			})
+			await this.core.destroy()
+		}
 	}
 	killProcess(actually: number): boolean {
 		return this._coreParentHandler.killProcess(actually)

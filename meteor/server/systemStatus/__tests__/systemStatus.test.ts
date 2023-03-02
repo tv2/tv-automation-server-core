@@ -124,21 +124,16 @@ describe('systemStatus', () => {
 			coreVersion.major = 99
 
 			// Change integration lib versions, simulate a major version mismatch
-			PeripheralDevices.update(env.ingestDevice._id, {
-				$set: {
+			// Expected status is BAD, because the device expects a different major version
+			await updateAndAssertSystemStatus(
+				{
 					versions: {
 						'@sofie-automation/server-core-integration': coreVersion.format(),
 					},
 				},
-			})
-			const result1: StatusResponse = await MeteorCall.systemStatus.getSystemStatus()
-
-			// Expected status is BAD, because the device expects a different major version
-			const expectedStatus1 = StatusCode.BAD
-			expect(result1).toMatchObject({
-				status: status2ExternalStatus(expectedStatus1),
-				_status: expectedStatus1,
-			})
+				env,
+				StatusCode.BAD
+			)
 		}
 
 		{
@@ -147,21 +142,16 @@ describe('systemStatus', () => {
 			coreVersion.minor = 999
 
 			// Change integration lib versions, simulate a minor version mismatch
-			PeripheralDevices.update(env.ingestDevice._id, {
-				$set: {
+			// Expected status is BAD, because the device expects a different minor version
+			await updateAndAssertSystemStatus(
+				{
 					versions: {
 						'@sofie-automation/server-core-integration': coreVersion.format(),
 					},
 				},
-			})
-			const result2: StatusResponse = await MeteorCall.systemStatus.getSystemStatus()
-
-			// Expected status is BAD, because the device expects a different minor version
-			const expectedStatus2 = StatusCode.BAD
-			expect(result2).toMatchObject({
-				status: status2ExternalStatus(expectedStatus2),
-				_status: expectedStatus2,
-			})
+				env,
+				StatusCode.BAD
+			)
 		}
 
 		{
@@ -170,53 +160,54 @@ describe('systemStatus', () => {
 			coreVersion.patch = 999
 
 			// Change integration lib versions, simulate a patch version mismatch
-			PeripheralDevices.update(env.ingestDevice._id, {
-				$set: {
+			// Expected status is GOOD, because this should have no effect
+			await updateAndAssertSystemStatus(
+				{
 					versions: {
 						'@sofie-automation/server-core-integration': coreVersion.format(),
 					},
 				},
-			})
-			const result3: StatusResponse = await MeteorCall.systemStatus.getSystemStatus()
-
-			// Expected status is GOOD, because this should have no effect
-			const expectedStatus3 = StatusCode.GOOD
-			expect(result3).toMatchObject({
-				status: status2ExternalStatus(expectedStatus3),
-				_status: expectedStatus3,
-			})
+				env,
+				StatusCode.GOOD
+			)
 		}
 
 		// Try some silly version
-		PeripheralDevices.update(env.ingestDevice._id, {
-			$set: {
+		// Expected status is BAD, because the device expects a different version
+		await updateAndAssertSystemStatus(
+			{
 				versions: {
 					test: '0.1.2',
 				},
 			},
-		})
-		const result4: StatusResponse = await MeteorCall.systemStatus.getSystemStatus()
-
-		// Expected status is BAD, because the device expects a different version
-		const expectedStatus4 = StatusCode.BAD
-		expect(result4).toMatchObject({
-			status: status2ExternalStatus(expectedStatus4),
-			_status: expectedStatus4,
-		})
+			env,
+			StatusCode.BAD
+		)
 
 		// disableVersion check
-		PeripheralDevices.update(env.ingestDevice._id, {
-			$set: {
+		// Expected status is GOOD, as the check has been skipped
+		await updateAndAssertSystemStatus(
+			{
 				disableVersionChecks: true,
 			},
-		})
-		const result5: StatusResponse = await MeteorCall.systemStatus.getSystemStatus()
-
-		// Expected status is GOOD, as the check has been skipped
-		const expectedStatus5 = StatusCode.GOOD
-		expect(result5).toMatchObject({
-			status: status2ExternalStatus(expectedStatus5),
-			_status: expectedStatus5,
-		})
+			env,
+			StatusCode.GOOD
+		)
 	})
 })
+
+async function updateAndAssertSystemStatus(
+	setObj: object,
+	env: DefaultEnvironment,
+	expectedStatusCode: StatusCode
+): Promise<void> {
+	PeripheralDevices.update(env.ingestDevice._id, {
+		$set: setObj,
+	})
+	const result: StatusResponse = await MeteorCall.systemStatus.getSystemStatus()
+
+	expect(result).toMatchObject({
+		status: status2ExternalStatus(expectedStatusCode),
+		_status: expectedStatusCode,
+	})
+}
