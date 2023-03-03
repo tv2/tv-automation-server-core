@@ -3,6 +3,25 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [46.2.0](https://github.com/tv2/tv-automation-server-core/compare/v46.1.4...v46.2.0) (2023-03-01)
+
+
+### Bug Fixes
+
+* SOF-1135 make updating devices more reliable ([0a21bca](https://github.com/tv2/tv-automation-server-core/commit/0a21bca2bb6d404f92c4659ea9e8c7932c0999b3))
+* SOF-1135 remove uninitialized devices faster when they get disabled ([ced88ad](https://github.com/tv2/tv-automation-server-core/commit/ced88adc68f7575ac0ce78a6c83ef65c45c416b1))
+* SOF-1272 make the TriCaster mapping type dropdown show values ([4731a5f](https://github.com/tv2/tv-automation-server-core/commit/4731a5f23c18e7df6d82b638b0a90c5670b0de50))
+
+
+### Features
+
+* SOF-1065 enable human-readable show names in the MSE device ([02f3dce](https://github.com/tv2/tv-automation-server-core/commit/02f3dcedabb9ab4b16ff81105ead95fd1c041779))
+* SOF-1272 expose TriCaster subdevice and mappings ([06bd03a](https://github.com/tv2/tv-automation-server-core/commit/06bd03aa165bad4e6f4152314789ce97b8ebe12a))
+
+
+
+
+
 # [1.44.0-in-testing.1](https://github.com/nrkno/tv-automation-server-core/compare/v1.44.0-in-testing.0...v1.44.0-in-testing.1) (2022-07-05)
 
 **Note:** Version bump only for package playout-gateway
