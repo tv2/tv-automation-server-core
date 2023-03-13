@@ -106,7 +106,6 @@ function filterGfxDefaults<DBInterface extends { _id: ProtectedString<any> }>(
 		}
 
 		row[item.compareId].forEach((compareColumn) => {
-			console.log(row[item.fromColumnId])
 			if (compareColumn === defaultRow[0][item.toColumnId] && Array.isArray(row[item.fromColumnId])) {
 				row[item.fromColumnId].forEach((column) => {
 					if (!result.includes(column)) {
