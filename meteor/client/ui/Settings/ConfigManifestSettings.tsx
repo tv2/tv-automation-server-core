@@ -20,6 +20,7 @@ import {
 	ConfigManifestEntryLayerMappings,
 	SourceLayerType,
 	ConfigManifestEntrySelectFromColumn,
+	ConfigManifestEntrySelectPickedFromColumn,
 	ConfigManifestEntryBoolean,
 	ConfigManifestEntryEnum,
 	ConfigManifestEntryFloat,
@@ -77,6 +78,48 @@ function filterLayerMappings(
 		}
 	}
 
+	return result
+}
+
+function filterGfxDefaults<DBInterface extends { _id: ProtectedString<any> }>(
+	item: ConfigManifestEntrySelectPickedFromColumn<boolean>,
+	configPath: string,
+	object: DBInterface,
+	alternateObject?: any
+): string[] {
+	const fromAttribute = `${configPath}.${item.fromTableId}`
+	const toAttribute = `${configPath}.${item.toTableId}`
+	const fromTable = objectPathGet(object, fromAttribute) ?? objectPathGet(alternateObject, fromAttribute)
+	const toTable = objectPathGet(object, toAttribute) ?? objectPathGet(alternateObject, toAttribute)
+	const result: string[] = []
+	const defaultRow = toTable.filter((row) => {
+		return typeof row === 'object' && row[item.toColumnId] !== undefined
+	})
+
+	if (!Array.isArray(fromTable) && !Array.isArray(toTable)) {
+		return result
+	}
+
+	fromTable.forEach((row) => {
+		if (!(typeof row === 'object' && row[item.fromColumnId] !== undefined)) {
+			return
+		}
+
+		row[item.compareId].forEach((compareColumn) => {
+			console.log(row[item.fromColumnId])
+			if (compareColumn === defaultRow[0][item.toColumnId] && Array.isArray(row[item.fromColumnId])) {
+				row[item.fromColumnId].forEach((column) => {
+					if (!result.includes(column)) {
+						result.push(column)
+					}
+				})
+			} else if (compareColumn === defaultRow[0][item.toColumnId] && !Array.isArray(row[item.fromColumnId])) {
+				if (!result.includes(row[item.fromColumnId])) {
+					result.push(row[item.fromColumnId])
+				}
+			}
+		})
+	})
 	return result
 }
 
@@ -244,6 +287,18 @@ function getEditAttribute<DBInterface extends { _id: ProtectedString<any> }>(
 					className="input text-input dropdown input-l"
 				/>
 			)
+		case ConfigManifestEntryType.SELECT_PICKED_FROM_COLUMN:
+			return (
+				<EditAttribute
+					modifiedClassName="bghl"
+					attribute={attribute}
+					obj={object}
+					type={item.multiple ? 'multiselect' : 'dropdown'}
+					options={filterGfxDefaults(item, configPath, object, alternateObject)}
+					collection={collection}
+					className="input text-input dropdown input-l"
+				/>
+			)
 		default:
 			return null
 	}
@@ -258,6 +313,7 @@ type ResolvedBasicConfigManifestEntry =
 	| ConfigManifestEntryEnum
 	| ConfigManifestEntrySelectFromOptions<boolean>
 	| (ConfigManifestEntrySelectFromColumn<boolean> & { options: string[] })
+	| ConfigManifestEntrySelectPickedFromColumn<boolean>
 	| (ConfigManifestEntrySourceLayers<boolean> & { options: Array<{ name: string; value: string }> })
 	| (ConfigManifestEntryLayerMappings<boolean> & { options: Array<{ name: string; value: string }> })
 	| ConfigManifestEntryJson
@@ -788,6 +844,7 @@ export class ConfigManifestSettings<
 				)
 			case ConfigManifestEntryType.SELECT:
 			case ConfigManifestEntryType.SELECT_FROM_COLUMN:
+			case ConfigManifestEntryType.SELECT_PICKED_FROM_COLUMN:
 			case ConfigManifestEntryType.LAYER_MAPPINGS:
 			case ConfigManifestEntryType.SOURCE_LAYERS:
 				return (
