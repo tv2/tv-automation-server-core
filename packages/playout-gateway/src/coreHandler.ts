@@ -286,7 +286,7 @@ export class CoreHandler {
 	executeFunction(cmd: PeripheralDeviceCommand, fcnObject: CoreHandler | CoreTSRDeviceHandler): void {
 		if (cmd) {
 			if (this._executedFunctions[cmd._id]) return // prevent it from running multiple times
-			this.logger.debug(`Executing function "${cmd.functionName}", args: ${JSON.stringify(cmd.args)}`)
+			this.logger.debug(`Executing function '${cmd.functionName}', args: ${JSON.stringify(cmd.args)}`)
 			this._executedFunctions[cmd._id] = true
 			const cb = (error: any, res?: any) => {
 				if (error) {
@@ -300,7 +300,7 @@ export class CoreHandler {
 			// eslint-disable-next-line @typescript-eslint/ban-types
 			const fcn: Function = fcnObject[cmd.functionName]
 			try {
-				if (!fcn) throw Error(`Function "${cmd.functionName}" not found on device "${cmd.deviceId}"!`)
+				if (!fcn) throw Error(`Function '${cmd.functionName}' not found on device '${cmd.deviceId}'!`)
 
 				Promise.resolve(fcn.apply(fcnObject, cmd.args))
 					.then((result) => cb(null, result))
@@ -436,7 +436,7 @@ export class CoreHandler {
 		if (!this._tsrHandler) throw new Error('TSRHandler is not initialized')
 
 		const device = this._tsrHandler.tsr.getDevice(deviceId)?.device as ThreadedClass<CasparCGDevice>
-		if (!device) throw new Error(`TSR Device "${deviceId}" not found!`)
+		if (!device) throw new Error(`TSR Device '${deviceId}' not found!`)
 
 		return device.restartCasparCG()
 	}
@@ -444,7 +444,7 @@ export class CoreHandler {
 		if (!this._tsrHandler) throw new Error('TSRHandler is not initialized')
 
 		const device = this._tsrHandler.tsr.getDevice(deviceId)?.device as ThreadedClass<QuantelDevice>
-		if (!device) throw new Error(`TSR Device "${deviceId}" not found!`)
+		if (!device) throw new Error(`TSR Device '${deviceId}' not found!`)
 
 		return device.restartGateway()
 	}
@@ -452,7 +452,7 @@ export class CoreHandler {
 		if (!this._tsrHandler) throw new Error('TSRHandler is not initialized')
 
 		const device = this._tsrHandler.tsr.getDevice(deviceId)?.device as ThreadedClass<HyperdeckDevice>
-		if (!device) throw new Error(`TSR Device "${deviceId}" not found!`)
+		if (!device) throw new Error(`TSR Device '${deviceId}' not found!`)
 
 		await device.formatDisks()
 	}

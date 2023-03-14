@@ -449,7 +449,7 @@ export class TSRHandler {
 		// Compare mappingsHash to ensure that the timeline we've received is in sync with the mappings:
 		if (timeline.mappingsHash !== mappingsObject.mappingsHash) {
 			this.logger.info(
-				`Cancel resolving: mappingsHash differ: "${timeline.mappingsHash}" vs "${mappingsObject.mappingsHash}"`
+				`Cancel resolving: mappingsHash differ: '${timeline.mappingsHash}' vs '${mappingsObject.mappingsHash}'`
 			)
 			return
 		}
@@ -884,7 +884,7 @@ export class TSRHandler {
 			const groupObj = objects[obj.inGroup]
 			if (!groupObj) {
 				// referenced group not found
-				this.logger.error(`Referenced group "${obj.inGroup}" not found! Referenced by "${obj.id}"`)
+				this.logger.error(`Referenced group '${obj.inGroup}' not found! Referenced by '${obj.id}'`)
 				return
 			}
 			// Add object into group:

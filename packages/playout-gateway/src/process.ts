@@ -23,9 +23,9 @@ export class Process {
 			_.each(processConfig.certificates, (certificate) => {
 				try {
 					this.certificates.push(fs.readFileSync(certificate))
-					this.logger.info(`Using certificate "${certificate}"`)
+					this.logger.info(`Using certificate '${certificate}'`)
 				} catch (error) {
-					this.logger.data(error).error(`Error loading certificate "${certificate}"`)
+					this.logger.data(error).error(`Error loading certificate '${certificate}'`)
 				}
 			})
 		}
