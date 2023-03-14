@@ -51,31 +51,34 @@ export class Connector {
 
 			this.logger.info('Initialization done')
 			return
-		} catch (error: any) {
-			this.logger.error('Error during initialization:', { data: error?.stack ?? error })
+		} catch (error: unknown) {
+			this.logger.data(error).error('Error during initialization:')
 
-			try {
-				if (this.coreHandler) {
-					this.coreHandler
-						.destroy()
-						.catch((error) => this.logger.data(error).error('Failed destroying coreHandler:'))
-				}
-				if (this.tsrHandler) {
-					this.tsrHandler
-						.destroy()
-						.catch((error) => this.logger.data(error).error('Failed destroying tsrHandler:'))
-				}
-			} catch (e) {
-				// Handle the edge case where destroy() throws synchronously:
-				this.logger.error(e)
-			}
-
-			this.logger.info('Shutting down in 10 seconds!')
-			setTimeout(() => {
-				// eslint-disable-next-line no-process-exit
-				process.exit(0)
-			}, 10 * 1000)
-			return
+			this.teardown()
 		}
+	}
+
+	private teardown(): void {
+		try {
+			if (this.coreHandler) {
+				this.coreHandler
+					.destroy()
+					.catch((error) => this.logger.data(error).error('Failed destroying coreHandler:'))
+			}
+			if (this.tsrHandler) {
+				this.tsrHandler
+					.destroy()
+					.catch((error) => this.logger.data(error).error('Failed destroying tsrHandler:'))
+			}
+		} catch (error) {
+			// Handle the edge case where destroy() throws synchronously:
+			this.logger.data(error).error('An error occurred during teardown.')
+		}
+
+		this.logger.info('Shutting down in 10 seconds!')
+		setTimeout(() => {
+			// eslint-disable-next-line no-process-exit
+			process.exit(0)
+		}, 10 * 1000)
 	}
 }
