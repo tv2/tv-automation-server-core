@@ -15,10 +15,9 @@ import {
 	DeviceOptionsAny,
 } from 'timeline-state-resolver'
 
-import * as _ from 'underscore'
 import { DeviceConfig } from './connector'
 import { TSRHandler } from './tsrHandler'
-import { Logger } from 'winston'
+import { Logger, Level } from './logger'
 // eslint-disable-next-line node/no-extraneous-import
 import { ThreadedClass, MemUsageReport as ThreadMemUsageReport } from 'threadedclass'
 import { Process } from './process'
@@ -63,7 +62,7 @@ export interface MemoryUsageReport {
  */
 export class CoreHandler {
 	core!: CoreConnection
-	logger: Logger
+	public readonly logger: Logger
 	public _observers: Array<any> = []
 	public deviceSettings: { [key: string]: any } = {}
 
@@ -86,7 +85,7 @@ export class CoreHandler {
 	private _statusDestroyed = false
 
 	constructor(logger: Logger, deviceOptions: DeviceConfig) {
-		this.logger = logger
+		this.logger = logger.tag(this.constructor.name)
 		this._deviceOptions = deviceOptions
 	}
 
@@ -102,15 +101,16 @@ export class CoreHandler {
 		this.core.onConnected(() => {
 			this.logger.info('Core Connected!')
 			this.setupObserversAndSubscriptions().catch((error) =>
-				this.logger.error('Core Error during setupObserversAndSubscriptions:', { data: error })
+				this.logger.data(error).error('Core Error during setupObserversAndSubscriptions:')
 			)
 			if (this._onConnected) this._onConnected()
 		})
 		this.core.onDisconnected(() => {
 			this.logger.warn('Core Disconnected!')
 		})
-		this.core.onError((err) => {
-			this.logger.error('Core Error: ' + (typeof err === 'string' ? err : err.message || err.toString() || err))
+		this.core.onError((error) => {
+			const errorMessage = typeof error === 'string' ? error : error.message || error.toString() || error
+			this.logger.data(error).error(`Core Error: ${errorMessage}`)
 		})
 
 		const ddpConfig: DDPConnectorOptions = {
@@ -125,7 +125,7 @@ export class CoreHandler {
 
 		await this.core.init(ddpConfig)
 
-		this.logger.info('Core id: ' + this.core.deviceId)
+		this.logger.info(`Core id: ${this.core.deviceId}.`)
 		await this.setupObserversAndSubscriptions()
 		if (this._onConnected) this._onConnected()
 
@@ -137,7 +137,7 @@ export class CoreHandler {
 	}
 	async setupObserversAndSubscriptions(): Promise<void> {
 		this.logger.info('Core: Setting up subscriptions..')
-		this.logger.info('DeviceId: ' + this.core.deviceId)
+		this.logger.info(`DeviceId: ${this.core.deviceId}`)
 		await Promise.all([
 			this.core.autoSubscribe('peripheralDevices', {
 				_id: this.core.deviceId,
@@ -174,7 +174,6 @@ export class CoreHandler {
 		subDeviceType: DeviceType | PERIPHERAL_SUBTYPE_PROCESS
 	): CoreOptions {
 		if (!this._deviceOptions.deviceId) {
-			// this.logger.warn('DeviceId not set, using a temporary random id!')
 			throw new Error('DeviceId is not set!')
 		}
 
@@ -215,26 +214,10 @@ export class CoreHandler {
 				this.deviceSettings = {}
 			}
 
-			const logLevel = this.deviceSettings['debugLogging'] ? 'debug' : 'info'
-			if (logLevel !== this.logger.level) {
-				this.logger.level = logLevel
+			const logLevel = this.deviceSettings['debugLogging'] ? Level.DEBUG : Level.INFO
 
-				for (const transport of this.logger.transports) {
-					transport.level = logLevel
-				}
-
-				this.logger.info('Loglevel: ' + this.logger.level)
-
-				// this.logger.debug('Test debug logging')
-				// // @ts-ignore
-				// this.logger.debug({ msg: 'test msg' })
-				// // @ts-ignore
-				// this.logger.debug({ message: 'test message' })
-				// // @ts-ignore
-				// this.logger.debug({ command: 'test command', context: 'test context' })
-
-				// this.logger.debug('End test debug logging')
-			}
+			this.logger.setLevel(logLevel)
+			this.logger.debug(`Log level changed to '${logLevel}'.`)
 
 			if (this.deviceSettings['errorReporting'] !== this.errorReporting) {
 				this.errorReporting = this.deviceSettings['errorReporting']
@@ -262,9 +245,9 @@ export class CoreHandler {
 					.then((subscriptionId) => {
 						this._timelineSubscription = subscriptionId
 					})
-					.catch((err) => {
-						this.logger.error(err)
-					})
+					.catch((error) =>
+						this.logger.data(error).error(`Failed subscribing to timeline for studio '${studioId}'`)
+					)
 
 				// Set up expectedPlayoutItems data subscription:
 				if (this._expectedItemsSubscription) {
@@ -278,9 +261,11 @@ export class CoreHandler {
 					.then((subscriptionId) => {
 						this._expectedItemsSubscription = subscriptionId
 					})
-					.catch((err) => {
-						this.logger.error(err)
-					})
+					.catch((error) =>
+						this.logger
+							.data(error)
+							.error(`Failed subscribing to expectedPlayoutItems for studio '${studioId}'`)
+					)
 				this.logger.debug('VIZDEBUG: Subscription to expectedPlayoutItems done')
 			}
 
@@ -304,17 +289,13 @@ export class CoreHandler {
 			this.logger.debug(`Executing function "${cmd.functionName}", args: ${JSON.stringify(cmd.args)}`)
 			this._executedFunctions[cmd._id] = true
 			// console.log('executeFunction', cmd)
-			const cb = (err: any, res?: any) => {
-				// console.log('cb', err, res)
-				if (err) {
-					this.logger.error('executeFunction error', err, err.stack)
+			const cb = (error: any, res?: any) => {
+				if (error) {
+					this.logger.data(error).error('executeFunction error')
 				}
 				fcnObject.core
-					.callMethod(PeripheralDeviceAPIMethods.functionReply, [cmd._id, err, res])
-					.then(() => {
-						// console.log('cb done')
-					})
-					.catch((error) => this.logger.error(error))
+					.callMethod(PeripheralDeviceAPIMethods.functionReply, [cmd._id, error, res])
+					.catch((error) => this.logger.data(error).error('Failed sending reply to core.'))
 			}
 			// @ts-expect-error Untyped bunch of functions
 			// eslint-disable-next-line @typescript-eslint/ban-types
@@ -368,12 +349,13 @@ export class CoreHandler {
 		})
 	}
 	killProcess(actually: number): boolean {
+		const delayMs = 1000
 		if (actually === 1) {
-			this.logger.info('KillProcess command received, shutting down in 1000ms!')
+			this.logger.info(`KillProcess command received, shutting down in ${delayMs}ms!`)
 			setTimeout(() => {
 				// eslint-disable-next-line no-process-exit
 				process.exit(0)
-			}, 1000)
+			}, delayMs)
 			return true
 		}
 		return false
@@ -396,7 +378,7 @@ export class CoreHandler {
 		this.core.setPingResponse(message)
 	}
 	getSnapshot(): any {
-		this.logger.info('getSnapshot')
+		this.logger.debug('getSnapshot')
 		const timeline = this._tsrHandler ? this._tsrHandler.getTimeline() : []
 		const mappings = this._tsrHandler ? this._tsrHandler.getMappings() : []
 		return {
@@ -405,7 +387,7 @@ export class CoreHandler {
 		}
 	}
 	getDevicesInfo(): any {
-		this.logger.info('getDevicesInfo')
+		this.logger.debug('getDevicesInfo')
 
 		const devices: any[] = []
 		if (this._tsrHandler) {
@@ -489,14 +471,14 @@ export class CoreHandler {
 			messages: messages,
 		})
 	}
-	private _getVersions() {
-		const versions: { [packageName: string]: string } = {}
+	private _getVersions(): Record<string, string> {
+		const versions: Record<string, string> = {}
 
 		if (process.env.npm_package_version) {
 			versions['_process'] = process.env.npm_package_version
 		}
 
-		const pkgNames = [
+		const packageNames = [
 			'timeline-state-resolver',
 			'atem-connection',
 			'atem-state',
@@ -505,20 +487,20 @@ export class CoreHandler {
 			'emberplus-connection',
 			'superfly-timeline',
 		]
-		try {
-			for (const pkgName of pkgNames) {
-				try {
-					// eslint-disable-next-line @typescript-eslint/no-var-requires
-					const pkgInfo = require(`${pkgName}/package.json`)
-					versions[pkgName] = pkgInfo.version || 'N/A'
-				} catch (error) {
-					this.logger.error(`Failed to load package.json for lib "${pkgName}".`, { data: error })
-				}
+		for (const packageName of packageNames) {
+			try {
+				versions[packageName] = this.getPackageVersion(packageName)
+			} catch (error) {
+				this.logger.data(error).error(`Failed to load package.json for lib '${packageName}'.`)
 			}
-		} catch (e) {
-			this.logger.error(e)
 		}
 		return versions
+	}
+
+	private getPackageVersion(packageName: string): string {
+		// eslint-disable-next-line @typescript-eslint/no-var-requires
+		const packageInfo = require(`${packageName}/package.json`)
+		return packageInfo.version ?? 'N/A'
 	}
 }
 
@@ -540,6 +522,7 @@ export class CoreTSRDeviceHandler {
 		this._device = device
 		this._tsrHandler = tsrHandler
 	}
+
 	async init(): Promise<void> {
 		const deviceId = this._device.deviceId
 		const deviceName = `${deviceId} (${this._device.deviceName})`
@@ -547,15 +530,11 @@ export class CoreTSRDeviceHandler {
 		this.core = new CoreConnection(
 			this._coreParentHandler.getCoreConnectionOptions(
 				deviceName,
-				'Playout' + deviceId,
+				`Playout${deviceId}`,
 				this._device.deviceOptions.type
 			)
 		)
-		this.core.onError((err) => {
-			this._coreParentHandler.logger.error(
-				'Core Error: ' + ((_.isObject(err) && err.message) || err.toString() || err)
-			)
-		})
+		this.core.onError((error) => this._coreParentHandler.logger.data(error).error('Core Error:'))
 		await this.core.init(this._coreParentHandler.core)
 
 		if (!this._hasGottenStatusChange) {
@@ -572,7 +551,6 @@ export class CoreTSRDeviceHandler {
 		this._coreParentHandler.logger.debug('setupSubscriptionsAndObservers done')
 	}
 	async setupSubscriptionsAndObservers(): Promise<void> {
-		// console.log('setupObservers', this.core.deviceId)
 		if (this._observers.length) {
 			this._coreParentHandler.logger.info('CoreTSRDevice: Clearing observers..')
 			this._observers.forEach((obs) => {
@@ -583,14 +561,16 @@ export class CoreTSRDeviceHandler {
 		const deviceId = this._device.deviceId
 
 		this._coreParentHandler.logger.info(
-			'CoreTSRDevice: Setting up subscriptions for ' + this.core.deviceId + ' for device ' + deviceId + ' ..'
+			`CoreTSRDevice: Setting up subscriptions for '${this.core.deviceId}' for device '${deviceId}'...`
 		)
 		this._subscriptions = []
 		try {
 			const sub = await this.core.autoSubscribe('peripheralDeviceCommands', this.core.deviceId)
 			this._subscriptions.push(sub)
-		} catch (e) {
-			this._coreParentHandler.logger.error(e)
+		} catch (error) {
+			this._coreParentHandler.logger
+				.data(error)
+				.error(`Failed subscribing to peripheralDeviceCommands for deviceId '${this.core.deviceId}'.`)
 		}
 
 		this._coreParentHandler.logger.info('CoreTSRDevice: Setting up observers..')
@@ -613,7 +593,7 @@ export class CoreTSRDeviceHandler {
 
 		this.core
 			.setStatus(this._deviceStatus)
-			.catch((error) => this._coreParentHandler.logger.error(`Error when setting status.`, { data: error }))
+			.catch((error) => this._coreParentHandler.logger.data(error).error('Error when setting status.'))
 	}
 	onCommandError(
 		errorMessage: string,
@@ -627,20 +607,18 @@ export class CoreTSRDeviceHandler {
 	): void {
 		this.core
 			.callMethodLowPrio(PeripheralDeviceAPIMethods.reportCommandError, [errorMessage, ref])
-			.catch((error) => this._coreParentHandler.logger.error(`Error when callMethodLowPrio.`, { data: error }))
+			.catch((error) => this._coreParentHandler.logger.data(error).error(`Error when callMethodLowPrio.`))
 	}
 	onUpdateMediaObject(collectionId: string, docId: string, doc: MediaObject | null): void {
 		this.core
 			.callMethodLowPrio(PeripheralDeviceAPIMethods.updateMediaObject, [collectionId, docId, doc])
-			.catch((error) =>
-				this._coreParentHandler.logger.error(`Error when updating Media Object.`, { data: error })
-			)
+			.catch((error) => this._coreParentHandler.logger.data(error).error(`Error when updating Media Object.`))
 	}
 	onClearMediaObjectCollection(collectionId: string): void {
 		this.core
 			.callMethodLowPrio(PeripheralDeviceAPIMethods.clearMediaObjectCollection, [collectionId])
 			.catch((error) =>
-				this._coreParentHandler.logger.error(`Error when clearing Media Objects collection:`, { data: error })
+				this._coreParentHandler.logger.data(error).error(`Error when clearing Media Objects collection:`)
 			)
 	}
 

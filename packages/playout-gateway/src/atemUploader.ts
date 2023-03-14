@@ -14,10 +14,10 @@ import * as path from 'path'
 const ATEM_MAX_FILENAME_LENGTH = 63
 const ATEM_MAX_CLIPNAME_LENGTH = 43
 
-function consoleLog(...args: any[]) {
+function consoleLog(...args: unknown[]) {
 	console.log('AtemUpload:', ...args)
 }
-function consoleError(...args: any[]) {
+function consoleError(...args: unknown[]) {
 	console.error('AtemUpload:', ...args)
 }
 export class AtemUploadScript {

@@ -1,4 +1,4 @@
-import { Logger } from 'winston'
+import { Logger } from '../logger'
 import { Job } from './job'
 import {
 	AbortError,
@@ -22,14 +22,16 @@ import debug = require('debug')
 
 export class InitDeviceJob extends Job<CreateDeviceJobsResult, undefined, CreateDeviceJobsResult> {
 	protected artifacts: undefined
+	private readonly logger: Logger
 
 	constructor(
 		private deviceId: string,
 		private deviceOptions: DeviceOptionsAny,
 		private tsrHandler: TSRHandler,
-		private logger: Logger
+		logger: Logger
 	) {
 		super()
+		this.logger = logger.tag(this.constructor.name)
 	}
 
 	async run(previousResult: CreateDeviceJobsResult, abortSignal?: AbortSignal): Promise<CreateDeviceJobsResult> {

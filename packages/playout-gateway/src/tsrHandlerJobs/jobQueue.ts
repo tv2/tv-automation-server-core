@@ -1,6 +1,6 @@
 import { EventEmitter } from 'stream'
 import { AbortError } from 'timeline-state-resolver'
-import { Logger } from 'winston'
+import { Logger } from '../logger'
 import { Job } from './job'
 
 interface JobDescription<ResultType> {
@@ -58,9 +58,11 @@ export class JobQueue extends EventEmitter implements IJobQueue {
 	private currentJob: JobDescription<unknown> | null = null
 	private currentJobChain: JobDescription<unknown>[] = []
 	private currentJobTimeout: NodeJS.Timeout | null = null
+	private readonly logger: Logger
 
-	constructor(private name: string, private logger: Logger) {
+	constructor(private name: string, logger: Logger) {
 		super()
+		this.logger = logger.tag(this.constructor.name)
 	}
 
 	get length(): number {

@@ -1,10 +1,13 @@
-import { Logger } from 'winston'
+import { Logger } from '../logger'
 import { IJobQueue, JobQueue } from './jobQueue'
 
 export class JobQueueManager {
 	private jobQueues = new Map<string, JobQueue>()
+	private readonly logger: Logger
 
-	constructor(private logger: Logger) {}
+	constructor(logger: Logger) {
+		this.logger = logger.tag(this.constructor.name)
+	}
 
 	get(queueName: string): IJobQueue {
 		let queue = this.jobQueues.get(queueName)

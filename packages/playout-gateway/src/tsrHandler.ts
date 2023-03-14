@@ -22,7 +22,7 @@ import * as cp from 'child_process'
 import * as _ from 'underscore'
 import { CollectionObj, CoreConnection, TableConfigManifestEntry } from '@sofie-automation/server-core-integration'
 import { TimelineObjectCoreExt } from '@sofie-automation/blueprints-integration'
-import { Logger } from 'winston'
+import { Logger } from './logger'
 import Debug from 'debug'
 import { FinishedTrace, sendTrace } from './influxdb'
 import { PeripheralDeviceAPIMethods } from '@sofie-automation/shared-lib/dist/peripheralDevice/methodsAPI'
@@ -138,9 +138,8 @@ enum JobFailure {
 export class TSRHandler {
 	logger: Logger
 	private _tsr!: Conductor
-	// private _config: TSRConfig
 	private _coreHandler!: CoreHandler
-	private _triggerupdateExpectedPlayoutItemsTimeout: any = null
+	private _triggerUpdateExpectedPlayoutItemsTimeout: any = null
 	private _coreTsrHandlers: { [deviceId: string]: CoreTSRDeviceHandler } = {}
 	private _observers: Array<any> = []
 	private _cachedStudioId = ''
@@ -160,7 +159,7 @@ export class TSRHandler {
 	private defaultDeviceOptions: { [deviceType: string]: Record<string, any> } = {}
 
 	constructor(logger: Logger) {
-		this.logger = logger
+		this.logger = logger.tag(this.constructor.name)
 		this._jobQueueManager = new JobQueueManager(logger)
 	}
 
@@ -187,7 +186,7 @@ export class TSRHandler {
 		const peripheralDevice = await coreHandler.core.getPeripheralDevice()
 		const settings: TSRSettings = peripheralDevice.settings || {}
 
-		this.logger.info('Devices', settings.devices)
+		this.logger.data(settings.devices).debug('Device settings:')
 		const c: ConductorOptions = {
 			getCurrentTime: (): number => {
 				return this._coreHandler.core.getCurrentTime()
@@ -208,9 +207,9 @@ export class TSRHandler {
 		})
 		this.setupObservers()
 
-		this.tsr.on('error', (e, ...args) => {
+		this.tsr.on('error', (error, ...args) => {
 			// CasparCG play and load 404 errors should be warnings:
-			const msg: string = e + ''
+			const msg: string = error + ''
 			const cmdReply = args[0]
 
 			if (
@@ -221,29 +220,24 @@ export class TSRHandler {
 				cmdReply.response &&
 				cmdReply.response.code === 404
 			) {
-				this.logger.warn(`TSR: ${e.toString()}`, args)
+				this.logger.data({ args, error }).warn(`TSR Error: ${error.message}`)
 			} else {
-				this.logger.error(`TSR: ${e.toString()}`, args)
+				this.logger.data({ args, error }).error(`TSR Error: ${error.message}`)
 			}
 		})
-		this.tsr.on('info', (msg, ...args) => {
-			this.logger.info(`TSR: ${msg + ''}`, args)
-		})
-		this.tsr.on('warning', (msg, ...args) => {
-			this.logger.warn(`TSR: ${msg + ''}`, args)
-		})
+		this.tsr.on('info', (msg, ...args) => this.logger.data({ args }).info(`TSR Info: ${msg}`))
+		this.tsr.on('warning', (msg, ...args) => this.logger.data({ args }).warn(`TSR Warning: ${msg}`))
 		this.tsr.on('debug', (...args: any[]) => {
 			if (!this._coreHandler.logDebug) {
 				return
 			}
-			const data = args.map((arg) => (typeof arg === 'object' ? JSON.stringify(arg) : arg))
-			this.logger.debug(`TSR debug message (${args.length})`, { data })
+			this.logger.data(args).debug(`TSR debug message with ${args.length} arguments.`)
 		})
 
 		this.tsr.on('setTimelineTriggerTime', (r: TimelineTriggerTimeResult) => {
 			this._coreHandler.core
 				.callMethod(PeripheralDeviceAPIMethods.timelineTriggerTime, [r])
-				.catch((error) => this.logger.error('Error in setTimelineTriggerTime', { data: error }))
+				.catch((error) => this.logger.data(error).error('Error in setTimelineTriggerTime:'))
 		})
 
 		this.tsr.on('timelineCallback', (time, objId, callbackName, data) => {
@@ -260,7 +254,7 @@ export class TSRHandler {
 
 			this._coreHandler.core
 				.callMethod('peripheralDevice.reportResolveDone', [timelineHash, resolveDuration])
-				.catch((error) => this.logger.error('Error in reportResolveDone', { data: error }))
+				.catch((error) => this.logger.data(error).error('Error in reportResolveDone:'))
 
 			sendTrace({
 				measurement: 'playout-gateway.tlResolveDone',
@@ -357,13 +351,13 @@ export class TSRHandler {
 
 		const expectedPlayoutItemsObserver = this._coreHandler.core.observe('expectedPlayoutItems')
 		expectedPlayoutItemsObserver.added = () => {
-			this._triggerupdateExpectedPlayoutItems()
+			this._triggerUpdateExpectedPlayoutItems()
 		}
 		expectedPlayoutItemsObserver.changed = () => {
-			this._triggerupdateExpectedPlayoutItems()
+			this._triggerUpdateExpectedPlayoutItems()
 		}
 		expectedPlayoutItemsObserver.removed = () => {
-			this._triggerupdateExpectedPlayoutItems()
+			this._triggerUpdateExpectedPlayoutItems()
 		}
 		this._observers.push(expectedPlayoutItemsObserver)
 	}
@@ -378,7 +372,7 @@ export class TSRHandler {
 	getTimeline(): RoutedTimeline | undefined {
 		const studioId = this._getStudioId()
 		if (!studioId) {
-			this.logger.warn('no studioId')
+			this.logger.data({ studioId }).warn('Missing studioId in getTimeline.')
 			return undefined
 		}
 
@@ -389,7 +383,6 @@ export class TSRHandler {
 	getMappings(): RoutedMappings | undefined {
 		const studioId = this._getStudioId()
 		if (!studioId) {
-			// this.logger.warn('no studioId')
 			return undefined
 		}
 		// Note: The studioMappings virtual collection contains a single object that contains all mappings
@@ -404,23 +397,25 @@ export class TSRHandler {
 		if (!this._initialized) return
 
 		if (this.tsr.logDebug !== this._coreHandler.logDebug) {
-			this.logger.info(`Log settings: ${this._coreHandler.logDebug}`)
+			this.logger.debug(`Log settings changed: ${this._coreHandler.logDebug}`)
 			this.tsr.logDebug = this._coreHandler.logDebug
 		}
 
 		if (this._errorReporting !== this._coreHandler.errorReporting) {
 			this._errorReporting = this._coreHandler.errorReporting
 
-			this.logger.info('ErrorReporting: ' + this._multiThreaded)
+			this.logger.info(`ErrorReporting changed: ${this._coreHandler.errorReporting}`)
 		}
 		if (this.tsr.estimateResolveTimeMultiplier !== this._coreHandler.estimateResolveTimeMultiplier) {
 			this.tsr.estimateResolveTimeMultiplier = this._coreHandler.estimateResolveTimeMultiplier
-			this.logger.info('estimateResolveTimeMultiplier: ' + this._coreHandler.estimateResolveTimeMultiplier)
+			this.logger.info(
+				`estimateResolveTimeMultiplier changed: ${this._coreHandler.estimateResolveTimeMultiplier}`
+			)
 		}
 		if (this._multiThreaded !== this._coreHandler.multithreading) {
 			this._multiThreaded = this._coreHandler.multithreading
 
-			this.logger.info('Multithreading: ' + this._multiThreaded)
+			this.logger.info(`Multithreading changed: ${this._multiThreaded}`)
 
 			debug('triggerUpdateDevices from onSettingsChanged')
 			this._triggerUpdateDevices()
@@ -428,7 +423,7 @@ export class TSRHandler {
 		if (this._reportAllCommands !== this._coreHandler.reportAllCommands) {
 			this._reportAllCommands = this._coreHandler.reportAllCommands
 
-			this.logger.info('ReportAllCommands: ' + this._reportAllCommands)
+			this.logger.info(`reportAllCommands changed: ${this._reportAllCommands}`)
 
 			debug('triggerUpdateDevices from onSettingsChanged')
 			this._triggerUpdateDevices()
@@ -588,8 +583,7 @@ export class TSRHandler {
 
 				if (!oldDevice) {
 					if (deviceOptions.options) {
-						this.logger.info('Initializing device: ' + deviceId)
-						this.logger.info('new', deviceOptions)
+						this.logger.data(deviceOptions).info(`Initializing device '${deviceId}' with options:`)
 						this.enqueueDeviceAddIfNotLast(deviceId, deviceOptions)
 					}
 				} else if (
@@ -598,12 +592,15 @@ export class TSRHandler {
 				) {
 					deviceOptions.debug = this.getDeviceDebug(orgDeviceOptions)
 
-					this.logger.info('Re-initializing device: ' + deviceId)
-					this.logger.info('old', oldDevice.deviceOptions)
-					this.logger.info('new', deviceOptions)
+					this.logger
+						.data({
+							oldDeviceOptions: oldDevice.deviceOptions,
+							newDeviceOptions: deviceOptions,
+						})
+						.info(`Re-initializing device: ${deviceId}`)
 					this.enqueueDeviceAddIfNotLast(deviceId, deviceOptions)
 				} else if (deviceOptions && this.getDeviceDebug(deviceOptions) !== oldDevice.debugLogging) {
-					this.logger.info(`Setting logDebug of device ${deviceId} to ${debug}`)
+					this.logger.info(`Setting logDebug of device '${deviceId}' to ${debug}.`)
 					this.enqueueSetDebugLogging(deviceId, this.getDeviceDebug(deviceOptions))
 				}
 			}
@@ -611,7 +608,7 @@ export class TSRHandler {
 			for (const oldDevice of this.tsr.getDevices(true)) {
 				const deviceId = oldDevice.deviceId
 				if (!deviceOptions.has(deviceId)) {
-					this.logger.info('Un-initializing device: ' + deviceId)
+					this.logger.info(`Un-initializing device: ${deviceId}`)
 					this.enqueueDeviceRemoveIfNotLast(deviceId, true)
 				}
 			}
@@ -700,7 +697,7 @@ export class TSRHandler {
 		jobQueue
 			.enqueue(new SetDebugLoggingJob(deviceId, this.tsr, debugLogging), JOB_TIMEOUT, JobImportance.LOW, jobId)
 			.end(undefined, (error) => {
-				this.logger.error(`Error when setting debug logging on device "${deviceId}`, { data: error })
+				this.logger.data(error).error(`Error when setting debug logging on device '${deviceId}'`)
 			})
 	}
 
@@ -740,7 +737,7 @@ export class TSRHandler {
 				jobId
 			)
 			.end(undefined, (error) => {
-				this.logger.error(`Error when updating expected playout items on device "${deviceId}`, { data: error })
+				this.logger.data(error).error(`Error when updating expected playout items on device '${deviceId}'`)
 			})
 	}
 
@@ -751,7 +748,7 @@ export class TSRHandler {
 			this._deviceJobFailureStatuses.set(deviceId, failure)
 		}
 		this.reportStatusToCore().catch((error) => {
-			this.logger.error(`Error when reporting device status`, { data: error })
+			this.logger.data(error).error(`Error when reporting device status`)
 		})
 	}
 
@@ -776,12 +773,9 @@ export class TSRHandler {
 			failedDevices[JobFailure.ADD_TIMEOUT].length + failedDevices[JobFailure.REMOVE_TIMEOUT].length
 
 		if (timeoutCount > 0) {
-			this.logger.warn(
-				`Timeout in _updateDevices: ${[
-					...failedDevices[JobFailure.ADD_TIMEOUT],
-					...failedDevices[JobFailure.REMOVE_TIMEOUT],
-				].join(', ')}`
-			)
+			this.logger
+				.data([...failedDevices[JobFailure.ADD_TIMEOUT], ...failedDevices[JobFailure.REMOVE_TIMEOUT]])
+				.warn(`Timeout in _updateDevices:`)
 		}
 
 		await this._coreHandler.core.setStatus({
@@ -827,25 +821,25 @@ export class TSRHandler {
 		if (!device || device.deviceType !== DeviceType.ATEM) {
 			return
 		}
-		this.logger.info('try to load ' + JSON.stringify(files.map((f) => f.path).join(', ')) + ' to atem')
+		this.logger.data(files.map(({ path }) => path)).info(`Trying to load ${files.length} to atem:`)
 		const options = device.deviceOptions.options as { host: string }
-		this.logger.info('options ' + JSON.stringify(options))
 		if (!options || !options.host) {
+			this.logger.data(options).debug('ATEM host options is missing from:')
 			throw Error('ATEM host option not set')
 		}
-		this.logger.info('uploading files to ' + options.host)
+		this.logger.info(`Trying to upload files to ${options.host}`)
 		const process = cp.spawn(`node`, [`./dist/atemUploader.js`, options.host, JSON.stringify(files)])
-		process.stdout.on('data', (data) => this.logger.info(data.toString()))
-		process.stderr.on('data', (data) => this.logger.info(data.toString()))
+		process.stdout.on('data', (data) => this.logger.debug(data.toString()))
+		process.stderr.on('data', (data) => this.logger.debug(data.toString()))
 		process.on('close', () => process.removeAllListeners())
 	}
 
-	private _triggerupdateExpectedPlayoutItems() {
+	private _triggerUpdateExpectedPlayoutItems() {
 		if (!this._initialized) return
-		if (this._triggerupdateExpectedPlayoutItemsTimeout) {
-			clearTimeout(this._triggerupdateExpectedPlayoutItemsTimeout)
+		if (this._triggerUpdateExpectedPlayoutItemsTimeout) {
+			clearTimeout(this._triggerUpdateExpectedPlayoutItemsTimeout)
 		}
-		this._triggerupdateExpectedPlayoutItemsTimeout = setTimeout(() => {
+		this._triggerUpdateExpectedPlayoutItemsTimeout = setTimeout(() => {
 			const { groupedExpectedItems, rundowns } = this.getExpectedPlayoutItems()
 			this.tsr.getDevices().forEach((device) => {
 				this.enqueueExpectedPlayoutItemsUpdate(groupedExpectedItems, rundowns, device.deviceId)
@@ -910,9 +904,7 @@ export class TSRHandler {
 		this.sendCallbacksTimeout = undefined
 		this._coreHandler.core
 			.callMethod(PeripheralDeviceAPIMethods.playoutPlaybackChanged, [this.changedResults])
-			.catch((error) => {
-				this.logger.error('Error in timelineCallback', { data: error })
-			})
+			.catch((error) => this.logger.data(error).error('Error in timelineCallback'))
 		this.changedResults = undefined
 	}
 
@@ -933,7 +925,7 @@ export class TSRHandler {
 			// @ts-expect-error Untyped bunch of methods
 			const method = PeripheralDeviceAPIMethods[callbackName]
 			if (!method) {
-				this.logger.error(`Unknown callback method "${callbackName0}"`)
+				this.logger.error(`Unknown callback method '${callbackName0}'`)
 				return
 			}
 			this._coreHandler.core
@@ -943,9 +935,7 @@ export class TSRHandler {
 						time: time,
 					}),
 				])
-				.catch((error) => {
-					this.logger.error('Error in timelineCallback', { data: error })
-				})
+				.catch((error) => this.logger.data(error).error('Error in timelineCallback:'))
 			return
 		}
 		const callbackName = callbackName0 as PlayoutChangedType
@@ -954,7 +944,7 @@ export class TSRHandler {
 			// The playlistId changed. Send what we have right away and reset:
 			this._coreHandler.core
 				.callMethod(PeripheralDeviceAPIMethods.playoutPlaybackChanged, [this.changedResults])
-				.catch((error) => this.logger.error('Error in timelineCallback', { data: error }))
+				.catch((error) => this.logger.data(error).error('Error in timelineCallback:'))
 			this.changedResults = undefined
 		}
 		if (!this.changedResults) {
