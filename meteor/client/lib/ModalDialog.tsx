@@ -119,6 +119,7 @@ export class ModalDialog extends React.Component<IModalDialogAttributes> {
 			this.props.onSecondary(e, this.inputResult)
 		}
 	}
+
 	handleAction = (e: SomeEvent, on: OnAction) => {
 		if (on && typeof on === 'function') {
 			on(e, this.inputResult)
@@ -132,9 +133,11 @@ export class ModalDialog extends React.Component<IModalDialogAttributes> {
 			this.handleSecondary(e)
 		}
 	}
+
 	updatedInput = (edit: EditAttributeBase, newValue: any) => {
 		this.inputResult[edit.props.attribute || ''] = newValue
 	}
+
 	render() {
 		return this.props.show ? (
 			<Escape to="viewport">
@@ -305,6 +308,13 @@ class ModalDialogGlobalContainer0 extends React.Component<
 	public queueHasItems(): boolean {
 		return this.state.queue.length > 0
 	}
+	public removeAllQueueItems(): void {
+		const queue = this.state.queue
+		queue.splice(0)
+		this.setState({
+			queue,
+		})
+	}
 	onAccept = (e: SomeEvent, inputResult: ModalInputResult) => {
 		const queue = this.state.queue
 		const onQueue = queue.shift()
@@ -408,4 +418,12 @@ export function isModalShowing(): boolean {
 		return modalDialogGlobalContainerSingleton.queueHasItems()
 	}
 	return false
+}
+
+export function removeAllQueueItems(): void {
+	if (modalDialogGlobalContainerSingleton) {
+		modalDialogGlobalContainerSingleton.removeAllQueueItems()
+	} else {
+		logger.error('modalDialogGlobalContainerSingleton not set!')
+	}
 }
