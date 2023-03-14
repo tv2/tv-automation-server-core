@@ -4,7 +4,7 @@ import { Environment, Format, PlainTextFormat } from '@tv2media/logger'
 import { CustomJsonFormat } from './custom-json-format'
 
 export class Logger extends DefaultLogger {
-	getEnvironmentFormat(environment: Environment): Format {
+	protected getEnvironmentFormat(environment: Environment): Format {
 		switch (environment) {
 			case Environment.PRODUCTION:
 			case Environment.STAGING:
