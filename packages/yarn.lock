@@ -3092,10 +3092,10 @@
     webpack-sources "^3.2.2"
 
 "@sofie-automation/blueprints-integration@link:blueprints-integration":
-  version "46.2.1"
+  version "46.2.0"
   dependencies:
     "@sofie-automation/shared-lib" "link:shared-lib"
-    timeline-state-resolver-types "npm:@tv2media/timeline-state-resolver-types@3.3.0"
+    timeline-state-resolver-types "npm:@tv2media/timeline-state-resolver-types@3.4.0"
     tslib "^2.4.0"
     type-fest "^2.19.0"
 
@@ -13993,17 +13993,17 @@ timecode@0.0.4:
   resolved "https://registry.yarnpkg.com/timecode/-/timecode-0.0.4.tgz#cdea9d2352009700e50da657cb7fb7c1720f5704"
   integrity sha512-xFVZlWnqls5eVphtUJo0UuXeJa0grBmxESSn5QPQB7CMsaVgTnLdP9PTZqb4KyFmLdrE+PUu3eEt42zHsMxCtw==
 
-"timeline-state-resolver-types@npm:@tv2media/timeline-state-resolver-types@3.3.0":
-  version "3.3.0"
-  resolved "https://registry.yarnpkg.com/@tv2media/timeline-state-resolver-types/-/timeline-state-resolver-types-3.3.0.tgz#08e5b700d59a92855f27e80e98830307f0e50ead"
-  integrity sha512-2fnXgtg3H1mZwQNz1ax7kHPXhcMmp3ak7qVf8WIPysodtBXExP4LoRypv6fgOzX15og+gmgR3YYQGLrqiw14QA==
+"timeline-state-resolver-types@npm:@tv2media/timeline-state-resolver-types@3.4.0":
+  version "3.4.0"
+  resolved "https://registry.yarnpkg.com/@tv2media/timeline-state-resolver-types/-/timeline-state-resolver-types-3.4.0.tgz#179b66c64616fec2ec541fd9dd5a73517d8706fc"
+  integrity sha512-P174WyTAa6PVAotOJOEw8Dsqu1L3Cx/jEDmikLDLfFgRgmsYNSjtmgLzuzBY/O39iAxcqXs0ItM7QKcnX+ilwg==
   dependencies:
     tslib "^2.3.1"
 
-"timeline-state-resolver@npm:@tv2media/timeline-state-resolver@3.3.0":
-  version "3.3.0"
-  resolved "https://registry.yarnpkg.com/@tv2media/timeline-state-resolver/-/timeline-state-resolver-3.3.0.tgz#1188af9a0857f89184826ee9f15a13d941300e0c"
-  integrity sha512-5m4zXb2llUvLtn3RAFPq4qpkkGqIviopZBCEehWvZEkKRhaz08WOlnV2Et02E+EEnF4U/mdhU2YUwUMs4ZeWtw==
+"timeline-state-resolver@npm:@tv2media/timeline-state-resolver@3.4.0":
+  version "3.4.0"
+  resolved "https://registry.yarnpkg.com/@tv2media/timeline-state-resolver/-/timeline-state-resolver-3.4.0.tgz#5a4fc3de9fa0f204f04b4cdcba5ce0387dbae87c"
+  integrity sha512-DO8XeqpwrSMTydUm8h5dnfcb3Ve9JffZzstzm0RzSw0PEVENcWUwEMZ/jrx+m/SelgrZH2kM6UgG0AGrB2j3kA==
   dependencies:
     "@tv2media/v-connection" "^7.2.1"
     atem-connection "2.4.0"
@@ -14025,7 +14025,7 @@ timecode@0.0.4:
     sprintf-js "^1.1.2"
     superfly-timeline "^8.2.8"
     threadedclass "^1.1.1"
-    timeline-state-resolver-types "npm:@tv2media/timeline-state-resolver-types@3.3.0"
+    timeline-state-resolver-types "npm:@tv2media/timeline-state-resolver-types@3.4.0"
     tslib "^2.3.1"
     tv-automation-quantel-gateway-client "^2.0.5"
     underscore "^1.13.4"
