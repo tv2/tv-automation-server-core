@@ -288,7 +288,6 @@ export class CoreHandler {
 			if (this._executedFunctions[cmd._id]) return // prevent it from running multiple times
 			this.logger.debug(`Executing function "${cmd.functionName}", args: ${JSON.stringify(cmd.args)}`)
 			this._executedFunctions[cmd._id] = true
-			// console.log('executeFunction', cmd)
 			const cb = (error: any, res?: any) => {
 				if (error) {
 					this.logger.data(error).error('executeFunction error')
@@ -320,15 +319,19 @@ export class CoreHandler {
 		functionObject._observers.push(observer)
 		const addedChangedCommand = (id: string) => {
 			const cmds = functionObject.core.getCollection('peripheralDeviceCommands')
-			if (!cmds) throw Error('"peripheralDeviceCommands" collection not found!')
-			const cmd = cmds.findOne(id) as PeripheralDeviceCommand
-			if (!cmd) throw Error('PeripheralCommand "' + id + '" not found!')
-			// console.log('addedChangedCommand', id)
-			if (cmd.deviceId === functionObject.core.deviceId) {
-				this.executeFunction(cmd, functionObject)
-			} else {
-				// console.log('not mine', cmd.deviceId, this.core.deviceId)
+			if (!cmds) {
+				throw Error('"peripheralDeviceCommands" collection not found!')
 			}
+
+			const cmd = cmds.findOne(id) as PeripheralDeviceCommand
+			if (!cmd) {
+				throw Error('PeripheralCommand "' + id + '" not found!')
+			}
+
+			if (cmd.deviceId !== functionObject.core.deviceId) {
+				return
+			}
+			this.executeFunction(cmd, functionObject)
 		}
 		observer.added = (id: string) => {
 			addedChangedCommand(id)
@@ -509,6 +512,7 @@ export class CoreTSRDeviceHandler {
 	public _observers: Array<any> = []
 	public _device: DeviceContainer<DeviceOptionsAny>
 	private _coreParentHandler: CoreHandler
+	private readonly logger: Logger
 	private _tsrHandler: TSRHandler
 	private _subscriptions: Array<string> = []
 	private _hasGottenStatusChange = false
@@ -517,10 +521,11 @@ export class CoreTSRDeviceHandler {
 		messages: ['Starting up...'],
 	}
 
-	constructor(device: DeviceContainer<DeviceOptionsAny>, tsrHandler: TSRHandler) {
+	constructor(device: DeviceContainer<DeviceOptionsAny>, tsrHandler: TSRHandler, logger: Logger) {
 		this._coreParentHandler = tsrHandler.coreHandler
 		this._device = device
 		this._tsrHandler = tsrHandler
+		this.logger = logger.tag(this.constructor.name)
 	}
 
 	async init(): Promise<void> {
@@ -534,7 +539,7 @@ export class CoreTSRDeviceHandler {
 				this._device.deviceOptions.type
 			)
 		)
-		this.core.onError((error) => this._coreParentHandler.logger.data(error).error('Core Error:'))
+		this.core.onError((error) => this.logger.data(error).error('Core Error:'))
 		await this.core.init(this._coreParentHandler.core)
 
 		if (!this._hasGottenStatusChange) {
@@ -548,11 +553,11 @@ export class CoreTSRDeviceHandler {
 			this.sendStatus()
 		}
 		await this.setupSubscriptionsAndObservers()
-		this._coreParentHandler.logger.debug('setupSubscriptionsAndObservers done')
+		this.logger.debug('setupSubscriptionsAndObservers done')
 	}
 	async setupSubscriptionsAndObservers(): Promise<void> {
 		if (this._observers.length) {
-			this._coreParentHandler.logger.info('CoreTSRDevice: Clearing observers..')
+			this.logger.info('CoreTSRDevice: Clearing observers..')
 			this._observers.forEach((obs) => {
 				obs.stop()
 			})
@@ -560,7 +565,7 @@ export class CoreTSRDeviceHandler {
 		}
 		const deviceId = this._device.deviceId
 
-		this._coreParentHandler.logger.info(
+		this.logger.info(
 			`CoreTSRDevice: Setting up subscriptions for '${this.core.deviceId}' for device '${deviceId}'...`
 		)
 		this._subscriptions = []
@@ -568,12 +573,12 @@ export class CoreTSRDeviceHandler {
 			const sub = await this.core.autoSubscribe('peripheralDeviceCommands', this.core.deviceId)
 			this._subscriptions.push(sub)
 		} catch (error) {
-			this._coreParentHandler.logger
+			this.logger
 				.data(error)
 				.error(`Failed subscribing to peripheralDeviceCommands for deviceId '${this.core.deviceId}'.`)
 		}
 
-		this._coreParentHandler.logger.info('CoreTSRDevice: Setting up observers..')
+		this.logger.info('CoreTSRDevice: Setting up observers..')
 
 		// setup observers
 		this._coreParentHandler.setupObserverForPeripheralDeviceCommands(this)
@@ -593,7 +598,7 @@ export class CoreTSRDeviceHandler {
 
 		this.core
 			.setStatus(this._deviceStatus)
-			.catch((error) => this._coreParentHandler.logger.data(error).error('Error when setting status.'))
+			.catch((error) => this.logger.data(error).error('Error when setting status.'))
 	}
 	onCommandError(
 		errorMessage: string,
@@ -607,19 +612,17 @@ export class CoreTSRDeviceHandler {
 	): void {
 		this.core
 			.callMethodLowPrio(PeripheralDeviceAPIMethods.reportCommandError, [errorMessage, ref])
-			.catch((error) => this._coreParentHandler.logger.data(error).error(`Error when callMethodLowPrio.`))
+			.catch((error) => this.logger.data(error).error(`Error when callMethodLowPrio.`))
 	}
 	onUpdateMediaObject(collectionId: string, docId: string, doc: MediaObject | null): void {
 		this.core
 			.callMethodLowPrio(PeripheralDeviceAPIMethods.updateMediaObject, [collectionId, docId, doc])
-			.catch((error) => this._coreParentHandler.logger.data(error).error(`Error when updating Media Object.`))
+			.catch((error) => this.logger.data(error).error(`Error when updating Media Object.`))
 	}
 	onClearMediaObjectCollection(collectionId: string): void {
 		this.core
 			.callMethodLowPrio(PeripheralDeviceAPIMethods.clearMediaObjectCollection, [collectionId])
-			.catch((error) =>
-				this._coreParentHandler.logger.data(error).error(`Error when clearing Media Objects collection:`)
-			)
+			.catch((error) => this.logger.data(error).error(`Error when clearing Media Objects collection:`))
 	}
 
 	async disposeExpectedly(): Promise<void> {

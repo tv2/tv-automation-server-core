@@ -136,7 +136,7 @@ enum JobFailure {
  * Represents a connection between Gateway and TSR
  */
 export class TSRHandler {
-	logger: Logger
+	private readonly logger: Logger
 	private _tsr!: Conductor
 	private _coreHandler!: CoreHandler
 	private _triggerUpdateExpectedPlayoutItemsTimeout: any = null
@@ -664,7 +664,7 @@ export class TSRHandler {
 		}
 		this.enqueueDeviceRemoveIfNotLast(deviceId, true)
 		jobQueue
-			.enqueue(new CreateDeviceJob(deviceId, deviceOptions, this), JOB_TIMEOUT, JobImportance.HIGH)
+			.enqueue(new CreateDeviceJob(deviceId, deviceOptions, this, this.logger), JOB_TIMEOUT, JobImportance.HIGH)
 			.chain(new InitCoreTsrHandlerJob(), JOB_TIMEOUT, JobImportance.HIGH)
 			.chain(
 				new InitDeviceJob(deviceId, deviceOptions, this, this.logger),
