@@ -12,17 +12,16 @@ export function EditAttributeTextDropdown(props: EditAttributeTextDropdownProps)
 		<EditAttributeDropdown
 			{...props}
 			options={mapToDropdownOptions(props.options)}
-			mutateDisplayValue={mapDefaultNotSelectedValue(props.defaultNoneSelectedValue)}
+			mutateDisplayValue={mapDefaultNoneSelectedValue(props.defaultNoneSelectedValue)}
 			useLabel={false}
 		/>
 	)
 }
 
 function mapToDropdownOptions(options: string[]): DropdownOption[] {
-	console.log(options)
 	return options.map((option) => ({ value: option }))
 }
 
-function mapDefaultNotSelectedValue(defaultValue?: string): (v: any) => any {
+function mapDefaultNoneSelectedValue(defaultValue?: string): (v: any) => any {
 	return (value) => (value === undefined ? { id: defaultValue, displayValue: defaultValue } : value)
 }
