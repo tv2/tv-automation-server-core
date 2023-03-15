@@ -3,7 +3,7 @@ import * as React from 'react'
 import { Meteor } from 'meteor/meteor'
 import * as _ from 'underscore'
 import { Studio, Studios, DBStudio, StudioPackageContainer } from '../../../../lib/collections/Studios'
-import { EditAttribute, EditAttributeBase } from '../../../lib/EditAttribute'
+import { EditAttribute } from '../../../lib/EditAttribute'
 import { doModalDialog } from '../../../lib/ModalDialog'
 import { Translated } from '../../../lib/ReactMeteorData/react-meteor-data'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -16,6 +16,8 @@ import {
 import { withTranslation } from 'react-i18next'
 import { Accessor } from '@sofie-automation/blueprints-integration'
 import { PlayoutDeviceSettings } from '@sofie-automation/corelib/dist/dataModel/PeripheralDeviceSettings/playoutDevice'
+import { EditAttributeBase } from '../../../lib/editAttribute/edit-attribute-base'
+import { EditAttributeMultiSelect } from '../../../lib/editAttribute/edit-attribute-multi-select'
 
 interface IStudioPackageManagerSettingsProps {
 	studio: Studio
@@ -136,7 +138,7 @@ export const StudioPackageManagerSettings = withTranslation()(
 		}
 		getPlayoutDeviceIds() {
 			const deviceIds: {
-				name: string
+				label: string
 				value: string
 			}[] = []
 
@@ -150,7 +152,7 @@ export const StudioPackageManagerSettings = withTranslation()(
 
 					for (const deviceId of Object.keys(settings.devices || {})) {
 						deviceIds.push({
-							name: deviceId,
+							label: deviceId,
 							value: deviceId,
 						})
 					}
@@ -227,14 +229,13 @@ export const StudioPackageManagerSettings = withTranslation()(
 											<div className="mod mvs mhs">
 												<div className="field">
 													<label>{t('Playout devices which uses this package container')}</label>
-													<EditAttribute
+													<EditAttributeMultiSelect
 														attribute={`packageContainers.${containerId}.deviceIds`}
 														obj={this.props.studio}
 														options={this.getPlayoutDeviceIds()}
 														label={t('Select playout devices')}
-														type="multiselect"
 														collection={Studios}
-													></EditAttribute>
+													></EditAttributeMultiSelect>
 													<span className="text-s dimmed">
 														{t('Select which playout devices are using this package container')}
 													</span>
@@ -783,7 +784,7 @@ export const StudioPackageManagerSettings = withTranslation()(
 		}
 		getAvailablePackageContainers() {
 			const arr: {
-				name: string
+				label: string
 				value: string
 			}[] = []
 
@@ -797,7 +798,7 @@ export const StudioPackageManagerSettings = withTranslation()(
 				}
 				if (hasHttpAccessor) {
 					arr.push({
-						name: packageContainer.container.label,
+						label: packageContainer.container.label,
 						value: containerId,
 					})
 				}
@@ -818,27 +819,25 @@ export const StudioPackageManagerSettings = withTranslation()(
 							<div className="field mvs">
 								<label>{t('Package Containers to use for previews')}</label>
 								<div className="mdi">
-									<EditAttribute
+									<EditAttributeMultiSelect
 										attribute="previewContainerIds"
 										obj={this.props.studio}
 										options={this.getAvailablePackageContainers()}
 										label={t('Click to show available Package Containers')}
-										type="multiselect"
 										collection={Studios}
-									></EditAttribute>
+									></EditAttributeMultiSelect>
 								</div>
 							</div>
 							<div className="field mvs">
 								<label>{t('Package Containers to use for thumbnails')}</label>
 								<div className="mdi">
-									<EditAttribute
+									<EditAttributeMultiSelect
 										attribute="thumbnailContainerIds"
 										obj={this.props.studio}
 										options={this.getAvailablePackageContainers()}
 										label={t('Click to show available Package Containers')}
-										type="multiselect"
 										collection={Studios}
-									></EditAttribute>
+									></EditAttributeMultiSelect>
 								</div>
 							</div>
 						</div>

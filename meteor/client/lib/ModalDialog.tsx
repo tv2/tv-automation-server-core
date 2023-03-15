@@ -8,9 +8,10 @@ import * as _ from 'underscore'
 import type { Sorensen } from '@sofie-automation/sorensen'
 import { withTranslation } from 'react-i18next'
 import { Translated } from './ReactMeteorData/ReactMeteorData'
-import { EditAttribute, EditAttributeType, EditAttributeBase } from './EditAttribute'
+import { EditAttribute, EditAttributeType } from './EditAttribute'
 import { SorensenContext } from './SorensenContext'
 import { Settings } from '../../lib/Settings'
+import { EditAttributeBase } from './editAttribute/edit-attribute-base'
 
 interface IModalDialogAttributes {
 	show?: boolean

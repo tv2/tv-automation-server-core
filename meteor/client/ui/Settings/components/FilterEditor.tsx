@@ -22,6 +22,8 @@ import { ShowStyleBase } from '../../../../lib/collections/ShowStyleBases'
 import { SourceLayerType } from '@sofie-automation/blueprints-integration'
 import { withTranslation } from 'react-i18next'
 import { defaultColorPickerPalette } from '../../../lib/colorPicker'
+import { EditAttributeMultiSelect } from '../../../lib/editAttribute/edit-attribute-multi-select'
+import { EditAttributeEnumMultiSelect } from '../../../lib/editAttribute/edit-attribute-enum-multi-select'
 
 interface IProps {
 	item: RundownLayoutBase
@@ -208,14 +210,13 @@ export default withTranslation()(
 							mutateDisplayValue={(v) => (v === undefined || v.length === 0 ? false : true)}
 							mutateUpdateValue={() => undefined}
 						/>
-						<EditAttribute
+						<EditAttributeMultiSelect
 							modifiedClassName="bghl"
 							attribute={`filters.${index}.sourceLayerIds`}
 							obj={item}
 							options={this.props.showStyleBase.sourceLayers.map((l) => {
-								return { name: l.name, value: l._id }
+								return { label: l.name, value: l._id }
 							})}
-							type="multiselect"
 							label={t('Filter Disabled')}
 							collection={RundownLayouts}
 							className="input text-input input-l dropdown"
@@ -234,12 +235,11 @@ export default withTranslation()(
 							mutateDisplayValue={(v) => (v === undefined || v.length === 0 ? false : true)}
 							mutateUpdateValue={() => undefined}
 						/>
-						<EditAttribute
+						<EditAttributeEnumMultiSelect
 							modifiedClassName="bghl"
 							attribute={`filters.${index}.sourceLayerTypes`}
 							obj={item}
 							options={SourceLayerType}
-							type="multiselect"
 							optionsAreNumbers={true}
 							label={t('Filter disabled')}
 							collection={RundownLayouts}
@@ -261,14 +261,13 @@ export default withTranslation()(
 							mutateDisplayValue={(v) => (v === undefined || v.length === 0 ? false : true)}
 							mutateUpdateValue={() => undefined}
 						/>
-						<EditAttribute
+						<EditAttributeMultiSelect
 							modifiedClassName="bghl"
 							attribute={`filters.${index}.outputLayerIds`}
 							obj={item}
 							options={this.props.showStyleBase.outputLayers.map((l) => {
-								return { name: l.name, value: l._id }
+								return { label: l.name, value: l._id }
 							})}
-							type="multiselect"
 							label={t('Filter Disabled')}
 							collection={RundownLayouts}
 							className="input text-input input-l dropdown"
@@ -664,14 +663,13 @@ export default withTranslation()(
 							mutateDisplayValue={(v) => (v === undefined || v.length === 0 ? false : true)}
 							mutateUpdateValue={() => undefined}
 						/>
-						<EditAttribute
+						<EditAttributeMultiSelect
 							modifiedClassName="bghl"
 							attribute={`filters.${index}.sourceLayerIds`}
 							obj={item}
 							options={this.props.showStyleBase.sourceLayers.map((l) => {
-								return { name: l.name, value: l._id }
+								return { label: l.name, value: l._id }
 							})}
-							type="multiselect"
 							label={t('Disabled')}
 							collection={RundownLayouts}
 							className="input text-input input-l dropdown"
@@ -1375,14 +1373,13 @@ export default withTranslation()(
 							mutateDisplayValue={(v) => (v === undefined || v.length === 0 ? false : true)}
 							mutateUpdateValue={() => undefined}
 						/>
-						<EditAttribute
+						<EditAttributeMultiSelect
 							modifiedClassName="bghl"
 							attribute={`filters.${index}.requiredLayerIds`}
 							obj={item}
 							options={this.props.showStyleBase.sourceLayers.map((l) => {
-								return { name: l.name, value: l._id }
+								return { label: l.name, value: l._id }
 							})}
-							type="multiselect"
 							label={t('Disabled')}
 							collection={RundownLayouts}
 							className="input text-input input-l dropdown"
@@ -1402,14 +1399,13 @@ export default withTranslation()(
 							mutateDisplayValue={(v) => (v === undefined || v.length === 0 ? false : true)}
 							mutateUpdateValue={() => undefined}
 						/>
-						<EditAttribute
+						<EditAttributeMultiSelect
 							modifiedClassName="bghl"
 							attribute={`filters.${index}.additionalLayers`}
 							obj={item}
 							options={this.props.showStyleBase.sourceLayers.map((l) => {
-								return { name: l.name, value: l._id }
+								return { label: l.name, value: l._id }
 							})}
-							type="multiselect"
 							label={t('Disabled')}
 							collection={RundownLayouts}
 							className="input text-input input-l dropdown"

@@ -9,9 +9,10 @@ import { logger } from '../../../lib/logging'
 import { GetMigrationStatusResult, RunMigrationResult, MigrationChunk } from '../../../lib/api/migration'
 import { MigrationStepInput, MigrationStepInputResult } from '@sofie-automation/blueprints-integration'
 import * as _ from 'underscore'
-import { EditAttribute, EditAttributeBase } from '../../lib/EditAttribute'
+import { EditAttribute } from '../../lib/EditAttribute'
 import { MeteorCall } from '../../../lib/api/methods'
 import { checkForOldDataAndCleanUp } from './SystemManagement'
+import { EditAttributeBase } from '../../lib/editAttribute/edit-attribute-base'
 
 interface IProps {}
 interface IState {

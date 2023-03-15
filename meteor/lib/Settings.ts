@@ -82,10 +82,11 @@ const DEFAULT_SETTINGS = Object.freeze<ISettings>({
 	maximumDataAge: 1000 * 60 * 60 * 24 * 100, // 100 days
 	enableNTPTimeChecker: null,
 	defaultShelfDisplayOptions: 'buckets,layout,shelfLayout,inspector',
-	enableKeyboardPreview: false,
+	enableKeyboardPreview: true,
 	keyboardMapLayout: KeyboardLayouts.Names.STANDARD_102_TKL,
 	useCountdownToFreezeFrame: true,
 	confirmKeyCode: 'Enter',
+	customizationClassName: 'tv2',
 })
 
 /**
