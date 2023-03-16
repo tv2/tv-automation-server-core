@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import ClassNames from 'classnames'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCheck, faCopy, faDownload, faPencilAlt, faTrash } from '@fortawesome/free-solid-svg-icons'
@@ -11,7 +11,7 @@ import { ProtectedString, unprotectString } from '@sofie-automation/shared-lib/d
 import { ShowStyleBase } from '../../../../lib/collections/ShowStyleBases'
 import { MeteorCall } from '../../../../lib/api/methods'
 import { logger } from '../../../../lib/logging'
-import { doModalDialog } from '../../../lib/ModalDialog'
+import { doModalDialog, removeAllQueueItems } from '../../../lib/ModalDialog'
 import { TFunction } from 'react-i18next'
 import { i18n } from 'i18next'
 
@@ -94,6 +94,76 @@ export const VariantListItem: React.FunctionComponent<IShowStyleVariantItemProps
 			),
 		})
 	}
+
+	function showStyleVariantNameAlreadyExists(): boolean {
+		return props.dragDropVariants.some((variantToCheck: ShowStyleVariant) => {
+			const nameToCheck = variantToCheck.name
+			return nameToCheck === props.showStyleVariant.name && variantToCheck._id !== props.showStyleVariant._id
+		})
+	}
+
+	function addDuplicationCountToName(showStyleVariant: ShowStyleVariant): void {
+		showStyleVariant.name = getNameWithRemovedDuplicateIndicator(showStyleVariant)
+		showStyleVariant.name += ' (' + getDuplicatedShowStyleVariantCount(showStyleVariant) + ')'
+		MeteorCall.showstyles.renameShowStyleVariant(props.showStyleBase._id, props.showStyleVariant).catch(logger.warn)
+	}
+
+	function getDuplicatedShowStyleVariantCount(showStyleVariant: ShowStyleVariant): number {
+		const variantsWithName = props.dragDropVariants.filter((variant: ShowStyleVariant) => {
+			const variantNameWithoutDuplicator = getNameWithRemovedDuplicateIndicator(variant)
+			return variantNameWithoutDuplicator === showStyleVariant.name && variant._id !== showStyleVariant._id
+		})
+		return variantsWithName.length
+	}
+
+	function getNameWithRemovedDuplicateIndicator(showStyleVariant: ShowStyleVariant): string {
+		return showStyleVariant.name.replace(/ +\(\d+\)$/, '')
+	}
+
+	function replaceOtherShowStyleVariant(): void {
+		const variantToReplace = props.dragDropVariants.find((variant: ShowStyleVariant) => {
+			return props.showStyleVariant.name === variant.name && props.showStyleVariant._id !== variant._id
+		})
+		if (!variantToReplace) {
+			return
+		}
+		MeteorCall.showstyles.removeShowStyleVariant(variantToReplace._id).catch(logger.warn)
+	}
+
+	function provideDuplicatedNameOptions() {
+		doModalDialog({
+			title: t('Two variants have the same name, do you want to keep both?'),
+			yes: t('Keep both'),
+			no: t('Replace'),
+			onAccept: () => {
+				addDuplicationCountToName(props.showStyleVariant)
+				removeAllQueueItems()
+			},
+			onSecondary: () => {
+				replaceOtherShowStyleVariant()
+				removeAllQueueItems()
+			},
+			onDiscard: () => {
+				addDuplicationCountToName(props.showStyleVariant)
+				removeAllQueueItems()
+			},
+			message: (
+				<React.Fragment>
+					<p>
+						{t('Do you want to replace "{{showStyleVariantName}}"?', {
+							showStyleVariantName: props.showStyleVariant.name,
+						})}
+					</p>
+				</React.Fragment>
+			),
+		})
+	}
+
+	useEffect(() => {
+		if (showStyleVariantNameAlreadyExists()) {
+			provideDuplicatedNameOptions()
+		}
+	}, [editedMappings, props.showStyleVariant.name])
 
 	return (
 		<React.Fragment key={unprotectString(props.showStyleVariant._id)}>

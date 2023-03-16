@@ -109,7 +109,7 @@ export const ShowStyleVariantImportButton = withTranslation()(
 								new Notification(
 									undefined,
 									NoticeLevel.TIP,
-									t('Skipped Variant {{name}}.', {
+									t('Skipped import of Variant {{name}}.', {
 										name: showStyleVariant.name,
 									}),
 									'VariantSettings'

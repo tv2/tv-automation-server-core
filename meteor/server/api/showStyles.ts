@@ -188,6 +188,19 @@ async function reassignShowStyleVariantIndexes(orderedVariants: ShowStyleVariant
 	)
 }
 
+export async function renameShowStyleVariant(
+	context: MethodContext,
+	showStyleBaseId: ShowStyleBaseId,
+	renamedShowStyleVariant: ShowStyleVariant
+): Promise<void> {
+	await assertShowStyleBaseAccess(context, showStyleBaseId)
+	await ShowStyleVariants.updateAsync(renamedShowStyleVariant._id, {
+		$set: {
+			name: renamedShowStyleVariant.name,
+		},
+	})
+}
+
 class ServerShowStylesAPI extends MethodContextAPI implements NewShowStylesAPI {
 	async insertShowStyleBase() {
 		return insertShowStyleBase(this)
@@ -209,6 +222,9 @@ class ServerShowStylesAPI extends MethodContextAPI implements NewShowStylesAPI {
 	}
 	async reorderAllShowStyleVariants(showStyleBaseId: ShowStyleBaseId, orderedVariants: ShowStyleVariant[]) {
 		return reorderAllShowStyleVariants(this, showStyleBaseId, orderedVariants)
+	}
+	async renameShowStyleVariant(showStyleBaseId: ShowStyleBaseId, renamedShowStyleVariant: ShowStyleVariant) {
+		return renameShowStyleVariant(this, showStyleBaseId, renamedShowStyleVariant)
 	}
 }
 registerClassToMeteorMethods(ShowStylesAPIMethods, ServerShowStylesAPI, false)
