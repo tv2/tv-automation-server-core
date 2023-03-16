@@ -90,6 +90,7 @@ export interface ConfigManifestEntryTable extends ConfigManifestEntryBase {
 		rank: number
 	})[]
 	defaultVal: TableConfigItemValue
+	disableRowManipulation?: boolean
 }
 
 interface ConfigManifestEntrySelectBase<Multiple extends boolean> extends ConfigManifestEntryBase {

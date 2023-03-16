@@ -81,7 +81,7 @@ function filterLayerMappings(
 	return result
 }
 
-function filterGfxDefaults<DBInterface extends { _id: ProtectedString<any> }>(
+function getFilteredTableValues<DBInterface extends { _id: ProtectedString<any> }>(
 	item: ConfigManifestEntrySelectPickedFromColumn<boolean>,
 	configPath: string,
 	object: DBInterface,
@@ -95,8 +95,7 @@ function filterGfxDefaults<DBInterface extends { _id: ProtectedString<any> }>(
 	const defaultRow = toTable.filter((row) => {
 		return typeof row === 'object' && row[item.toColumnId] !== undefined
 	})
-
-	if (!Array.isArray(fromTable) && !Array.isArray(toTable)) {
+	if ((!Array.isArray(fromTable) && !Array.isArray(toTable)) || defaultRow.length < 1) {
 		return result
 	}
 
@@ -104,7 +103,6 @@ function filterGfxDefaults<DBInterface extends { _id: ProtectedString<any> }>(
 		if (!(typeof row === 'object' && row[item.fromColumnId] !== undefined)) {
 			return
 		}
-
 		row[item.compareId].forEach((compareColumn) => {
 			if (compareColumn === defaultRow[0][item.toColumnId] && Array.isArray(row[item.fromColumnId])) {
 				row[item.fromColumnId].forEach((column) => {
@@ -293,7 +291,7 @@ function getEditAttribute<DBInterface extends { _id: ProtectedString<any> }>(
 					attribute={attribute}
 					obj={object}
 					type={item.multiple ? 'multiselect' : 'dropdown'}
-					options={filterGfxDefaults(item, configPath, object, alternateObject)}
+					options={getFilteredTableValues(item, configPath, object, alternateObject)}
 					collection={collection}
 					className="input text-input dropdown input-l"
 				/>
@@ -611,49 +609,55 @@ export class ConfigManifestTable<
 											)}
 										</td>
 									))}
-									<td>
-										<button
-											className={ClassNames('btn btn-danger', {
-												'btn-tight': this.props.subPanel,
-											})}
-											onClick={() => this.removeRow(val._id, baseAttribute)}
-										>
-											<FontAwesomeIcon icon={faTrash} />
-										</button>
-									</td>
+									{configEntry.disableRowManipulation === true || (
+										<td>
+											<button
+												className={ClassNames('btn btn-danger', {
+													'btn-tight': this.props.subPanel,
+												})}
+												onClick={() => this.removeRow(val._id, baseAttribute)}
+											>
+												<FontAwesomeIcon icon={faTrash} />
+											</button>
+										</td>
+									)}
 								</tr>
 							))}
 						</tbody>
 					</table>
 				</div>
-				<button
-					className={ClassNames('btn btn-primary', {
-						'btn-tight': this.props.subPanel,
-					})}
-					onClick={() => this.addRow(configEntry, baseAttribute)}
-				>
-					<FontAwesomeIcon icon={faPlus} />
-				</button>
-				<button
-					className={ClassNames('btn mlm btn-secondary', {
-						'btn-tight': this.props.subPanel,
-					})}
-					onClick={() => this.exportJSON(configEntry, vals)}
-				>
-					<FontAwesomeIcon icon={faDownload} />
-					&nbsp;{t('Export')}
-				</button>
-				<UploadButton
-					className={ClassNames('btn btn-secondary mls', {
-						'btn-tight': this.props.subPanel,
-					})}
-					accept="application/json,.json"
-					onChange={(e) => this.importJSON(e, configEntry, baseAttribute)}
-					key={this.state.uploadFileKey}
-				>
-					<FontAwesomeIcon icon={faUpload} />
-					&nbsp;{t('Import')}
-				</UploadButton>
+				{configEntry.disableRowManipulation === true || (
+					<div>
+						<button
+							className={ClassNames('btn btn-primary', {
+								'btn-tight': this.props.subPanel,
+							})}
+							onClick={() => this.addRow(configEntry, baseAttribute)}
+						>
+							<FontAwesomeIcon icon={faPlus} />
+						</button>
+						<button
+							className={ClassNames('btn mlm btn-secondary', {
+								'btn-tight': this.props.subPanel,
+							})}
+							onClick={() => this.exportJSON(configEntry, vals)}
+						>
+							<FontAwesomeIcon icon={faDownload} />
+							&nbsp;{t('Export')}
+						</button>
+						<UploadButton
+							className={ClassNames('btn btn-secondary mls', {
+								'btn-tight': this.props.subPanel,
+							})}
+							accept="application/json,.json"
+							onChange={(e) => this.importJSON(e, configEntry, baseAttribute)}
+							key={this.state.uploadFileKey}
+						>
+							<FontAwesomeIcon icon={faUpload} />
+							&nbsp;{t('Import')}
+						</UploadButton>
+					</div>
+				)}
 			</div>
 		)
 	}
