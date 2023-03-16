@@ -96,16 +96,20 @@ export const VariantListItem: React.FunctionComponent<IShowStyleVariantItemProps
 	}
 
 	function showStyleVariantNameAlreadyExists(): boolean {
-		return props.dragDropVariants.some((variantToCheck: ShowStyleVariant) => {
-			const nameToCheck = variantToCheck.name
-			return nameToCheck === props.showStyleVariant.name && variantToCheck._id !== props.showStyleVariant._id
+		return props.dragDropVariants.some((variant: ShowStyleVariant) => {
+			return variant.name === props.showStyleVariant.name && variant._id !== props.showStyleVariant._id
 		})
 	}
 
-	function addDuplicationCountToName(showStyleVariant: ShowStyleVariant): void {
+	function addDuplicationCountToName(showStyleVariant: ShowStyleVariant, duplicatorIncrement?: number): void {
+		const increment = duplicatorIncrement ?? 0
 		showStyleVariant.name = getNameWithRemovedDuplicateIndicator(showStyleVariant)
-		showStyleVariant.name += ' (' + getDuplicatedShowStyleVariantCount(showStyleVariant) + ')'
-		MeteorCall.showstyles.renameShowStyleVariant(props.showStyleBase._id, props.showStyleVariant).catch(logger.warn)
+		showStyleVariant.name += ' (' + (getDuplicatedShowStyleVariantCount(showStyleVariant) + increment) + ')'
+		if (showStyleVariantNameAlreadyExists()) {
+			addDuplicationCountToName(showStyleVariant, increment + 1)
+		} else {
+			MeteorCall.showstyles.renameShowStyleVariant(props.showStyleBase._id, props.showStyleVariant).catch(logger.warn)
+		}
 	}
 
 	function getDuplicatedShowStyleVariantCount(showStyleVariant: ShowStyleVariant): number {
