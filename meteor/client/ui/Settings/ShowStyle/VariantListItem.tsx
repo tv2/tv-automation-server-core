@@ -14,7 +14,7 @@ import { logger } from '../../../../lib/logging'
 import { doModalDialog } from '../../../lib/ModalDialog'
 import { TFunction } from 'react-i18next'
 import { i18n } from 'i18next'
-import { VariantConfigurationVerifier } from '../helpers/variant-configuration-verifier'
+import { ShowStyleVariantConfigurationVerifier } from '../helpers/show-style-variant-configuration-verifier'
 
 interface IShowStyleVariantItemProps {
 	index: number
@@ -37,9 +37,10 @@ export const VariantListItem: React.FunctionComponent<IShowStyleVariantItemProps
 	const initialEditedMappings: ProtectedString<'ShowStyleVariantId'>[] = []
 	const [editedMappings, setEditedMappings] = useState(initialEditedMappings)
 
-	const variantConfigurationVerifier: VariantConfigurationVerifier = new VariantConfigurationVerifier()
+	const showStyleVariantConfigurationVerifier: ShowStyleVariantConfigurationVerifier =
+		new ShowStyleVariantConfigurationVerifier()
 	const isBlueprintConfigurationInvalid: boolean =
-		variantConfigurationVerifier.isBlueprintConfigurationSelectedFromBaseInvalid(
+		showStyleVariantConfigurationVerifier.isBlueprintConfigurationSelectedFromBaseInvalid(
 			props.showStyleVariant,
 			props.showStyleBase,
 			props.blueprintConfigManifest

@@ -7,7 +7,17 @@ import {
 	ConfigManifestEntryType,
 } from '@sofie-automation/blueprints-integration'
 
-export class VariantConfigurationVerifier {
+export class ShowStyleVariantConfigurationVerifier {
+	public isBlueprintConfigurationSelectedFromBaseInvalidForAllVariants(
+		showStyleVariants: ShowStyleVariant[],
+		showStyleBase: ShowStyleBase,
+		blueprintConfigManifest: ConfigManifestEntry[]
+	): boolean {
+		return showStyleVariants.some((variant) =>
+			this.isBlueprintConfigurationSelectedFromBaseInvalid(variant, showStyleBase, blueprintConfigManifest)
+		)
+	}
+
 	public isBlueprintConfigurationSelectedFromBaseInvalid(
 		showStyleVariant: ShowStyleVariant,
 		showStyleBase: ShowStyleBase,
