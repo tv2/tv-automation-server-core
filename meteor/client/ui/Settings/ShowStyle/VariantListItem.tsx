@@ -14,6 +14,7 @@ import { logger } from '../../../../lib/logging'
 import { doModalDialog } from '../../../lib/ModalDialog'
 import { TFunction } from 'react-i18next'
 import { i18n } from 'i18next'
+import { VariantConfigurationVerifier } from '../helpers/variant-configuration-verifier'
 
 interface IShowStyleVariantItemProps {
 	index: number
@@ -35,6 +36,14 @@ export const VariantListItem: React.FunctionComponent<IShowStyleVariantItemProps
 	const { t } = props
 	const initialEditedMappings: ProtectedString<'ShowStyleVariantId'>[] = []
 	const [editedMappings, setEditedMappings] = useState(initialEditedMappings)
+
+	const variantConfigurationVerifier: VariantConfigurationVerifier = new VariantConfigurationVerifier()
+	const isBlueprintConfigurationInvalid: boolean =
+		variantConfigurationVerifier.isBlueprintConfigurationSelectedFromBaseInvalid(
+			props.showStyleVariant,
+			props.showStyleBase,
+			props.blueprintConfigManifest
+		)
 
 	function downloadShowStyleVariant(showStyleVariant: ShowStyleVariant): void {
 		const showStyleVariants = [showStyleVariant]
@@ -101,6 +110,7 @@ export const VariantListItem: React.FunctionComponent<IShowStyleVariantItemProps
 				<tr
 					className={ClassNames({
 						hl: isItemEdited(props.showStyleVariant._id),
+						'showStyleVariant-invalid-blueprint-configuration': isBlueprintConfigurationInvalid,
 					})}
 				>
 					<th className="settings-studio-showStyleVariant__name c3">
