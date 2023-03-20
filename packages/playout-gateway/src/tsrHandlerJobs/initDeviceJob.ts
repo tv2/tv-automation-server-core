@@ -159,17 +159,17 @@ export class InitDeviceJob extends Job<CreateDeviceJobsResult, undefined, Create
 
 		await deviceContainer.device.on('info', ((message: any, ...args: any[]) => {
 			const deviceName = deviceContainer.deviceName || this.deviceId
-			this.logger.data({ args }).info(`Received info from device '${deviceName}': ${fixError(message)}`)
+			this.logger.data(args).info(`Received info from device '${deviceName}': ${fixError(message)}`)
 		}) as () => void)
 
 		await deviceContainer.device.on('warning', ((warn: any, ...args: any[]) => {
 			const deviceName = deviceContainer.deviceName || this.deviceId
-			this.logger.data({ args }).warn(`Received warning from device '${deviceName}': ${fixError(warn)}`)
+			this.logger.data(args).warn(`Received warning from device '${deviceName}': ${fixError(warn)}`)
 		}) as () => void)
 
 		await deviceContainer.device.on('error', ((e: any, ...args: any[]) => {
 			const deviceName = deviceContainer.deviceName || this.deviceId
-			this.logger.data({ args }).error(`Received error from device '${deviceName}': ${fixError(e)}`)
+			this.logger.data(args).error(`Received error from device '${deviceName}': ${fixError(e)}`)
 		}) as () => void)
 
 		await deviceContainer.device.on('debug', (...args: any[]) => {
