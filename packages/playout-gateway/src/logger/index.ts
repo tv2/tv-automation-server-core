@@ -30,7 +30,7 @@ function getVaultsWithLogPath(logPath: string): Vault[] {
 		isFormatLocked: false,
 	})
 
-	const fileName = basename(logPath)
+	const fileName = getFileName(logPath)
 	const directory = dirname(logPath)
 	const fileVault = new FileVault({
 		level: DEFAULT_LOG_LEVEL,
@@ -42,6 +42,10 @@ function getVaultsWithLogPath(logPath: string): Vault[] {
 	})
 
 	return [consoleVault, fileVault]
+}
+
+function getFileName(logPath: string): string {
+	return basename(logPath).replace(/\.log$/, '')
 }
 
 function getVaultsWithoutLogPath(): Vault[] {
