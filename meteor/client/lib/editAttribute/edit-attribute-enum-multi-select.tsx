@@ -2,13 +2,15 @@ import * as React from 'react'
 import { IEditAttributeBaseProps } from './edit-attribute-base'
 import { EditAttributeMultiSelect } from './edit-attribute-multi-select'
 import { MultiSelectOption } from '../multiSelect'
+import { useMemo } from 'react'
 
 interface EditAttributeEnumMultiSelectProps extends IEditAttributeBaseProps {
 	options: object
 }
 
 export function EditAttributeEnumMultiSelect(props: EditAttributeEnumMultiSelectProps) {
-	return <EditAttributeMultiSelect {...props} options={convertEnumToMultiSelectOptions(props.options)} />
+	const options: MultiSelectOption[] = useMemo(() => convertEnumToMultiSelectOptions(props.options), props.options as any)
+	return <EditAttributeMultiSelect {...props} options={options} />
 }
 
 function convertEnumToMultiSelectOptions(options: object): MultiSelectOption[] {

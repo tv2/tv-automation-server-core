@@ -1,6 +1,7 @@
 import { IEditAttributeBaseProps } from './edit-attribute-base'
 import { DropdownOption, EditAttributeDropdown } from './edit-attribute-dropdown'
 import * as React from 'react'
+import { useMemo } from 'react'
 
 interface EditAttributeTextDropdownProps extends IEditAttributeBaseProps {
 	options: string[]
@@ -8,10 +9,12 @@ interface EditAttributeTextDropdownProps extends IEditAttributeBaseProps {
 }
 
 export function EditAttributeTextDropdown(props: EditAttributeTextDropdownProps) {
+	const dropdownOptions: DropdownOption[] = useMemo(() => mapToDropdownOptions(props.options), props.options)
+
 	return (
 		<EditAttributeDropdown
 			{...props}
-			options={mapToDropdownOptions(props.options)}
+			options={dropdownOptions}
 			mutateDisplayValue={mapDefaultNoneSelectedValue(props.defaultNoneSelectedValue)}
 			useLabel={false}
 		/>
