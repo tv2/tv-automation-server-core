@@ -99,6 +99,11 @@ function getFilteredTableValues<DBInterface extends { _id: ProtectedString<any> 
 		return result
 	}
 
+	if (gfxSetupShouldBeUsed(item, fromTable)) {
+		item.compareId = 'GfxSetup'
+		item.toColumnId = 'SelectedGfxSetupName'
+	}
+
 	fromTable.forEach((row) => {
 		if (!(typeof row === 'object' && row[item.fromColumnId] !== undefined)) {
 			return
@@ -118,6 +123,15 @@ function getFilteredTableValues<DBInterface extends { _id: ProtectedString<any> 
 		})
 	})
 	return result
+}
+
+function gfxSetupShouldBeUsed(item: ConfigManifestEntrySelectPickedFromColumn<boolean>, fromTable: any): boolean {
+	if (!(item.compareId === 'Schema' && item.toColumnId === 'DefaultSchema')) {
+		return false
+	}
+	return fromTable.find((row) => {
+		return row[item.compareId].length === 0
+	})
 }
 
 function getTableColumnValues<DBInterface extends { _id: ProtectedString<any> }>(
