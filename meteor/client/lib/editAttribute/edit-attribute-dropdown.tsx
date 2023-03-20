@@ -23,7 +23,7 @@ const WrappedEditAttributeDropdown = wrapEditAttribute(
 			this.handleChange = this.handleChange.bind(this)
 		}
 
-		handleChange(event) {
+		private handleChange(event) {
 			const selectedOptionValue: string = event.target.value
 			const selectedOption: DropdownOption | undefined = this.getAvailableOptions().find(
 				(option) => option.value === selectedOptionValue
@@ -34,7 +34,7 @@ const WrappedEditAttributeDropdown = wrapEditAttribute(
 			this.handleUpdate(selectedOption.label ? selectedOption : selectedOption.value)
 		}
 
-		getCurrentlySelectedOption(): DropdownOption {
+		private getCurrentlySelectedOption(): DropdownOption {
 			let attribute = this.getAttribute()
 			if (!!attribute && !attribute.value) {
 				attribute = { value: attribute }
@@ -42,11 +42,11 @@ const WrappedEditAttributeDropdown = wrapEditAttribute(
 			return attribute
 		}
 
-		getAvailableOptions(): DropdownOption[] {
+		private getAvailableOptions(): DropdownOption[] {
 			return (this.props as EditAttributeDropdownProps).options
 		}
 
-		getMissingOptions(availableOptions: DropdownOption[]): DropdownOption[] {
+		private getMissingOptions(availableOptions: DropdownOption[]): DropdownOption[] {
 			const selectedOption: DropdownOption = this.getCurrentlySelectedOption()
 			if (!selectedOption) {
 				return []
