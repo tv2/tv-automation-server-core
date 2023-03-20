@@ -115,7 +115,7 @@ singleton.connect(process.argv[2]).then(
 			// upload 1 by 1
 
 			if (asset.position === undefined || isNaN(asset.position) || !_.isNumber(asset.position)) {
-				console.error('Skipping due to invalid media pool ' + asset.path)
+				atemUploaderLogger.error(`Skipping due to invalid media pool '${asset.path}'.`)
 				continue
 			}
 
