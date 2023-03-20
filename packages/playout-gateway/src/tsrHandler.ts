@@ -825,7 +825,7 @@ export class TSRHandler {
 		const options = device.deviceOptions.options as { host: string }
 		if (!options || !options.host) {
 			this.logger.data(options).debug('ATEM host options is missing from:')
-			throw Error('ATEM host option not set')
+			throw new Error('ATEM host option is not set.')
 		}
 		this.logger.info(`Trying to upload files to ${options.host}`)
 		const process = cp.spawn(`node`, [`./dist/atemUploader.js`, options.host, JSON.stringify(files)])

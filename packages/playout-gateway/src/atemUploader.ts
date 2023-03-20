@@ -65,7 +65,7 @@ export class AtemUploadScript {
 		else if (type === AtemMediaPoolType.Clip) pool = clip
 
 		if (!pool) {
-			throw Error(`Atem appears to be missing the type '${type}'`)
+			throw new Error(`Atem appears to be missing the type '${type}'`)
 		}
 
 		if (!pool.isUsed) {

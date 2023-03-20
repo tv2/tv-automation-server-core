@@ -174,7 +174,7 @@ export class CoreHandler {
 		subDeviceType: DeviceType | PERIPHERAL_SUBTYPE_PROCESS
 	): CoreOptions {
 		if (!this._deviceOptions.deviceId) {
-			throw new Error('DeviceId is not set!')
+			throw new Error('DeviceId is not set during getCoreConnectionOptions!')
 		}
 
 		const options: CoreOptions = {
@@ -205,7 +205,7 @@ export class CoreHandler {
 	onDeviceChanged(id: PeripheralDeviceId): void {
 		if (id === this.core.deviceId) {
 			const col = this.core.getCollection('peripheralDevices')
-			if (!col) throw new Error('collection "peripheralDevices" not found!')
+			if (!col) throw new Error('Collection "peripheralDevices" not found!')
 
 			const device = col.findOne(id)
 			if (device) {
@@ -300,7 +300,7 @@ export class CoreHandler {
 			// eslint-disable-next-line @typescript-eslint/ban-types
 			const fcn: Function = fcnObject[cmd.functionName]
 			try {
-				if (!fcn) throw Error(`Function '${cmd.functionName}' not found on device '${cmd.deviceId}'!`)
+				if (!fcn) throw new Error(`Function '${cmd.functionName}' not found on device '${cmd.deviceId}'!`)
 
 				Promise.resolve(fcn.apply(fcnObject, cmd.args))
 					.then((result) => cb(null, result))
@@ -320,12 +320,12 @@ export class CoreHandler {
 		const addedChangedCommand = (id: string) => {
 			const cmds = functionObject.core.getCollection('peripheralDeviceCommands')
 			if (!cmds) {
-				throw Error('"peripheralDeviceCommands" collection not found!')
+				throw new Error('"peripheralDeviceCommands" collection not found!')
 			}
 
 			const cmd = cmds.findOne(id) as PeripheralDeviceCommand
 			if (!cmd) {
-				throw Error('PeripheralCommand "' + id + '" not found!')
+				throw new Error(`PeripheralCommand '${id}' not found!`)
 			}
 
 			if (cmd.deviceId !== functionObject.core.deviceId) {
@@ -343,7 +343,7 @@ export class CoreHandler {
 			this.retireExecuteFunction(id)
 		}
 		const cmds = functionObject.core.getCollection('peripheralDeviceCommands')
-		if (!cmds) throw Error('"peripheralDeviceCommands" collection not found!')
+		if (!cmds) throw new Error('"peripheralDeviceCommands" collection not found!')
 		cmds.find({}).forEach((cmd0: CollectionObj) => {
 			const cmd = cmd0 as PeripheralDeviceCommand
 			if (cmd.deviceId === functionObject.core.deviceId) {
@@ -364,18 +364,16 @@ export class CoreHandler {
 		return false
 	}
 	async devicesMakeReady(okToDestroyStuff?: boolean, activeRundownId?: string): Promise<any> {
-		if (this._tsrHandler) {
-			return this._tsrHandler.tsr.devicesMakeReady(okToDestroyStuff, activeRundownId)
-		} else {
-			throw Error('TSR not set up!')
+		if (!this._tsrHandler) {
+			throw new Error('TSR is not set up during devicesMakeReady!')
 		}
+		return this._tsrHandler.tsr.devicesMakeReady(okToDestroyStuff, activeRundownId)
 	}
 	async devicesStandDown(okToDestroyStuff?: boolean): Promise<any> {
-		if (this._tsrHandler) {
-			return this._tsrHandler.tsr.devicesStandDown(okToDestroyStuff)
-		} else {
-			throw Error('TSR not set up!')
+		if (!this._tsrHandler) {
+			throw new Error('TSR is not set up during devicesStandDown!')
 		}
+		return this._tsrHandler.tsr.devicesStandDown(okToDestroyStuff)
 	}
 	pingResponse(message: string): void {
 		this.core.setPingResponse(message)
@@ -407,52 +405,58 @@ export class CoreHandler {
 		return devices
 	}
 	async getMemoryUsage(): Promise<MemoryUsageReport> {
-		if (this._tsrHandler) {
-			/** Convert all properties from bytes to MB */
-			const toMB = (o: any) => {
-				if (typeof o === 'object') {
-					const o2: any = {}
-					for (const key of Object.keys(o)) {
-						o2[key] = toMB(o[key])
-					}
-					return o2
-				} else if (typeof o === 'number') {
-					return o / 1024 / 1024
-				}
-				return o
-			}
-
-			const values: MemoryUsageReport = {
-				main: toMB(process.memoryUsage()),
-				threads: toMB(await this._tsrHandler.tsr.getThreadsMemoryUsage()),
-			}
-
-			return toMB(values)
-		} else {
-			throw new Error('TSR not set up!')
+		if (!this._tsrHandler) {
+			throw new Error('TSR not set up during getMemoryUsage!')
 		}
+
+		/** Convert all properties from bytes to MB */
+		const toMB = (o: any) => {
+			if (typeof o === 'object') {
+				const o2: any = {}
+				for (const key of Object.keys(o)) {
+					o2[key] = toMB(o[key])
+				}
+				return o2
+			} else if (typeof o === 'number') {
+				return o / 1024 / 1024
+			}
+			return o
+		}
+
+		const values: MemoryUsageReport = {
+			main: toMB(process.memoryUsage()),
+			threads: toMB(await this._tsrHandler.tsr.getThreadsMemoryUsage()),
+		}
+
+		return toMB(values)
 	}
 	async restartCasparCG(deviceId: string): Promise<any> {
-		if (!this._tsrHandler) throw new Error('TSRHandler is not initialized')
+		if (!this._tsrHandler) {
+			throw new Error('TSR is not set up during restartCasparCG!')
+		}
 
 		const device = this._tsrHandler.tsr.getDevice(deviceId)?.device as ThreadedClass<CasparCGDevice>
-		if (!device) throw new Error(`TSR Device '${deviceId}' not found!`)
+		if (!device) throw new Error(`TSR Device '${deviceId}' not found during restartCasparCG!`)
 
 		return device.restartCasparCG()
 	}
 	async restartQuantel(deviceId: string): Promise<any> {
-		if (!this._tsrHandler) throw new Error('TSRHandler is not initialized')
+		if (!this._tsrHandler) {
+			throw new Error('TSR is not set up during restartQuantel!')
+		}
 
 		const device = this._tsrHandler.tsr.getDevice(deviceId)?.device as ThreadedClass<QuantelDevice>
-		if (!device) throw new Error(`TSR Device '${deviceId}' not found!`)
+		if (!device) throw new Error(`TSR Device '${deviceId}' not found during restartQuantel!`)
 
 		return device.restartGateway()
 	}
 	async formatHyperdeck(deviceId: string): Promise<void> {
-		if (!this._tsrHandler) throw new Error('TSRHandler is not initialized')
+		if (!this._tsrHandler) {
+			throw new Error('TSR is not set up during formatHyperdeck!')
+		}
 
 		const device = this._tsrHandler.tsr.getDevice(deviceId)?.device as ThreadedClass<HyperdeckDevice>
-		if (!device) throw new Error(`TSR Device '${deviceId}' not found!`)
+		if (!device) throw new Error(`TSR Device '${deviceId}' not found during formatHyperdeck!`)
 
 		await device.formatDisks()
 	}
