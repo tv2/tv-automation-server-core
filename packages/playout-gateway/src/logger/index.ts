@@ -64,12 +64,14 @@ function hijackConsole(logger: Logger): void {
 	console.error = getConsoleErrorFunction(logger)
 }
 
+const HIJACKED_CONSOLE_TAG = 'hijacked-console'
+
 function getConsoleLogFunction(logger: Logger): (...args: unknown[]) => void {
 	return (...args: unknown[]): void => {
 		if (args.length < 1) {
 			return
 		}
-		logger.data(args).debug('Logged via console.log:')
+		logger.tag(HIJACKED_CONSOLE_TAG).data(args).debug('Logged via console.log:')
 	}
 }
 
@@ -78,7 +80,7 @@ function getConsoleWarnFunction(logger: Logger): (...args: unknown[]) => void {
 		if (args.length < 1) {
 			return
 		}
-		logger.data(args).warn('Logged via console.warn:')
+		logger.tag(HIJACKED_CONSOLE_TAG).data(args).warn('Logged via console.warn:')
 	}
 }
 
@@ -87,6 +89,6 @@ function getConsoleErrorFunction(logger: Logger): (...args: unknown[]) => void {
 		if (args.length < 1) {
 			return
 		}
-		logger.data(args).error('Logged via console.error:')
+		logger.tag(HIJACKED_CONSOLE_TAG).data(args).error('Logged via console.error:')
 	}
 }
