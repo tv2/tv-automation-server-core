@@ -60,8 +60,8 @@ function getVaultsWithoutLogPath(): Vault[] {
 
 function hijackConsole(logger: Logger): void {
 	console.log = getConsoleLogFunction(logger)
-	console.warn = getConsoleLogFunction(logger)
-	console.error = getConsoleLogFunction(logger)
+	console.warn = getConsoleWarnFunction(logger)
+	console.error = getConsoleErrorFunction(logger)
 }
 
 function getConsoleLogFunction(logger: Logger): (...args: unknown[]) => void {
@@ -69,6 +69,24 @@ function getConsoleLogFunction(logger: Logger): (...args: unknown[]) => void {
 		if (args.length < 1) {
 			return
 		}
-		logger.debug(args)
+		logger.data(args).debug('Logged via console.log:')
+	}
+}
+
+function getConsoleWarnFunction(logger: Logger): (...args: unknown[]) => void {
+	return (...args: unknown[]): void => {
+		if (args.length < 1) {
+			return
+		}
+		logger.data(args).warn('Logged via console.warn:')
+	}
+}
+
+function getConsoleErrorFunction(logger: Logger): (...args: unknown[]) => void {
+	return (...args: unknown[]): void => {
+		if (args.length < 1) {
+			return
+		}
+		logger.data(args).error('Logged via console.error:')
 	}
 }
