@@ -25,6 +25,7 @@ interface IModalDialogAttributes {
 	actions?: ModalAction[]
 	className?: string
 }
+
 interface ModalInput {
 	type: EditAttributeType
 	label?: string
@@ -32,14 +33,17 @@ interface ModalInput {
 	text?: string
 	defaultValue?: any
 }
+
 interface ModalAction {
 	label: string
 	on: OnAction
 	classNames?: string
 }
+
 type OnAction = (e: SomeEvent, inputResult: ModalInputResult) => void
 export type ModalInputResult = { [attribute: string]: any }
 export type SomeEvent = Event | React.SyntheticEvent<object>
+
 export class ModalDialog extends React.Component<IModalDialogAttributes> {
 	sorensen: Sorensen
 
@@ -298,6 +302,7 @@ class ModalDialogGlobalContainer0 extends React.Component<
 			queue: [],
 		}
 	}
+
 	public addQueue(q: ModalDialogQueueItem) {
 		const queue = this.state.queue
 		queue.push(q)
@@ -305,9 +310,11 @@ class ModalDialogGlobalContainer0 extends React.Component<
 			queue,
 		})
 	}
+
 	public queueHasItems(): boolean {
 		return this.state.queue.length > 0
 	}
+
 	public removeAllQueueItems(): void {
 		const queue = this.state.queue
 		queue.splice(0)
@@ -315,6 +322,7 @@ class ModalDialogGlobalContainer0 extends React.Component<
 			queue,
 		})
 	}
+
 	onAccept = (e: SomeEvent, inputResult: ModalInputResult) => {
 		const queue = this.state.queue
 		const onQueue = queue.shift()
@@ -323,6 +331,7 @@ class ModalDialogGlobalContainer0 extends React.Component<
 			onQueue.onAccept(e, inputResult)
 		}
 	}
+
 	onDiscard = (e: SomeEvent, inputResult: ModalInputResult) => {
 		const queue = this.state.queue
 		const onQueue = queue.shift()
@@ -333,6 +342,7 @@ class ModalDialogGlobalContainer0 extends React.Component<
 			}
 		}
 	}
+
 	onSecondary = (e: SomeEvent, inputResult: ModalInputResult) => {
 		const queue = this.state.queue
 		const onQueue = queue.shift()
@@ -343,6 +353,7 @@ class ModalDialogGlobalContainer0 extends React.Component<
 			}
 		}
 	}
+
 	onAction = (e: SomeEvent, inputResult: ModalInputResult, on: OnAction) => {
 		const queue = this.state.queue
 		const onQueue = queue.shift()
@@ -351,6 +362,7 @@ class ModalDialogGlobalContainer0 extends React.Component<
 			on(e, inputResult)
 		}
 	}
+
 	renderString = (str: string) => {
 		const lines = (str || '').split('\n')
 
@@ -358,6 +370,7 @@ class ModalDialogGlobalContainer0 extends React.Component<
 			return <p key={i}>{line.trim()}</p>
 		})
 	}
+
 	render() {
 		const { t } = this.props
 		const onQueue = _.first(this.state.queue)
@@ -389,6 +402,7 @@ class ModalDialogGlobalContainer0 extends React.Component<
 		} else return null
 	}
 }
+
 export const ModalDialogGlobalContainer = withTranslation()(ModalDialogGlobalContainer0)
 let modalDialogGlobalContainerSingleton: ModalDialogGlobalContainer0
 /**
@@ -421,9 +435,9 @@ export function isModalShowing(): boolean {
 }
 
 export function removeAllQueueItems(): void {
-	if (modalDialogGlobalContainerSingleton) {
-		modalDialogGlobalContainerSingleton.removeAllQueueItems()
-	} else {
+	if (!modalDialogGlobalContainerSingleton) {
 		logger.error('modalDialogGlobalContainerSingleton not set!')
+		return
 	}
+	modalDialogGlobalContainerSingleton.removeAllQueueItems()
 }

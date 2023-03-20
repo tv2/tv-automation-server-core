@@ -102,17 +102,17 @@ export const VariantListItem: React.FunctionComponent<IShowStyleVariantItemProps
 	}
 
 	function showStyleVariantNameAlreadyExists(showStyleVariant: ShowStyleVariant): boolean {
-		return props.dragDropVariants.some((variant: ShowStyleVariant) => {
-			return variant.name === showStyleVariant.name && variant._id !== showStyleVariant._id
-		})
+		return props.dragDropVariants.some(
+			(variant: ShowStyleVariant) => variant.name === showStyleVariant.name && variant._id !== showStyleVariant._id
+		)
 	}
 
-	function addDuplicationCountToName(showStyleVariant: ShowStyleVariant, duplicatorIncrement?: number): void {
-		const increment = duplicatorIncrement ?? 0
-		showStyleVariant.name = getNameWithRemovedDuplicateIndicator(showStyleVariant)
-		showStyleVariant.name += ' (' + (getDuplicatedShowStyleVariantCount(showStyleVariant) + increment) + ')'
+	function addDuplicationCountToName(showStyleVariant: ShowStyleVariant, duplicatorIncrement: number = 0): void {
+		showStyleVariant.name = `${getNameWithRemovedDuplicateIndicator(showStyleVariant)} (${
+			getDuplicatedShowStyleVariantCount(showStyleVariant) + duplicatorIncrement
+		})`
 		if (showStyleVariantNameAlreadyExists(showStyleVariant)) {
-			addDuplicationCountToName(showStyleVariant, increment + 1)
+			addDuplicationCountToName(showStyleVariant, duplicatorIncrement + 1)
 		} else {
 			MeteorCall.showstyles.renameShowStyleVariant(props.showStyleBase._id, props.showStyleVariant).catch(logger.warn)
 		}
@@ -142,8 +142,8 @@ export const VariantListItem: React.FunctionComponent<IShowStyleVariantItemProps
 
 	function provideDuplicatedNameOptions() {
 		doModalDialog({
-			title: t('Two variants have the same name, do you want to keep both?'),
-			yes: t('Keep both'),
+			title: t('Two or more variants have the same name'),
+			yes: t('Keep'),
 			no: t('Replace'),
 			onAccept: () => {
 				addDuplicationCountToName(props.showStyleVariant)
@@ -160,9 +160,12 @@ export const VariantListItem: React.FunctionComponent<IShowStyleVariantItemProps
 			message: (
 				<React.Fragment>
 					<p>
-						{t('Do you want to replace "{{showStyleVariantName}}"?', {
-							showStyleVariantName: props.showStyleVariant.name,
-						})}
+						{t(
+							'Do you want to keep the newly created Variant: "{{showStyleVariantName}}" as a duplicate or replace it?',
+							{
+								showStyleVariantName: props.showStyleVariant.name,
+							}
+						)}
 					</p>
 				</React.Fragment>
 			),

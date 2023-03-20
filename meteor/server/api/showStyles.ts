@@ -191,7 +191,7 @@ async function reassignShowStyleVariantIndexes(orderedVariants: ShowStyleVariant
 export async function renameShowStyleVariant(
 	context: MethodContext,
 	showStyleBaseId: ShowStyleBaseId,
-	renamedShowStyleVariant: ShowStyleVariant
+	renamedShowStyleVariant: Pick<ShowStyleVariant, '_id' | 'name'>
 ): Promise<void> {
 	await assertShowStyleBaseAccess(context, showStyleBaseId)
 	await ShowStyleVariants.updateAsync(renamedShowStyleVariant._id, {
@@ -223,7 +223,10 @@ class ServerShowStylesAPI extends MethodContextAPI implements NewShowStylesAPI {
 	async reorderAllShowStyleVariants(showStyleBaseId: ShowStyleBaseId, orderedVariants: ShowStyleVariant[]) {
 		return reorderAllShowStyleVariants(this, showStyleBaseId, orderedVariants)
 	}
-	async renameShowStyleVariant(showStyleBaseId: ShowStyleBaseId, renamedShowStyleVariant: ShowStyleVariant) {
+	async renameShowStyleVariant(
+		showStyleBaseId: ShowStyleBaseId,
+		renamedShowStyleVariant: Pick<ShowStyleVariant, '_id' | 'name'>
+	) {
 		return renameShowStyleVariant(this, showStyleBaseId, renamedShowStyleVariant)
 	}
 }
