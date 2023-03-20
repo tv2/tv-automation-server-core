@@ -7,7 +7,7 @@ import { ShowStyleVariant, ShowStyleVariants } from '../../../../lib/collections
 import { ConfigManifestSettings } from '../ConfigManifestSettings'
 import { ConfigManifestEntry, SourceLayerType } from '@sofie-automation/blueprints-integration'
 import { MappingsExt } from '@sofie-automation/corelib/dist/dataModel/Studio'
-import { ProtectedString, unprotectString } from '@sofie-automation/shared-lib/dist/lib/protectedString'
+import { ProtectedString, protectString, unprotectString } from '@sofie-automation/shared-lib/dist/lib/protectedString'
 import { ShowStyleBase } from '../../../../lib/collections/ShowStyleBases'
 import { MeteorCall } from '../../../../lib/api/methods'
 import { logger } from '../../../../lib/logging'
@@ -52,9 +52,15 @@ export const VariantListItem: React.FunctionComponent<IShowStyleVariantItemProps
 	}
 
 	function copyShowStyleVariant(showStyleVariant: ShowStyleVariant): void {
-		showStyleVariant.name = `Copy of ${showStyleVariant.name}`
-		showStyleVariant._rank = props.dragDropVariants.length
-		MeteorCall.showstyles.importShowStyleVariantAsNew(showStyleVariant).catch(logger.warn)
+		const variantFromCopy: ShowStyleVariant = {
+			name: `Copy of ${showStyleVariant.name}`,
+			_id: protectString(''),
+			_rank: props.dragDropVariants.length,
+			showStyleBaseId: showStyleVariant.showStyleBaseId,
+			blueprintConfig: showStyleVariant.blueprintConfig,
+			_rundownVersionHash: showStyleVariant._rundownVersionHash,
+		}
+		MeteorCall.showstyles.importShowStyleVariantAsNew(variantFromCopy).catch(logger.warn)
 	}
 
 	function isItemEdited(layerId: ProtectedString<'ShowStyleVariantId'>): boolean {
@@ -95,9 +101,9 @@ export const VariantListItem: React.FunctionComponent<IShowStyleVariantItemProps
 		})
 	}
 
-	function showStyleVariantNameAlreadyExists(): boolean {
+	function showStyleVariantNameAlreadyExists(showStyleVariant: ShowStyleVariant): boolean {
 		return props.dragDropVariants.some((variant: ShowStyleVariant) => {
-			return variant.name === props.showStyleVariant.name && variant._id !== props.showStyleVariant._id
+			return variant.name === showStyleVariant.name && variant._id !== showStyleVariant._id
 		})
 	}
 
@@ -105,7 +111,7 @@ export const VariantListItem: React.FunctionComponent<IShowStyleVariantItemProps
 		const increment = duplicatorIncrement ?? 0
 		showStyleVariant.name = getNameWithRemovedDuplicateIndicator(showStyleVariant)
 		showStyleVariant.name += ' (' + (getDuplicatedShowStyleVariantCount(showStyleVariant) + increment) + ')'
-		if (showStyleVariantNameAlreadyExists()) {
+		if (showStyleVariantNameAlreadyExists(showStyleVariant)) {
 			addDuplicationCountToName(showStyleVariant, increment + 1)
 		} else {
 			MeteorCall.showstyles.renameShowStyleVariant(props.showStyleBase._id, props.showStyleVariant).catch(logger.warn)
@@ -164,7 +170,7 @@ export const VariantListItem: React.FunctionComponent<IShowStyleVariantItemProps
 	}
 
 	useEffect(() => {
-		if (showStyleVariantNameAlreadyExists()) {
+		if (showStyleVariantNameAlreadyExists(props.showStyleVariant)) {
 			provideDuplicatedNameOptions()
 		}
 	}, [editedMappings, props.showStyleVariant.name])
