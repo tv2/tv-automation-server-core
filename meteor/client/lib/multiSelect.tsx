@@ -79,9 +79,9 @@ export class MultiSelect extends React.Component<IProps, IState> {
 	}
 
 	getOptionsFromCheckedIds(): MultiSelectOption[] {
- 		return this.state.checkedIds
+		return this.state.checkedIds
 			.map((id) => this.props.options.find((option) => option.value === id))
-			.filter(option => !!option) as MultiSelectOption[]
+			.filter((option) => !!option) as MultiSelectOption[]
 	}
 
 	isChecked = (idToCheck: string): boolean => {

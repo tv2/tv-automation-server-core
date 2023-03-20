@@ -24,7 +24,11 @@ const WrappedEditAttributeMultiSelect = wrapEditAttribute(
 		}
 
 		getCurrentlySelectedOptions(): MultiSelectOption[] {
-			return this.getAttribute() ?? []
+			const attribute = this.getAttribute()
+			if (!attribute || !Array.isArray(attribute)) {
+				return []
+			}
+			return attribute
 		}
 
 		getAvailableOptions(): MultiSelectOption[] {

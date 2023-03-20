@@ -4,13 +4,11 @@ import * as React from 'react'
 
 export interface DropdownOption {
 	value: string
-	// Must be provided when 'useLabel' is true
 	label?: string
 }
 
 interface EditAttributeDropdownProps extends IEditAttributeBaseProps {
 	options: DropdownOption[]
-	useLabel?: boolean
 }
 
 export function EditAttributeDropdown(props: EditAttributeDropdownProps) {
@@ -33,8 +31,7 @@ const WrappedEditAttributeDropdown = wrapEditAttribute(
 			if (!selectedOption) {
 				return
 			}
-			const props = this.props as EditAttributeDropdownProps
-			this.handleUpdate(props.useLabel ? selectedOption : selectedOption.value)
+			this.handleUpdate(selectedOption.label ? selectedOption : selectedOption.value)
 		}
 
 		getCurrentlySelectedOption(): DropdownOption {

@@ -9,7 +9,7 @@ interface EditAttributeEnumMultiSelectProps extends IEditAttributeBaseProps {
 }
 
 export function EditAttributeEnumMultiSelect(props: EditAttributeEnumMultiSelectProps) {
-	const options: MultiSelectOption[] = useMemo(() => convertEnumToMultiSelectOptions(props.options), props.options as any)
+	const options: MultiSelectOption[] = useMemo(() => convertEnumToMultiSelectOptions(props.options), [props.options])
 	return <EditAttributeMultiSelect {...props} options={options} />
 }
 

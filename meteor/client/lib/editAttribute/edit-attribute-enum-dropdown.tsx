@@ -8,8 +8,8 @@ interface EditAttributeEnumDropdownProps extends IEditAttributeBaseProps {
 }
 
 export function EditAttributeEnumDropdown(props: EditAttributeEnumDropdownProps) {
-	const options = useMemo(() => mapToDropdownOptions(props.options), props.options as any)
-	return <EditAttributeDropdown {...props} options={options} useLabel={false} />
+	const options: DropdownOption[] = useMemo(() => mapToDropdownOptions(props.options), [props.options])
+	return <EditAttributeDropdown {...props} options={options} />
 }
 
 function mapToDropdownOptions(options: object): DropdownOption[] {

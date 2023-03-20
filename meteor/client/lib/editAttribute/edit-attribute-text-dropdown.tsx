@@ -16,7 +16,6 @@ export function EditAttributeTextDropdown(props: EditAttributeTextDropdownProps)
 			{...props}
 			options={dropdownOptions}
 			mutateDisplayValue={mapDefaultNoneSelectedValue(props.defaultNoneSelectedValue)}
-			useLabel={false}
 		/>
 	)
 }

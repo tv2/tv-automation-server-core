@@ -259,7 +259,6 @@ function renderDropdown(attribute: string, obj: any, options: DropdownOption[], 
 			attribute={attribute}
 			obj={obj}
 			options={options}
-			useLabel={true}
 			collection={collection}
 			className="input text-input dropdown input-l"
 		/>
