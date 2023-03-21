@@ -95,7 +95,7 @@ function getFilteredTableValues<DBInterface extends { _id: ProtectedString<any> 
 	const defaultRow = toTable.filter((row) => {
 		return typeof row === 'object' && row[item.toColumnId] !== undefined
 	})
-	if ((!Array.isArray(fromTable) && !Array.isArray(toTable)) || defaultRow.length < 1) {
+	if (!Array.isArray(fromTable) || !Array.isArray(toTable) || defaultRow.length < 1) {
 		return result
 	}
 
@@ -126,7 +126,7 @@ function getFilteredTableValues<DBInterface extends { _id: ProtectedString<any> 
 }
 
 function gfxSetupShouldBeUsed(item: ConfigManifestEntrySelectPickedFromColumn<boolean>, fromTable: any): boolean {
-	if (!(item.compareId === 'Schema' && item.toColumnId === 'DefaultSchema')) {
+	if (!(item.compareId === 'Schema' && item.toColumnId === 'DefaultSchema') || !Array.isArray(fromTable)) {
 		return false
 	}
 	return fromTable.find((row) => {
