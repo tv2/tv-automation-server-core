@@ -4,13 +4,11 @@ import * as React from 'react'
 
 export interface DropdownOption {
 	value: string
-	// Must be provided when 'useLabel' is true
 	label?: string
 }
 
 interface EditAttributeDropdownProps extends IEditAttributeBaseProps {
 	options: DropdownOption[]
-	useLabel?: boolean
 }
 
 export function EditAttributeDropdown(props: EditAttributeDropdownProps) {
@@ -25,7 +23,7 @@ const WrappedEditAttributeDropdown = wrapEditAttribute(
 			this.handleChange = this.handleChange.bind(this)
 		}
 
-		handleChange(event) {
+		private handleChange(event) {
 			const selectedOptionValue: string = event.target.value
 			const selectedOption: DropdownOption | undefined = this.getAvailableOptions().find(
 				(option) => option.value === selectedOptionValue
@@ -33,11 +31,10 @@ const WrappedEditAttributeDropdown = wrapEditAttribute(
 			if (!selectedOption) {
 				return
 			}
-			const props = this.props as EditAttributeDropdownProps
-			this.handleUpdate(props.useLabel ? selectedOption : selectedOption.value)
+			this.handleUpdate(selectedOption.label ? selectedOption : selectedOption.value)
 		}
 
-		getCurrentlySelectedOption(): DropdownOption {
+		private getCurrentlySelectedOption(): DropdownOption {
 			let attribute = this.getAttribute()
 			if (!!attribute && !attribute.value) {
 				attribute = { value: attribute }
@@ -45,11 +42,11 @@ const WrappedEditAttributeDropdown = wrapEditAttribute(
 			return attribute
 		}
 
-		getAvailableOptions(): DropdownOption[] {
+		private getAvailableOptions(): DropdownOption[] {
 			return (this.props as EditAttributeDropdownProps).options
 		}
 
-		getMissingOptions(availableOptions: DropdownOption[]): DropdownOption[] {
+		private getMissingOptions(availableOptions: DropdownOption[]): DropdownOption[] {
 			const selectedOption: DropdownOption = this.getCurrentlySelectedOption()
 			if (!selectedOption) {
 				return []

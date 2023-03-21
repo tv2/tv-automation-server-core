@@ -259,7 +259,6 @@ function renderDropdown(attribute: string, obj: any, options: DropdownOption[], 
 			attribute={attribute}
 			obj={obj}
 			options={options}
-			useLabel={true}
 			collection={collection}
 			className="input text-input dropdown input-l"
 		/>
@@ -938,7 +937,7 @@ export class ConfigManifestSettings<
 								<EditAttributeDropdown
 									modifiedClassName="bghl"
 									options={this.getAddOptions()}
-									updateFunction={(_e, v) => this.setState({ addItemId: v })}
+									updateFunction={(_e, v) => this.setState({ addItemId: (v as { value: string }).value })}
 									overrideDisplayValue={this.state.addItemId}
 								/>
 							</div>

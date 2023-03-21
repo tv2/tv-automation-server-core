@@ -1,13 +1,15 @@
 import { DropdownOption, EditAttributeDropdown } from './edit-attribute-dropdown'
 import { IEditAttributeBaseProps } from './edit-attribute-base'
 import * as React from 'react'
+import { useMemo } from 'react'
 
 interface EditAttributeEnumDropdownProps extends IEditAttributeBaseProps {
 	options: object
 }
 
 export function EditAttributeEnumDropdown(props: EditAttributeEnumDropdownProps) {
-	return <EditAttributeDropdown {...props} options={mapToDropdownOptions(props.options)} useLabel={false} />
+	const options: DropdownOption[] = useMemo(() => mapToDropdownOptions(props.options), [props.options])
+	return <EditAttributeDropdown {...props} options={options} />
 }
 
 function mapToDropdownOptions(options: object): DropdownOption[] {

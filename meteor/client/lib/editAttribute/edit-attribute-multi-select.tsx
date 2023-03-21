@@ -19,19 +19,23 @@ const WrappedEditAttributeMultiSelect = wrapEditAttribute(
 			this.handleChange = this.handleChange.bind(this)
 		}
 
-		handleChange(changedOptions: MultiSelectOption[]): void {
+		private handleChange(changedOptions: MultiSelectOption[]): void {
 			this.handleUpdate(changedOptions)
 		}
 
-		getCurrentlySelectedOptions(): MultiSelectOption[] {
-			return this.getAttribute() ?? []
+		private getCurrentlySelectedOptions(): MultiSelectOption[] {
+			const attribute = this.getAttribute()
+			if (!attribute || !Array.isArray(attribute)) {
+				return []
+			}
+			return attribute
 		}
 
-		getAvailableOptions(): MultiSelectOption[] {
+		private getAvailableOptions(): MultiSelectOption[] {
 			return (this.props as EditAttributeMultiSelectProps).options
 		}
 
-		getMissingOptions(availableOptions: MultiSelectOption[]): MultiSelectOption[] {
+		private getMissingOptions(availableOptions: MultiSelectOption[]): MultiSelectOption[] {
 			return this.getCurrentlySelectedOptions()
 				.filter((selectedOption) => availableOptions.every((option) => option.value !== selectedOption.value))
 				.map((option) => {
