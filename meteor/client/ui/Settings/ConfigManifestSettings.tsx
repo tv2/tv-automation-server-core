@@ -937,7 +937,7 @@ export class ConfigManifestSettings<
 								<EditAttributeDropdown
 									modifiedClassName="bghl"
 									options={this.getAddOptions()}
-									updateFunction={(_e, v) => this.setState({ addItemId: v })}
+									updateFunction={(_e, v) => this.setState({ addItemId: (v as { value: string }).value })}
 									overrideDisplayValue={this.state.addItemId}
 								/>
 							</div>
