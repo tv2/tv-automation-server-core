@@ -161,7 +161,7 @@ export const VariantListItem: React.FunctionComponent<IShowStyleVariantItemProps
 				<React.Fragment>
 					<p>
 						{t(
-							'Do you want to keep the newly created Variant: "{{showStyleVariantName}}" as a duplicate or replace it?',
+							'Do you want to keep the newly created Variant: "{{showStyleVariantName}}" as a duplicate or use it to replace the existing one?',
 							{
 								showStyleVariantName: props.showStyleVariant.name,
 							}
