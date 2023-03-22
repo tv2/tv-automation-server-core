@@ -1,4 +1,4 @@
-import { Logger } from 'winston'
+import { Logger } from '../logger'
 import { Job } from './job'
 import {
 	AbortError,
@@ -22,14 +22,16 @@ import debug = require('debug')
 
 export class InitDeviceJob extends Job<CreateDeviceJobsResult, undefined, CreateDeviceJobsResult> {
 	protected artifacts: undefined
+	private readonly logger: Logger
 
 	constructor(
 		private deviceId: string,
 		private deviceOptions: DeviceOptionsAny,
 		private tsrHandler: TSRHandler,
-		private logger: Logger
+		logger: Logger
 	) {
 		super()
+		this.logger = logger.tag(this.constructor.name)
 	}
 
 	async run(previousResult: CreateDeviceJobsResult, abortSignal?: AbortSignal): Promise<CreateDeviceJobsResult> {
@@ -61,8 +63,8 @@ export class InitDeviceJob extends Job<CreateDeviceJobsResult, undefined, Create
 			coreTsrHandler.statusChanged(deviceStatus)
 
 			// When the status has changed, the deviceName might have changed:
-			deviceContainer.reloadProps().catch((err) => {
-				this.logger.error(`Error in reloadProps: ${err}`)
+			deviceContainer.reloadProps().catch((error) => {
+				this.logger.data(error).error(`Error in reloadProps:`)
 			})
 			// hack to make sure atem has media after restart
 			if (
@@ -90,38 +92,27 @@ export class InitDeviceJob extends Job<CreateDeviceJobsResult, undefined, Create
 			// since something took too long internally.
 
 			if (info.internalDelay > 100) {
-				this.logger.error('slowSentCommand', {
-					deviceName: deviceContainer.deviceName,
-					...info,
-				})
+				this.logger.data(info).error(`slowSentCommand for ${deviceContainer.deviceName}.`)
 			} else {
-				this.logger.warn('slowSentCommand', {
-					deviceName: deviceContainer.deviceName,
-					...info,
-				})
+				this.logger.data(info).warn(`slowSentCommand for ${deviceContainer.deviceName}.`)
 			}
 		}
 		const onSlowFulfilledCommand = (info: SlowFulfilledCommandInfo) => {
 			// Note: we don't emit slow fulfilled commands as error, since
 			// the fulfillment of them lies on the device being controlled, not on us.
 
-			this.logger.warn('slowFulfilledCommand', {
-				deviceName: deviceContainer.deviceName,
-				...info,
-			})
+			this.logger.data(info).warn(`slowFulfilledCommand for ${deviceContainer.deviceName}.`)
 		}
 		const onCommandReport = (commandReport: CommandReport) => {
 			if (this.tsrHandler.reportAllCommands) {
 				// Todo: send these to Core
-				this.logger.info('commandReport', {
-					commandReport: commandReport,
-				})
+				this.logger.data(commandReport).debug('commandReport')
 			}
 		}
 		const onCommandError = (error: any, context: any) => {
 			// todo: handle this better
-			this.logger.error(error)
-			this.logger.debug(context)
+			this.logger.data(error).error('Received command error from device.')
+			this.logger.data(context).debug('Context for reported command error:')
 		}
 		const onUpdateMediaObject = (collectionId: string, docId: string, doc: MediaObject | null) => {
 			coreTsrHandler.onUpdateMediaObject(collectionId, docId, doc)
@@ -130,7 +121,8 @@ export class InitDeviceJob extends Job<CreateDeviceJobsResult, undefined, Create
 			coreTsrHandler.onClearMediaObjectCollection(collectionId)
 		}
 		const fixError = (e: any): string => {
-			const name = `Device "${deviceContainer.deviceName || this.deviceId}" (${deviceContainer.instanceId})`
+			const deviceName = deviceContainer.deviceName || this.deviceId
+			const name = `Device '${deviceName}' (${deviceContainer.instanceId})`
 			if (e.reason) e.reason = name + ': ' + e.reason
 			if (e.message) e.message = name + ': ' + e.message
 			if (e.stack) {
@@ -144,7 +136,7 @@ export class InitDeviceJob extends Job<CreateDeviceJobsResult, undefined, Create
 		deviceContainer.onChildClose = () => {
 			// Called if a child is closed / crashed
 			this.logger.warn(`Child of device ${this.deviceId} closed/crashed`)
-			debug(`Trigger update devices because "${this.deviceId}" process closed`)
+			debug(`Trigger update devices because '${this.deviceId}' process closed`)
 
 			onDeviceStatusChanged({
 				statusCode: StatusCode.BAD,
@@ -165,29 +157,31 @@ export class InitDeviceJob extends Job<CreateDeviceJobsResult, undefined, Create
 		await deviceContainer.device.on('updateMediaObject', onUpdateMediaObject as () => void)
 		await deviceContainer.device.on('clearMediaObjects', onClearMediaObjectCollection as () => void)
 
-		await deviceContainer.device.on('info', ((e: any, ...args: any[]) => {
-			this.logger.info(fixError(e), ...args)
+		await deviceContainer.device.on('info', ((message: any, ...args: any[]) => {
+			const deviceName = deviceContainer.deviceName || this.deviceId
+			this.logger.data(args).info(`Received info from device '${deviceName}': ${fixError(message)}`)
 		}) as () => void)
-		await deviceContainer.device.on('warning', ((e: any, ...args: any[]) => {
-			this.logger.warn(fixError(e), ...args)
+
+		await deviceContainer.device.on('warning', ((warn: any, ...args: any[]) => {
+			const deviceName = deviceContainer.deviceName || this.deviceId
+			this.logger.data(args).warn(`Received warning from device '${deviceName}': ${fixError(warn)}`)
 		}) as () => void)
+
 		await deviceContainer.device.on('error', ((e: any, ...args: any[]) => {
-			this.logger.error(fixError(e), ...args)
+			const deviceName = deviceContainer.deviceName || this.deviceId
+			this.logger.data(args).error(`Received error from device '${deviceName}': ${fixError(e)}`)
 		}) as () => void)
 
 		await deviceContainer.device.on('debug', (...args: any[]) => {
+			const deviceName = deviceContainer.deviceName || this.deviceId
 			if (!deviceContainer.debugLogging && !this.tsrHandler.coreHandler.logDebug) {
 				return
 			}
 			if (args.length === 0) {
-				this.logger.debug('>empty message<')
+				this.logger.debug(`Received empty debug message from device '${deviceName}'.`)
 				return
 			}
-			const data = args.map((arg) => (typeof arg === 'object' ? JSON.stringify(arg) : arg))
-			this.logger.debug(
-				`Device "${deviceContainer.deviceName || this.deviceId}" (${deviceContainer.instanceId})`,
-				{ data }
-			)
+			this.logger.data(args).debug(`Received debug from device '${deviceName}' (${deviceContainer.instanceId}):`)
 		})
 
 		await deviceContainer.device.on('timeTrace', ((trace: FinishedTrace) => sendTrace(trace)) as () => void)

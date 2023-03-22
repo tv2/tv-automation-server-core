@@ -2,6 +2,7 @@ import { CoreTSRDeviceHandler } from '../coreHandler'
 import { Job } from './job'
 import { AbortError, DeviceContainer, DeviceOptionsAny, StatusCode } from 'timeline-state-resolver'
 import { TSRHandler } from '../tsrHandler'
+import { Logger } from '../logger'
 
 export interface CreateDeviceJobsResult {
 	deviceContainer: DeviceContainer<DeviceOptionsAny>
@@ -10,9 +11,16 @@ export interface CreateDeviceJobsResult {
 
 export class CreateDeviceJob extends Job<CreateDeviceJobsResult, Partial<CreateDeviceJobsResult>> {
 	protected artifacts: Partial<CreateDeviceJobsResult> = {}
+	private readonly logger: Logger
 
-	constructor(private deviceId: string, private deviceOptions: DeviceOptionsAny, private tsrHandler: TSRHandler) {
+	constructor(
+		private deviceId: string,
+		private deviceOptions: DeviceOptionsAny,
+		private tsrHandler: TSRHandler,
+		logger: Logger
+	) {
 		super()
+		this.logger = logger.tag(this.constructor.name)
 	}
 
 	async run(_previousResult: unknown, abortSignal?: AbortSignal): Promise<CreateDeviceJobsResult> {
@@ -29,7 +37,7 @@ export class CreateDeviceJob extends Job<CreateDeviceJobsResult, Partial<CreateD
 			throw new AbortError()
 		}
 
-		const coreTsrHandler = new CoreTSRDeviceHandler(this.artifacts.deviceContainer, this.tsrHandler)
+		const coreTsrHandler = new CoreTSRDeviceHandler(this.artifacts.deviceContainer, this.tsrHandler, this.logger)
 		this.artifacts.coreTsrHandler = coreTsrHandler
 		// set the status to uninitialized for now:
 		coreTsrHandler.statusChanged({
