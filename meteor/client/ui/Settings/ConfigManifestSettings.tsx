@@ -20,7 +20,7 @@ import {
 	ConfigManifestEntryLayerMappings,
 	SourceLayerType,
 	ConfigManifestEntrySelectFromColumn,
-	ConfigManifestEntrySelectPickedFromColumn,
+	ConfigManifestEntryFilterSelectedFromColumn,
 	ConfigManifestEntryBoolean,
 	ConfigManifestEntryEnum,
 	ConfigManifestEntryFloat,
@@ -81,57 +81,61 @@ function filterLayerMappings(
 	return result
 }
 
-function getFilteredTableValues<DBInterface extends { _id: ProtectedString<any> }>(
-	item: ConfigManifestEntrySelectPickedFromColumn<boolean>,
+function getFilteredGfxDefaultTableValues<DBInterface extends { _id: ProtectedString<any> }>(
+	item: ConfigManifestEntryFilterSelectedFromColumn<boolean>,
 	configPath: string,
 	object: DBInterface,
 	alternateObject?: any
 ): string[] {
-	const fromAttribute = `${configPath}.${item.fromTableId}`
-	const toAttribute = `${configPath}.${item.toTableId}`
-	const fromTable = objectPathGet(object, fromAttribute) ?? objectPathGet(alternateObject, fromAttribute)
-	const toTable = objectPathGet(object, toAttribute) ?? objectPathGet(alternateObject, toAttribute)
+	const sourceAttribute = `${configPath}.${item.sourceTableId}`
+	const targetAttribute = `${configPath}.${item.targetTableId}`
+	const sourceTable = objectPathGet(object, sourceAttribute) ?? objectPathGet(alternateObject, sourceAttribute)
+	const targetTable = objectPathGet(object, targetAttribute) ?? objectPathGet(alternateObject, targetAttribute)
 	const result: string[] = []
-	const defaultRow = toTable.filter((row) => {
-		return typeof row === 'object' && row[item.toColumnId] !== undefined
-	})
-	if (!Array.isArray(fromTable) || !Array.isArray(toTable) || defaultRow.length < 1) {
+	const defaultRow = targetTable.filter(
+		(row) => typeof row === 'object' && row[item.targetCompareColumnId] !== undefined
+	)
+	if (!Array.isArray(sourceTable) || !Array.isArray(targetTable) || defaultRow.length < 1) {
 		return result
 	}
 
-	if (gfxSetupShouldBeUsed(item, fromTable)) {
-		item.compareId = 'GfxSetup'
-		item.toColumnId = 'SelectedGfxSetupName'
-	}
-
-	fromTable.forEach((row) => {
-		if (!(typeof row === 'object' && row[item.fromColumnId] !== undefined)) {
+	sourceTable.forEach((row) => {
+		if (!(typeof row === 'object' && row[item.sourceCollectColumnId] !== undefined)) {
 			return
 		}
-		row[item.compareId].forEach((compareColumn) => {
-			if (compareColumn === defaultRow[0][item.toColumnId] && Array.isArray(row[item.fromColumnId])) {
-				row[item.fromColumnId].forEach((column) => {
+
+		if (gfxSchemaIsUnavailable(row, item)) {
+			item.sourceCompareColumnId = 'GfxSetup'
+			item.targetCompareColumnId = 'SelectedGfxSetupName'
+		}
+
+		row[item.sourceCompareColumnId].forEach((compareColumn) => {
+			if (
+				compareColumn === defaultRow[0][item.targetCompareColumnId] &&
+				Array.isArray(row[item.sourceCollectColumnId])
+			) {
+				row[item.sourceCollectColumnId].forEach((column) => {
 					if (!result.includes(column)) {
 						result.push(column)
 					}
 				})
-			} else if (compareColumn === defaultRow[0][item.toColumnId] && !Array.isArray(row[item.fromColumnId])) {
-				if (!result.includes(row[item.fromColumnId])) {
-					result.push(row[item.fromColumnId])
+			} else if (
+				compareColumn === defaultRow[0][item.targetCompareColumnId] &&
+				!Array.isArray(row[item.sourceCollectColumnId])
+			) {
+				if (!result.includes(row[item.sourceCollectColumnId])) {
+					result.push(row[item.sourceCollectColumnId])
 				}
 			}
 		})
 	})
+
+	result.push('N/A')
 	return result
 }
 
-function gfxSetupShouldBeUsed(item: ConfigManifestEntrySelectPickedFromColumn<boolean>, fromTable: any): boolean {
-	if (!(item.compareId === 'Schema' && item.toColumnId === 'DefaultSchema') || !Array.isArray(fromTable)) {
-		return false
-	}
-	return fromTable.find((row) => {
-		return row[item.compareId].length === 0
-	})
+function gfxSchemaIsUnavailable(row: any, item: ConfigManifestEntryFilterSelectedFromColumn<boolean>): boolean {
+	return row[item.sourceCompareColumnId].length === 0
 }
 
 function getTableColumnValues<DBInterface extends { _id: ProtectedString<any> }>(
@@ -298,14 +302,14 @@ function getEditAttribute<DBInterface extends { _id: ProtectedString<any> }>(
 					className="input text-input dropdown input-l"
 				/>
 			)
-		case ConfigManifestEntryType.SELECT_PICKED_FROM_COLUMN:
+		case ConfigManifestEntryType.FILTER_SELECTED_FROM_COLUMN:
 			return (
 				<EditAttribute
 					modifiedClassName="bghl"
 					attribute={attribute}
 					obj={object}
 					type={item.multiple ? 'multiselect' : 'dropdown'}
-					options={getFilteredTableValues(item, configPath, object, alternateObject)}
+					options={getFilteredGfxDefaultTableValues(item, configPath, object, alternateObject)}
 					collection={collection}
 					className="input text-input dropdown input-l"
 				/>
@@ -324,7 +328,7 @@ type ResolvedBasicConfigManifestEntry =
 	| ConfigManifestEntryEnum
 	| ConfigManifestEntrySelectFromOptions<boolean>
 	| (ConfigManifestEntrySelectFromColumn<boolean> & { options: string[] })
-	| ConfigManifestEntrySelectPickedFromColumn<boolean>
+	| ConfigManifestEntryFilterSelectedFromColumn<boolean>
 	| (ConfigManifestEntrySourceLayers<boolean> & { options: Array<{ name: string; value: string }> })
 	| (ConfigManifestEntryLayerMappings<boolean> & { options: Array<{ name: string; value: string }> })
 	| ConfigManifestEntryJson
@@ -861,7 +865,7 @@ export class ConfigManifestSettings<
 				)
 			case ConfigManifestEntryType.SELECT:
 			case ConfigManifestEntryType.SELECT_FROM_COLUMN:
-			case ConfigManifestEntryType.SELECT_PICKED_FROM_COLUMN:
+			case ConfigManifestEntryType.FILTER_SELECTED_FROM_COLUMN:
 			case ConfigManifestEntryType.LAYER_MAPPINGS:
 			case ConfigManifestEntryType.SOURCE_LAYERS:
 				return (

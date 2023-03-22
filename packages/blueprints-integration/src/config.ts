@@ -14,7 +14,7 @@ export enum ConfigManifestEntryType {
 	SOURCE_LAYERS = 'source_layers',
 	LAYER_MAPPINGS = 'layer_mappings',
 	SELECT_FROM_COLUMN = 'select_from_column',
-	SELECT_PICKED_FROM_COLUMN = 'select_column_picked',
+	FILTER_SELECTED_FROM_COLUMN = 'filter_selected_from_column',
 	JSON = 'json',
 }
 
@@ -29,8 +29,8 @@ export type BasicConfigManifestEntry =
 	| ConfigManifestEntrySelectFromOptions<false>
 	| ConfigManifestEntrySelectFromColumn<true>
 	| ConfigManifestEntrySelectFromColumn<false>
-	| ConfigManifestEntrySelectPickedFromColumn<true>
-	| ConfigManifestEntrySelectPickedFromColumn<false>
+	| ConfigManifestEntryFilterSelectedFromColumn<true>
+	| ConfigManifestEntryFilterSelectedFromColumn<false>
 	| ConfigManifestEntrySourceLayers<true>
 	| ConfigManifestEntrySourceLayers<false>
 	| ConfigManifestEntryLayerMappings<true>
@@ -113,14 +113,14 @@ export interface ConfigManifestEntrySelectFromColumn<Multiple extends boolean>
 	columnId: string
 }
 
-export interface ConfigManifestEntrySelectPickedFromColumn<Multiple extends boolean>
+export interface ConfigManifestEntryFilterSelectedFromColumn<Multiple extends boolean>
 	extends ConfigManifestEntrySelectBase<Multiple> {
-	type: ConfigManifestEntryType.SELECT_PICKED_FROM_COLUMN
-	toTableId: string
-	toColumnId: string
-	fromTableId: string
-	fromColumnId: string
-	compareId: string
+	type: ConfigManifestEntryType.FILTER_SELECTED_FROM_COLUMN
+	targetTableId: string
+	targetCompareColumnId: string
+	sourceTableId: string
+	sourceCompareColumnId: string
+	sourceCollectColumnId: string
 }
 
 export interface ConfigManifestEntrySourceLayers<Multiple extends boolean>
