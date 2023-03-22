@@ -1,13 +1,13 @@
 import { Connector } from './connector'
 import { config, disableWatchdog } from './config'
-import { logger } from './logger'
+import { logger as untaggedLogger } from './logger'
 
-const indexLogger = logger.tag('index')
+const logger = untaggedLogger.tag('index')
 
-indexLogger.info('process started') // This is a message all Sofie processes log upon startup
+logger.info('process started') // This is a message all Sofie processes log upon startup
 
 // Because the default NodeJS-handler sucks and won't display error properly
-process.on('warning', (error: unknown) => indexLogger.data(error).error('Unhandled warning:'))
+process.on('warning', (error: unknown) => logger.data(error).error('Unhandled warning:'))
 
 logger.info(
 	'\n------------------------------------------------------------------\n' +
@@ -17,4 +17,4 @@ logger.info(
 		'------------------------------------------------------------------'
 )
 const connector = new Connector(logger)
-connector.init(config).catch((error) => indexLogger.data(error).error('Failed initializing the Connector:'))
+connector.init(config).catch((error) => logger.data(error).error('Failed initializing the Connector:'))
