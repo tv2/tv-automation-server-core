@@ -91,10 +91,8 @@ function getFilteredGfxDefaultTableValues<DBInterface extends { _id: ProtectedSt
 	const targetAttribute = `${configPath}.${item.targetTableId}`
 	const sourceTable = objectPathGet(object, sourceAttribute) ?? objectPathGet(alternateObject, sourceAttribute)
 	const targetTable = objectPathGet(object, targetAttribute) ?? objectPathGet(alternateObject, targetAttribute)
+	const defaultRow = targetTable.find((row) => typeof row === 'object' && row[item.targetCompareColumnId] !== undefined)
 	const result: string[] = []
-	const defaultRow = targetTable.filter(
-		(row) => typeof row === 'object' && row[item.targetCompareColumnId] !== undefined
-	)
 	if (!Array.isArray(sourceTable) || !Array.isArray(targetTable) || defaultRow.length < 1) {
 		return result
 	}
@@ -103,35 +101,39 @@ function getFilteredGfxDefaultTableValues<DBInterface extends { _id: ProtectedSt
 		if (!(typeof row === 'object' && row[item.sourceCollectColumnId] !== undefined)) {
 			return
 		}
-
 		if (gfxSchemaIsUnavailable(row, item)) {
 			item.sourceCompareColumnId = 'GfxSetup'
 			item.targetCompareColumnId = 'SelectedGfxSetupName'
 		}
-
-		row[item.sourceCompareColumnId].forEach((compareColumn) => {
-			if (
-				compareColumn === defaultRow[0][item.targetCompareColumnId] &&
-				Array.isArray(row[item.sourceCollectColumnId])
-			) {
-				row[item.sourceCollectColumnId].forEach((column) => {
-					if (!result.includes(column)) {
-						result.push(column)
-					}
-				})
-			} else if (
-				compareColumn === defaultRow[0][item.targetCompareColumnId] &&
-				!Array.isArray(row[item.sourceCollectColumnId])
-			) {
-				if (!result.includes(row[item.sourceCollectColumnId])) {
-					result.push(row[item.sourceCollectColumnId])
-				}
-			}
-		})
+		filterAndCollectGfxDefaultValues(row, item, defaultRow[item.targetCompareColumnId], result)
 	})
-
 	result.push('N/A')
 	return result
+}
+
+function filterAndCollectGfxDefaultValues(
+	tableRow: any,
+	item: ConfigManifestEntryFilterSelectedFromColumn<boolean>,
+	targetColumnId: string,
+	result: string[]
+) {
+	tableRow[item.sourceCompareColumnId].forEach((compareColumn) => {
+		if (compareColumn === targetColumnId && Array.isArray(tableRow[item.sourceCollectColumnId])) {
+			pushColumnToArray(tableRow, item.sourceCollectColumnId, result)
+		} else if (compareColumn === targetColumnId && !Array.isArray(tableRow[item.sourceCollectColumnId])) {
+			if (!result.includes(tableRow[item.sourceCollectColumnId])) {
+				result.push(tableRow[item.sourceCollectColumnId])
+			}
+		}
+	})
+}
+
+function pushColumnToArray(tableRow: any, columnId: string, resultArray: string[]) {
+	tableRow[columnId].forEach((column) => {
+		if (!resultArray.includes(column)) {
+			resultArray.push(column)
+		}
+	})
 }
 
 function gfxSchemaIsUnavailable(row: any, item: ConfigManifestEntryFilterSelectedFromColumn<boolean>): boolean {
