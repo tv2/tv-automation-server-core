@@ -298,17 +298,13 @@ class ModalDialogGlobalContainer0 extends React.Component<
 		}
 		// eslint-disable-next-line @typescript-eslint/no-this-alias
 		modalDialogGlobalContainerSingleton = this
-		this.state = {
-			queue: [],
-		}
+		this.state = { queue: [] }
 	}
 
 	public addQueue(q: ModalDialogQueueItem) {
 		const queue = this.state.queue
 		queue.push(q)
-		this.setState({
-			queue,
-		})
+		this.setState({ queue })
 	}
 
 	public queueHasItems(): boolean {
@@ -318,9 +314,7 @@ class ModalDialogGlobalContainer0 extends React.Component<
 	public removeAllQueueItems(): void {
 		const queue = this.state.queue
 		queue.splice(0)
-		this.setState({
-			queue,
-		})
+		this.setState({ queue })
 	}
 
 	onAccept = (e: SomeEvent, inputResult: ModalInputResult) => {
