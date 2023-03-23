@@ -28,7 +28,16 @@ const WrappedEditAttributeMultiSelect = wrapEditAttribute(
 			if (!attribute || !Array.isArray(attribute)) {
 				return []
 			}
-			return attribute
+			return this.mapToMultiSelectOptionIfNeeded(attribute)
+		}
+
+		private mapToMultiSelectOptionIfNeeded(values: any[]): MultiSelectOption[] {
+			return values.map((a) => {
+				if (typeof a === 'string') {
+					return { value: a, label: a }
+				}
+				return a
+			})
 		}
 
 		private getAvailableOptions(): MultiSelectOption[] {

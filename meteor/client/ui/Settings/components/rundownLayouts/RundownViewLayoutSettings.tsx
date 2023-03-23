@@ -6,12 +6,13 @@ import { ShowStyleBase } from '../../../../../lib/collections/ShowStyleBases'
 import { unprotectString } from '../../../../../lib/lib'
 import { EditAttribute } from '../../../../lib/EditAttribute'
 import { EditAttributeMultiSelect } from '../../../../lib/editAttribute/edit-attribute-multi-select'
+import { EditAttributeDropdown } from '../../../../lib/editAttribute/edit-attribute-dropdown'
 
 function filterLayouts(
 	rundownLayouts: RundownLayoutBase[],
 	testFunc: (l: RundownLayoutBase) => boolean
-): Array<{ name: string; value: string }> {
-	return rundownLayouts.filter(testFunc).map((l) => ({ name: l.name, value: unprotectString(l._id) }))
+): Array<{ label: string; value: string }> {
+	return rundownLayouts.filter(testFunc).map((l) => ({ label: l.name, value: unprotectString(l._id) }))
 }
 
 interface IProps {
@@ -41,43 +42,40 @@ export default function RundownViewLayoutSettings({ showStyleBase, item, layouts
 			<div className="mod mvs mhs">
 				<label className="field">
 					{t('Shelf Layout')}
-					<EditAttribute
+					<EditAttributeDropdown
 						modifiedClassName="bghl"
 						attribute={'shelfLayout'}
 						obj={item}
 						options={filterLayouts(layouts, RundownLayoutsAPI.isLayoutForShelf)}
-						type="dropdown"
 						collection={RundownLayouts}
 						className="input text-input input-l dropdown"
-					></EditAttribute>
+					></EditAttributeDropdown>
 				</label>
 			</div>
 			<div className="mod mvs mhs">
 				<label className="field">
 					{t('Mini Shelf Layout')}
-					<EditAttribute
+					<EditAttributeDropdown
 						modifiedClassName="bghl"
 						attribute={'miniShelfLayout'}
 						obj={item}
 						options={filterLayouts(layouts, RundownLayoutsAPI.isLayoutForMiniShelf)}
-						type="dropdown"
 						collection={RundownLayouts}
 						className="input text-input input-l dropdown"
-					></EditAttribute>
+					></EditAttributeDropdown>
 				</label>
 			</div>
 			<div className="mod mvs mhs">
 				<label className="field">
 					{t('Rundown Header Layout')}
-					<EditAttribute
+					<EditAttributeDropdown
 						modifiedClassName="bghl"
 						attribute={'rundownHeaderLayout'}
 						obj={item}
 						options={filterLayouts(layouts, RundownLayoutsAPI.isLayoutForRundownHeader)}
-						type="dropdown"
 						collection={RundownLayouts}
 						className="input text-input input-l dropdown"
-					></EditAttribute>
+					></EditAttributeDropdown>
 				</label>
 			</div>
 			<div className="mod mvs mhs">
