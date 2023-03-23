@@ -5,6 +5,9 @@ import * as fs from 'fs'
 import { AtemMediaPoolAsset, AtemMediaPoolType } from 'timeline-state-resolver'
 import * as _ from 'underscore'
 import * as path from 'path'
+import { logger as untaggedLogger } from './logger'
+
+const logger = untaggedLogger.tag('atemUploader')
 
 /**
  * This script is a temporary implementation to upload media to the atem.
@@ -14,19 +17,13 @@ import * as path from 'path'
 const ATEM_MAX_FILENAME_LENGTH = 63
 const ATEM_MAX_CLIPNAME_LENGTH = 43
 
-function consoleLog(...args: any[]) {
-	console.log('AtemUpload:', ...args)
-}
-function consoleError(...args: any[]) {
-	console.error('AtemUpload:', ...args)
-}
 export class AtemUploadScript {
 	private readonly connection: Atem
 
 	constructor() {
 		this.connection = new Atem()
 
-		this.connection.on('error', consoleError)
+		this.connection.on('error', (error) => logger.data(error).error('A connection error occurred:'))
 	}
 
 	public async connect(ip: string): Promise<void> {
@@ -42,90 +39,83 @@ export class AtemUploadScript {
 
 	public async loadFile(fileUrl: string): Promise<Buffer> {
 		return new Promise<Buffer>((resolve, reject) => {
-			fs.readFile(fileUrl, (e, data) => {
-				consoleLog('got file')
-				if (e) reject(e)
-				else resolve(data)
+			fs.readFile(fileUrl, (error, data) => {
+				logger.debug('got file')
+				error ? reject(error) : resolve(data)
 			})
 		})
 	}
 	public async loadFiles(folder: string): Promise<Buffer[]> {
 		const files = await fs.promises.readdir(folder)
-		consoleLog(files)
+		logger.data(files).debug('Listed files')
 		const loadBuffers = files.map(async (file) => fs.promises.readFile(path.join(folder, file)))
 		const buffers = Promise.all(loadBuffers)
 
-		consoleLog('got files')
+		logger.data(buffers).debug('got files')
 		return buffers
 	}
 
 	public checkIfFileOrClipExistsOnAtem(fileName: string, stillOrClipIndex: number, type: AtemMediaPoolType): boolean {
-		consoleLog('got a file')
+		logger.data({ fileName, stillOrClipIndex, type }).debug('Checking if file or clip exists on atem')
 
-		const still = this.connection.state ? this.connection.state.media.stillPool[stillOrClipIndex] : undefined
-		const clip = this.connection.state ? this.connection.state.media.clipPool[stillOrClipIndex] : undefined
+		const still = this.connection.state?.media.stillPool[stillOrClipIndex]
+		const clip = this.connection.state?.media.clipPool[stillOrClipIndex]
 		let pool: typeof still | typeof clip
 		if (type === AtemMediaPoolType.Still) pool = still
 		else if (type === AtemMediaPoolType.Clip) pool = clip
 
-		if (pool) {
-			consoleLog('has ' + type)
-			if (pool.isUsed) {
-				consoleLog(type + ' is used')
-				const comparisonName = fileName.substr(
-					type === AtemMediaPoolType.Still ? -ATEM_MAX_FILENAME_LENGTH : -ATEM_MAX_CLIPNAME_LENGTH
-				)
-				const poolName = 'fileName' in pool ? pool.fileName : pool.name
-
-				if (poolName === comparisonName) {
-					consoleLog('name equals')
-					return true
-				} else {
-					return false
-				}
-			} else {
-				return false
-			}
-		} else {
-			consoleLog('has no still')
-			throw Error('Atem appears to be missing ' + type)
+		if (!pool) {
+			throw new Error(`Atem appears to be missing the type '${type}'`)
 		}
+
+		if (!pool.isUsed) {
+			return false
+		}
+
+		logger.debug(`'${type}' is used.`)
+		const comparisonName = fileName.substring(
+			type === AtemMediaPoolType.Still ? -ATEM_MAX_FILENAME_LENGTH : -ATEM_MAX_CLIPNAME_LENGTH
+		)
+		const poolName = 'fileName' in pool ? pool.fileName : pool.name
+
+		return poolName === comparisonName
 	}
 
 	public async uploadStillToAtem(fileName: string, fileData: Buffer, stillIndex: number): Promise<void> {
-		fileName = fileName.substr(-ATEM_MAX_FILENAME_LENGTH) // cannot be longer than 63 chars
-		if (!this.checkIfFileOrClipExistsOnAtem(fileName, stillIndex, AtemMediaPoolType.Still)) {
-			consoleLog(fileName + ' does not exist on ATEM')
-			await this.connection.clearMediaPoolStill(stillIndex)
-			await this.connection.uploadStill(stillIndex, fileData, fileName, '')
-		} else {
-			consoleLog(fileName + ' does exist on ATEM')
+		fileName = fileName.substring(-ATEM_MAX_FILENAME_LENGTH) // cannot be longer than 63 chars
+		if (this.checkIfFileOrClipExistsOnAtem(fileName, stillIndex, AtemMediaPoolType.Still)) {
+			logger.debug(`Still '${fileName} already exists on ATEM.`)
+			return
 		}
+
+		logger.debug(`'${fileName}' does not exist on ATEM.`)
+		await this.connection.clearMediaPoolStill(stillIndex)
+		await this.connection.uploadStill(stillIndex, fileData, fileName, '')
 	}
 	public async uploadClipToAtem(name: string, fileData: Buffer[], clipIndex: number): Promise<void> {
-		name = name.substr(-ATEM_MAX_CLIPNAME_LENGTH) // cannot be longer than 43 chars
-		if (!this.checkIfFileOrClipExistsOnAtem(name, clipIndex, AtemMediaPoolType.Clip)) {
-			consoleLog(name + ' does not exist on ATEM')
-			await this.connection.clearMediaPoolClip(clipIndex)
-			await this.connection.uploadClip(clipIndex, fileData, name)
-		} else {
-			consoleLog(name + ' does exist on ATEM')
+		name = name.substring(-ATEM_MAX_CLIPNAME_LENGTH) // cannot be longer than 43 chars
+		if (this.checkIfFileOrClipExistsOnAtem(name, clipIndex, AtemMediaPoolType.Clip)) {
+			logger.debug(`'${name} already exists on ATEM.`)
+			return
 		}
+		logger.debug(`Clip '${name}' does not exist on ATEM.`)
+		await this.connection.clearMediaPoolClip(clipIndex)
+		await this.connection.uploadClip(clipIndex, fileData, name)
 	}
 }
 
-console.log('Setup AtemUploader...')
+logger.debug('Setup AtemUploader...')
 const singleton = new AtemUploadScript()
 const assets: AtemMediaPoolAsset[] = JSON.parse(process.argv[3])
 singleton.connect(process.argv[2]).then(
 	async () => {
-		consoleLog('ATEM upload connected')
+		logger.debug('ATEM upload connected')
 
 		for (const asset of assets) {
 			// upload 1 by 1
 
 			if (asset.position === undefined || isNaN(asset.position) || !_.isNumber(asset.position)) {
-				console.error('Skipping due to invalid media pool ' + asset.path)
+				logger.error(`Skipping due to invalid media pool '${asset.path}'.`)
 				continue
 			}
 
@@ -134,20 +124,19 @@ singleton.connect(process.argv[2]).then(
 					const fileData = await singleton.loadFile(asset.path)
 
 					await singleton.uploadStillToAtem(asset.path, fileData, asset.position)
-					consoleLog('uploaded ATEM media to stillpool ' + asset.position)
+					logger.debug(`Uploaded ATEM media to stillpool ${asset.position}.`)
 				} else if (asset.type === AtemMediaPoolType.Clip) {
 					const fileData = await singleton.loadFiles(asset.path)
 
 					await singleton.uploadClipToAtem(asset.path, fileData, asset.position)
-					consoleLog('uploaded ATEM media to clippool ' + asset.position)
+					logger.debug(`Uploaded ATEM media to clippool ${asset.position}.`)
 				}
-			} catch (e) {
-				consoleError('Failed to upload ' + asset.path)
-				consoleError(e)
+			} catch (error) {
+				logger.data(error).error(`Failed to upload '${asset.path}'.`)
 			}
 		}
 
-		consoleLog('All media checked/uploaded, exiting...')
+		logger.debug('All media checked/uploaded, exiting...')
 		process.exit(0)
 	},
 	() => process.exit(-1)

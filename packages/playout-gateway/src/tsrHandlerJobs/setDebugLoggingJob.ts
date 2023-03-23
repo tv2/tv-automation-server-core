@@ -11,7 +11,7 @@ export class SetDebugLoggingJob extends Job<void> {
 	async run(): Promise<void> {
 		const deviceContainer = this.conductor.getDevice(this.deviceId)
 		if (!deviceContainer) {
-			throw new Error(`Device "${this.deviceId}" does not exist or is not initialized`)
+			throw new Error(`Device '${this.deviceId}' does not exist or is not initialized`)
 		}
 		await deviceContainer.setDebugLogging(this.debugLogging)
 	}

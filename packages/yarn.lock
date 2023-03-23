@@ -3092,7 +3092,7 @@
     webpack-sources "^3.2.2"
 
 "@sofie-automation/blueprints-integration@link:blueprints-integration":
-  version "46.2.1"
+  version "46.2.0"
   dependencies:
     "@sofie-automation/shared-lib" "link:shared-lib"
     timeline-state-resolver-types "npm:@tv2media/timeline-state-resolver-types@3.5.0"
@@ -3392,6 +3392,11 @@
   version "0.2.0"
   resolved "https://registry.yarnpkg.com/@trysound/sax/-/sax-0.2.0.tgz#cccaab758af56761eb7bf37af6f03f326dd798ad"
   integrity sha512-L7z9BgrNEcYyUYtF+HaEfiS5ebkh9jXqbszz7pC0hRBPaatV0XjSD3+eHrpqFemQfgwiFF0QPIarnIihIDn7OA==
+
+"@tv2media/logger@^2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@tv2media/logger/-/logger-2.0.0.tgz#bca8d260d966d844d0810fc1c26e8de7bb787239"
+  integrity sha512-H1btFAJqLvWvyH3lWeU/ECZ6khJOb6WeNgwtJf6g1f4ZLiMUK28a2mFPkvjUNtcOImaZWoEfAslJXI/KZ0y37A==
 
 "@tv2media/v-connection@^7.2.1":
   version "7.2.1"
