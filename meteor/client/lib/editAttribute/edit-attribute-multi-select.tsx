@@ -47,13 +47,11 @@ const WrappedEditAttributeMultiSelect = wrapEditAttribute(
 		private getMissingOptions(availableOptions: MultiSelectOption[]): MultiSelectOption[] {
 			return this.getCurrentlySelectedOptions()
 				.filter((selectedOption) => availableOptions.every((option) => option.value !== selectedOption.value))
-				.map((option) => {
-					return {
-						value: option.value,
-						label: option.label,
-						className: 'option-missing',
-					}
-				})
+				.map((option) => ({
+					value: option.value,
+					label: option.label,
+					className: 'option-missing',
+				}))
 		}
 
 		render() {

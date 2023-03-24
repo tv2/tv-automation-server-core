@@ -97,12 +97,10 @@ function getTableColumnValues<DBInterface extends { _id: ProtectedString<any> }>
 	}
 	return table
 		.filter((row) => typeof row === 'object' && row[item.columnId] !== undefined)
-		.map((row) => {
-			return {
-				value: row['_id'],
-				label: row[item.columnId],
-			}
-		})
+		.map((row) => ({
+			value: row['_id'],
+			label: row[item.columnId],
+		}))
 }
 
 function getEditAttribute<DBInterface extends { _id: ProtectedString<any> }>(

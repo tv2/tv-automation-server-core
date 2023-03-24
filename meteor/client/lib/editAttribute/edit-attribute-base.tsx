@@ -44,6 +44,7 @@ export class EditAttributeBase extends React.Component<IEditAttributeBaseProps, 
 		this.handleUpdate = this.handleUpdate.bind(this)
 		this.handleDiscard = this.handleDiscard.bind(this)
 	}
+
 	handleEdit(inputValue: any, storeValue?: any) {
 		this.setState({
 			value: inputValue,
@@ -53,26 +54,31 @@ export class EditAttributeBase extends React.Component<IEditAttributeBaseProps, 
 			this.updateValue(storeValue ?? inputValue)
 		}
 	}
+
 	handleUpdate(inputValue: any, storeValue?: any) {
 		this.handleUpdateButDontSave(inputValue)
 		this.updateValue(storeValue ?? inputValue)
 	}
+
 	handleUpdateEditing(newValue) {
 		this.handleUpdateButDontSave(newValue, true)
 		this.updateValue(newValue)
 	}
+
 	handleUpdateButDontSave(newValue, editing = false) {
 		this.setState({
 			value: newValue,
 			editing,
 		})
 	}
+
 	handleDiscard() {
 		this.setState({
 			value: this.getAttribute(),
 			editing: false,
 		})
 	}
+
 	deepAttribute(obj0: any, attr0: string | undefined): any {
 		// Returns a value deep inside an object
 		// Example: deepAttribute(company,"ceo.address.street");
@@ -95,6 +101,7 @@ export class EditAttributeBase extends React.Component<IEditAttributeBaseProps, 
 		}
 		return f(obj0, attr0 || '')
 	}
+
 	getAttribute() {
 		let v = null
 		if (this.props.overrideDisplayValue !== undefined) {
@@ -104,12 +111,15 @@ export class EditAttributeBase extends React.Component<IEditAttributeBaseProps, 
 		}
 		return this.props.mutateDisplayValue ? this.props.mutateDisplayValue(v) : v
 	}
+
 	getAttributeText() {
 		return this.getAttribute() + ''
 	}
+
 	getEditAttribute() {
 		return this.state.editing ? this.state.value : this.getAttribute()
 	}
+
 	updateValue(newValue) {
 		if (this.props.mutateUpdateValue) {
 			try {
