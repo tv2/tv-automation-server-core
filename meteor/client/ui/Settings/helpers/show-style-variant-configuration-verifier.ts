@@ -34,7 +34,7 @@ export class ShowStyleVariantConfigurationVerifier {
 		)
 	}
 
-	hasConfigurationSelectedInvalidValueFromShowStyleBase(
+	private hasConfigurationSelectedInvalidValueFromShowStyleBase(
 		configurationName: string,
 		configuredValue: any,
 		showStyleBase: ShowStyleBase,
@@ -50,7 +50,7 @@ export class ShowStyleVariantConfigurationVerifier {
 		return !this.isConfiguredValueInBaseConfiguration(configuredValue, showStyleBase, configuredBlueprintConfig)
 	}
 
-	findSelectFromColumnManifestEntry(
+	private findSelectFromColumnManifestEntry(
 		configurationName: string,
 		blueprintConfigManifest: ConfigManifestEntry[]
 	): ConfigManifestEntry | undefined {
@@ -62,7 +62,7 @@ export class ShowStyleVariantConfigurationVerifier {
 		})
 	}
 
-	isConfiguredValueInBaseConfiguration(
+	private isConfiguredValueInBaseConfiguration(
 		configuredValue: any,
 		showStyleBase: ShowStyleBase,
 		configManifestEntry: ConfigManifestEntry
