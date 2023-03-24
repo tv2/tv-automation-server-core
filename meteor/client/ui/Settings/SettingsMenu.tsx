@@ -21,8 +21,8 @@ import { Settings as MeteorSettings } from '../../../lib/Settings'
 import { StatusCode } from '@sofie-automation/blueprints-integration'
 import { TFunction, useTranslation } from 'react-i18next'
 import { RundownLayoutsAPI } from '../../../lib/api/rundownLayouts'
-import { ShowStyleVariantConfigurationVerifier } from './helpers/show-style-variant-configuration-verifier'
 import { ShowStyleVariant, ShowStyleVariants } from '../../../lib/collections/ShowStyleVariants'
+import ShowStyleVariantConfigurationVerifier from './helpers/show-style-variant-configuration-verifier'
 
 interface ISettingsMenuProps {
 	superAdmin?: boolean
@@ -328,7 +328,7 @@ function SettingsMenuShowStyle({
 	blueprintsForBase,
 }: SettingsMenuShowStyleProps) {
 	const { t } = useTranslation()
-	const variantConfigurationVerifier = new ShowStyleVariantConfigurationVerifier()
+	const variantConfigurationVerifier = ShowStyleVariantConfigurationVerifier
 	const errorInVariantBlueprintConfiguration =
 		variantConfigurationVerifier.isBlueprintConfigurationSelectedFromBaseInvalidForAllVariants(
 			showStyleVariantsForBase,
