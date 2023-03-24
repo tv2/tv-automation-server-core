@@ -28,7 +28,16 @@ const WrappedEditAttributeMultiSelect = wrapEditAttribute(
 			if (!attribute || !Array.isArray(attribute)) {
 				return []
 			}
-			return attribute
+			return this.mapToMultiSelectOptionIfNeeded(attribute)
+		}
+
+		private mapToMultiSelectOptionIfNeeded(values: any[]): MultiSelectOption[] {
+			return values.map((a) => {
+				if (typeof a === 'string') {
+					return { value: a, label: a }
+				}
+				return a
+			})
 		}
 
 		private getAvailableOptions(): MultiSelectOption[] {
@@ -38,13 +47,11 @@ const WrappedEditAttributeMultiSelect = wrapEditAttribute(
 		private getMissingOptions(availableOptions: MultiSelectOption[]): MultiSelectOption[] {
 			return this.getCurrentlySelectedOptions()
 				.filter((selectedOption) => availableOptions.every((option) => option.value !== selectedOption.value))
-				.map((option) => {
-					return {
-						value: option.value,
-						label: option.label,
-						className: 'option-missing',
-					}
-				})
+				.map((option) => ({
+					value: option.value,
+					label: option.label,
+					className: 'option-missing',
+				}))
 		}
 
 		render() {

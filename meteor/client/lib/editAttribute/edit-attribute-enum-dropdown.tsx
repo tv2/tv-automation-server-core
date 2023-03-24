@@ -15,5 +15,5 @@ export function EditAttributeEnumDropdown(props: EditAttributeEnumDropdownProps)
 function mapToDropdownOptions(options: object): DropdownOption[] {
 	return Object.entries(options)
 		.filter(([enumName, _value]) => Number.isNaN(Number(enumName)))
-		.map(([enumName, _value]) => ({ value: enumName }))
+		.map(([enumName, value]) => ({ value: enumName, alternativeValue: value + '' }))
 }

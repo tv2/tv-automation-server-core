@@ -4,6 +4,7 @@ import * as React from 'react'
 
 export interface DropdownOption {
 	value: string
+	alternativeValue?: string
 	label?: string
 }
 
@@ -37,7 +38,7 @@ const WrappedEditAttributeDropdown = wrapEditAttribute(
 		private getCurrentlySelectedOption(): DropdownOption {
 			let attribute = this.getAttribute()
 			if (!!attribute && !attribute.value) {
-				attribute = { value: attribute }
+				attribute = { value: attribute + '' }
 			}
 			return attribute
 		}
@@ -51,7 +52,11 @@ const WrappedEditAttributeDropdown = wrapEditAttribute(
 			if (!selectedOption) {
 				return []
 			}
-			const selectedIsAnAvailableOption = availableOptions.some((option) => option.value === selectedOption.value)
+			const selectedIsAnAvailableOption = availableOptions.some(
+				(option) =>
+					option.value.toLowerCase() === selectedOption.value.toLowerCase() ||
+					(option.alternativeValue && option.alternativeValue === selectedOption.value.toLowerCase())
+			)
 			return !selectedIsAnAvailableOption ? [selectedOption] : []
 		}
 
