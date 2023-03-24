@@ -329,7 +329,7 @@ function SettingsMenuShowStyle({
 }: SettingsMenuShowStyleProps) {
 	const { t } = useTranslation()
 	const variantConfigurationVerifier = ShowStyleVariantConfigurationVerifier
-	const errorInVariantBlueprintConfiguration =
+	const hasErrorInVariantBlueprintConfiguration =
 		variantConfigurationVerifier.isBlueprintConfigurationSelectedFromBaseInvalidForAllVariants(
 			showStyleVariantsForBase,
 			showStyleBase,
@@ -375,9 +375,9 @@ function SettingsMenuShowStyle({
 			}),
 
 			{ label: t('Blueprint Configuration'), subPath: `blueprint-config` },
-			{ label: t('Variants'), subPath: `variants`, showErrorIcon: errorInVariantBlueprintConfiguration },
+			{ label: t('Variants'), subPath: `variants`, showErrorIcon: hasErrorInVariantBlueprintConfiguration },
 		],
-		[showStyleBase._id, errorInVariantBlueprintConfiguration]
+		[showStyleBase._id, hasErrorInVariantBlueprintConfiguration]
 	)
 
 	return (
@@ -389,7 +389,7 @@ function SettingsMenuShowStyle({
 			<button className="action-btn right" onClick={onDeleteShowStyleBase}>
 				<FontAwesomeIcon icon={faTrash} />
 			</button>
-			{showStyleHasError(showStyleBase) || errorInVariantBlueprintConfiguration ? (
+			{showStyleHasError(showStyleBase) || hasErrorInVariantBlueprintConfiguration ? (
 				<button className="action-btn right error-notice">
 					<FontAwesomeIcon icon={faExclamationTriangle} />
 				</button>

@@ -25,7 +25,7 @@ class ShowStyleVariantConfigurationVerifier {
 	): boolean {
 		const configuredVariantEntries: [string, any][] = Object.entries(showStyleVariant.blueprintConfig)
 		return configuredVariantEntries.some(([configurationName, configuredValue]) =>
-			this.hasConfigurationSelectedInvalidValueFromShowStyleBase(
+			this.hasInvalidValueFromShowStyleBase(
 				configurationName,
 				configuredValue,
 				showStyleBase,
@@ -34,7 +34,7 @@ class ShowStyleVariantConfigurationVerifier {
 		)
 	}
 
-	private hasConfigurationSelectedInvalidValueFromShowStyleBase(
+	private hasInvalidValueFromShowStyleBase(
 		configurationName: string,
 		configuredValue: any,
 		showStyleBase: ShowStyleBase,
