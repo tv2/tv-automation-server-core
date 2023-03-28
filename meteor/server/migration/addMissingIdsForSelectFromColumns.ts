@@ -12,7 +12,6 @@ import { ShowStyleBase, ShowStyleBases } from '../../lib/collections/ShowStyleBa
 import { ShowStyleBaseId, ShowStyleVariantId } from '@sofie-automation/corelib/dist/dataModel/Ids'
 import { ShowStyleVariant, ShowStyleVariants } from '../../lib/collections/ShowStyleVariants'
 
-
 export function createMigrationsForAddingMissingIdsInSelectFromColumnEntries(): MigrationStepBase[] {
 	const blueprints = Blueprints.find({
 		showStyleConfigManifest: { $exists: true },
@@ -24,12 +23,21 @@ export function createMigrationsForAddingMissingIdsInSelectFromColumnEntries(): 
 				return []
 			}
 			const showStyleBases = ShowStyleBases.find({ blueprintId: blueprint.blueprintId }).fetch()
-			return showStyleBases.map(showStyleBase => [...createMigrationsForShowStyleBase(showStyleBase._id, blueprint.showStyleConfigManifest!), ...createMigrationsForShowStylVariants(showStyleBase._id, blueprint.showStyleConfigManifest!)])
-		}).flat(2)
+			return showStyleBases.map((showStyleBase) => [
+				...createMigrationsForShowStyleBase(showStyleBase._id, blueprint.showStyleConfigManifest!),
+				...createMigrationsForShowStylVariants(showStyleBase._id, blueprint.showStyleConfigManifest!),
+			])
+		})
+		.flat(2)
 }
 
-function createMigrationsForShowStyleBase(showStyleBaseId: ShowStyleBaseId, showStyleConfigManifest: ConfigManifestEntry[]): MigrationStepBase[] {
-	return showStyleConfigManifest.map((showStyleManifest) => createShowStyleBlueprintConfigurationSelectFromColumnMigration(showStyleBaseId, showStyleManifest))
+function createMigrationsForShowStyleBase(
+	showStyleBaseId: ShowStyleBaseId,
+	showStyleConfigManifest: ConfigManifestEntry[]
+): MigrationStepBase[] {
+	return showStyleConfigManifest.map((showStyleManifest) =>
+		createShowStyleBlueprintConfigurationSelectFromColumnMigration(showStyleBaseId, showStyleManifest)
+	)
 }
 
 function createShowStyleBlueprintConfigurationSelectFromColumnMigration(
@@ -68,7 +76,10 @@ function createShowStyleBlueprintConfigurationSelectFromColumnMigration(
 	}
 }
 
-function findEntryToMapFromForShowStyleBase(showStyleBaseId: ShowStyleBaseId, configManifestEntry: ConfigManifestEntry) {
+function findEntryToMapFromForShowStyleBase(
+	showStyleBaseId: ShowStyleBaseId,
+	configManifestEntry: ConfigManifestEntry
+) {
 	const showStyle: ShowStyleBase | undefined = ShowStyleBases.findOne(showStyleBaseId)
 	if (!showStyle) {
 		return undefined
@@ -99,16 +110,22 @@ function findEntryToMapFrom(
 	return tableToSelectFrom.find((row) => row[configManifestEntry.columnId] === configToVerifyUsesId)
 }
 
-function createMigrationsForShowStylVariants(showStyleBaseId: ShowStyleBaseId, showStyleConfigManifest: ConfigManifestEntry[]): MigrationStepBase[] {
+function createMigrationsForShowStylVariants(
+	showStyleBaseId: ShowStyleBaseId,
+	showStyleConfigManifest: ConfigManifestEntry[]
+): MigrationStepBase[] {
 	const showStyleVariants = ShowStyleVariants.find({ showStyleBaseId: showStyleBaseId }).fetch()
-	return showStyleVariants.map((variant) => {
-		return showStyleConfigManifest.map((showStyleManifest) =>
-			createShowStyleVariantBlueprintConfigurationSelectFromColumnMigration(
-				showStyleBaseId,
-				showStyleManifest,
-				variant
-			))
-	}).flat(1)
+	return showStyleVariants
+		.map((variant) => {
+			return showStyleConfigManifest.map((showStyleManifest) =>
+				createShowStyleVariantBlueprintConfigurationSelectFromColumnMigration(
+					showStyleBaseId,
+					showStyleManifest,
+					variant
+				)
+			)
+		})
+		.flat(1)
 }
 
 function createShowStyleVariantBlueprintConfigurationSelectFromColumnMigration(
@@ -120,12 +137,20 @@ function createShowStyleVariantBlueprintConfigurationSelectFromColumnMigration(
 		id: `${variant._id}.variant.${variant.name}.add.missing.id.to.select.from.column.for.${configManifestEntry.name}.${configManifestEntry.id}`,
 		canBeRunAutomatically: true,
 		validate: () => {
-			const entryToMapFrom = findEntryToMapFromForShowStyleVariant(showStyleBaseId, configManifestEntry, variant._id)
+			const entryToMapFrom = findEntryToMapFromForShowStyleVariant(
+				showStyleBaseId,
+				configManifestEntry,
+				variant._id
+			)
 			// If we find an entry to map that means we have an id to map and should run the migration
 			return !!entryToMapFrom
 		},
 		migrate: () => {
-			const entryToMapFrom = findEntryToMapFromForShowStyleVariant(showStyleBaseId, configManifestEntry, variant._id)
+			const entryToMapFrom = findEntryToMapFromForShowStyleVariant(
+				showStyleBaseId,
+				configManifestEntry,
+				variant._id
+			)
 			if (!entryToMapFrom) {
 				return
 			}

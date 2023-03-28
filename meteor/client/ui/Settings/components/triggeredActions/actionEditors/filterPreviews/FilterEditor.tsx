@@ -108,7 +108,7 @@ export const FilterEditor: React.FC<IProps> = function FilterEditor(props: IProp
 						/>
 					</div>
 					<div>
-						{props.type === 'multiselect' &&
+						{props.type === 'multiselect' && (
 							<EditAttributeMultiSelect
 								className={'form-control input text-input input-m'}
 								modifiedClassName="bghl"
@@ -119,17 +119,20 @@ export const FilterEditor: React.FC<IProps> = function FilterEditor(props: IProp
 									console.log(newVal)
 									props.onChange(newVal)
 								}}
-							/>}
-						{props.type !== 'multiselect' && <EditAttribute
-							className={props.type === 'toggle' ? 'form-control' : 'form-control input text-input input-m'}
-							modifiedClassName="bghl"
-							type={props.type}
-							label={props.valueLabel}
-							options={props.values}
-							overrideDisplayValue={typeof props.value === 'number' ? String(props.value) : props.value}
-							attribute={''}
-							updateFunction={(_e, newVal) => props.onChange(newVal)}
-						/>}
+							/>
+						)}
+						{props.type !== 'multiselect' && (
+							<EditAttribute
+								className={props.type === 'toggle' ? 'form-control' : 'form-control input text-input input-m'}
+								modifiedClassName="bghl"
+								type={props.type}
+								label={props.valueLabel}
+								options={props.values}
+								overrideDisplayValue={typeof props.value === 'number' ? String(props.value) : props.value}
+								attribute={''}
+								updateFunction={(_e, newVal) => props.onChange(newVal)}
+							/>
+						)}
 					</div>
 					<div className="mts">
 						{!props.final ? (
@@ -160,18 +163,18 @@ function getOptionsForEditAttributeMultiSelect(recordToMapFrom: Record<string, a
 	}
 
 	const keys = Object.keys(recordToMapFrom)
-	return keys.map(key => {
+	return keys.map((key) => {
 		if (isNaN(Number(key))) {
 			return {
 				value: key,
-				label: recordToMapFrom[key]
+				label: recordToMapFrom[key],
 			}
 		}
 		// Key is a Number meaning we need to find both value and label from the value part of the record
 		const recordValue = recordToMapFrom[key]
 		return {
 			value: 'value' in recordValue ? recordValue.value : '',
-			label: 'name' in recordValue ? recordValue.name : ''
+			label: 'name' in recordValue ? recordValue.name : '',
 		}
 	})
 }
