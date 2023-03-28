@@ -93,7 +93,7 @@ function getFilteredGfxDefaultTableValues<DBInterface extends { _id: ProtectedSt
 	const targetTable = objectPathGet(object, targetAttribute) ?? objectPathGet(alternateObject, targetAttribute)
 	const defaultRow = targetTable.find((row) => typeof row === 'object' && row[item.targetCompareColumnId] !== undefined)
 	const result: string[] = []
-	if (!Array.isArray(sourceTable) || !Array.isArray(targetTable) || defaultRow.length < 1) {
+	if (!Array.isArray(sourceTable) || !Array.isArray(targetTable) || !defaultRow) {
 		return result
 	}
 
@@ -103,7 +103,7 @@ function getFilteredGfxDefaultTableValues<DBInterface extends { _id: ProtectedSt
 		}
 		if (gfxSchemaIsUnavailable(row, item)) {
 			item.sourceCompareColumnId = 'GfxSetup'
-			item.targetCompareColumnId = 'SelectedGfxSetupName'
+			item.targetCompareColumnId = 'DefaultSetupName'
 		}
 		filterAndCollectGfxDefaultValues(row, item, defaultRow[item.targetCompareColumnId], result)
 	})
