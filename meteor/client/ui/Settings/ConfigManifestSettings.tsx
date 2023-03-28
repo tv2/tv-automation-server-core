@@ -20,7 +20,7 @@ import {
 	ConfigManifestEntryLayerMappings,
 	SourceLayerType,
 	ConfigManifestEntrySelectFromColumn,
-	ConfigManifestEntryFilterSelectedFromColumn,
+	ConfigManifestEntryFilterDefaultsFromShowMapping,
 	ConfigManifestEntryBoolean,
 	ConfigManifestEntryEnum,
 	ConfigManifestEntryFloat,
@@ -82,7 +82,7 @@ function filterLayerMappings(
 }
 
 function getFilteredGfxDefaultTableValues<DBInterface extends { _id: ProtectedString<any> }>(
-	item: ConfigManifestEntryFilterSelectedFromColumn<boolean>,
+	item: ConfigManifestEntryFilterDefaultsFromShowMapping<boolean>,
 	configPath: string,
 	object: DBInterface,
 	alternateObject?: any
@@ -113,7 +113,7 @@ function getFilteredGfxDefaultTableValues<DBInterface extends { _id: ProtectedSt
 
 function filterAndCollectGfxDefaultValues(
 	tableRow: any,
-	item: ConfigManifestEntryFilterSelectedFromColumn<boolean>,
+	item: ConfigManifestEntryFilterDefaultsFromShowMapping<boolean>,
 	targetColumnId: string,
 	result: string[]
 ) {
@@ -136,7 +136,7 @@ function pushColumnToArray(tableRow: any, columnId: string, resultArray: string[
 	})
 }
 
-function gfxSchemaIsUnavailable(row: any, item: ConfigManifestEntryFilterSelectedFromColumn<boolean>): boolean {
+function gfxSchemaIsUnavailable(row: any, item: ConfigManifestEntryFilterDefaultsFromShowMapping<boolean>): boolean {
 	return row[item.sourceCompareColumnId].length === 0
 }
 
@@ -304,7 +304,7 @@ function getEditAttribute<DBInterface extends { _id: ProtectedString<any> }>(
 					className="input text-input dropdown input-l"
 				/>
 			)
-		case ConfigManifestEntryType.FILTER_SELECTED_FROM_COLUMN:
+		case ConfigManifestEntryType.FILTER_DEFAULTS_FROM_SHOW_MAPPING:
 			return (
 				<EditAttribute
 					modifiedClassName="bghl"
@@ -330,7 +330,7 @@ type ResolvedBasicConfigManifestEntry =
 	| ConfigManifestEntryEnum
 	| ConfigManifestEntrySelectFromOptions<boolean>
 	| (ConfigManifestEntrySelectFromColumn<boolean> & { options: string[] })
-	| ConfigManifestEntryFilterSelectedFromColumn<boolean>
+	| ConfigManifestEntryFilterDefaultsFromShowMapping<boolean>
 	| (ConfigManifestEntrySourceLayers<boolean> & { options: Array<{ name: string; value: string }> })
 	| (ConfigManifestEntryLayerMappings<boolean> & { options: Array<{ name: string; value: string }> })
 	| ConfigManifestEntryJson
@@ -867,7 +867,7 @@ export class ConfigManifestSettings<
 				)
 			case ConfigManifestEntryType.SELECT:
 			case ConfigManifestEntryType.SELECT_FROM_COLUMN:
-			case ConfigManifestEntryType.FILTER_SELECTED_FROM_COLUMN:
+			case ConfigManifestEntryType.FILTER_DEFAULTS_FROM_SHOW_MAPPING:
 			case ConfigManifestEntryType.LAYER_MAPPINGS:
 			case ConfigManifestEntryType.SOURCE_LAYERS:
 				return (
