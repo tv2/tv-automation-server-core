@@ -24,6 +24,19 @@ const WrappedEditAttributeDropdown = wrapEditAttribute(
 			this.handleChange = this.handleChange.bind(this)
 		}
 
+		componentDidMount() {
+			this.populateFromFirstAvailableOptionIfNoValueIsSelected()
+		}
+
+		private populateFromFirstAvailableOptionIfNoValueIsSelected() {
+			const currentlySelectedOption = this.getCurrentlySelectedOption()
+			const availableOptions = this.getAvailableOptions()
+			if (!!currentlySelectedOption || availableOptions.length === 0) {
+				return
+			}
+			this.handleChange({ target: { value: availableOptions[0].value } })
+		}
+
 		private handleChange(event) {
 			const selectedOptionValue: string = event.target.value
 			const selectedOption: DropdownOption | undefined = this.getAvailableOptions().find(
