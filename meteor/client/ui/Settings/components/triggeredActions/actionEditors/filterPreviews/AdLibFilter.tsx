@@ -214,7 +214,14 @@ function fieldValueMutate(link: IAdLibFilterLink, newValue: any) {
 			return Number(newValue - 1)
 		case 'outputLayerId':
 		case 'sourceLayerId':
-			return Array.isArray(newValue) ? newValue.map((layerId) => String(layerId)) : [String(newValue)]
+			return Array.isArray(newValue)
+				? newValue.map((layerId) => {
+					if ('value' in layerId) {
+						return String(layerId.value)
+					}
+					return String(layerId)
+				})
+				: [String(newValue)]
 		case 'part':
 		case 'segment':
 			return String(newValue)
