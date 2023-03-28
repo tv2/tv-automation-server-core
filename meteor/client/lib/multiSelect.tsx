@@ -54,7 +54,7 @@ export class MultiSelect extends React.Component<IProps, IState> {
 
 	refreshChecked() {
 		this.setState({
-			checkedIds: this.props.value.map((option) => option.value),
+			checkedIds: this.props.value ? this.props.value.map((option) => option.value) : [],
 		})
 	}
 
