@@ -98,7 +98,7 @@ function getFilteredGfxDefaultTableValues<DBInterface extends { _id: ProtectedSt
 	}
 
 	sourceTable.forEach((row) => {
-		if (!(typeof row === 'object' && row[item.sourceCollectColumnId] !== undefined)) {
+		if (typeof row !== 'object' || row[item.sourceCollectColumnId] === undefined) {
 			return
 		}
 		if (gfxSchemaIsUnavailable(row, item)) {
@@ -534,9 +534,7 @@ export class ConfigManifestTable<
 						case ConfigManifestEntryType.SELECT_FROM_COLUMN:
 							return {
 								...column,
-								options: props.layerMappings
-									? getTableColumnValues(column, props.configPath, props.object, props.alternateObject)
-									: [],
+								options: getTableColumnValues(column, props.configPath, props.object, props.alternateObject),
 							}
 						default:
 							return column
@@ -625,11 +623,14 @@ export class ConfigManifestTable<
 												this.props.configPath,
 												this.props.object,
 												col,
-												`${baseAttribute}.${sortedIndices[i]}.${col.id}`
+												`${baseAttribute}.${sortedIndices[i]}.${col.id}`,
+												undefined,
+												undefined,
+												this.props.alternateObject
 											)}
 										</td>
 									))}
-									{configEntry.disableRowManipulation === true || (
+									{!configEntry.disableRowManipulation && (
 										<td>
 											<button
 												className={ClassNames('btn btn-danger', {

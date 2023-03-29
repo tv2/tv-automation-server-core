@@ -116,10 +116,16 @@ export interface ConfigManifestEntrySelectFromColumn<Multiple extends boolean>
 export interface ConfigManifestEntryFilterDefaultsFromShowMapping<Multiple extends boolean>
 	extends ConfigManifestEntrySelectBase<Multiple> {
 	type: ConfigManifestEntryType.FILTER_DEFAULTS_FROM_SHOW_MAPPING
+	/** The id of the ConfigManifestEntryTable that should receive the filtered values */
 	targetTableId: string
+	/** The id of the BasicConfigManifestEntry that should receive the filtered values */
 	targetCompareColumnId: string
+	/** The id of the ConfigManifestEntryTable from where values are gathered */
 	sourceTableId: string
+	/** The id of the BasicConfigManifestEntry from which related values should be filtered and found
+	 e.g: If you want to find GFX Schema Templates based on a GFX Setup, you make this the GFX Setup id **/
 	sourceCompareColumnId: string
+	/** The id of the BasicConfigManifestEntry from where the wanted values are collected */
 	sourceCollectColumnId: string
 }
 
