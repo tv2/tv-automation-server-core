@@ -70,8 +70,8 @@ class ShowStyleVariantConfigurationVerifier {
 		const selectFromColumnManifestEntry = configManifestEntry as ConfigManifestEntrySelectFromColumn<boolean>
 		const validConfigurationOptions: ConfigItemValue =
 			showStyleBase.blueprintConfig[selectFromColumnManifestEntry.tableId]
-		if (!Array.isArray(validConfigurationOptions)) {
-			throw new Error('ValidConfigurationOptions are not an array')
+		if (!validConfigurationOptions || !Array.isArray(validConfigurationOptions)) {
+			return false
 		}
 		return validConfigurationOptions.some((option) => option['_id'] === configuredValue['value'] ?? configuredValue)
 	}
