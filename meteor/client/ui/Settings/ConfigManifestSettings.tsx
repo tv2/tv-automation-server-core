@@ -20,7 +20,6 @@ import {
 	ConfigManifestEntryLayerMappings,
 	SourceLayerType,
 	ConfigManifestEntrySelectFromColumn,
-	ConfigManifestEntryFilterDefaultsFromShowMapping,
 	ConfigManifestEntryBoolean,
 	ConfigManifestEntryEnum,
 	ConfigManifestEntryFloat,
@@ -29,6 +28,7 @@ import {
 	ConfigManifestEntrySelectFromOptions,
 	ConfigManifestEntryString,
 	ConfigManifestEntryJson,
+	ConfigManifestEntrySelectFromTableEntryWithComparisonMappings,
 } from '@sofie-automation/blueprints-integration'
 import { DBObj, ProtectedString, objectPathGet, getRandomString } from '../../../lib/lib'
 import { MongoModifier } from '../../../lib/typings/meteor'
@@ -48,6 +48,9 @@ import {
 import { UploadButton } from '../../lib/uploadButton'
 import { NotificationCenter, NoticeLevel, Notification } from '../../lib/notifications/notifications'
 import { MongoCollection } from '../../../lib/collections/lib'
+import { ShowStyleBase } from '../../../lib/collections/ShowStyleBases'
+import { ShowStyleVariant } from '../../../lib/collections/ShowStyleVariants'
+import { ComparisonMapping } from '@sofie-automation/blueprints-integration/dist'
 
 function filterSourceLayers(
 	select: ConfigManifestEntrySourceLayers<true | false>,
@@ -81,73 +84,75 @@ function filterLayerMappings(
 	return result
 }
 
-function getFilteredGfxDefaultTableValues<DBInterface extends { _id: ProtectedString<any> }>(
-	item: ConfigManifestEntryFilterDefaultsFromShowMapping<boolean>,
+function getFilteredTableValuesFromComparison(
+	targetFullAttribute: string,
+	item: ConfigManifestEntrySelectFromTableEntryWithComparisonMappings<boolean>,
 	configPath: string,
-	object: DBInterface,
-	alternateObject?: any
+	showStyleBaseDBObject: ShowStyleBase,
+	showStyleVariantDBObject?: ShowStyleVariant
 ): string[] {
 	const sourceAttribute = `${configPath}.${item.sourceTableId}`
-	const targetAttribute = `${configPath}.${item.targetTableId}`
-	const sourceTable = objectPathGet(object, sourceAttribute) ?? objectPathGet(alternateObject, sourceAttribute)
-	const targetTable = objectPathGet(object, targetAttribute) ?? objectPathGet(alternateObject, targetAttribute)
-	const defaultRow = targetTable.find((row) => typeof row === 'object' && row[item.targetCompareColumnId] !== undefined)
-	const result: string[] = []
-	if (!Array.isArray(sourceTable) || !Array.isArray(targetTable) || !defaultRow) {
-		return result
+	const targetAttribute = targetFullAttribute.split('.').slice(0, -1).join('.')
+	const sourceTable: TableConfigItemValue[] =
+		objectPathGet(showStyleBaseDBObject, sourceAttribute) ?? objectPathGet(showStyleVariantDBObject, sourceAttribute)
+	const targetRow: TableConfigItemValue =
+		objectPathGet(showStyleBaseDBObject, targetAttribute) ?? objectPathGet(showStyleVariantDBObject, targetAttribute)
+
+	if (!Array.isArray(sourceTable) || !targetRow) {
+		return []
 	}
 
-	sourceTable.forEach((row) => {
-		if (typeof row !== 'object' || row[item.sourceCollectColumnId] === undefined) {
-			return
+	const result = sourceTable.flatMap((sourceRow) => {
+		if (!hasRowEntryWithValue(sourceRow, item.sourceColumnIdWithValue)) {
+			return []
 		}
-		if (gfxSchemaIsUnavailable(row, item)) {
-			item.sourceCompareColumnId = 'GfxSetup'
-			item.targetCompareColumnId = 'DefaultSetupName'
+		const comparisonMapping = getComparisonMapping(item.comparisonMappings, sourceRow)
+		if (!comparisonMapping) {
+			return []
 		}
-		filterAndCollectGfxDefaultValues(row, item, defaultRow[item.targetCompareColumnId], result)
+
+		return getSourceValuesFromComparisonMapping(sourceRow, targetRow, item.sourceColumnIdWithValue, comparisonMapping)
 	})
 	result.push('N/A')
 	return result
 }
 
-function filterAndCollectGfxDefaultValues(
-	tableRow: any,
-	item: ConfigManifestEntryFilterDefaultsFromShowMapping<boolean>,
-	targetColumnId: string,
-	result: string[]
-) {
-	tableRow[item.sourceCompareColumnId].forEach((compareColumn) => {
-		if (compareColumn === targetColumnId && Array.isArray(tableRow[item.sourceCollectColumnId])) {
-			pushColumnToArray(tableRow, item.sourceCollectColumnId, result)
-		} else if (compareColumn === targetColumnId && !Array.isArray(tableRow[item.sourceCollectColumnId])) {
-			if (!result.includes(tableRow[item.sourceCollectColumnId])) {
-				result.push(tableRow[item.sourceCollectColumnId])
-			}
-		}
-	})
+function getComparisonMapping(
+	comparisonMappings: ComparisonMapping[],
+	sourceRow: TableConfigItemValue
+): ComparisonMapping | undefined {
+	return comparisonMappings.find((mapping) => isRowEntryAvailable(sourceRow, mapping.sourceColumnId))
 }
 
-function pushColumnToArray(tableRow: any, columnId: string, resultArray: string[]) {
-	tableRow[columnId].forEach((column) => {
-		if (!resultArray.includes(column)) {
-			resultArray.push(column)
-		}
-	})
+function isRowEntryAvailable(tableRow: TableConfigItemValue, columnId: string): boolean {
+	return tableRow[columnId] && tableRow[columnId].length > 0
 }
 
-function gfxSchemaIsUnavailable(row: any, item: ConfigManifestEntryFilterDefaultsFromShowMapping<boolean>): boolean {
-	return row[item.sourceCompareColumnId].length === 0
+function hasRowEntryWithValue(row: TableConfigItemValue, columnId: string): boolean {
+	return typeof row === 'object' && row[columnId] !== undefined
+}
+
+function getSourceValuesFromComparisonMapping(
+	sourceRow: TableConfigItemValue,
+	targetRow: TableConfigItemValue,
+	sourceValueColumnId: string,
+	comparisonMapping: ComparisonMapping
+): string[] {
+	const targetValue = targetRow[comparisonMapping.targetColumnId]
+	const isMatched = sourceRow[comparisonMapping.sourceColumnId].some((sourceValue) => sourceValue === targetValue)
+
+	return isMatched ? sourceRow[sourceValueColumnId] : []
 }
 
 function getTableColumnValues<DBInterface extends { _id: ProtectedString<any> }>(
 	item: ConfigManifestEntrySelectFromColumn<boolean>,
 	configPath: string,
-	object: DBInterface,
-	alternateObject?: any
+	showStyleBaseDBObject: DBInterface,
+	showStyleVariantDBObject?: DBInterface
 ): string[] {
 	const attribute = `${configPath}.${item.tableId}`
-	const table = objectPathGet(object, attribute) ?? objectPathGet(alternateObject, attribute)
+	const table: TableConfigItemValue[] =
+		objectPathGet(showStyleBaseDBObject, attribute) ?? objectPathGet(showStyleVariantDBObject, attribute)
 	const result: string[] = []
 	if (!Array.isArray(table)) {
 		return result
@@ -304,14 +309,20 @@ function getEditAttribute<DBInterface extends { _id: ProtectedString<any> }>(
 					className="input text-input dropdown input-l"
 				/>
 			)
-		case ConfigManifestEntryType.FILTER_DEFAULTS_FROM_SHOW_MAPPING:
+		case ConfigManifestEntryType.SELECT_FROM_TABLE_ENTRY_WITH_COMPARISON_MAPPINGS:
 			return (
 				<EditAttribute
 					modifiedClassName="bghl"
 					attribute={attribute}
 					obj={object}
 					type={item.multiple ? 'multiselect' : 'dropdown'}
-					options={getFilteredGfxDefaultTableValues(item, configPath, object, alternateObject)}
+					options={getFilteredTableValuesFromComparison(
+						attribute,
+						item,
+						configPath,
+						object as unknown as ShowStyleBase,
+						alternateObject
+					)}
 					collection={collection}
 					className="input text-input dropdown input-l"
 				/>
@@ -330,7 +341,7 @@ type ResolvedBasicConfigManifestEntry =
 	| ConfigManifestEntryEnum
 	| ConfigManifestEntrySelectFromOptions<boolean>
 	| (ConfigManifestEntrySelectFromColumn<boolean> & { options: string[] })
-	| ConfigManifestEntryFilterDefaultsFromShowMapping<boolean>
+	| ConfigManifestEntrySelectFromTableEntryWithComparisonMappings<boolean>
 	| (ConfigManifestEntrySourceLayers<boolean> & { options: Array<{ name: string; value: string }> })
 	| (ConfigManifestEntryLayerMappings<boolean> & { options: Array<{ name: string; value: string }> })
 	| ConfigManifestEntryJson
@@ -868,7 +879,7 @@ export class ConfigManifestSettings<
 				)
 			case ConfigManifestEntryType.SELECT:
 			case ConfigManifestEntryType.SELECT_FROM_COLUMN:
-			case ConfigManifestEntryType.FILTER_DEFAULTS_FROM_SHOW_MAPPING:
+			case ConfigManifestEntryType.SELECT_FROM_TABLE_ENTRY_WITH_COMPARISON_MAPPINGS:
 			case ConfigManifestEntryType.LAYER_MAPPINGS:
 			case ConfigManifestEntryType.SOURCE_LAYERS:
 				return (

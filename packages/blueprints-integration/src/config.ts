@@ -14,7 +14,7 @@ export enum ConfigManifestEntryType {
 	SOURCE_LAYERS = 'source_layers',
 	LAYER_MAPPINGS = 'layer_mappings',
 	SELECT_FROM_COLUMN = 'select_from_column',
-	FILTER_DEFAULTS_FROM_SHOW_MAPPING = 'filter_defaults_from_show_mapping',
+	SELECT_FROM_TABLE_ENTRY_WITH_COMPARISON_MAPPINGS = 'select_from_table_entry_with_comparison_mappings',
 	JSON = 'json',
 }
 
@@ -29,8 +29,8 @@ export type BasicConfigManifestEntry =
 	| ConfigManifestEntrySelectFromOptions<false>
 	| ConfigManifestEntrySelectFromColumn<true>
 	| ConfigManifestEntrySelectFromColumn<false>
-	| ConfigManifestEntryFilterDefaultsFromShowMapping<true>
-	| ConfigManifestEntryFilterDefaultsFromShowMapping<false>
+	| ConfigManifestEntrySelectFromTableEntryWithComparisonMappings<true>
+	| ConfigManifestEntrySelectFromTableEntryWithComparisonMappings<false>
 	| ConfigManifestEntrySourceLayers<true>
 	| ConfigManifestEntrySourceLayers<false>
 	| ConfigManifestEntryLayerMappings<true>
@@ -113,20 +113,17 @@ export interface ConfigManifestEntrySelectFromColumn<Multiple extends boolean>
 	columnId: string
 }
 
-export interface ConfigManifestEntryFilterDefaultsFromShowMapping<Multiple extends boolean>
+export type ComparisonMapping = { targetColumnId: string; sourceColumnId: string }
+
+export interface ConfigManifestEntrySelectFromTableEntryWithComparisonMappings<Multiple extends boolean>
 	extends ConfigManifestEntrySelectBase<Multiple> {
-	type: ConfigManifestEntryType.FILTER_DEFAULTS_FROM_SHOW_MAPPING
-	/** The id of the ConfigManifestEntryTable that should receive the filtered values */
-	targetTableId: string
-	/** The id of the BasicConfigManifestEntry that should receive the filtered values */
-	targetCompareColumnId: string
-	/** The id of the ConfigManifestEntryTable from where values are gathered */
+	type: ConfigManifestEntryType.SELECT_FROM_TABLE_ENTRY_WITH_COMPARISON_MAPPINGS
+
 	sourceTableId: string
-	/** The id of the BasicConfigManifestEntry from which related values should be filtered and found
-	 e.g: If you want to find GFX Schema Templates based on a GFX Setup, you make this the GFX Setup id **/
-	sourceCompareColumnId: string
-	/** The id of the BasicConfigManifestEntry from where the wanted values are collected */
-	sourceCollectColumnId: string
+
+	comparisonMappings: ComparisonMapping[]
+
+	sourceColumnIdWithValue: string
 }
 
 export interface ConfigManifestEntrySourceLayers<Multiple extends boolean>
