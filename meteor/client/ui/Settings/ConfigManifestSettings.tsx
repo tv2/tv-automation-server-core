@@ -48,8 +48,6 @@ import {
 import { UploadButton } from '../../lib/uploadButton'
 import { NotificationCenter, NoticeLevel, Notification } from '../../lib/notifications/notifications'
 import { MongoCollection } from '../../../lib/collections/lib'
-import { ShowStyleBase } from '../../../lib/collections/ShowStyleBases'
-import { ShowStyleVariant } from '../../../lib/collections/ShowStyleVariants'
 import { ComparisonMapping } from '@sofie-automation/blueprints-integration/dist'
 
 function filterSourceLayers(
@@ -84,19 +82,19 @@ function filterLayerMappings(
 	return result
 }
 
-function getFilteredTableValuesFromComparison(
+function getFilteredTableValuesFromComparison<DBInterface extends { _id: ProtectedString<any> }>(
 	targetFullAttribute: string,
 	item: ConfigManifestEntrySelectFromTableEntryWithComparisonMappings<boolean>,
 	configPath: string,
-	showStyleBaseDBObject: ShowStyleBase,
-	showStyleVariantDBObject?: ShowStyleVariant
+	dbObject: DBInterface,
+	alternateDbObject?: DBInterface
 ): string[] {
 	const sourceAttribute = `${configPath}.${item.sourceTableId}`
 	const targetAttribute = targetFullAttribute.split('.').slice(0, -1).join('.')
 	const sourceTable: TableConfigItemValue[] =
-		objectPathGet(showStyleBaseDBObject, sourceAttribute) ?? objectPathGet(showStyleVariantDBObject, sourceAttribute)
+		objectPathGet(dbObject, sourceAttribute) ?? objectPathGet(alternateDbObject, sourceAttribute)
 	const targetRow: TableConfigItemValue =
-		objectPathGet(showStyleBaseDBObject, targetAttribute) ?? objectPathGet(showStyleVariantDBObject, targetAttribute)
+		objectPathGet(dbObject, targetAttribute) ?? objectPathGet(alternateDbObject, targetAttribute)
 
 	if (!Array.isArray(sourceTable) || !targetRow) {
 		return []
@@ -147,12 +145,12 @@ function getSourceValuesFromComparisonMapping(
 function getTableColumnValues<DBInterface extends { _id: ProtectedString<any> }>(
 	item: ConfigManifestEntrySelectFromColumn<boolean>,
 	configPath: string,
-	showStyleBaseDBObject: DBInterface,
-	showStyleVariantDBObject?: DBInterface
+	dbObject: DBInterface,
+	alternateDbObject?: DBInterface
 ): string[] {
 	const attribute = `${configPath}.${item.tableId}`
 	const table: TableConfigItemValue[] =
-		objectPathGet(showStyleBaseDBObject, attribute) ?? objectPathGet(showStyleVariantDBObject, attribute)
+		objectPathGet(dbObject, attribute) ?? objectPathGet(alternateDbObject, attribute)
 	const result: string[] = []
 	if (!Array.isArray(table)) {
 		return result
@@ -316,13 +314,7 @@ function getEditAttribute<DBInterface extends { _id: ProtectedString<any> }>(
 					attribute={attribute}
 					obj={object}
 					type={item.multiple ? 'multiselect' : 'dropdown'}
-					options={getFilteredTableValuesFromComparison(
-						attribute,
-						item,
-						configPath,
-						object as unknown as ShowStyleBase,
-						alternateObject
-					)}
+					options={getFilteredTableValuesFromComparison(attribute, item, configPath, object, alternateObject)}
 					collection={collection}
 					className="input text-input dropdown input-l"
 				/>
@@ -658,7 +650,7 @@ export class ConfigManifestTable<
 						</tbody>
 					</table>
 				</div>
-				{configEntry.disableRowManipulation === true || (
+				{configEntry.disableRowManipulation || (
 					<div>
 						<button
 							className={ClassNames('btn btn-primary', {
