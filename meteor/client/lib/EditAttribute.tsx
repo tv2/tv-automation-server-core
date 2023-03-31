@@ -1,15 +1,14 @@
 import * as React from 'react'
 import * as _ from 'underscore'
-import { withTracker } from './ReactMeteorData/react-meteor-data'
 import { faCheckSquare, faSquare } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-
-import { MultiSelect, MultiSelectEvent, MultiSelectOptions } from './multiSelect'
 import ClassNames from 'classnames'
-import { ColorPickerEvent, ColorPicker } from './colorPicker'
+import { assertNever } from '../../lib/lib'
+import { EditAttributeBase, IEditAttributeBaseProps, wrapEditAttribute } from './editAttribute/edit-attribute-base'
+import { getRandomString } from '@sofie-automation/corelib/dist/lib'
+import { ColorPicker, ColorPickerEvent } from './colorPicker'
 import { IconPicker, IconPickerEvent } from './iconPicker'
-import { assertNever, getRandomString } from '../../lib/lib'
-import { MongoCollection } from '../../lib/collections/lib'
+import { MultiSelect, MultiSelectOption } from './multiSelect'
 
 interface IEditAttribute extends IEditAttributeBaseProps {
 	type: EditAttributeType
@@ -46,11 +45,11 @@ export class EditAttribute extends React.Component<IEditAttribute> {
 		} else if (this.props.type === 'toggle') {
 			return <EditAttributeToggle {...this.props} />
 		} else if (this.props.type === 'dropdown') {
-			return <EditAttributeDropdown {...this.props} />
+			return <DeprecatedEditAttributeDropdown {...this.props} />
 		} else if (this.props.type === 'dropdowntext') {
-			return <EditAttributeDropdownText {...this.props} />
+			return <DeprecatedEditAttributeDropdownText {...this.props} />
 		} else if (this.props.type === 'multiselect') {
-			return <EditAttributeMultiSelect {...this.props} />
+			return <DeprecatedEditAttributeMultiSelect {...this.props} />
 		} else if (this.props.type === 'json') {
 			return <EditAttributeJson {...this.props} />
 		} else if (this.props.type === 'colorpicker') {
@@ -65,155 +64,6 @@ export class EditAttribute extends React.Component<IEditAttribute> {
 
 		return <div>Unknown edit type {this.props.type}</div>
 	}
-}
-
-interface IEditAttributeBaseProps {
-	updateOnKey?: boolean
-	attribute?: string
-	collection?: MongoCollection<any>
-	myObject?: any
-	obj?: any
-	options?: any
-	optionsAreNumbers?: boolean
-	className?: string
-	modifiedClassName?: string
-	invalidClassName?: string
-	updateFunction?: (edit: EditAttributeBase, newValue: any) => void
-	overrideDisplayValue?: any
-	label?: string
-	mutateDisplayValue?: (v: any) => any
-	mutateUpdateValue?: (v: any) => any
-	disabled?: boolean
-	storeJsonAsObject?: boolean
-	/** Defaults to string */
-	arrayType?: 'boolean' | 'int' | 'float' | 'string'
-}
-interface IEditAttributeBaseState {
-	value: any
-	valueError: boolean
-	editing: boolean
-}
-export class EditAttributeBase extends React.Component<IEditAttributeBaseProps, IEditAttributeBaseState> {
-	constructor(props) {
-		super(props)
-
-		this.state = {
-			value: this.getAttribute(),
-			valueError: false,
-			editing: false,
-		}
-
-		this.handleEdit = this.handleEdit.bind(this)
-		this.handleUpdate = this.handleUpdate.bind(this)
-		this.handleDiscard = this.handleDiscard.bind(this)
-	}
-	handleEdit(inputValue: any, storeValue?: any) {
-		this.setState({
-			value: inputValue,
-			editing: true,
-		})
-		if (this.props.updateOnKey) {
-			this.updateValue(storeValue ?? inputValue)
-		}
-	}
-	handleUpdate(inputValue: any, storeValue?: any) {
-		this.handleUpdateButDontSave(inputValue)
-		this.updateValue(storeValue ?? inputValue)
-	}
-	handleUpdateEditing(newValue) {
-		this.handleUpdateButDontSave(newValue, true)
-		this.updateValue(newValue)
-	}
-	handleUpdateButDontSave(newValue, editing = false) {
-		this.setState({
-			value: newValue,
-			editing,
-		})
-	}
-	handleDiscard() {
-		this.setState({
-			value: this.getAttribute(),
-			editing: false,
-		})
-	}
-	deepAttribute(obj0: any, attr0: string | undefined): any {
-		// Returns a value deep inside an object
-		// Example: deepAttribute(company,"ceo.address.street");
-
-		const f = (obj: any, attr: string) => {
-			if (obj) {
-				const attributes = attr.split('.')
-
-				if (attributes.length > 1) {
-					const outerAttr = attributes.shift() as string
-					const innerAttrs = attributes.join('.')
-
-					return f(obj[outerAttr], innerAttrs)
-				} else {
-					return obj[attributes[0]]
-				}
-			} else {
-				return obj
-			}
-		}
-		return f(obj0, attr0 || '')
-	}
-	getAttribute() {
-		let v = null
-		if (this.props.overrideDisplayValue !== undefined) {
-			v = this.props.overrideDisplayValue
-		} else {
-			v = this.deepAttribute(this.props.myObject, this.props.attribute)
-		}
-		return this.props.mutateDisplayValue ? this.props.mutateDisplayValue(v) : v
-	}
-	getAttributeText() {
-		return this.getAttribute() + ''
-	}
-	getEditAttribute() {
-		return this.state.editing ? this.state.value : this.getAttribute()
-	}
-	updateValue(newValue) {
-		if (this.props.mutateUpdateValue) {
-			try {
-				newValue = this.props.mutateUpdateValue(newValue)
-				this.setState({
-					valueError: false,
-				})
-			} catch (e) {
-				this.setState({
-					valueError: true,
-					editing: true,
-				})
-				return
-			}
-		}
-
-		if (this.props.updateFunction && typeof this.props.updateFunction === 'function') {
-			this.props.updateFunction(this, newValue)
-		} else {
-			if (this.props.collection && this.props.attribute) {
-				if (newValue === undefined) {
-					const m = {}
-					m[this.props.attribute] = 1
-					this.props.collection.update(this.props.obj._id, { $unset: m })
-				} else {
-					const m = {}
-					m[this.props.attribute] = newValue
-					this.props.collection.update(this.props.obj._id, { $set: m })
-				}
-			}
-		}
-	}
-}
-function wrapEditAttribute(newClass) {
-	return withTracker((props: IEditAttributeBaseProps) => {
-		// These properties will be exposed under this.props
-		// Note that these properties are reactively recalculated
-		return {
-			myObject: props.collection ? props.collection.findOne(props.obj._id) : props.obj || {},
-		}
-	})(newClass)
 }
 
 const EditAttributeText = wrapEditAttribute(
@@ -546,7 +396,8 @@ interface EditAttributeDropdownOptionsResult {
 	currentOptionMissing: boolean
 }
 
-const EditAttributeDropdown = wrapEditAttribute(
+// Deprecated in favour of EditAttributeDropdown
+const DeprecatedEditAttributeDropdown = wrapEditAttribute(
 	class EditAttributeDropdown extends EditAttributeBase {
 		constructor(props) {
 			super(props)
@@ -671,7 +522,9 @@ const EditAttributeDropdown = wrapEditAttribute(
 		}
 	}
 )
-const EditAttributeDropdownText = wrapEditAttribute(
+
+// Deprecated in favour of EditAttributeDropdown
+const DeprecatedEditAttributeDropdownText = wrapEditAttribute(
 	class EditAttributeDropdownText extends EditAttributeBase {
 		private _id: string
 
@@ -825,30 +678,31 @@ const EditAttributeDropdownText = wrapEditAttribute(
 )
 
 interface EditAttributeMultiSelectOptionsResult {
-	options: MultiSelectOptions
+	options: MultiSelectOption[]
 	currentOptionMissing: boolean
 }
 
-const EditAttributeMultiSelect = wrapEditAttribute(
+// Deprecated in favour of EditAttributeMultiSelect
+const DeprecatedEditAttributeMultiSelect = wrapEditAttribute(
 	class EditAttributeMultiSelect extends EditAttributeBase {
 		constructor(props) {
 			super(props)
 
 			this.handleChange = this.handleChange.bind(this)
 		}
-		handleChange(event: MultiSelectEvent) {
-			this.handleUpdate(event.selectedValues)
+		handleChange(selectedOptions: MultiSelectOption[]) {
+			this.handleUpdate(selectedOptions)
 		}
 		getOptions(addOptionsForCurrentValue?: boolean): EditAttributeMultiSelectOptionsResult {
-			const options: MultiSelectOptions = {}
+			const options: MultiSelectOption[] = []
 
 			if (Array.isArray(this.props.options)) {
 				// is it an enum?
 				for (const val of this.props.options) {
 					if (typeof val === 'object') {
-						options[val.value] = { value: val.name }
+						options.push({ value: val.name, label: val.name })
 					} else {
-						options[val] = { value: val }
+						options.push({ value: val, label: val })
 					}
 				}
 			} else if (typeof this.props.options === 'object') {
@@ -861,17 +715,17 @@ const EditAttributeMultiSelect = wrapEditAttribute(
 						if (!_.isNaN(parseInt(key, 10))) {
 							// key is a number (the key)
 							const enumValue = this.props.options[key]
-							const enumKey = this.props.options[enumValue]
-							options[enumKey] = { value: enumValue }
+							options.push({ value: enumValue, label: enumValue })
 						}
 					}
 				} else {
 					for (const key in this.props.options) {
 						const val = this.props.options[key]
 						if (Array.isArray(val)) {
-							options[key] = { value: val }
+							options.push({ value: val.toString(), label: val.toString() })
 						} else {
-							options[val] = { value: key + ': ' + val }
+							const value = key + ': ' + val
+							options.push({ value: value, label: value })
 						}
 					}
 				}
@@ -882,10 +736,9 @@ const EditAttributeMultiSelect = wrapEditAttribute(
 
 			if (addOptionsForCurrentValue) {
 				missingOptions.forEach((option) => {
-					options[option] = { value: `${option}`, className: 'option-missing' }
+					options.push({ value: `${option}`, className: 'option-missing', label: `${option}` })
 				})
 			}
-
 			return { options, currentOptionMissing: !!missingOptions.length }
 		}
 		render() {
@@ -893,7 +746,7 @@ const EditAttributeMultiSelect = wrapEditAttribute(
 			return (
 				<MultiSelect
 					className={ClassNames(this.props.className, options.currentOptionMissing && 'option-missing')}
-					availableOptions={options.options}
+					options={options.options}
 					value={this.getAttribute()}
 					placeholder={this.props.label}
 					onChange={this.handleChange}

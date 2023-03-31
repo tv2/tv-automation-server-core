@@ -5,12 +5,14 @@ import { RundownLayoutBase, RundownLayouts } from '../../../../../lib/collection
 import { ShowStyleBase } from '../../../../../lib/collections/ShowStyleBases'
 import { unprotectString } from '../../../../../lib/lib'
 import { EditAttribute } from '../../../../lib/EditAttribute'
+import { EditAttributeMultiSelect } from '../../../../lib/editAttribute/edit-attribute-multi-select'
+import { EditAttributeDropdown } from '../../../../lib/editAttribute/edit-attribute-dropdown'
 
 function filterLayouts(
 	rundownLayouts: RundownLayoutBase[],
 	testFunc: (l: RundownLayoutBase) => boolean
-): Array<{ name: string; value: string }> {
-	return rundownLayouts.filter(testFunc).map((l) => ({ name: l.name, value: unprotectString(l._id) }))
+): Array<{ label: string; value: string }> {
+	return rundownLayouts.filter(testFunc).map((l) => ({ label: l.name, value: unprotectString(l._id) }))
 }
 
 interface IProps {
@@ -40,43 +42,40 @@ export default function RundownViewLayoutSettings({ showStyleBase, item, layouts
 			<div className="mod mvs mhs">
 				<label className="field">
 					{t('Shelf Layout')}
-					<EditAttribute
+					<EditAttributeDropdown
 						modifiedClassName="bghl"
 						attribute={'shelfLayout'}
 						obj={item}
 						options={filterLayouts(layouts, RundownLayoutsAPI.isLayoutForShelf)}
-						type="dropdown"
 						collection={RundownLayouts}
 						className="input text-input input-l dropdown"
-					></EditAttribute>
+					></EditAttributeDropdown>
 				</label>
 			</div>
 			<div className="mod mvs mhs">
 				<label className="field">
 					{t('Mini Shelf Layout')}
-					<EditAttribute
+					<EditAttributeDropdown
 						modifiedClassName="bghl"
 						attribute={'miniShelfLayout'}
 						obj={item}
 						options={filterLayouts(layouts, RundownLayoutsAPI.isLayoutForMiniShelf)}
-						type="dropdown"
 						collection={RundownLayouts}
 						className="input text-input input-l dropdown"
-					></EditAttribute>
+					></EditAttributeDropdown>
 				</label>
 			</div>
 			<div className="mod mvs mhs">
 				<label className="field">
 					{t('Rundown Header Layout')}
-					<EditAttribute
+					<EditAttributeDropdown
 						modifiedClassName="bghl"
 						attribute={'rundownHeaderLayout'}
 						obj={item}
 						options={filterLayouts(layouts, RundownLayoutsAPI.isLayoutForRundownHeader)}
-						type="dropdown"
 						collection={RundownLayouts}
 						className="input text-input input-l dropdown"
-					></EditAttribute>
+					></EditAttributeDropdown>
 				</label>
 			</div>
 			<div className="mod mvs mhs">
@@ -91,14 +90,13 @@ export default function RundownViewLayoutSettings({ showStyleBase, item, layouts
 					mutateDisplayValue={(v) => (v === undefined || v.length === 0 ? false : true)}
 					mutateUpdateValue={() => undefined}
 				/>
-				<EditAttribute
+				<EditAttributeMultiSelect
 					modifiedClassName="bghl"
 					attribute={`liveLineProps.requiredLayerIds`}
 					obj={item}
 					options={showStyleBase.sourceLayers.map((l) => {
-						return { name: l.name, value: l._id }
+						return { label: l.name, value: l._id }
 					})}
-					type="multiselect"
 					label={t('Disabled')}
 					collection={RundownLayouts}
 					className="input text-input input-l dropdown"
@@ -120,14 +118,13 @@ export default function RundownViewLayoutSettings({ showStyleBase, item, layouts
 					mutateDisplayValue={(v) => (v === undefined || v.length === 0 ? false : true)}
 					mutateUpdateValue={() => undefined}
 				/>
-				<EditAttribute
+				<EditAttributeMultiSelect
 					modifiedClassName="bghl"
 					attribute={`liveLineProps.additionalLayers`}
 					obj={item}
 					options={showStyleBase.sourceLayers.map((l) => {
-						return { name: l.name, value: l._id }
+						return { label: l.name, value: l._id }
 					})}
-					type="multiselect"
 					label={t('Disabled')}
 					collection={RundownLayouts}
 					className="input text-input input-l dropdown"
@@ -190,14 +187,13 @@ export default function RundownViewLayoutSettings({ showStyleBase, item, layouts
 					mutateDisplayValue={(v) => (v === undefined || v.length === 0 ? false : true)}
 					mutateUpdateValue={() => undefined}
 				/>
-				<EditAttribute
+				<EditAttributeMultiSelect
 					modifiedClassName="bghl"
 					attribute={`countdownToSegmentRequireLayers`}
 					obj={item}
 					options={showStyleBase.sourceLayers.map((l) => {
-						return { name: l.name, value: l._id }
+						return { label: l.name, value: l._id }
 					})}
-					type="multiselect"
 					label={t('Disabled')}
 					collection={RundownLayouts}
 					className="input text-input input-l dropdown"
@@ -228,7 +224,7 @@ export default function RundownViewLayoutSettings({ showStyleBase, item, layouts
 			<div className="mod mvs mhs">
 				<div className="field">
 					{t('Select visible Source Layers')}
-					<EditAttribute
+					<EditAttributeMultiSelect
 						modifiedClassName="bghl"
 						attribute={'visibleSourceLayers'}
 						obj={item}
@@ -236,19 +232,18 @@ export default function RundownViewLayoutSettings({ showStyleBase, item, layouts
 							.sort((a, b) => a._rank - b._rank)
 							.map((sourceLayer) => ({
 								value: sourceLayer._id,
-								name: sourceLayer.name,
+								label: sourceLayer.name,
 							}))}
-						type="multiselect"
 						mutateUpdateValue={undefinedOnEmptyArray}
 						collection={RundownLayouts}
 						className="input text-input input-l dropdown"
-					></EditAttribute>
+					></EditAttributeMultiSelect>
 				</div>
 			</div>
 			<div className="mod mvs mhs">
 				<div className="field">
 					{t('Select visible Output Groups')}
-					<EditAttribute
+					<EditAttributeMultiSelect
 						modifiedClassName="bghl"
 						attribute={'visibleOutputLayers'}
 						obj={item}
@@ -256,13 +251,12 @@ export default function RundownViewLayoutSettings({ showStyleBase, item, layouts
 							.sort((a, b) => a._rank - b._rank)
 							.map((outputLayer) => ({
 								value: outputLayer._id,
-								name: outputLayer.name,
+								label: outputLayer.name,
 							}))}
-						type="multiselect"
 						mutateUpdateValue={undefinedOnEmptyArray}
 						collection={RundownLayouts}
 						className="input text-input input-l dropdown"
-					></EditAttribute>
+					></EditAttributeMultiSelect>
 				</div>
 			</div>
 			<div className="mod mvs mhs">
@@ -277,14 +271,13 @@ export default function RundownViewLayoutSettings({ showStyleBase, item, layouts
 					mutateDisplayValue={(v) => (v === undefined || v.length === 0 ? false : true)}
 					mutateUpdateValue={() => undefined}
 				/>
-				<EditAttribute
+				<EditAttributeMultiSelect
 					modifiedClassName="bghl"
 					attribute={`showDurationSourceLayers`}
 					obj={item}
 					options={showStyleBase.sourceLayers.map((l) => {
-						return { name: l.name, value: l._id }
+						return { label: l.name, value: l._id }
 					})}
-					type="multiselect"
 					label={t('Disabled')}
 					collection={RundownLayouts}
 					className="input text-input input-l dropdown"
