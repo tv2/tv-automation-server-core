@@ -1,5 +1,5 @@
 import { ShowStyleVariant } from '../../lib/collections/ShowStyleVariants'
-import { doModalDialog } from './ModalDialog'
+import { doModalDialog, removeAllQueueItems } from './ModalDialog'
 import { MeteorCall } from '../../lib/api/methods'
 import { logger } from '../../lib/logging'
 import React from 'react'
@@ -97,8 +97,26 @@ export const ShowStyleVariantImportButton = withTranslation()(
 				title: t('Do you want to replace this variant?'),
 				yes: t('Replace'),
 				no: t('Keep both variants'),
+				onDiscard: () => removeAllQueueItems(),
 				onAccept: () => this.replaceShowStyleVariant(showStyleVariant),
 				onSecondary: () => this.importDuplicatedShowStyleVariant(showStyleVariant),
+				actions: [
+					{
+						label: t('Skip'),
+						classNames: 'btn mlm',
+						on: () =>
+							NotificationCenter.push(
+								new Notification(
+									undefined,
+									NoticeLevel.TIP,
+									t('Skipped import of Variant {{name}}.', {
+										name: showStyleVariant.name,
+									}),
+									'VariantSettings'
+								)
+							),
+					},
+				],
 				message: (
 					<React.Fragment>
 						<p>

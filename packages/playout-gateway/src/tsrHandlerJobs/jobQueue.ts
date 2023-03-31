@@ -1,6 +1,6 @@
 import { EventEmitter } from 'stream'
 import { AbortError } from 'timeline-state-resolver'
-import { Logger } from 'winston'
+import { Logger } from '../logger'
 import { Job } from './job'
 
 interface JobDescription<ResultType> {
@@ -58,9 +58,11 @@ export class JobQueue extends EventEmitter implements IJobQueue {
 	private currentJob: JobDescription<unknown> | null = null
 	private currentJobChain: JobDescription<unknown>[] = []
 	private currentJobTimeout: NodeJS.Timeout | null = null
+	private readonly logger: Logger
 
-	constructor(private name: string, private logger: Logger) {
+	constructor(private name: string, logger: Logger) {
 		super()
+		this.logger = logger.tag(this.constructor.name)
 	}
 
 	get length(): number {
@@ -173,7 +175,7 @@ export class JobQueue extends EventEmitter implements IJobQueue {
 	private handleJobRejected = async (reason: unknown): Promise<PromiseSettledResult<void>[] | void> => {
 		if (!this.currentJob) return
 		this.logger.error(
-			`Error in queue "${this.name}" at Job.run "${this.currentJob.job.constructor.name}": ${reason}`
+			`Error in queue '${this.name}' at Job.run '${this.currentJob.job.constructor.name}': ${reason}`
 		)
 		const cleanupPromises = []
 		if (this.currentJobChain.length) {
@@ -198,7 +200,7 @@ export class JobQueue extends EventEmitter implements IJobQueue {
 		}
 		const failedCleanups = results.filter((result) => result.status === 'rejected') as PromiseRejectedResult[]
 		for (const result of failedCleanups) {
-			this.logger.error(`Error in queue "${this.name}" at Job.cleanup: ${result.reason}`)
+			this.logger.error(`Error in queue '${this.name}' at Job.cleanup: ${result.reason}`)
 		}
 	}
 

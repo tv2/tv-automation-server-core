@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [46.2.0](https://github.com/tv2/tv-automation-server-core/compare/v46.1.4...v46.2.0) (2023-03-01)
+
+
+### Features
+
+* SOF-1065 enable human-readable show names in the MSE device ([02f3dce](https://github.com/tv2/tv-automation-server-core/commit/02f3dcedabb9ab4b16ff81105ead95fd1c041779))
+
+
+
+
+
 # [1.44.0-in-testing.1](https://github.com/nrkno/tv-automation-server-core/compare/v1.44.0-in-testing.0...v1.44.0-in-testing.1) (2022-07-05)
 
 **Note:** Version bump only for package @sofie-automation/blueprints-integration

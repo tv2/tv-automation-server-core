@@ -9,72 +9,76 @@ import { ModalDialog } from '../../lib/ModalDialog'
 import { Translated } from '../../lib/ReactMeteorData/react-meteor-data'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
-	ConfigManifestEntry,
-	ConfigManifestEntryType,
-	IBlueprintConfig,
 	BasicConfigManifestEntry,
 	ConfigItemValue,
-	ConfigManifestEntryTable,
-	TableConfigItemValue,
-	ConfigManifestEntrySourceLayers,
-	ConfigManifestEntryLayerMappings,
-	SourceLayerType,
-	ConfigManifestEntrySelectFromColumn,
+	ConfigManifestEntry,
 	ConfigManifestEntryBoolean,
 	ConfigManifestEntryEnum,
 	ConfigManifestEntryFloat,
 	ConfigManifestEntryInt,
-	ConfigManifestEntryMultilineString,
-	ConfigManifestEntrySelectFromOptions,
-	ConfigManifestEntryString,
 	ConfigManifestEntryJson,
 	ConfigManifestEntrySelectFromTableEntryWithComparisonMappings,
+	ConfigManifestEntryLayerMappings,
+	ConfigManifestEntryMultilineString,
+	ConfigManifestEntrySelectFromColumn,
+	ConfigManifestEntrySelectFromOptions,
+	ConfigManifestEntrySourceLayers,
+	ConfigManifestEntryString,
+	ConfigManifestEntryTable,
+	ConfigManifestEntryType,
+	IBlueprintConfig,
+	SourceLayerType,
+	TableConfigItemValue,
 } from '@sofie-automation/blueprints-integration'
-import { DBObj, ProtectedString, objectPathGet, getRandomString } from '../../../lib/lib'
+import { DBObj, getRandomString, objectPathGet, ProtectedString } from '../../../lib/lib'
 import { MongoModifier } from '../../../lib/typings/meteor'
 import { Meteor } from 'meteor/meteor'
 import { getHelpMode } from '../../lib/localStorage'
 import {
-	faDownload,
-	faTrash,
-	faPencilAlt,
 	faCheck,
+	faDownload,
+	faPencilAlt,
 	faPlus,
-	faUpload,
-	faSortUp,
-	faSortDown,
 	faSort,
+	faSortDown,
+	faSortUp,
+	faTrash,
+	faUpload,
 } from '@fortawesome/free-solid-svg-icons'
 import { UploadButton } from '../../lib/uploadButton'
-import { NotificationCenter, NoticeLevel, Notification } from '../../lib/notifications/notifications'
+import { NoticeLevel, Notification, NotificationCenter } from '../../lib/notifications/notifications'
 import { MongoCollection } from '../../../lib/collections/lib'
 import { ComparisonMapping } from '@sofie-automation/blueprints-integration/dist'
+import { EditAttributeMultiSelect } from '../../lib/editAttribute/edit-attribute-multi-select'
+import { DropdownOption, EditAttributeDropdown } from '../../lib/editAttribute/edit-attribute-dropdown'
+import { MultiSelectOption } from '../../lib/multiSelect'
+import { EditAttributeTextDropdown } from '../../lib/editAttribute/edit-attribute-text-dropdown'
 
 function filterSourceLayers(
 	select: ConfigManifestEntrySourceLayers<true | false>,
 	layers: Array<{ name: string; value: string; type: SourceLayerType }>
-): Array<{ name: string; value: string; type: SourceLayerType }> {
+): SelectOption[] {
 	if (select.filters && select.filters.sourceLayerTypes) {
 		const sourceLayerTypes = select.filters.sourceLayerTypes
 		return _.filter(layers, (layer) => {
 			return sourceLayerTypes.includes(layer.type)
-		})
+		}).map((layer) => ({ label: layer.name, value: layer.value }))
 	} else {
-		return layers
+		return layers.map((layer) => ({ label: layer.name, value: layer.value }))
 	}
 }
 
 function filterLayerMappings(
 	select: ConfigManifestEntryLayerMappings<true | false>,
 	mappings: { [key: string]: MappingsExt }
-): Array<{ name: string; value: string }> {
+): SelectOption[] {
 	const deviceTypes = select.filters?.deviceTypes
-	const result: Array<{ name: string; value: string }> = []
+	const result: SelectOption[] = []
 
 	for (const studioMappings of Object.values(mappings)) {
 		for (const [layerId, mapping] of Object.entries(studioMappings)) {
 			if (!deviceTypes || deviceTypes.includes(mapping.device)) {
-				result.push({ name: mapping.layerName || layerId, value: layerId })
+				result.push({ label: mapping.layerName + '' || layerId + '', value: layerId + '' })
 			}
 		}
 	}
@@ -88,9 +92,10 @@ function getFilteredTableValuesFromComparison<DBInterface extends { _id: Protect
 	configPath: string,
 	dbObject: DBInterface,
 	alternateDbObject?: DBInterface
-): string[] {
+): SelectOption[] {
 	const sourceAttribute = `${configPath}.${item.sourceTableId}`
-	const targetAttribute = targetFullAttribute.split('.').slice(0, -1).join('.')
+	const targetAttribute = `${targetFullAttribute}.${0}`
+
 	const sourceTable: TableConfigItemValue[] =
 		objectPathGet(dbObject, sourceAttribute) ?? objectPathGet(alternateDbObject, sourceAttribute)
 	const targetRow: TableConfigItemValue =
@@ -111,7 +116,7 @@ function getFilteredTableValuesFromComparison<DBInterface extends { _id: Protect
 
 		return getSourceValuesFromComparisonMapping(sourceRow, targetRow, item.sourceColumnIdWithValue, comparisonMapping)
 	})
-	result.push('N/A')
+	result.push({ value: 'N/A', label: 'N/A' })
 	return result
 }
 
@@ -135,9 +140,11 @@ function getSourceValuesFromComparisonMapping(
 	targetRow: TableConfigItemValue,
 	sourceValueColumnId: string,
 	comparisonMapping: ComparisonMapping
-): string[] {
+): SelectOption[] {
 	const targetValue = targetRow[comparisonMapping.targetColumnId]
-	const isMatched = sourceRow[comparisonMapping.sourceColumnId].some((sourceValue) => sourceValue === targetValue)
+	const isMatched = sourceRow[comparisonMapping.sourceColumnId].some(
+		(sourceValue) => sourceValue.label === targetValue.label
+	)
 
 	return isMatched ? sourceRow[sourceValueColumnId] : []
 }
@@ -147,20 +154,19 @@ function getTableColumnValues<DBInterface extends { _id: ProtectedString<any> }>
 	configPath: string,
 	dbObject: DBInterface,
 	alternateDbObject?: DBInterface
-): string[] {
+): SelectOption[] {
 	const attribute = `${configPath}.${item.tableId}`
 	const table: TableConfigItemValue[] =
 		objectPathGet(dbObject, attribute) ?? objectPathGet(alternateDbObject, attribute)
-	const result: string[] = []
 	if (!Array.isArray(table)) {
-		return result
+		return []
 	}
-	table.forEach((row) => {
-		if (typeof row === 'object' && row[item.columnId] !== undefined) {
-			result.push(row[item.columnId])
-		}
-	})
-	return result
+	return table
+		.filter((row) => typeof row === 'object' && row[item.columnId] !== undefined)
+		.map((row) => ({
+			value: row['_id'],
+			label: row[item.columnId],
+		}))
 }
 
 function getEditAttribute<DBInterface extends { _id: ProtectedString<any> }>(
@@ -237,11 +243,10 @@ function getEditAttribute<DBInterface extends { _id: ProtectedString<any> }>(
 			)
 		case ConfigManifestEntryType.ENUM:
 			return (
-				<EditAttribute
+				<EditAttributeTextDropdown
 					modifiedClassName="bghl"
 					attribute={attribute}
 					obj={object}
-					type="dropdown"
 					options={item.options || []}
 					collection={collection}
 					className="input text-input input-l"
@@ -259,69 +264,84 @@ function getEditAttribute<DBInterface extends { _id: ProtectedString<any> }>(
 					className="input text-input input-l"
 				/>
 			)
-		case ConfigManifestEntryType.SELECT:
-			return (
-				<EditAttribute
-					modifiedClassName="bghl"
-					attribute={attribute}
-					obj={object}
-					type={item.multiple ? 'multiselect' : 'dropdown'}
-					options={item.options}
-					collection={collection}
-					className="input text-input dropdown input-l"
-				/>
-			)
-		case ConfigManifestEntryType.SOURCE_LAYERS:
-			return (
-				<EditAttribute
-					modifiedClassName="bghl"
-					attribute={attribute}
-					obj={object}
-					type={item.multiple ? 'multiselect' : 'dropdown'}
-					options={'options' in item ? item.options : filterSourceLayers(item, sourceLayers ?? [])}
-					collection={collection}
-					className="input text-input dropdown input-l"
-				/>
-			)
-		case ConfigManifestEntryType.LAYER_MAPPINGS:
-			return (
-				<EditAttribute
-					modifiedClassName="bghl"
-					attribute={attribute}
-					obj={object}
-					type={item.multiple ? 'multiselect' : 'dropdown'}
-					options={'options' in item ? item.options : filterLayerMappings(item, layerMappings ?? {})}
-					collection={collection}
-					className="input text-input dropdown input-l"
-				/>
-			)
-		case ConfigManifestEntryType.SELECT_FROM_COLUMN:
-			return (
-				<EditAttribute
-					modifiedClassName="bghl"
-					attribute={attribute}
-					obj={object}
-					type={item.multiple ? 'multiselect' : 'dropdown'}
-					options={'options' in item ? item.options : getTableColumnValues(item, configPath, object, alternateObject)}
-					collection={collection}
-					className="input text-input dropdown input-l"
-				/>
-			)
-		case ConfigManifestEntryType.SELECT_FROM_TABLE_ENTRY_WITH_COMPARISON_MAPPINGS:
-			return (
-				<EditAttribute
-					modifiedClassName="bghl"
-					attribute={attribute}
-					obj={object}
-					type={item.multiple ? 'multiselect' : 'dropdown'}
-					options={getFilteredTableValuesFromComparison(attribute, item, configPath, object, alternateObject)}
-					collection={collection}
-					className="input text-input dropdown input-l"
-				/>
-			)
+		case ConfigManifestEntryType.SELECT: {
+			const selectOptions: SelectOption[] = item.options.map((option) => ({ value: option, label: option }))
+			if (item.multiple) {
+				return renderMultiSelect(attribute, object, selectOptions, collection)
+			}
+			return renderDropdown(attribute, object, selectOptions, collection)
+		}
+		case ConfigManifestEntryType.SOURCE_LAYERS: {
+			const filterSourceLayerOptions = 'options' in item ? item.options : filterSourceLayers(item, sourceLayers ?? [])
+			if (item.multiple) {
+				return renderMultiSelect(attribute, object, filterSourceLayerOptions, collection)
+			}
+			return renderDropdown(attribute, object, filterSourceLayerOptions, collection)
+		}
+		case ConfigManifestEntryType.LAYER_MAPPINGS: {
+			const layerMappingOptions = 'options' in item ? item.options : filterLayerMappings(item, layerMappings ?? {})
+			if (item.multiple) {
+				return renderMultiSelect(attribute, object, layerMappingOptions, collection)
+			}
+			return renderDropdown(attribute, object, layerMappingOptions, collection)
+		}
+		case ConfigManifestEntryType.SELECT_FROM_COLUMN: {
+			const selectFromOptions =
+				'options' in item ? item.options : getTableColumnValues(item, configPath, object, alternateObject)
+			if (item.multiple) {
+				return renderMultiSelect(attribute, object, selectFromOptions, collection)
+			}
+			return renderDropdown(attribute, object, selectFromOptions, collection)
+		}
+		case ConfigManifestEntryType.SELECT_FROM_TABLE_ENTRY_WITH_COMPARISON_MAPPINGS: {
+			const selectWithComparisonOptions =
+				'options' in item
+					? item.options
+					: getFilteredTableValuesFromComparison(attribute, item, configPath, object, alternateObject)
+			if (item.multiple) {
+				return renderMultiSelect(attribute, object, selectWithComparisonOptions, collection)
+			}
+			return renderDropdown(attribute, object, selectWithComparisonOptions, collection)
+		}
 		default:
 			return null
 	}
+}
+
+function renderMultiSelect(
+	attribute: string,
+	obj: any,
+	options: MultiSelectOption[],
+	collection: MongoCollection<any>
+) {
+	return (
+		<EditAttributeMultiSelect
+			modifiedClassName="bghl"
+			attribute={attribute}
+			obj={obj}
+			options={options}
+			collection={collection}
+			className="input text-input dropdown input-l"
+		></EditAttributeMultiSelect>
+	)
+}
+
+function renderDropdown(attribute: string, obj: any, options: DropdownOption[], collection: MongoCollection<any>) {
+	return (
+		<EditAttributeDropdown
+			modifiedClassName="bghl"
+			attribute={attribute}
+			obj={obj}
+			options={options}
+			collection={collection}
+			className="input text-input dropdown input-l"
+		/>
+	)
+}
+
+interface SelectOption {
+	value: string
+	label: string
 }
 
 type ResolvedBasicConfigManifestEntry =
@@ -332,10 +352,10 @@ type ResolvedBasicConfigManifestEntry =
 	| ConfigManifestEntryBoolean
 	| ConfigManifestEntryEnum
 	| ConfigManifestEntrySelectFromOptions<boolean>
-	| (ConfigManifestEntrySelectFromColumn<boolean> & { options: string[] })
-	| ConfigManifestEntrySelectFromTableEntryWithComparisonMappings<boolean>
-	| (ConfigManifestEntrySourceLayers<boolean> & { options: Array<{ name: string; value: string }> })
-	| (ConfigManifestEntryLayerMappings<boolean> & { options: Array<{ name: string; value: string }> })
+	| (ConfigManifestEntrySelectFromColumn<boolean> & { options: SelectOption[] })
+	| (ConfigManifestEntrySourceLayers<boolean> & { options: SelectOption[] })
+	| (ConfigManifestEntryLayerMappings<boolean> & { options: SelectOption[] })
+	| (ConfigManifestEntrySelectFromTableEntryWithComparisonMappings<boolean> & { options: SelectOption[] })
 	| ConfigManifestEntryJson
 
 interface IConfigManifestSettingsProps<
@@ -538,6 +558,17 @@ export class ConfigManifestTable<
 							return {
 								...column,
 								options: getTableColumnValues(column, props.configPath, props.object, props.alternateObject),
+							}
+						case ConfigManifestEntryType.SELECT_FROM_TABLE_ENTRY_WITH_COMPARISON_MAPPINGS:
+							return {
+								...column,
+								options: getFilteredTableValuesFromComparison(
+									props.baseAttribute,
+									column,
+									props.configPath,
+									props.object,
+									props.alternateObject
+								),
 							}
 						default:
 							return column
@@ -845,7 +876,7 @@ export class ConfigManifestSettings<
 			case ConfigManifestEntryType.INT:
 				return _.isNumber(value) && item.zeroBased ? (value + 1).toString() : value.toString()
 			default:
-				return value.toString()
+				return value['label'] ?? value.toString()
 		}
 	}
 
@@ -974,9 +1005,9 @@ export class ConfigManifestSettings<
 	}
 
 	getAddOptions() {
-		let addOptions: { value: string; name: string }[] = []
+		let addOptions: { value: string; label: string }[] = []
 		const config = this.getObjectConfig()
-		addOptions = this.props.manifest.map((c) => ({ value: c.id, name: c.name }))
+		addOptions = this.props.manifest.map((c) => ({ value: c.id, label: c.name }))
 
 		return addOptions.filter((o) => objectPathGet(config, o.value) === undefined)
 	}
@@ -997,11 +1028,10 @@ export class ConfigManifestSettings<
 						<label className="field">
 							{t('Item')}
 							<div className="select focusable">
-								<EditAttribute
+								<EditAttributeDropdown
 									modifiedClassName="bghl"
-									type="dropdown"
 									options={this.getAddOptions()}
-									updateFunction={(_e, v) => this.setState({ addItemId: v })}
+									updateFunction={(_e, v) => this.setState({ addItemId: (v as { value: string }).value })}
 									overrideDisplayValue={this.state.addItemId}
 								/>
 							</div>

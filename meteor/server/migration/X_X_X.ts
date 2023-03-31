@@ -3,6 +3,7 @@ import { CURRENT_SYSTEM_VERSION } from './currentSystemVersion'
 import { ShowStyleVariant, ShowStyleVariants } from '../../lib/collections/ShowStyleVariants'
 import { PieceInstances } from '../../lib/collections/PieceInstances'
 import { TriggeredActions } from '../../lib/collections/TriggeredActions'
+import { createMigrationsForAddingMissingIdsInSelectFromColumnEntries } from './addMissingIdsForSelectFromColumns'
 
 /*
  * **************************************************************************************
@@ -77,4 +78,5 @@ export const addSteps = addMigrationSteps(CURRENT_SYSTEM_VERSION, [
 			})
 		},
 	},
+	...createMigrationsForAddingMissingIdsInSelectFromColumnEntries(),
 ])

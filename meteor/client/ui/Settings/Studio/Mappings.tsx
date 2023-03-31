@@ -4,7 +4,7 @@ import { Meteor } from 'meteor/meteor'
 import * as _ from 'underscore'
 import Tooltip from 'rc-tooltip'
 import { Studio, Studios, MappingExt, getActiveRoutes } from '../../../../lib/collections/Studios'
-import { EditAttribute, EditAttributeBase } from '../../../lib/EditAttribute'
+import { EditAttribute } from '../../../lib/EditAttribute'
 import { doModalDialog } from '../../../lib/ModalDialog'
 import { Translated } from '../../../lib/ReactMeteorData/react-meteor-data'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -19,6 +19,7 @@ import {
 import { LOOKAHEAD_DEFAULT_SEARCH_DISTANCE } from '@sofie-automation/shared-lib/dist/core/constants'
 import { MongoCollection } from '../../../../lib/collections/lib'
 import { renderEditAttribute } from '../components/ConfigManifestEntryComponent'
+import { EditAttributeBase } from '../../../lib/editAttribute/edit-attribute-base'
 
 interface IStudioMappingsProps {
 	studio: Studio
