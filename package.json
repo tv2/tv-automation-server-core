@@ -36,6 +36,7 @@
 		"concurrently": "^7.4.0",
 		"rimraf": "^3.0.2",
 		"semver": "^7.3.7",
-		"snyk-nodejs-lockfile-parser": "^1.43.1"
+		"snyk-nodejs-lockfile-parser": "^1.43.1",
+		"yargs": "^17.7.1"
 	}
 }
