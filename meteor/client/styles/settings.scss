@@ -240,6 +240,19 @@
 	}
 }
 
+.showStyleVariant-invalid-blueprint-configuration {
+  th, td {
+	border: 2px $color-status-fatal solid;
+	border-top: 2px $color-status-fatal solid !important;
+  }
+  th {
+	border-right: 0;
+  }
+  td {
+	border-left: 0;
+  }
+}
+
 .btn-add-new {
 	max-width: 20%;
 	margin: 1em 1em 1em 0 !important;
