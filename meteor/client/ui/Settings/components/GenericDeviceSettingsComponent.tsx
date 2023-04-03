@@ -5,7 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faTrash, faPencilAlt, faCheck, faPlus } from '@fortawesome/free-solid-svg-icons'
 import { withTranslation } from 'react-i18next'
 import { PeripheralDevices, PeripheralDeviceId, PeripheralDevice } from '../../../../lib/collections/PeripheralDevices'
-import { EditAttribute, EditAttributeBase } from '../../../lib/EditAttribute'
+import { EditAttribute } from '../../../lib/EditAttribute'
 import { ModalDialog } from '../../../lib/ModalDialog'
 import { Translated } from '../../../lib/ReactMeteorData/react-meteor-data'
 import { Meteor } from 'meteor/meteor'
@@ -19,6 +19,7 @@ import {
 import { ConfigManifestEntryComponent } from './ConfigManifestEntryComponent'
 import { ConfigManifestOAuthFlowComponent } from './ConfigManifestOAuthFlow'
 import { unprotectString } from '../../../../lib/lib'
+import { EditAttributeBase } from '../../../lib/editAttribute/edit-attribute-base'
 
 type EditId = PeripheralDeviceId | string
 interface IGenericDeviceSettingsComponentState {

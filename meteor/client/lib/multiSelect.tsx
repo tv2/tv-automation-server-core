@@ -1,31 +1,26 @@
 import * as React from 'react'
-import * as _ from 'underscore'
 import ClassNames from 'classnames'
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCheckSquare, faSquare, faChevronUp } from '@fortawesome/free-solid-svg-icons'
-import { Manager, Reference, Popper } from 'react-popper'
+import { faCheckSquare, faChevronUp, faSquare } from '@fortawesome/free-solid-svg-icons'
+import { Manager, Popper, Reference } from 'react-popper'
 
-export interface MultiSelectEvent {
-	selectedValues: Array<string>
+export interface MultiSelectOption {
+	value: string
+	label: string
+	className?: string
 }
 
-export type MultiSelectOptions = _.Dictionary<{ value: string | string[]; className?: string }>
-
 interface IProps {
-	/**
-	 * A value of type string results in a checkbox with the key becoming the label.
-	 * A value of type string[] results in a group of checkboxes with the key becoming the header of the group.
-	 */
-	availableOptions: MultiSelectOptions
+	options: MultiSelectOption[]
 	placeholder?: string
 	className?: string
-	value?: Array<string>
-	onChange?: (event: MultiSelectEvent) => void
+	value: MultiSelectOption[]
+	onChange?: (selectedOptions: MultiSelectOption[]) => void
 }
 
 interface IState {
-	checkedValues: _.Dictionary<boolean>
+	checkedIds: string[]
 	expanded: boolean
 }
 
@@ -38,7 +33,7 @@ export class MultiSelect extends React.Component<IProps, IState> {
 		super(props)
 
 		this.state = {
-			checkedValues: {},
+			checkedIds: [],
 			expanded: false,
 		}
 	}
@@ -58,74 +53,55 @@ export class MultiSelect extends React.Component<IProps, IState> {
 	}
 
 	refreshChecked() {
-		if (this.props.value && _.isArray(this.props.value)) {
-			const checkedValues: _.Dictionary<boolean> = {}
-			_.forEach(this.props.value, (value) => {
-				checkedValues[value] = true
-			})
-
-			this.setState({
-				checkedValues,
-			})
-		} else {
-			this.setState({
-				checkedValues: {},
-			})
-		}
+		this.setState({
+			checkedIds: this.props.value ? this.props.value.map((option) => option.value) : [],
+		})
 	}
 
-	handleChange = (item) => {
-		const obj = {}
-		obj[item] = !this.state.checkedValues[item]
-		const valueUpdate = _.extend(this.state.checkedValues, obj)
+	handleChange = (clickedOption: MultiSelectOption) => {
+		const checkedIds = this.state.checkedIds
+
+		const index: number = checkedIds.findIndex((id) => id === clickedOption.value)
+		if (index === -1) {
+			checkedIds.push(clickedOption.value)
+		} else {
+			checkedIds.splice(index, 1)
+		}
 
 		this.setState({
-			checkedValues: valueUpdate,
+			checkedIds: checkedIds,
 		})
 
-		if (this.props.onChange && typeof this.props.onChange === 'function') {
-			this.props.onChange({
-				selectedValues: _.compact(
-					_.values(
-						_.mapObject(valueUpdate, (value, key) => {
-							return value ? key : null
-						})
-					)
-				),
-			})
+		if (!this.props.onChange || typeof this.props.onChange !== 'function') {
+			return
 		}
+		this.props.onChange(this.getOptionsFromCheckedIds())
 	}
 
-	isChecked = (key: string): boolean => {
-		return !!this.state.checkedValues[key]
+	getOptionsFromCheckedIds(): MultiSelectOption[] {
+		return this.state.checkedIds
+			.map((id) => this.props.options.find((option) => option.value === id))
+			.filter((option): option is MultiSelectOption => !!option)
+	}
+
+	isChecked = (idToCheck: string): boolean => {
+		return this.state.checkedIds.some((id) => id === idToCheck)
 	}
 
 	generateSimpleSummary = () => {
-		return _.compact(
-			_.values(
-				_.mapObject(this.state.checkedValues, (value, key) => {
-					return value ? this.props.availableOptions[key].value || key : null
-				})
-			)
-		).join(', ')
+		return this.getOptionsFromCheckedIds()
+			.map((option) => option.label)
+			.join(', ')
 	}
 
 	generateRichSummary = () => {
-		return (
-			<>
-				{_.compact(
-					_.values(
-						_.mapObject(this.state.checkedValues, (value, key) => {
-							return value ? (
-								<span key={key} className={this.props.availableOptions[key].className}>
-									{this.props.availableOptions[key].value || key}
-								</span>
-							) : null
-						})
-					)
-				)}
-			</>
-		)
+		return this.getOptionsFromCheckedIds().map((option) => {
+			return (
+				<span key={option.value} className={option.className}>
+					{option.label}
+				</span>
+			)
+		})
 	}
 
 	onBlur = (event: React.FocusEvent<HTMLDivElement>) => {
@@ -169,16 +145,16 @@ export class MultiSelect extends React.Component<IProps, IState> {
 		this._popperUpdate = update
 	}
 
-	renderOption = (value: string, key: string, className: string | undefined) => {
+	renderOption = (option: MultiSelectOption) => {
 		return (
-			<p className="expco-item" key={key}>
-				<label className={ClassNames('action-btn', className)}>
+			<p className="expco-item" key={option.value}>
+				<label className={ClassNames('action-btn', option.className)}>
 					<span className="checkbox">
 						<input
 							type="checkbox"
 							className="form-control"
-							checked={this.isChecked(key)}
-							onChange={() => this.handleChange(key)}
+							checked={this.isChecked(option.value)}
+							onChange={() => this.handleChange(option)}
 						/>
 						<span className="checkbox-checked">
 							<FontAwesomeIcon icon={faCheckSquare} />
@@ -187,7 +163,7 @@ export class MultiSelect extends React.Component<IProps, IState> {
 							<FontAwesomeIcon icon={faSquare} />
 						</span>
 					</span>
-					{value}
+					{option.label}
 				</label>
 			</p>
 		)
@@ -259,24 +235,7 @@ export class MultiSelect extends React.Component<IProps, IState> {
 								onBlur={this.onBlur}
 							>
 								{this.state.expanded && (
-									<div className="expco-body bd">
-										{_.values(
-											_.mapObject(this.props.availableOptions, (value, key) => {
-												return Array.isArray(value.value) ? (
-													<React.Fragment key={key}>
-														<p className="expco-item" key={key}>
-															{key}
-														</p>
-														{_.map(value.value, (v) => {
-															return this.renderOption(v, v, value.className)
-														})}
-													</React.Fragment>
-												) : (
-													this.renderOption(value.value, key, value.className)
-												)
-											})
-										)}
-									</div>
+									<div className="expco-body bd">{this.props.options.map((option) => this.renderOption(option))}</div>
 								)}
 							</div>
 						)
