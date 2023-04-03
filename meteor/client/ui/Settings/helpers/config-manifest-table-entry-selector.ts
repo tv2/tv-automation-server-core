@@ -8,64 +8,70 @@ import { ProtectedString } from '@sofie-automation/shared-lib/dist/lib/protected
 import { objectPathGet } from '@sofie-automation/corelib/dist/lib'
 import { SelectOption } from '../ConfigManifestSettings'
 
-export const DEFAULT_VALUE_FOR_NO_VIABLE_SELECTION = 'N/A'
+export const DEFAULT_VALUE_FOR_NO_AVAILABLE_OPTION = 'N/A'
 
 class ConfigManifestTableEntrySelector {
-	public getFilteredTableValuesFromComparison<DBInterface extends { _id: ProtectedString<any> }>(
+	public getFilteredSelectOptionsFromComparison<DBInterface extends { _id: ProtectedString<any> }>(
 		targetFullAttribute: string,
 		item: ConfigManifestEntrySelectFromTableEntryWithComparisonMappings<boolean>,
 		configPath: string,
-		dbObject: DBInterface,
-		alternateDbObject?: DBInterface
+		databaseObject: DBInterface,
+		alternateDatabaseObject?: DBInterface
 	): SelectOption[] {
 		const sourceAttribute = `${configPath}.${item.sourceTableId}`
 		const targetAttribute = `${targetFullAttribute}.${0}`
 
 		const sourceTable: TableConfigItemValue[] =
-			objectPathGet(dbObject, sourceAttribute) ?? objectPathGet(alternateDbObject, sourceAttribute)
+			objectPathGet(databaseObject, sourceAttribute) ?? objectPathGet(alternateDatabaseObject, sourceAttribute)
 		const targetRow: TableConfigItemValue =
-			objectPathGet(dbObject, targetAttribute) ?? objectPathGet(alternateDbObject, targetAttribute)
+			objectPathGet(databaseObject, targetAttribute) ?? objectPathGet(alternateDatabaseObject, targetAttribute)
 
 		if (!Array.isArray(sourceTable) || !targetRow) {
 			return []
 		}
 
-		const result = sourceTable.flatMap((sourceRow) => {
-			if (!this.hasRowEntryWithValue(sourceRow, item.sourceColumnIdWithValue)) {
-				return []
-			}
-			const comparisonMapping = this.getComparisonMapping(item.comparisonMappings, sourceRow)
-			if (!comparisonMapping) {
-				return []
-			}
-
-			return this.getSourceValuesFromComparisonMapping(
-				sourceRow,
-				targetRow,
-				item.sourceColumnIdWithValue,
-				comparisonMapping
-			)
-		})
-		result.push({ value: DEFAULT_VALUE_FOR_NO_VIABLE_SELECTION, label: DEFAULT_VALUE_FOR_NO_VIABLE_SELECTION })
-		return result
+		const options = sourceTable.flatMap((sourceRow) => this.getOptionsFromSourceRow(sourceRow, targetRow, item))
+		options.push({ value: DEFAULT_VALUE_FOR_NO_AVAILABLE_OPTION, label: DEFAULT_VALUE_FOR_NO_AVAILABLE_OPTION })
+		return options
 	}
 
-	public getComparisonMapping(
+	private getOptionsFromSourceRow(
+		sourceRow: TableConfigItemValue,
+		targetRow: TableConfigItemValue,
+		item: ConfigManifestEntrySelectFromTableEntryWithComparisonMappings<boolean>
+	): SelectOption[] {
+		if (!this.hasRowEntryWithValue(sourceRow, item.sourceColumnIdWithValue)) {
+			return []
+		}
+		const comparisonMapping = this.getComparisonMapping(item.comparisonMappings, sourceRow)
+		if (!comparisonMapping) {
+			return []
+		}
+
+		return this.getSourceValuesFromComparisonMapping(
+			sourceRow,
+			targetRow,
+			item.sourceColumnIdWithValue,
+			comparisonMapping
+		)
+	}
+
+	private getComparisonMapping(
 		comparisonMappings: ComparisonMapping[],
 		sourceRow: TableConfigItemValue
 	): ComparisonMapping | undefined {
 		return comparisonMappings.find((mapping) => this.isRowEntryAvailable(sourceRow, mapping.sourceColumnId))
 	}
 
-	public isRowEntryAvailable(tableRow: TableConfigItemValue, columnId: string): boolean {
+	private isRowEntryAvailable(tableRow: TableConfigItemValue, columnId: string): boolean {
 		return tableRow[columnId] && tableRow[columnId].length > 0
 	}
 
-	public hasRowEntryWithValue(row: TableConfigItemValue, columnId: string): boolean {
+	private hasRowEntryWithValue(row: TableConfigItemValue, columnId: string): boolean {
 		return typeof row === 'object' && row[columnId] !== undefined
 	}
 
-	public getSourceValuesFromComparisonMapping(
+	private getSourceValuesFromComparisonMapping(
 		sourceRow: TableConfigItemValue,
 		targetRow: TableConfigItemValue,
 		sourceValueColumnId: string,
@@ -73,25 +79,25 @@ class ConfigManifestTableEntrySelector {
 	): SelectOption[] {
 		const targetValue = targetRow[comparisonMapping.targetColumnId]
 
-		const isMatched = sourceRow[comparisonMapping.sourceColumnId].some((sourceValue) => {
+		const isMatch = sourceRow[comparisonMapping.sourceColumnId].some((sourceValue) => {
 			if (!sourceValue || !targetValue) {
 				return false
 			}
 			return sourceValue.label === targetValue.label
 		})
 
-		return isMatched ? sourceRow[sourceValueColumnId] : []
+		return isMatch ? sourceRow[sourceValueColumnId] : []
 	}
 
 	public getTableColumnValues<DBInterface extends { _id: ProtectedString<any> }>(
 		item: ConfigManifestEntrySelectFromColumn<boolean>,
 		configPath: string,
-		dbObject: DBInterface,
-		alternateDbObject?: DBInterface
+		databaseObject: DBInterface,
+		alternateDatabaseObject?: DBInterface
 	): SelectOption[] {
 		const attribute = `${configPath}.${item.tableId}`
 		const table: TableConfigItemValue[] =
-			objectPathGet(dbObject, attribute) ?? objectPathGet(alternateDbObject, attribute)
+			objectPathGet(databaseObject, attribute) ?? objectPathGet(alternateDatabaseObject, attribute)
 		if (!Array.isArray(table)) {
 			return []
 		}

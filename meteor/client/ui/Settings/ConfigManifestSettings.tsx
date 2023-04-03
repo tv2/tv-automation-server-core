@@ -218,7 +218,7 @@ function getEditAttribute<DBInterface extends { _id: ProtectedString<any> }>(
 			const selectWithComparisonOptions =
 				'options' in item
 					? item.options
-					: configurationTableEntrySelector.getFilteredTableValuesFromComparison(
+					: configurationTableEntrySelector.getFilteredSelectOptionsFromComparison(
 							attribute,
 							item,
 							configPath,
@@ -494,7 +494,7 @@ export class ConfigManifestTable<
 						case ConfigManifestEntryType.SELECT_FROM_TABLE_ENTRY_WITH_COMPARISON_MAPPINGS:
 							return {
 								...column,
-								options: configurationTableEntrySelector.getFilteredTableValuesFromComparison(
+								options: configurationTableEntrySelector.getFilteredSelectOptionsFromComparison(
 									props.baseAttribute,
 									column,
 									props.configPath,
