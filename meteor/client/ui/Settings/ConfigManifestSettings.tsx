@@ -48,11 +48,13 @@ import {
 import { UploadButton } from '../../lib/uploadButton'
 import { NoticeLevel, Notification, NotificationCenter } from '../../lib/notifications/notifications'
 import { MongoCollection } from '../../../lib/collections/lib'
-import { ComparisonMapping } from '@sofie-automation/blueprints-integration/dist'
 import { EditAttributeMultiSelect } from '../../lib/editAttribute/edit-attribute-multi-select'
 import { DropdownOption, EditAttributeDropdown } from '../../lib/editAttribute/edit-attribute-dropdown'
 import { MultiSelectOption } from '../../lib/multiSelect'
 import { EditAttributeTextDropdown } from '../../lib/editAttribute/edit-attribute-text-dropdown'
+import ConfigManifestTableEntrySelector from './helpers/config-manifest-table-entry-selector'
+
+const configurationTableEntrySelector = ConfigManifestTableEntrySelector
 
 function filterSourceLayers(
 	select: ConfigManifestEntrySourceLayers<true | false>,
@@ -84,93 +86,6 @@ function filterLayerMappings(
 	}
 
 	return result
-}
-
-function getFilteredTableValuesFromComparison<DBInterface extends { _id: ProtectedString<any> }>(
-	targetFullAttribute: string,
-	item: ConfigManifestEntrySelectFromTableEntryWithComparisonMappings<boolean>,
-	configPath: string,
-	dbObject: DBInterface,
-	alternateDbObject?: DBInterface
-): SelectOption[] {
-	const sourceAttribute = `${configPath}.${item.sourceTableId}`
-	const targetAttribute = `${targetFullAttribute}.${0}`
-
-	const sourceTable: TableConfigItemValue[] =
-		objectPathGet(dbObject, sourceAttribute) ?? objectPathGet(alternateDbObject, sourceAttribute)
-	const targetRow: TableConfigItemValue =
-		objectPathGet(dbObject, targetAttribute) ?? objectPathGet(alternateDbObject, targetAttribute)
-
-	if (!Array.isArray(sourceTable) || !targetRow) {
-		return []
-	}
-
-	const result = sourceTable.flatMap((sourceRow) => {
-		if (!hasRowEntryWithValue(sourceRow, item.sourceColumnIdWithValue)) {
-			return []
-		}
-		const comparisonMapping = getComparisonMapping(item.comparisonMappings, sourceRow)
-		if (!comparisonMapping) {
-			return []
-		}
-
-		return getSourceValuesFromComparisonMapping(sourceRow, targetRow, item.sourceColumnIdWithValue, comparisonMapping)
-	})
-	result.push({ value: 'N/A', label: 'N/A' })
-	return result
-}
-
-function getComparisonMapping(
-	comparisonMappings: ComparisonMapping[],
-	sourceRow: TableConfigItemValue
-): ComparisonMapping | undefined {
-	return comparisonMappings.find((mapping) => isRowEntryAvailable(sourceRow, mapping.sourceColumnId))
-}
-
-function isRowEntryAvailable(tableRow: TableConfigItemValue, columnId: string): boolean {
-	return tableRow[columnId] && tableRow[columnId].length > 0
-}
-
-function hasRowEntryWithValue(row: TableConfigItemValue, columnId: string): boolean {
-	return typeof row === 'object' && row[columnId] !== undefined
-}
-
-function getSourceValuesFromComparisonMapping(
-	sourceRow: TableConfigItemValue,
-	targetRow: TableConfigItemValue,
-	sourceValueColumnId: string,
-	comparisonMapping: ComparisonMapping
-): SelectOption[] {
-	const targetValue = targetRow[comparisonMapping.targetColumnId]
-
-	const isMatched = sourceRow[comparisonMapping.sourceColumnId].some((sourceValue) => {
-		if (!sourceValue || !targetValue) {
-			return false
-		}
-		return sourceValue.label === targetValue.label
-	})
-
-	return isMatched ? sourceRow[sourceValueColumnId] : []
-}
-
-function getTableColumnValues<DBInterface extends { _id: ProtectedString<any> }>(
-	item: ConfigManifestEntrySelectFromColumn<boolean>,
-	configPath: string,
-	dbObject: DBInterface,
-	alternateDbObject?: DBInterface
-): SelectOption[] {
-	const attribute = `${configPath}.${item.tableId}`
-	const table: TableConfigItemValue[] =
-		objectPathGet(dbObject, attribute) ?? objectPathGet(alternateDbObject, attribute)
-	if (!Array.isArray(table)) {
-		return []
-	}
-	return table
-		.filter((row) => typeof row === 'object' && row[item.columnId] !== undefined)
-		.map((row) => ({
-			value: row['_id'],
-			label: row[item.columnId],
-		}))
 }
 
 function getEditAttribute<DBInterface extends { _id: ProtectedString<any> }>(
@@ -291,7 +206,9 @@ function getEditAttribute<DBInterface extends { _id: ProtectedString<any> }>(
 		}
 		case ConfigManifestEntryType.SELECT_FROM_COLUMN: {
 			const selectFromOptions =
-				'options' in item ? item.options : getTableColumnValues(item, configPath, object, alternateObject)
+				'options' in item
+					? item.options
+					: configurationTableEntrySelector.getTableColumnValues(item, configPath, object, alternateObject)
 			if (item.multiple) {
 				return renderMultiSelect(attribute, object, selectFromOptions, collection)
 			}
@@ -301,7 +218,13 @@ function getEditAttribute<DBInterface extends { _id: ProtectedString<any> }>(
 			const selectWithComparisonOptions =
 				'options' in item
 					? item.options
-					: getFilteredTableValuesFromComparison(attribute, item, configPath, object, alternateObject)
+					: configurationTableEntrySelector.getFilteredTableValuesFromComparison(
+							attribute,
+							item,
+							configPath,
+							object,
+							alternateObject
+					  )
 			if (item.multiple) {
 				return renderMultiSelect(attribute, object, selectWithComparisonOptions, collection)
 			}
@@ -343,7 +266,7 @@ function renderDropdown(attribute: string, obj: any, options: DropdownOption[], 
 	)
 }
 
-interface SelectOption {
+export interface SelectOption {
 	value: string
 	label: string
 }
@@ -561,12 +484,17 @@ export class ConfigManifestTable<
 						case ConfigManifestEntryType.SELECT_FROM_COLUMN:
 							return {
 								...column,
-								options: getTableColumnValues(column, props.configPath, props.object, props.alternateObject),
+								options: configurationTableEntrySelector.getTableColumnValues(
+									column,
+									props.configPath,
+									props.object,
+									props.alternateObject
+								),
 							}
 						case ConfigManifestEntryType.SELECT_FROM_TABLE_ENTRY_WITH_COMPARISON_MAPPINGS:
 							return {
 								...column,
-								options: getFilteredTableValuesFromComparison(
+								options: configurationTableEntrySelector.getFilteredTableValuesFromComparison(
 									props.baseAttribute,
 									column,
 									props.configPath,
