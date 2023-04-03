@@ -144,7 +144,7 @@ function getSourceValuesFromComparisonMapping(
 	const targetValue = targetRow[comparisonMapping.targetColumnId]
 
 	const isMatched = sourceRow[comparisonMapping.sourceColumnId].some((sourceValue) => {
-		if (!sourceValue.label || !targetValue.label) {
+		if (!sourceValue || !targetValue) {
 			return false
 		}
 		return sourceValue.label === targetValue.label
