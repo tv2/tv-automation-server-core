@@ -64,5 +64,5 @@ export const addSteps = addMigrationSteps('46.1.0', [
 				TriggeredActions.update(action._id, { $set: { useNameForDisplay: false } })
 			})
 		},
-	}
+	},
 ])
