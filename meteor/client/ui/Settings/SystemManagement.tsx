@@ -33,6 +33,7 @@ export default translateWithTracker<IProps, {}, ITrackedProps>((_props: IProps) 
 			MeteorCall.system
 				.cleanupIndexes(false)
 				.then((indexesToRemove) => {
+					console.log(indexesToRemove)
 					doModalDialog({
 						title: t('Remove indexes'),
 						message: t('This will remove {{indexCount}} old indexes, do you want to continue?', {

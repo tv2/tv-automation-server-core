@@ -35,7 +35,7 @@ class ConfigManifestTableEntrySelector {
 		return options
 	}
 
-	public getOptionsFromSourceRow(
+	private getOptionsFromSourceRow(
 		sourceRow: TableConfigItemValue,
 		targetRow: TableConfigItemValue,
 		item: ConfigManifestEntrySelectFromTableEntryWithComparisonMappings<boolean>
