@@ -53,6 +53,12 @@ addSteps1_44_0()
 import { addSteps as addSteps1_46_0 } from './1_46_0'
 addSteps1_46_0()
 
+import { addSteps as addSteps46_1 } from './46_1'
+addSteps46_1()
+
+import { addSteps as addSteps46_2 } from './46_2'
+addSteps46_2()
+
 // Migrations for the in-development release:
 import { addSteps as addStepsX_X_X } from './X_X_X'
 addStepsX_X_X()
