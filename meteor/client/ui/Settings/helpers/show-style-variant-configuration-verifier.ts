@@ -124,6 +124,9 @@ class ShowStyleVariantConfigurationVerifier {
 		const sourceTable: TableConfigItemValue[] = showStyleBase.blueprintConfig[
 			manifestEntry.sourceTableId
 		] as any as TableConfigItemValue[]
+		if (!sourceTable) {
+			return false
+		}
 		const validOptions = sourceTable.flatMap((row) =>
 			this.configManifestTableEntrySelector.getOptionsFromSourceRow(row, targetTable[0], manifestEntry)
 		)
