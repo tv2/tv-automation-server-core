@@ -54,7 +54,8 @@ const WrappedEditAttributeDropdown = wrapEditAttribute(
 			if (!selectedOptionFromAvailableOptions) {
 				return
 			}
-			const selectedOptionHasChangedLabel = selectedOptionFromDatabase.label !== selectedOptionFromAvailableOptions.label
+			const selectedOptionHasChangedLabel =
+				selectedOptionFromDatabase.label !== selectedOptionFromAvailableOptions.label
 			if (!selectedOptionHasChangedLabel) {
 				return
 			}

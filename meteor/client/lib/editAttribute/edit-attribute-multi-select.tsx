@@ -45,8 +45,10 @@ const WrappedEditAttributeMultiSelect = wrapEditAttribute(
 			}
 			// This introduces a side effect in the .map() below, but it's a quick way of ensuring we only update when a label has changed
 			let selectedOptionsNeedsToBeUpdated: boolean = false
-			const optionsToUpdate = selectedOptionsFromDatabase.map(option => {
-				const availableOption = availableOptions.find(availableOption => availableOption.value.toLowerCase() === option.value.toLowerCase())
+			const optionsToUpdate = selectedOptionsFromDatabase.map((option) => {
+				const availableOption = availableOptions.find(
+					(availableOption) => availableOption.value.toLowerCase() === option.value.toLowerCase()
+				)
 				if (!availableOption) {
 					// SelectedOption is not in the current available options, so we shouldn't update anything on it
 					return option
