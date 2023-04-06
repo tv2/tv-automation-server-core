@@ -23,6 +23,49 @@ const WrappedEditAttributeMultiSelect = wrapEditAttribute(
 			this.handleUpdate(changedOptions)
 		}
 
+		componentDidMount() {
+			this.updateSelectedOptionsIfLabelsHasChanged()
+		}
+
+		componentDidUpdate(prevProps: Readonly<IEditAttributeBaseProps>) {
+			if (prevProps === this.props) {
+				return
+			}
+			this.updateSelectedOptionsIfLabelsHasChanged()
+		}
+
+		private updateSelectedOptionsIfLabelsHasChanged(): void {
+			const selectedOptionsFromDatabase = this.getCurrentlySelectedOptions()
+			if (!selectedOptionsFromDatabase || selectedOptionsFromDatabase.length === 0) {
+				return
+			}
+			const availableOptions = this.getAvailableOptions()
+			if (!availableOptions || availableOptions.length === 0) {
+				return
+			}
+			// This introduces a side effect in the .map() below, but it's a quick way of ensuring we only update when a label has changed
+			let selectedOptionsNeedsToBeUpdated: boolean = false
+			const optionsToUpdate = selectedOptionsFromDatabase.map((option) => {
+				const availableOption = availableOptions.find(
+					(availableOption) => availableOption.value.toLowerCase() === option.value.toLowerCase()
+				)
+				if (!availableOption) {
+					// SelectedOption is not in the current available options, so we shouldn't update anything on it
+					return option
+				}
+				if (availableOption.label === option.label) {
+					// SelectedOption has the same label as its corresponding available option so no need to update it
+					return option
+				}
+				selectedOptionsNeedsToBeUpdated = true
+				// We can just return the available option instead of setting the label on the selected option because they have the same 'value'
+				return availableOption
+			})
+			if (selectedOptionsNeedsToBeUpdated) {
+				this.handleChange(optionsToUpdate)
+			}
+		}
+
 		private getCurrentlySelectedOptions(): MultiSelectOption[] {
 			const attribute = this.getAttribute()
 			if (!attribute || !Array.isArray(attribute)) {

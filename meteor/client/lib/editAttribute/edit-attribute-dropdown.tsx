@@ -26,6 +26,7 @@ const WrappedEditAttributeDropdown = wrapEditAttribute(
 
 		componentDidMount() {
 			this.populateFromFirstAvailableOptionIfNoValueIsSelected()
+			this.updateSelectedOptionIfLabelIsChanged()
 		}
 
 		private populateFromFirstAvailableOptionIfNoValueIsSelected() {
@@ -35,6 +36,38 @@ const WrappedEditAttributeDropdown = wrapEditAttribute(
 				return
 			}
 			this.handleChange({ target: { value: availableOptions[0].value } })
+		}
+
+		componentDidUpdate(prevProps: Readonly<IEditAttributeBaseProps>) {
+			if (prevProps === this.props) {
+				return
+			}
+			this.updateSelectedOptionIfLabelIsChanged()
+		}
+
+		private updateSelectedOptionIfLabelIsChanged(): void {
+			const selectedOptionFromDatabase = this.getCurrentlySelectedOption()
+			if (!selectedOptionFromDatabase) {
+				return
+			}
+			const selectedOptionFromAvailableOptions = this.findOptionInAvailableOptions(selectedOptionFromDatabase)
+			if (!selectedOptionFromAvailableOptions) {
+				return
+			}
+			const selectedOptionHasChangedLabel =
+				selectedOptionFromDatabase.label !== selectedOptionFromAvailableOptions.label
+			if (!selectedOptionHasChangedLabel) {
+				return
+			}
+			this.handleUpdate(selectedOptionFromAvailableOptions)
+		}
+
+		private findOptionInAvailableOptions(optionToCheck: DropdownOption): DropdownOption | undefined {
+			return this.getAvailableOptions().find(
+				(option) =>
+					option.value.toLowerCase() === optionToCheck.value.toLowerCase() ||
+					(option.alternativeValue && option.alternativeValue === optionToCheck.value.toLowerCase())
+			)
 		}
 
 		private handleChange(event) {
@@ -60,12 +93,12 @@ const WrappedEditAttributeDropdown = wrapEditAttribute(
 			return (this.props as EditAttributeDropdownProps).options
 		}
 
-		private getMissingOptions(availableOptions: DropdownOption[]): DropdownOption[] {
+		private getMissingOptions(): DropdownOption[] {
 			const selectedOption: DropdownOption = this.getCurrentlySelectedOption()
 			if (!selectedOption) {
 				return []
 			}
-			const selectedIsAnAvailableOption = availableOptions.some(
+			const selectedIsAnAvailableOption = this.getAvailableOptions().some(
 				(option) =>
 					option.value.toLowerCase() === selectedOption.value.toLowerCase() ||
 					(option.alternativeValue && option.alternativeValue === selectedOption.value.toLowerCase())
@@ -75,7 +108,7 @@ const WrappedEditAttributeDropdown = wrapEditAttribute(
 
 		render() {
 			const availableOptions = this.getAvailableOptions()
-			const missingOptions = this.getMissingOptions(availableOptions)
+			const missingOptions = this.getMissingOptions()
 			const currentlySelectedOption = this.getCurrentlySelectedOption()
 			return (
 				<select
