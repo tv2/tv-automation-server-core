@@ -798,8 +798,8 @@ export class ConfigManifestSettings<
 					return (
 						<React.Fragment>
 							<ul className="table-values-list">
-								{_.map((value as any[]) || [], (val) => {
-									const objectValue = 'value' in val ? val.value : val
+								{_.map((value as (string | { value: string })[]) || [], (val) => {
+									const objectValue = typeof val === 'object' && 'value' in val ? val.value : val
 									return <li key={objectValue}>{objectValue}</li>
 								})}
 							</ul>
