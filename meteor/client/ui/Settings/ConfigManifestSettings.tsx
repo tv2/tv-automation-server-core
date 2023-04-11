@@ -782,7 +782,7 @@ export class ConfigManifestSettings<
 	renderConfigValue(item: ConfigManifestEntry, rawValue: ConfigItemValue | undefined) {
 		const { t } = this.props
 
-		const value = rawValue === undefined ? item.defaultVal : rawValue
+		const value = rawValue ?? item.defaultVal
 
 		const rawValueArr = rawValue as any[]
 
@@ -794,17 +794,19 @@ export class ConfigManifestSettings<
 			case ConfigManifestEntryType.SELECT:
 			case ConfigManifestEntryType.LAYER_MAPPINGS:
 			case ConfigManifestEntryType.SOURCE_LAYERS:
-				return _.isArray(value) ? (
-					<React.Fragment>
-						<ul className="table-values-list">
-							{_.map((value as string[]) || [], (val) => (
-								<li key={val}>{val}</li>
-							))}
-						</ul>
-					</React.Fragment>
-				) : (
-					value.toString()
-				)
+				if (_.isArray(value)) {
+					return (
+						<React.Fragment>
+							<ul className="table-values-list">
+								{_.map((value as (string | { value: string })[]) || [], (val) => {
+									const objectValue = typeof val === 'object' && 'value' in val ? val.value : val
+									return <li key={objectValue}>{objectValue}</li>
+								})}
+							</ul>
+						</React.Fragment>
+					)
+				}
+				return typeof value === 'object' && 'value' in value ? value.value : value.toString()
 			case ConfigManifestEntryType.INT:
 				return _.isNumber(value) && item.zeroBased ? (value + 1).toString() : value.toString()
 			default:
