@@ -782,7 +782,7 @@ export class ConfigManifestSettings<
 	renderConfigValue(item: ConfigManifestEntry, rawValue: ConfigItemValue | undefined) {
 		const { t } = this.props
 
-		const value = rawValue === undefined ? item.defaultVal : rawValue
+		const value = rawValue ?? item.defaultVal
 
 		const rawValueArr = rawValue as any[]
 
@@ -797,9 +797,12 @@ export class ConfigManifestSettings<
 				return _.isArray(value) ? (
 					<React.Fragment>
 						<ul className="table-values-list">
-							{_.map((value as string[]) || [], (val) => (
-								<li key={val}>{val}</li>
-							))}
+							{_.map((value as any[]) || [], (val) => {
+								const object = {
+									value: 'value' in val ? val.value : val,
+								}
+								return <li key={object.value}>{object.value}</li>
+							})}
 						</ul>
 					</React.Fragment>
 				) : (
