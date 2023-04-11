@@ -794,20 +794,19 @@ export class ConfigManifestSettings<
 			case ConfigManifestEntryType.SELECT:
 			case ConfigManifestEntryType.LAYER_MAPPINGS:
 			case ConfigManifestEntryType.SOURCE_LAYERS:
-				return _.isArray(value) ? (
-					<React.Fragment>
-						<ul className="table-values-list">
-							{_.map((value as any[]) || [], (val) => {
-								const object = {
-									value: 'value' in val ? val.value : val,
-								}
-								return <li key={object.value}>{object.value}</li>
-							})}
-						</ul>
-					</React.Fragment>
-				) : (
-					value.toString()
-				)
+				if (_.isArray(value)) {
+					return (
+						<React.Fragment>
+							<ul className="table-values-list">
+								{_.map((value as any[]) || [], (val) => {
+									const objectValue = 'value' in val ? val.value : val
+									return <li key={objectValue}>{objectValue}</li>
+								})}
+							</ul>
+						</React.Fragment>
+					)
+				}
+				return typeof value === 'object' && 'value' in value ? value.value : value.toString()
 			case ConfigManifestEntryType.INT:
 				return _.isNumber(value) && item.zeroBased ? (value + 1).toString() : value.toString()
 			default:
