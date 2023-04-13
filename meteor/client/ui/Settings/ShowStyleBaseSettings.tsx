@@ -46,7 +46,7 @@ export default translateWithTracker<IProps, IState, ITrackedProps>((props: IProp
 	const compatibleStudios = showStyleBase
 		? Studios.find({
 				supportedShowStyleBase: {
-					$in: [showStyleBase._id],
+					$in: [{ value: showStyleBase._id }],
 				},
 		  }).fetch()
 		: []

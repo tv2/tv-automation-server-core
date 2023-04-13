@@ -142,7 +142,7 @@ describe('Test blueprint config', () => {
 			})
 			jobContext.setStudio({
 				...jobContext.studio,
-				supportedShowStyleBase: [showStyle._id],
+				supportedShowStyleBase: [{ value: showStyle._id }],
 			})
 			jobContext.updateShowStyleBlueprint({
 				// Bypass running through configManifest
