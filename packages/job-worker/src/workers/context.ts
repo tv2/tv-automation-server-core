@@ -183,7 +183,7 @@ export class StudioCacheContextImpl implements StudioCacheContext {
 			// Check allowed
 			if (
 				doc &&
-				!this.cacheData.studio.supportedShowStyleBase.some((base) => base.value === doc!.showStyleBaseId)
+				!this.cacheData.studio.supportedShowStyleBase.some((base) => base.value === doc?.showStyleBaseId)
 			) {
 				throw new Error(`ShowStyleVariant "${id}" is not allowed in studio`)
 			}
@@ -195,7 +195,7 @@ export class StudioCacheContextImpl implements StudioCacheContext {
 
 		if (doc) {
 			// Check allowed
-			if (!this.cacheData.studio.supportedShowStyleBase.some((base) => base.value === doc!.showStyleBaseId)) {
+			if (!this.cacheData.studio.supportedShowStyleBase.some((base) => base.value === doc?.showStyleBaseId)) {
 				throw new Error(`ShowStyleVariant "${id}" is not allowed in studio`)
 			}
 
