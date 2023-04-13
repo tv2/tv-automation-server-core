@@ -75,9 +75,9 @@ export class StudioCacheContextImpl implements StudioCacheContext {
 
 		// Figure out what is already cached, and what needs loading
 		for (const id of this.cacheData.studio.supportedShowStyleBase) {
-			const doc = this.cacheData.showStyleBases.get(id)
+			const doc = this.cacheData.showStyleBases.get(id.value)
 			if (doc === undefined) {
-				docsToLoad.push(id)
+				docsToLoad.push(id.value)
 			} else if (doc) {
 				loadedDocs.push(doc)
 			} else {
@@ -110,7 +110,7 @@ export class StudioCacheContextImpl implements StudioCacheContext {
 
 	async getShowStyleBase(id: ShowStyleBaseId): Promise<ReadonlyDeep<DBShowStyleBase>> {
 		// Check if allowed
-		if (!this.cacheData.studio.supportedShowStyleBase.includes(id)) {
+		if (!this.cacheData.studio.supportedShowStyleBase.some((base) => base.value === id)) {
 			throw new Error(`ShowStyleBase "${id}" is not allowed in studio`)
 		}
 
@@ -134,7 +134,7 @@ export class StudioCacheContextImpl implements StudioCacheContext {
 
 	async getShowStyleVariants(id: ShowStyleBaseId): Promise<ReadonlyDeep<Array<DBShowStyleVariant>>> {
 		// Check if allowed
-		if (!this.cacheData.studio.supportedShowStyleBase.includes(id)) {
+		if (!this.cacheData.studio.supportedShowStyleBase.some((base) => base.value === id)) {
 			throw new Error(`ShowStyleBase "${id}" is not allowed in studio`)
 		}
 
@@ -181,7 +181,10 @@ export class StudioCacheContextImpl implements StudioCacheContext {
 			doc = await this.directCollections.ShowStyleVariants.findOne(id)
 
 			// Check allowed
-			if (doc && !this.cacheData.studio.supportedShowStyleBase.includes(doc.showStyleBaseId)) {
+			if (
+				doc &&
+				!this.cacheData.studio.supportedShowStyleBase.some((base) => base.value === doc!.showStyleBaseId)
+			) {
 				throw new Error(`ShowStyleVariant "${id}" is not allowed in studio`)
 			}
 
@@ -192,7 +195,7 @@ export class StudioCacheContextImpl implements StudioCacheContext {
 
 		if (doc) {
 			// Check allowed
-			if (!this.cacheData.studio.supportedShowStyleBase.includes(doc.showStyleBaseId)) {
+			if (!this.cacheData.studio.supportedShowStyleBase.some((base) => base.value === doc!.showStyleBaseId)) {
 				throw new Error(`ShowStyleVariant "${id}" is not allowed in studio`)
 			}
 
