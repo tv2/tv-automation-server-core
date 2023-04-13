@@ -47,7 +47,7 @@ const WrappedEditAttributeDropdown = wrapEditAttribute(
 
 		private updateSelectedOptionIfLabelIsChanged(): void {
 			const selectedOptionFromDatabase = this.getCurrentlySelectedOption()
-			if (!selectedOptionFromDatabase) {
+			if (!selectedOptionFromDatabase || !('label' in selectedOptionFromDatabase)) {
 				return
 			}
 			const selectedOptionFromAvailableOptions = this.findOptionInAvailableOptions(selectedOptionFromDatabase)
