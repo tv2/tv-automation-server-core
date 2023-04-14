@@ -247,7 +247,7 @@ export namespace BucketsAPI {
 			}
 		}
 
-		if (!studioLight.supportedShowStyleBase.some(({ value }) => value === showStyleBaseId)) {
+		if (studioLight.supportedShowStyleBase.indexOf(showStyleBaseId) === -1) {
 			throw new Meteor.Error(
 				500,
 				`ShowStyle base "${showStyleBaseId}" not supported by studio "${access.studioId}"`

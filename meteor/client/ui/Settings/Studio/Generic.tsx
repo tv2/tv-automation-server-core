@@ -61,12 +61,12 @@ export const StudioGenericProperties = withTranslation()(
 			if (this.props.studio) {
 				for (const showStyleBaseId of this.props.studio.supportedShowStyleBase) {
 					const showStyleBase = this.props.availableShowStyleBases.find(
-						(base) => base.showStyleBase._id === showStyleBaseId.value
+						(base) => base.showStyleBase._id === showStyleBaseId
 					)
 					if (showStyleBase) {
 						buttons.push(
 							<SettingsNavigation
-								key={'settings-navigation-' + showStyleBase.showStyleBase.name}
+								key={'settings-nevigation-' + showStyleBase.showStyleBase.name}
 								attribute="name"
 								obj={showStyleBase.showStyleBase}
 								type="showstyle"
