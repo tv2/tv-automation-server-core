@@ -72,7 +72,7 @@ export interface DBStudio {
 	mappingsHash?: MappingsHash
 
 	/** List of which ShowStyleBases this studio wants to support */
-	supportedShowStyleBase: Array<{ value: ShowStyleBaseId }>
+	supportedShowStyleBase: Array<ShowStyleBaseId>
 
 	/** Config values are used by the Blueprints */
 	blueprintConfig: IBlueprintConfig
