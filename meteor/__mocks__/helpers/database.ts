@@ -497,7 +497,7 @@ export async function setupDefaultStudioEnvironment(
 
 	const studio = setupMockStudio({
 		blueprintId: studioBlueprint._id,
-		supportedShowStyleBase: [showStyleBaseId],
+		supportedShowStyleBase: [{ value: showStyleBaseId }],
 		organizationId: organizationId,
 	})
 	const ingestDevice = setupMockPeripheralDevice(

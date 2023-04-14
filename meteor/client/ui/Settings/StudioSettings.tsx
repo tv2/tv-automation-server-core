@@ -66,7 +66,7 @@ export default translateWithTracker<IStudioSettingsProps, IStudioSettingsState, 
 				studio
 					? {
 							showStyleBaseId: {
-								$in: studio.supportedShowStyleBase || [],
+								$in: studio.supportedShowStyleBase.map(({ value }) => value) || [],
 							},
 					  }
 					: {}

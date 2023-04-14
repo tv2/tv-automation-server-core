@@ -9,6 +9,7 @@ import { CollectionName } from '@sofie-automation/corelib/dist/dataModel/Collect
 import { ShowStyleBases } from '../../lib/collections/ShowStyleBases'
 import { ShowStyleVariantId, ShowStyleVariants } from '../../lib/collections/ShowStyleVariants'
 import { getCoreSystem, setCoreSystemStorePath } from '../../lib/collections/CoreSystem'
+import { ShowStyleBaseId } from '@sofie-automation/corelib/dist/dataModel/Ids'
 
 /**
  * This file contains system specific migration steps.
@@ -183,7 +184,7 @@ export const addSteps = addMigrationSteps('0.1.0', [
 				if (!studio.supportedShowStyleBase || studio.supportedShowStyleBase.length === 0) {
 					Studios.update(studio._id, {
 						$set: {
-							supportedShowStyleBase: [id],
+							supportedShowStyleBase: [id as unknown as { value: ShowStyleBaseId }],
 						},
 					})
 				}
