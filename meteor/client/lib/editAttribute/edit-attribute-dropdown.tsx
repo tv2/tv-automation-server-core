@@ -10,6 +10,7 @@ export interface DropdownOption {
 
 interface EditAttributeDropdownProps extends IEditAttributeBaseProps {
 	options: DropdownOption[]
+	shouldSaveLabel?: boolean
 }
 
 export function EditAttributeDropdown(props: EditAttributeDropdownProps) {
@@ -46,6 +47,11 @@ const WrappedEditAttributeDropdown = wrapEditAttribute(
 		}
 
 		private updateSelectedOptionIfLabelIsChanged(): void {
+			const props = this.props as EditAttributeDropdownProps
+			if (!props.shouldSaveLabel) {
+				return
+			}
+
 			const selectedOptionFromDatabase = this.getCurrentlySelectedOption()
 			if (!selectedOptionFromDatabase || !('label' in selectedOptionFromDatabase)) {
 				return
@@ -78,7 +84,8 @@ const WrappedEditAttributeDropdown = wrapEditAttribute(
 			if (!selectedOption) {
 				return
 			}
-			this.handleUpdate(selectedOption.label ? selectedOption : selectedOption.value)
+			const props = this.props as EditAttributeDropdownProps
+			this.handleUpdate(props.shouldSaveLabel ? selectedOption : selectedOption.value)
 		}
 
 		private getCurrentlySelectedOption(): DropdownOption {
