@@ -255,7 +255,13 @@ function renderMultiSelect(
 	)
 }
 
-function renderDropdown(attribute: string, obj: any, options: DropdownOption[], collection: MongoCollection<any>, shouldSaveLabel: boolean = false) {
+function renderDropdown(
+	attribute: string,
+	obj: any,
+	options: DropdownOption[],
+	collection: MongoCollection<any>,
+	shouldSaveLabel: boolean = false
+) {
 	return (
 		<EditAttributeDropdown
 			modifiedClassName="bghl"

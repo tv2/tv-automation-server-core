@@ -26,7 +26,7 @@ const WrappedEditAttributeMultiSelect = wrapEditAttribute(
 				this.handleUpdate(changedOptions)
 				return
 			}
-			this.handleUpdate(changedOptions.map(option => option.value))
+			this.handleUpdate(changedOptions.map((option) => option.value))
 		}
 
 		componentDidMount() {
