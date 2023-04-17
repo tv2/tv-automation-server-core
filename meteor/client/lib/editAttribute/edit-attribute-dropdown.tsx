@@ -117,9 +117,9 @@ const WrappedEditAttributeDropdown = wrapEditAttribute(
 			const currentlySelectedOption = this.getCurrentlySelectedOption()
 			const availableOptions = this.getAvailableOptions()
 
-			const matchOnValue = availableOptions.some((option) => option.value === currentlySelectedOption.value)
+			const matchOnValue = availableOptions.some((option) => option.value === currentlySelectedOption?.value)
 			const matchOnAlternativeValue = availableOptions.some(
-				(option) => option.alternativeValue === currentlySelectedOption.value
+				(option) => option.alternativeValue === currentlySelectedOption?.value
 			)
 
 			if (matchOnValue || !matchOnAlternativeValue) {
