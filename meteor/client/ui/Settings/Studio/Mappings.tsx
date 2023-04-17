@@ -137,6 +137,10 @@ export const StudioMappings = withTranslation()(
 								const summary = entry.name + ': '
 
 								let mappingValue = entry.values && entry.values[mapping[entry.id]]
+								if (entry.type === ConfigManifestEntryType.ENUM && mappingValue && _.isNumber(mappingValue)) {
+									mappingValue = entry.values[mappingValue]
+								}
+
 								if (!mappingValue) {
 									mappingValue = mapping[entry.id]
 								}

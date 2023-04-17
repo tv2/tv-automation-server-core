@@ -79,7 +79,7 @@ const WrappedEditAttributeDropdown = wrapEditAttribute(
 		private handleChange(event) {
 			const selectedOptionValue: string = event.target.value
 			const selectedOption: DropdownOption | undefined = this.getAvailableOptions().find(
-				(option) => option.value === selectedOptionValue
+				(option) => option.value === selectedOptionValue || option.alternativeValue === selectedOptionValue
 			)
 			if (!selectedOption) {
 				return
@@ -113,10 +113,30 @@ const WrappedEditAttributeDropdown = wrapEditAttribute(
 			return !selectedIsAnAvailableOption ? [selectedOption] : []
 		}
 
-		render() {
+		private getAvailableOptionsUsingAlternativeValueIfNecessary(): DropdownOption[] {
+			const currentlySelectedOption = this.getCurrentlySelectedOption()
 			const availableOptions = this.getAvailableOptions()
+
+			const matchOnValue = availableOptions.some((option) => option.value === currentlySelectedOption.value)
+			const matchOnAlternativeValue = availableOptions.some(
+				(option) => option.alternativeValue === currentlySelectedOption.value
+			)
+
+			if (matchOnValue || !matchOnAlternativeValue) {
+				return availableOptions
+			}
+
+			return availableOptions.map((option) => ({
+				value: option.alternativeValue ?? '',
+				label: option.label ?? option.value,
+			}))
+		}
+
+		render() {
+			const availableOptions = this.getAvailableOptionsUsingAlternativeValueIfNecessary()
 			const missingOptions = this.getMissingOptions()
 			const currentlySelectedOption = this.getCurrentlySelectedOption()
+
 			return (
 				<select
 					className={ClassNames(
