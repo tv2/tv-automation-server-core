@@ -10,6 +10,7 @@ export interface DropdownOption {
 
 interface EditAttributeDropdownProps extends IEditAttributeBaseProps {
 	options: DropdownOption[]
+	shouldSaveLabel?: boolean
 }
 
 export function EditAttributeDropdown(props: EditAttributeDropdownProps) {
@@ -46,6 +47,11 @@ const WrappedEditAttributeDropdown = wrapEditAttribute(
 		}
 
 		private updateSelectedOptionIfLabelIsChanged(): void {
+			const props = this.props as EditAttributeDropdownProps
+			if (!props.shouldSaveLabel) {
+				return
+			}
+
 			const selectedOptionFromDatabase = this.getCurrentlySelectedOption()
 			if (!selectedOptionFromDatabase || !('label' in selectedOptionFromDatabase)) {
 				return
@@ -73,12 +79,13 @@ const WrappedEditAttributeDropdown = wrapEditAttribute(
 		private handleChange(event) {
 			const selectedOptionValue: string = event.target.value
 			const selectedOption: DropdownOption | undefined = this.getAvailableOptions().find(
-				(option) => option.value === selectedOptionValue
+				(option) => option.value === selectedOptionValue || option.alternativeValue === selectedOptionValue
 			)
 			if (!selectedOption) {
 				return
 			}
-			this.handleUpdate(selectedOption.label ? selectedOption : selectedOption.value)
+			const props = this.props as EditAttributeDropdownProps
+			this.handleUpdate(props.shouldSaveLabel ? selectedOption : selectedOption.value)
 		}
 
 		private getCurrentlySelectedOption(): DropdownOption {
@@ -106,10 +113,30 @@ const WrappedEditAttributeDropdown = wrapEditAttribute(
 			return !selectedIsAnAvailableOption ? [selectedOption] : []
 		}
 
-		render() {
+		private getAvailableOptionsUsingAlternativeValueIfNecessary(): DropdownOption[] {
+			const currentlySelectedOption = this.getCurrentlySelectedOption()
 			const availableOptions = this.getAvailableOptions()
+
+			const matchOnValue = availableOptions.some((option) => option.value === currentlySelectedOption?.value)
+			const matchOnAlternativeValue = availableOptions.some(
+				(option) => option.alternativeValue === currentlySelectedOption?.value
+			)
+
+			if (matchOnValue || !matchOnAlternativeValue) {
+				return availableOptions
+			}
+
+			return availableOptions.map((option) => ({
+				value: option.alternativeValue ?? '',
+				label: option.label ?? option.value,
+			}))
+		}
+
+		render() {
+			const availableOptions = this.getAvailableOptionsUsingAlternativeValueIfNecessary()
 			const missingOptions = this.getMissingOptions()
 			const currentlySelectedOption = this.getCurrentlySelectedOption()
+
 			return (
 				<select
 					className={ClassNames(

@@ -153,7 +153,7 @@ async function createSystemSnapshot(
 	if (studioId) {
 		const ids: ShowStyleBaseId[] = []
 		for (const studio of studios) {
-			ids.push(...studio.supportedShowStyleBase.map(({ value }) => value))
+			ids.push(...studio.supportedShowStyleBase)
 		}
 		queryShowStyleBases = {
 			_id: { $in: ids },

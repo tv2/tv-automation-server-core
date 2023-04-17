@@ -170,7 +170,7 @@ function checkDatabaseVersions() {
 
 					// TODO - is this correct for the current relationships? What about studio blueprints?
 					Studios.find(
-						{ supportedShowStyleBase: { value: showStyleBase._id } },
+						{ supportedShowStyleBase: showStyleBase._id },
 						{
 							fields: { _id: 1 },
 						}

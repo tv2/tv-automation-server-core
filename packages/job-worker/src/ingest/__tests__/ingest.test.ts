@@ -59,7 +59,7 @@ describe('Test ingest actions for rundowns and segments', () => {
 
 		context.setStudio({
 			...context.studio,
-			supportedShowStyleBase: [{ value: showStyleCompound._id }],
+			supportedShowStyleBase: [showStyleCompound._id],
 		})
 
 		device = await setupMockPeripheralDevice(

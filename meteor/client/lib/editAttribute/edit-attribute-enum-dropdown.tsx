@@ -13,7 +13,15 @@ export function EditAttributeEnumDropdown(props: EditAttributeEnumDropdownProps)
 }
 
 function mapToDropdownOptions(options: object): DropdownOption[] {
+	if (isStringArray(options)) {
+		return options.map((option) => ({ value: option, alternativeValue: option }))
+	}
+
 	return Object.entries(options)
 		.filter(([enumName, _value]) => Number.isNaN(Number(enumName)))
 		.map(([enumName, value]) => ({ value: enumName, alternativeValue: value + '' }))
+}
+
+function isStringArray(value: object): value is string[] {
+	return Array.isArray(value) && value.every((v) => typeof v === 'string')
 }

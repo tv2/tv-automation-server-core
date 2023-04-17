@@ -1502,7 +1502,7 @@ export const RundownView = translateWithTracker<IProps, IState, ITrackedProps>((
 			return {
 				shelfLayout:
 					selectedShelfLayout && RundownLayoutsAPI.isLayoutForShelf(selectedShelfLayout)
-						? RundownView.mapSourceLayerIdsToStringArray(selectedShelfLayout)
+						? selectedShelfLayout
 						: undefined,
 				rundownViewLayout:
 					selectedViewLayout && RundownLayoutsAPI.isLayoutForRundownView(selectedViewLayout)
@@ -1522,26 +1522,6 @@ export const RundownView = translateWithTracker<IProps, IState, ITrackedProps>((
 				sourceLayerLookup: resultSourceLayerLookup,
 				miniShelfFilter,
 			}
-		}
-
-		/**
-		 * This is a hack/quickfix for fixing that sourceLayerIds are now stored as "{label: string, value: string}" instead of just "string".
-		 * To fix it properly we need to change RundownLayoutFilterBase.sourceLayerIds interface from string[] to support the new type, which is an extensive change.
-		 */
-		static mapSourceLayerIdsToStringArray(shelfLayout: RundownLayoutShelfBase): RundownLayoutShelfBase {
-			shelfLayout.filters = shelfLayout.filters.map((filter) => {
-				if (!('sourceLayerIds' in filter) || !filter['sourceLayerIds']) {
-					return filter
-				}
-				const filterWithSourceLayerIds = filter as RundownLayoutFilterBase
-				filterWithSourceLayerIds.sourceLayerIds = filterWithSourceLayerIds.sourceLayerIds?.map((sourceLayerId) => {
-					return typeof sourceLayerId === 'object' && 'value' in sourceLayerId
-						? (sourceLayerId as any).value
-						: sourceLayerId
-				})
-				return filterWithSourceLayerIds
-			})
-			return shelfLayout
 		}
 
 		componentDidMount() {
