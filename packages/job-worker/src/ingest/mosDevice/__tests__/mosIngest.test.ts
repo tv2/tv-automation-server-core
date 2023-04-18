@@ -63,7 +63,7 @@ describe('Test recieved mos ingest payloads', () => {
 
 		context.setStudio({
 			...context.studio,
-			supportedShowStyleBase: [{ value: showStyleCompound._id }],
+			supportedShowStyleBase: [showStyleCompound._id],
 		})
 
 		device = await setupMockIngestDevice(context)

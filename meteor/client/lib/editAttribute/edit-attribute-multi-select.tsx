@@ -5,6 +5,7 @@ import { EditAttributeBase, IEditAttributeBaseProps, wrapEditAttribute } from '.
 
 interface EditAttributeMultiSelectProps extends IEditAttributeBaseProps {
 	options: MultiSelectOption[]
+	shouldSaveLabel?: boolean
 }
 
 export function EditAttributeMultiSelect(props: EditAttributeMultiSelectProps) {
@@ -20,7 +21,12 @@ const WrappedEditAttributeMultiSelect = wrapEditAttribute(
 		}
 
 		private handleChange(changedOptions: MultiSelectOption[]): void {
-			this.handleUpdate(changedOptions)
+			const props = this.props as EditAttributeMultiSelectProps
+			if (props.shouldSaveLabel) {
+				this.handleUpdate(changedOptions)
+				return
+			}
+			this.handleUpdate(changedOptions.map((option) => option.value))
 		}
 
 		componentDidMount() {
@@ -35,6 +41,11 @@ const WrappedEditAttributeMultiSelect = wrapEditAttribute(
 		}
 
 		private updateSelectedOptionsIfLabelsHasChanged(): void {
+			const props = this.props as EditAttributeMultiSelectProps
+			if (!props.shouldSaveLabel) {
+				return
+			}
+
 			const selectedOptionsFromDatabase = this.getCurrentlySelectedOptions()
 			if (!selectedOptionsFromDatabase || selectedOptionsFromDatabase.length === 0) {
 				return

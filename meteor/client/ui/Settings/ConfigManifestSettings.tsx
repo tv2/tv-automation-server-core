@@ -210,9 +210,9 @@ function getEditAttribute<DBInterface extends { _id: ProtectedString<any> }>(
 					? item.options
 					: configurationTableEntrySelector.getTableColumnValues(item, configPath, object, alternateObject)
 			if (item.multiple) {
-				return renderMultiSelect(attribute, object, selectFromOptions, collection)
+				return renderMultiSelect(attribute, object, selectFromOptions, collection, true)
 			}
-			return renderDropdown(attribute, object, selectFromOptions, collection)
+			return renderDropdown(attribute, object, selectFromOptions, collection, true)
 		}
 		case ConfigManifestEntryType.SELECT_FROM_TABLE_ENTRY_WITH_COMPARISON_MAPPINGS: {
 			const selectWithComparisonOptions =
@@ -226,9 +226,9 @@ function getEditAttribute<DBInterface extends { _id: ProtectedString<any> }>(
 							alternateObject
 					  )
 			if (item.multiple) {
-				return renderMultiSelect(attribute, object, selectWithComparisonOptions, collection)
+				return renderMultiSelect(attribute, object, selectWithComparisonOptions, collection, true)
 			}
-			return renderDropdown(attribute, object, selectWithComparisonOptions, collection)
+			return renderDropdown(attribute, object, selectWithComparisonOptions, collection, true)
 		}
 		default:
 			return null
@@ -239,7 +239,8 @@ function renderMultiSelect(
 	attribute: string,
 	obj: any,
 	options: MultiSelectOption[],
-	collection: MongoCollection<any>
+	collection: MongoCollection<any>,
+	shouldSaveLabel: boolean = false
 ) {
 	return (
 		<EditAttributeMultiSelect
@@ -249,11 +250,18 @@ function renderMultiSelect(
 			options={options}
 			collection={collection}
 			className="input text-input dropdown input-l"
+			shouldSaveLabel={shouldSaveLabel}
 		></EditAttributeMultiSelect>
 	)
 }
 
-function renderDropdown(attribute: string, obj: any, options: DropdownOption[], collection: MongoCollection<any>) {
+function renderDropdown(
+	attribute: string,
+	obj: any,
+	options: DropdownOption[],
+	collection: MongoCollection<any>,
+	shouldSaveLabel: boolean = false
+) {
 	return (
 		<EditAttributeDropdown
 			modifiedClassName="bghl"
@@ -262,6 +270,7 @@ function renderDropdown(attribute: string, obj: any, options: DropdownOption[], 
 			options={options}
 			collection={collection}
 			className="input text-input dropdown input-l"
+			shouldSaveLabel={shouldSaveLabel}
 		/>
 	)
 }

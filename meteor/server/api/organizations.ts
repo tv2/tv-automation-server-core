@@ -37,7 +37,7 @@ async function createDefaultEnvironmentForOrg(orgId: OrganizationId) {
 				blueprintId: studioBlueprintId,
 			},
 			$push: {
-				supportedShowStyleBase: { value: showStyleId },
+				supportedShowStyleBase: showStyleId,
 			},
 		})
 	if (showStyleId && showStyleBlueprintId)

@@ -215,13 +215,13 @@ export async function invalidateWorkerDataCache(
 		const allowedBases = new Set(cache.studio.supportedShowStyleBase)
 
 		for (const id of Array.from(cache.showStyleBases.keys())) {
-			if (!allowedBases.has({ value: id })) {
+			if (!allowedBases.has(id)) {
 				logger.debug(`WorkerDataCache: Discarding showStyleBase "${id}"`)
 				cache.showStyleBases.delete(id)
 			}
 		}
 
-		purgeShowStyleVariants((v) => allowedBases.has({ value: v.showStyleBaseId }))
+		purgeShowStyleVariants((v) => allowedBases.has(v.showStyleBaseId))
 
 		// Blueprints get cleaned up at the end
 	}
