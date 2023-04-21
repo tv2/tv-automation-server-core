@@ -32,7 +32,12 @@ class ConfigManifestTableEntrySelector {
 
 		const options = sourceTable.flatMap((sourceRow) => this.getOptionsFromSourceRow(sourceRow, targetRow, item))
 		options.push({ value: DEFAULT_VALUE_FOR_NO_AVAILABLE_OPTION, label: DEFAULT_VALUE_FOR_NO_AVAILABLE_OPTION })
-		return options
+		return this.removeDuplicateOptions(options)
+	}
+
+	private removeDuplicateOptions(options: SelectOption[]): SelectOption[] {
+		const map: Map<string, SelectOption> = new Map(options.map((option) => [option.value, option]))
+		return [...map.values()]
 	}
 
 	public getOptionsFromSourceRow(
