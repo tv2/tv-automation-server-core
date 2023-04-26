@@ -54,7 +54,7 @@ export async function checkStudioExists(studioId: StudioId): Promise<boolean> {
 }
 
 /**
- * Returns a "light" version of the Studio, where the most heavy/large properties are omitted.
+ * Returns a "light" version of the Show Style Base, where the most heavy/large properties are omitted.
  */
 export async function fetchShowStyleBaseLight(showStyleId: ShowStyleBaseId): Promise<ShowStyleBaseLight | undefined> {
 	return ShowStyleBases.findOneAsync(showStyleId, {

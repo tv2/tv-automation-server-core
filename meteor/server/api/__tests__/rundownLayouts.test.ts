@@ -2,7 +2,12 @@ import '../../../__mocks__/_extendJest'
 import { testInFiber } from '../../../__mocks__/helpers/jest'
 import { setupDefaultStudioEnvironment, DefaultEnvironment } from '../../../__mocks__/helpers/database'
 import { protectString, literal, unprotectString, getRandomString } from '../../../lib/lib'
-import { PickerMock, parseResponseBuffer, MockResponseDataString } from '../../../__mocks__/meteorhacks-picker'
+import {
+	PickerMock,
+	parseResponseBuffer,
+	MockResponseDataString,
+	PickerMockRoute,
+} from '../../../__mocks__/meteorhacks-picker'
 import { Response as MockResponse, Request as MockRequest } from 'mock-http'
 import {
 	RundownLayoutType,
@@ -12,6 +17,8 @@ import {
 	RundownLayoutId,
 } from '../../../lib/collections/RundownLayouts'
 import { MeteorCall } from '../../../lib/api/methods'
+import { beforeEachInFiber } from '../../../__mocks__/helpers/jest'
+import { BlueprintId } from '@sofie-automation/corelib/dist/dataModel/Ids'
 
 require('../client') // include in order to create the Meteor methods needed
 require('../rundownLayouts') // include in order to create the Meteor methods needed
@@ -126,21 +133,27 @@ describe('Rundown Layouts', () => {
 			}
 		})
 
-		testInFiber('upload shelf layout', async () => {
-			const { rundownLayout: mockLayout } = makeMockLayout(env)
-			const routeName = '/shelfLayouts/upload/:showStyleBaseId'
-			const route = PickerMock.mockRoutes[routeName]
-			expect(route).toBeTruthy()
+		describe('upload shelf layout', () => {
+			let mockLayout: RundownLayout
+			let route: PickerMockRoute
+			beforeAll(() => {
+				mockLayout = makeMockLayout(env).rundownLayout
+				const routeName = '/shelfLayouts/upload/:showStyleBaseId'
+				route = PickerMock.mockRoutes[routeName]
+			})
 
-			{
-				// try to upload to a non-existent showStyleBase
+			test('route exists', () => {
+				expect(route).toBeTruthy()
+			})
+
+			testInFiber('returns 500 when uploading to a non-existent showStyleBase', async () => {
 				const fakeId = 'FAKE_ID'
 				const res = new MockResponse()
 				const req = new MockRequest({
 					method: 'POST',
 					url: `/shelfLayouts/upload/${fakeId}`,
 				})
-				req.body = JSON.stringify(mockLayout)
+				req.body = mockLayout
 
 				await route.handler({ showStyleBaseId: fakeId }, req, res, jest.fn())
 
@@ -153,10 +166,9 @@ describe('Rundown Layouts', () => {
 					})
 				)
 				expect(resStr.bufferStr).toContain('not found')
-			}
+			})
 
-			{
-				// try not to send a request body
+			testInFiber('returns 500 when body is empty', async () => {
 				const res = new MockResponse()
 				const req = new MockRequest({
 					method: 'POST',
@@ -174,16 +186,15 @@ describe('Rundown Layouts', () => {
 					})
 				)
 				expect(resStr.bufferStr).toContain('body')
-			}
+			})
 
-			{
-				// try to send too short a body
+			testInFiber('returns 500 when body is not an object', async () => {
 				const res = new MockResponse()
 				const req = new MockRequest({
 					method: 'POST',
 					url: `/shelfLayouts/upload/${env.showStyleBaseId}`,
 				})
-				req.body = 'sdf'
+				req.body = '{ "type": "sometype" }'
 
 				await route.handler({ showStyleBaseId: unprotectString(env.showStyleBaseId) }, req, res, jest.fn())
 
@@ -196,16 +207,15 @@ describe('Rundown Layouts', () => {
 					})
 				)
 				expect(resStr.bufferStr).toContain('body')
-			}
+			})
 
-			{
-				// try to send a malformed body
+			testInFiber('returns 500 when body is missing required properties', async () => {
 				const res = new MockResponse()
 				const req = new MockRequest({
 					method: 'POST',
 					url: `/shelfLayouts/upload/${env.showStyleBaseId}`,
 				})
-				req.body = '{ type: dsfgsdfgsdf gsdfgsdfg sdfgsdfg sdf gsdfgsdfg sdfg }'
+				req.body = { type: 'sometype' }
 
 				await route.handler({ showStyleBaseId: unprotectString(env.showStyleBaseId) }, req, res, jest.fn())
 
@@ -217,16 +227,16 @@ describe('Rundown Layouts', () => {
 						ended: true,
 					})
 				)
-				expect(resStr.bufferStr).toContain('SyntaxError')
-			}
+				expect(resStr.bufferStr).toContain('Match error')
+			})
 
-			{
+			testInFiber('uploads the layout when body is correct and showstyle exists', async () => {
 				const res = new MockResponse()
 				const req = new MockRequest({
 					method: 'POST',
 					url: `/shelfLayouts/upload/${env.showStyleBaseId}`,
 				})
-				req.body = JSON.stringify(mockLayout)
+				req.body = mockLayout
 
 				await route.handler({ showStyleBaseId: unprotectString(env.showStyleBaseId) }, req, res, jest.fn())
 
@@ -240,7 +250,154 @@ describe('Rundown Layouts', () => {
 				)
 
 				expect(RundownLayouts.findOne(mockLayout._id)).toBeTruthy()
-			}
+			})
+		})
+
+		describe('upload shelf layout by blueprint id', () => {
+			let mockLayout: RundownLayout
+			let route: PickerMockRoute
+			let showStyleBlueprintId: BlueprintId
+			beforeAll(() => {
+				mockLayout = makeMockLayout(env).rundownLayout
+				const routeName = '/shelfLayouts/uploadByBlueprintId/:showStyleBlueprintId'
+				route = PickerMock.mockRoutes[routeName]
+				showStyleBlueprintId = env.showStyleBlueprint._id
+			})
+			beforeEachInFiber(() => {
+				RundownLayouts.remove({})
+			})
+
+			test('route exists', () => {
+				expect(route).toBeTruthy()
+			})
+
+			testInFiber('returns 500 when uploading to a non-existent showStyleBase', async () => {
+				const fakeId = 'FAKE_ID'
+				const res = new MockResponse()
+				const req = new MockRequest({
+					method: 'POST',
+					url: `/shelfLayouts/uploadByBlueprintId/${fakeId}`,
+				})
+				req.body = mockLayout
+
+				await route.handler({ showStyleBlueprintId: fakeId }, req, res, jest.fn())
+
+				const resStr = parseResponseBuffer(res)
+				expect(resStr).toMatchObject(
+					literal<Partial<MockResponseDataString>>({
+						statusCode: 500,
+						timedout: false,
+						ended: true,
+					})
+				)
+				expect(resStr.bufferStr).toContain('not found')
+			})
+
+			testInFiber('returns 500 when body is empty', async () => {
+				const res = new MockResponse()
+				const req = new MockRequest({
+					method: 'POST',
+					url: `/shelfLayouts/uploadByBlueprintId/${showStyleBlueprintId}`,
+				})
+
+				await route.handler(
+					{ showStyleBlueprintId: unprotectString(showStyleBlueprintId) },
+					req,
+					res,
+					jest.fn()
+				)
+
+				const resStr = parseResponseBuffer(res)
+				expect(resStr).toMatchObject(
+					literal<Partial<MockResponseDataString>>({
+						statusCode: 500,
+						timedout: false,
+						ended: true,
+					})
+				)
+				expect(resStr.bufferStr).toContain('body')
+			})
+
+			testInFiber('returns 500 when body is not an object', async () => {
+				const res = new MockResponse()
+				const req = new MockRequest({
+					method: 'POST',
+					url: `/shelfLayouts/uploadByBlueprintId/${showStyleBlueprintId}`,
+				})
+				req.body = '{ "type": "sometype" }'
+
+				await route.handler(
+					{ showStyleBlueprintId: unprotectString(showStyleBlueprintId) },
+					req,
+					res,
+					jest.fn()
+				)
+
+				const resStr = parseResponseBuffer(res)
+				expect(resStr).toMatchObject(
+					literal<Partial<MockResponseDataString>>({
+						statusCode: 500,
+						timedout: false,
+						ended: true,
+					})
+				)
+				expect(resStr.bufferStr).toContain('body')
+			})
+
+			testInFiber('returns 500 when body is missing required propertoes', async () => {
+				const res = new MockResponse()
+				const req = new MockRequest({
+					method: 'POST',
+					url: `/shelfLayouts/uploadByBlueprintId/${showStyleBlueprintId}`,
+				})
+				req.body = { type: 'sometype' }
+
+				await route.handler(
+					{ showStyleBlueprintId: unprotectString(showStyleBlueprintId) },
+					req,
+					res,
+					jest.fn()
+				)
+
+				const resStr = parseResponseBuffer(res)
+				expect(resStr).toMatchObject(
+					literal<Partial<MockResponseDataString>>({
+						statusCode: 500,
+						timedout: false,
+						ended: true,
+					})
+				)
+				expect(resStr.bufferStr).toContain('Match error')
+			})
+
+			testInFiber('uploads the layout when body is correct and showstyle exists', async () => {
+				const res = new MockResponse()
+				const req = new MockRequest({
+					method: 'POST',
+					url: `/shelfLayouts/uploadByBlueprintId/${showStyleBlueprintId}`,
+				})
+				req.body = mockLayout
+
+				await route.handler(
+					{ showStyleBlueprintId: unprotectString(showStyleBlueprintId) },
+					req,
+					res,
+					jest.fn()
+				)
+
+				const resStr = parseResponseBuffer(res)
+				expect(resStr).toMatchObject(
+					literal<Partial<MockResponseDataString>>({
+						statusCode: 200,
+						timedout: false,
+						ended: true,
+					})
+				)
+
+				expect(
+					RundownLayouts.findOne({ _id: mockLayout._id, showStyleBaseId: env.showStyleBaseId })
+				).toBeTruthy()
+			})
 		})
 	})
 })
