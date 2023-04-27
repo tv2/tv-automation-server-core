@@ -43,7 +43,7 @@ export const renderEditAttribute = (
 		return (
 			<EditAttributeEnumDropdown
 				{...opts}
-				options={(configField as ConfigManifestEntry).values || []}
+				options={configField.values}
 				className="input text-input input-l"
 			></EditAttributeEnumDropdown>
 		)

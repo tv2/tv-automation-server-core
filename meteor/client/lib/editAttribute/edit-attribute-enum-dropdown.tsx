@@ -2,9 +2,10 @@ import { DropdownOption, EditAttributeDropdown } from './edit-attribute-dropdown
 import { IEditAttributeBaseProps } from './edit-attribute-base'
 import * as React from 'react'
 import { useMemo } from 'react'
+import { EnumLike } from '@sofie-automation/corelib/dist/deviceConfig'
 
 interface EditAttributeEnumDropdownProps extends IEditAttributeBaseProps {
-	options: object
+	options: EnumLike
 }
 
 export function EditAttributeEnumDropdown(props: EditAttributeEnumDropdownProps) {
@@ -12,16 +13,8 @@ export function EditAttributeEnumDropdown(props: EditAttributeEnumDropdownProps)
 	return <EditAttributeDropdown {...props} options={options} />
 }
 
-function mapToDropdownOptions(options: object): DropdownOption[] {
-	if (isStringArray(options)) {
-		return options.map((option) => ({ value: option, alternativeValue: option }))
-	}
-
+function mapToDropdownOptions(options: EnumLike): DropdownOption[] {
 	return Object.entries(options)
-		.filter(([enumName, _value]) => Number.isNaN(Number(enumName)))
-		.map(([enumName, value]) => ({ value: enumName, alternativeValue: value + '' }))
-}
-
-function isStringArray(value: object): value is string[] {
-	return Array.isArray(value) && value.every((v) => typeof v === 'string')
+		.filter(([enumName]) => Number.isNaN(Number(enumName)))
+		.map(([enumName, value]) => ({ label: enumName, value }))
 }

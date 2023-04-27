@@ -3,8 +3,7 @@ import ClassNames from 'classnames'
 import * as React from 'react'
 
 export interface DropdownOption {
-	value: string
-	alternativeValue?: string
+	value: string | number
 	label?: string
 }
 
@@ -69,17 +68,13 @@ const WrappedEditAttributeDropdown = wrapEditAttribute(
 		}
 
 		private findOptionInAvailableOptions(optionToCheck: DropdownOption): DropdownOption | undefined {
-			return this.getAvailableOptions().find(
-				(option) =>
-					option.value.toLowerCase() === optionToCheck.value.toLowerCase() ||
-					(option.alternativeValue && option.alternativeValue === optionToCheck.value.toLowerCase())
-			)
+			return this.getAvailableOptions().find((option) => option.value === optionToCheck.value)
 		}
 
 		private handleChange(event) {
 			const selectedOptionValue: string = event.target.value
 			const selectedOption: DropdownOption | undefined = this.getAvailableOptions().find(
-				(option) => option.value === selectedOptionValue || option.alternativeValue === selectedOptionValue
+				(option) => option.value.toString() === selectedOptionValue
 			)
 			if (!selectedOption) {
 				return
@@ -90,14 +85,14 @@ const WrappedEditAttributeDropdown = wrapEditAttribute(
 
 		private getCurrentlySelectedOption(): DropdownOption {
 			let attribute = this.getAttribute()
-			if (!!attribute && !attribute.value) {
-				attribute = { value: attribute + '' }
+			if (attribute !== undefined && attribute.value === undefined) {
+				attribute = { value: attribute }
 			}
 			return attribute
 		}
 
 		private getAvailableOptions(): DropdownOption[] {
-			return (this.props as EditAttributeDropdownProps).options
+			return this.props.options
 		}
 
 		private getMissingOptions(): DropdownOption[] {
@@ -106,34 +101,13 @@ const WrappedEditAttributeDropdown = wrapEditAttribute(
 				return []
 			}
 			const selectedIsAnAvailableOption = this.getAvailableOptions().some(
-				(option) =>
-					option.value.toLowerCase() === selectedOption.value.toLowerCase() ||
-					(option.alternativeValue && option.alternativeValue === selectedOption.value.toLowerCase())
+				(option) => option.value === selectedOption.value
 			)
 			return !selectedIsAnAvailableOption ? [selectedOption] : []
 		}
 
-		private getAvailableOptionsUsingAlternativeValueIfNecessary(): DropdownOption[] {
-			const currentlySelectedOption = this.getCurrentlySelectedOption()
-			const availableOptions = this.getAvailableOptions()
-
-			const matchOnValue = availableOptions.some((option) => option.value === currentlySelectedOption?.value)
-			const matchOnAlternativeValue = availableOptions.some(
-				(option) => option.alternativeValue === currentlySelectedOption?.value
-			)
-
-			if (matchOnValue || !matchOnAlternativeValue) {
-				return availableOptions
-			}
-
-			return availableOptions.map((option) => ({
-				value: option.alternativeValue ?? '',
-				label: option.label ?? option.value,
-			}))
-		}
-
 		render() {
-			const availableOptions = this.getAvailableOptionsUsingAlternativeValueIfNecessary()
+			const availableOptions = this.getAvailableOptions()
 			const missingOptions = this.getMissingOptions()
 			const currentlySelectedOption = this.getCurrentlySelectedOption()
 
