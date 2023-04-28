@@ -476,7 +476,7 @@ const DeprecatedEditAttributeDropdown = wrapEditAttribute(
 				if (!currentOption) {
 					// if currentOption not found, then add it to the list:
 					options.push({
-						name: 'Value: ' + currentValue,
+						name: 'N/A: ' + currentValue,
 						value: currentValue,
 					})
 				}
@@ -621,7 +621,7 @@ const DeprecatedEditAttributeDropdownText = wrapEditAttribute(
 				if (!currentOption) {
 					// if currentOption not found, then add it to the list:
 					options.push({
-						name: 'Value: ' + currentValue,
+						name: 'N/A: ' + currentValue,
 						value: currentValue,
 					})
 				}

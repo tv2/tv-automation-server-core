@@ -96,8 +96,10 @@ function getEditAttribute<DBInterface extends { _id: ProtectedString<any> }>(
 	attribute: string,
 	layerMappings?: { [key: string]: MappingsExt },
 	sourceLayers?: Array<{ name: string; value: string; type: SourceLayerType }>,
-	alternateObject?: any
+	alternateObject?: any,
+	allowEmptyDropdown?: boolean
 ) {
+	const allowNoSelection = !item.required && allowEmptyDropdown
 	switch (item.type) {
 		case ConfigManifestEntryType.STRING:
 			return (
@@ -188,21 +190,21 @@ function getEditAttribute<DBInterface extends { _id: ProtectedString<any> }>(
 			if (item.multiple) {
 				return renderMultiSelect(attribute, object, selectOptions, collection)
 			}
-			return renderDropdown(attribute, object, selectOptions, collection)
+			return renderDropdown(attribute, object, selectOptions, collection, undefined, allowNoSelection)
 		}
 		case ConfigManifestEntryType.SOURCE_LAYERS: {
 			const filterSourceLayerOptions = 'options' in item ? item.options : filterSourceLayers(item, sourceLayers ?? [])
 			if (item.multiple) {
 				return renderMultiSelect(attribute, object, filterSourceLayerOptions, collection)
 			}
-			return renderDropdown(attribute, object, filterSourceLayerOptions, collection)
+			return renderDropdown(attribute, object, filterSourceLayerOptions, collection, undefined, allowNoSelection)
 		}
 		case ConfigManifestEntryType.LAYER_MAPPINGS: {
 			const layerMappingOptions = 'options' in item ? item.options : filterLayerMappings(item, layerMappings ?? {})
 			if (item.multiple) {
 				return renderMultiSelect(attribute, object, layerMappingOptions, collection)
 			}
-			return renderDropdown(attribute, object, layerMappingOptions, collection)
+			return renderDropdown(attribute, object, layerMappingOptions, collection, undefined, allowNoSelection)
 		}
 		case ConfigManifestEntryType.SELECT_FROM_COLUMN: {
 			const selectFromOptions =
@@ -212,7 +214,7 @@ function getEditAttribute<DBInterface extends { _id: ProtectedString<any> }>(
 			if (item.multiple) {
 				return renderMultiSelect(attribute, object, selectFromOptions, collection, true)
 			}
-			return renderDropdown(attribute, object, selectFromOptions, collection, true)
+			return renderDropdown(attribute, object, selectFromOptions, collection, true, allowNoSelection)
 		}
 		case ConfigManifestEntryType.SELECT_FROM_TABLE_ENTRY_WITH_COMPARISON_MAPPINGS: {
 			const selectWithComparisonOptions =
@@ -228,7 +230,7 @@ function getEditAttribute<DBInterface extends { _id: ProtectedString<any> }>(
 			if (item.multiple) {
 				return renderMultiSelect(attribute, object, selectWithComparisonOptions, collection, true)
 			}
-			return renderDropdown(attribute, object, selectWithComparisonOptions, collection, true)
+			return renderDropdown(attribute, object, selectWithComparisonOptions, collection, true, allowNoSelection)
 		}
 		default:
 			return null
@@ -260,7 +262,8 @@ function renderDropdown(
 	obj: any,
 	options: DropdownOption[],
 	collection: MongoCollection<any>,
-	shouldSaveLabel: boolean = false
+	shouldSaveLabel: boolean = false,
+	allowNoSelection: boolean = false
 ) {
 	return (
 		<EditAttributeDropdown
@@ -271,6 +274,7 @@ function renderDropdown(
 			collection={collection}
 			className="input text-input dropdown input-l"
 			shouldSaveLabel={shouldSaveLabel}
+			allowNoSelection={allowNoSelection}
 		/>
 	)
 }
@@ -601,7 +605,8 @@ export class ConfigManifestTable<
 												`${baseAttribute}.${sortedIndices[i]}.${col.id}`,
 												undefined,
 												undefined,
-												this.props.alternateObject
+												this.props.alternateObject,
+												true
 											)}
 										</td>
 									))}
