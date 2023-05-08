@@ -67,8 +67,8 @@ PickerPOST.route('/shelfLayouts/upload/:showStyleBaseId', async (params, req: In
 	try {
 		if (!showStyleBase) throw new Meteor.Error(404, `Show Style Base "${showStyleBaseId}" not found`)
 
-		const body = validateAndGetRestoredLayoutBody(req)
-		await upsertLayout(body, showStyleBase)
+		const rundownLayoutBase = validateAndGetRestoredLayoutBody(req)
+		await upsertLayout(rundownLayoutBase, showStyleBase)
 
 		res.statusCode = 200
 	} catch (e) {
@@ -84,7 +84,7 @@ PickerPOST.route('/shelfLayouts/upload/:showStyleBaseId', async (params, req: In
  * Uploads the layout to the first Show Style Base that uses the given blueprint id
  */
 PickerPOST.route(
-	'/shelfLayouts/uploadByBlueprintId/:showStyleBlueprintId',
+	'/shelfLayouts/uploadByShowStyleBlueprintId/:showStyleBlueprintId',
 	async (params, req: IncomingMessage, res: ServerResponse) => {
 		res.setHeader('Content-Type', 'text/plain')
 
@@ -99,8 +99,8 @@ PickerPOST.route(
 			if (!showStyleBases.length)
 				throw new Meteor.Error(404, `Show Style Base not found for blueprint "${showStyleBlueprintId}"`)
 
-			const body = validateAndGetRestoredLayoutBody(req)
-			await upsertLayout(body, showStyleBases[0])
+			const rundownLayoutBase = validateAndGetRestoredLayoutBody(req)
+			await upsertLayout(rundownLayoutBase, showStyleBases[0])
 
 			res.statusCode = 200
 		} catch (e) {

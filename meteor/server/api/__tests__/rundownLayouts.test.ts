@@ -259,7 +259,7 @@ describe('Rundown Layouts', () => {
 			let showStyleBlueprintId: BlueprintId
 			beforeAll(() => {
 				mockLayout = makeMockLayout(env).rundownLayout
-				const routeName = '/shelfLayouts/uploadByBlueprintId/:showStyleBlueprintId'
+				const routeName = '/shelfLayouts/uploadByShowStyleBlueprintId/:showStyleBlueprintId'
 				route = PickerMock.mockRoutes[routeName]
 				showStyleBlueprintId = env.showStyleBlueprint._id
 			})
@@ -276,7 +276,7 @@ describe('Rundown Layouts', () => {
 				const res = new MockResponse()
 				const req = new MockRequest({
 					method: 'POST',
-					url: `/shelfLayouts/uploadByBlueprintId/${fakeId}`,
+					url: `/shelfLayouts/uploadByShowStyleBlueprintId/${fakeId}`,
 				})
 				req.body = mockLayout
 
@@ -297,7 +297,7 @@ describe('Rundown Layouts', () => {
 				const res = new MockResponse()
 				const req = new MockRequest({
 					method: 'POST',
-					url: `/shelfLayouts/uploadByBlueprintId/${showStyleBlueprintId}`,
+					url: `/shelfLayouts/uploadByShowStyleBlueprintId/${showStyleBlueprintId}`,
 				})
 
 				await route.handler(
@@ -322,7 +322,7 @@ describe('Rundown Layouts', () => {
 				const res = new MockResponse()
 				const req = new MockRequest({
 					method: 'POST',
-					url: `/shelfLayouts/uploadByBlueprintId/${showStyleBlueprintId}`,
+					url: `/shelfLayouts/uploadByShowStyleBlueprintId/${showStyleBlueprintId}`,
 				})
 				req.body = '{ "type": "sometype" }'
 
@@ -348,7 +348,7 @@ describe('Rundown Layouts', () => {
 				const res = new MockResponse()
 				const req = new MockRequest({
 					method: 'POST',
-					url: `/shelfLayouts/uploadByBlueprintId/${showStyleBlueprintId}`,
+					url: `/shelfLayouts/uploadByShowStyleBlueprintId/${showStyleBlueprintId}`,
 				})
 				req.body = { type: 'sometype' }
 
@@ -374,7 +374,7 @@ describe('Rundown Layouts', () => {
 				const res = new MockResponse()
 				const req = new MockRequest({
 					method: 'POST',
-					url: `/shelfLayouts/uploadByBlueprintId/${showStyleBlueprintId}`,
+					url: `/shelfLayouts/uploadByShowStyleBlueprintId/${showStyleBlueprintId}`,
 				})
 				req.body = mockLayout
 
