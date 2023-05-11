@@ -199,7 +199,7 @@ function ConfigManifestEditAttribute<DBInterface extends DBObj>({
 		)
 	}
 	if (!item.required && allowEmptyDropdownWhenNotRequired) {
-		processedOptions = [{ value: '', label: t('None') }, ...processedOptions]
+		processedOptions = prependWithEmptyOption(t, processedOptions)
 	}
 	return (
 		<EditAttributeDropdown
@@ -949,3 +949,7 @@ export class ConfigManifestSettings<
 		)
 	}
 }
+function prependWithEmptyOption(t, processedOptions: SelectOption[]): SelectOption[] {
+	return [{ value: '', label: t('None') }, ...processedOptions]
+}
+
