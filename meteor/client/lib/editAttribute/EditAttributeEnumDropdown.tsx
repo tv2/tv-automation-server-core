@@ -1,5 +1,5 @@
-import { DropdownOption, EditAttributeDropdown } from './edit-attribute-dropdown'
-import { IEditAttributeBaseProps } from './edit-attribute-base'
+import { DropdownOption, EditAttributeDropdown } from './EditAttributeDropdown'
+import { IEditAttributeBaseProps } from './EditAttributeBase'
 import * as React from 'react'
 import { useMemo } from 'react'
 import { EnumLike } from '@sofie-automation/corelib/dist/deviceConfig'

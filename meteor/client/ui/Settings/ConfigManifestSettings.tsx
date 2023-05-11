@@ -48,11 +48,11 @@ import {
 import { UploadButton } from '../../lib/uploadButton'
 import { NoticeLevel, Notification, NotificationCenter } from '../../lib/notifications/notifications'
 import { MongoCollection } from '../../../lib/collections/lib'
-import { EditAttributeMultiSelect } from '../../lib/editAttribute/edit-attribute-multi-select'
-import { EditAttributeDropdown } from '../../lib/editAttribute/edit-attribute-dropdown'
-import { EditAttributeTextDropdown } from '../../lib/editAttribute/edit-attribute-text-dropdown'
-import ConfigManifestTableEntrySelector from './helpers/config-manifest-table-entry-selector'
-import { IEditAttributeBaseProps } from '../../lib/editAttribute/edit-attribute-base'
+import { EditAttributeMultiSelect } from '../../lib/editAttribute/EditAttributeMultiSelect'
+import { EditAttributeDropdown } from '../../lib/editAttribute/EditAttributeDropdown'
+import { EditAttributeTextDropdown } from '../../lib/editAttribute/EditAttributeTextDropdown'
+import ConfigManifestTableEntrySelector from './helpers/ConfigManifestTableEntrySelector'
+import { IEditAttributeBaseProps } from '../../lib/editAttribute/EditAttributeBase'
 import { useTranslation } from 'react-i18next'
 
 const configurationTableEntrySelector = ConfigManifestTableEntrySelector

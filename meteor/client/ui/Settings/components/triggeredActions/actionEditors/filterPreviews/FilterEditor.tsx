@@ -5,7 +5,7 @@ import { EditAttribute, EditAttributeType } from '../../../../../../lib/EditAttr
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faAngleRight, faCheck, faTrash } from '@fortawesome/free-solid-svg-icons'
 import { sameWidth } from '../../../../../../lib/popperUtils'
-import { EditAttributeMultiSelect } from '../../../../../../lib/editAttribute/edit-attribute-multi-select'
+import { EditAttributeMultiSelect } from '../../../../../../lib/editAttribute/EditAttributeMultiSelect'
 import { MultiSelectOption } from '../../../../../../lib/multiSelect'
 
 interface IProps {

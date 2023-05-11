@@ -22,8 +22,8 @@ import { ShowStyleBase } from '../../../../lib/collections/ShowStyleBases'
 import { SourceLayerType } from '@sofie-automation/blueprints-integration'
 import { withTranslation } from 'react-i18next'
 import { defaultColorPickerPalette } from '../../../lib/colorPicker'
-import { EditAttributeMultiSelect } from '../../../lib/editAttribute/edit-attribute-multi-select'
-import { EditAttributeEnumMultiSelect } from '../../../lib/editAttribute/edit-attribute-enum-multi-select'
+import { EditAttributeMultiSelect } from '../../../lib/editAttribute/EditAttributeMultiSelect'
+import { EditAttributeEnumMultiSelect } from '../../../lib/editAttribute/EditAttributeEnumMultiSelect'
 
 interface IProps {
 	item: RundownLayoutBase

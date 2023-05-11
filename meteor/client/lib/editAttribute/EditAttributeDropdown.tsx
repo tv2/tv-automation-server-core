@@ -1,4 +1,4 @@
-import { EditAttributeBase, IEditAttributeBaseProps, wrapEditAttribute } from './edit-attribute-base'
+import { EditAttributeBase, IEditAttributeBaseProps, wrapEditAttribute } from './EditAttributeBase'
 import ClassNames from 'classnames'
 import * as React from 'react'
 

@@ -1,7 +1,7 @@
 import { MultiSelect, MultiSelectOption } from '../multiSelect'
 import ClassNames from 'classnames'
 import * as React from 'react'
-import { EditAttributeBase, IEditAttributeBaseProps, wrapEditAttribute } from './edit-attribute-base'
+import { EditAttributeBase, IEditAttributeBaseProps, wrapEditAttribute } from './EditAttributeBase'
 
 interface EditAttributeMultiSelectProps extends IEditAttributeBaseProps {
 	options: MultiSelectOption[]

@@ -16,8 +16,8 @@ import {
 import { withTranslation } from 'react-i18next'
 import { Accessor } from '@sofie-automation/blueprints-integration'
 import { PlayoutDeviceSettings } from '@sofie-automation/corelib/dist/dataModel/PeripheralDeviceSettings/playoutDevice'
-import { EditAttributeBase } from '../../../lib/editAttribute/edit-attribute-base'
-import { EditAttributeMultiSelect } from '../../../lib/editAttribute/edit-attribute-multi-select'
+import { EditAttributeBase } from '../../../lib/editAttribute/EditAttributeBase'
+import { EditAttributeMultiSelect } from '../../../lib/editAttribute/EditAttributeMultiSelect'
 
 interface IStudioPackageManagerSettingsProps {
 	studio: Studio

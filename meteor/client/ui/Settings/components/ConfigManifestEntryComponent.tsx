@@ -6,7 +6,7 @@ import { Translated } from '../../../lib/ReactMeteorData/react-meteor-data'
 import { ConfigManifestEntry, ConfigManifestEntryType } from '@sofie-automation/corelib/dist/deviceConfig'
 import { ConfigManifestEntry as BlueprintConfigManifestEntry } from '@sofie-automation/blueprints-integration'
 import { MongoCollection } from '../../../../lib/collections/lib'
-import { EditAttributeEnumDropdown } from '../../../lib/editAttribute/edit-attribute-enum-dropdown'
+import { EditAttributeEnumDropdown } from '../../../lib/editAttribute/EditAttributeEnumDropdown'
 
 export const renderEditAttribute = (
 	collection: MongoCollection<any>,

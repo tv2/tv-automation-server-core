@@ -1,6 +1,6 @@
 import * as React from 'react'
-import { IEditAttributeBaseProps } from './edit-attribute-base'
-import { EditAttributeMultiSelect } from './edit-attribute-multi-select'
+import { IEditAttributeBaseProps } from './EditAttributeBase'
+import { EditAttributeMultiSelect } from './EditAttributeMultiSelect'
 import { MultiSelectOption } from '../multiSelect'
 import { useMemo } from 'react'
 
