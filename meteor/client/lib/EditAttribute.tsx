@@ -4,7 +4,7 @@ import { faCheckSquare, faSquare } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import ClassNames from 'classnames'
 import { assertNever } from '../../lib/lib'
-import { EditAttributeBase, IEditAttributeBaseProps, wrapEditAttribute } from './editAttribute/EditAttributeBase'
+import { EditAttributeBase, IEditAttributeBaseProps, withEditAttributeTracker } from './editAttribute/EditAttributeBase'
 import { getRandomString } from '@sofie-automation/corelib/dist/lib'
 import { ColorPicker, ColorPickerEvent } from './colorPicker'
 import { IconPicker, IconPickerEvent } from './iconPicker'
@@ -66,7 +66,7 @@ export class EditAttribute extends React.Component<IEditAttribute> {
 	}
 }
 
-const EditAttributeText = wrapEditAttribute(
+const EditAttributeText = withEditAttributeTracker(
 	class EditAttributeText extends EditAttributeBase {
 		constructor(props) {
 			super(props)
@@ -114,7 +114,7 @@ const EditAttributeText = wrapEditAttribute(
 		}
 	}
 )
-const EditAttributeMultilineText = wrapEditAttribute(
+const EditAttributeMultilineText = withEditAttributeTracker(
 	class EditAttributeMultilineText extends EditAttributeBase {
 		constructor(props) {
 			super(props)
@@ -164,7 +164,7 @@ const EditAttributeMultilineText = wrapEditAttribute(
 		}
 	}
 )
-const EditAttributeInt = wrapEditAttribute(
+const EditAttributeInt = withEditAttributeTracker(
 	class EditAttributeInt extends EditAttributeBase {
 		constructor(props) {
 			super(props)
@@ -211,7 +211,7 @@ const EditAttributeInt = wrapEditAttribute(
 		}
 	}
 )
-const EditAttributeFloat = wrapEditAttribute(
+const EditAttributeFloat = withEditAttributeTracker(
 	class EditAttributeFloat extends EditAttributeBase {
 		constructor(props) {
 			super(props)
@@ -258,7 +258,7 @@ const EditAttributeFloat = wrapEditAttribute(
 		}
 	}
 )
-const EditAttributeCheckbox = wrapEditAttribute(
+const EditAttributeCheckbox = withEditAttributeTracker(
 	class EditAttributeCheckbox extends EditAttributeBase {
 		constructor(props) {
 			super(props)
@@ -302,7 +302,7 @@ const EditAttributeCheckbox = wrapEditAttribute(
 		}
 	}
 )
-const EditAttributeToggle = wrapEditAttribute(
+const EditAttributeToggle = withEditAttributeTracker(
 	class EditAttributeToggle extends EditAttributeBase {
 		constructor(props) {
 			super(props)
@@ -348,7 +348,7 @@ const EditAttributeToggle = wrapEditAttribute(
 		}
 	}
 )
-const EditAttributeSwitch = wrapEditAttribute(
+const EditAttributeSwitch = withEditAttributeTracker(
 	class EditAttributeSwitch extends EditAttributeBase {
 		constructor(props) {
 			super(props)
@@ -397,7 +397,7 @@ interface EditAttributeDropdownOptionsResult {
 }
 
 // Deprecated in favour of EditAttributeDropdown
-const DeprecatedEditAttributeDropdown = wrapEditAttribute(
+const DeprecatedEditAttributeDropdown = withEditAttributeTracker(
 	class EditAttributeDropdown extends EditAttributeBase {
 		constructor(props) {
 			super(props)
@@ -524,7 +524,7 @@ const DeprecatedEditAttributeDropdown = wrapEditAttribute(
 )
 
 // Deprecated in favour of EditAttributeDropdown
-const DeprecatedEditAttributeDropdownText = wrapEditAttribute(
+const DeprecatedEditAttributeDropdownText = withEditAttributeTracker(
 	class EditAttributeDropdownText extends EditAttributeBase {
 		private _id: string
 
@@ -683,7 +683,7 @@ interface EditAttributeMultiSelectOptionsResult {
 }
 
 // Deprecated in favour of EditAttributeMultiSelect
-const DeprecatedEditAttributeMultiSelect = wrapEditAttribute(
+const DeprecatedEditAttributeMultiSelect = withEditAttributeTracker(
 	class EditAttributeMultiSelect extends EditAttributeBase {
 		constructor(props) {
 			super(props)
@@ -756,7 +756,7 @@ const DeprecatedEditAttributeMultiSelect = wrapEditAttribute(
 	}
 )
 
-const EditAttributeJson = wrapEditAttribute(
+const EditAttributeJson = withEditAttributeTracker(
 	class EditAttributeJson extends EditAttributeBase {
 		constructor(props) {
 			super(props)
@@ -843,7 +843,7 @@ const EditAttributeJson = wrapEditAttribute(
 		}
 	}
 )
-const EditAttributeArray = wrapEditAttribute(
+const EditAttributeArray = withEditAttributeTracker(
 	class EditAttributeArray extends EditAttributeBase {
 		constructor(props) {
 			super(props)
@@ -951,7 +951,7 @@ const EditAttributeArray = wrapEditAttribute(
 	}
 )
 
-const EditAttributeColorPicker = wrapEditAttribute(
+const EditAttributeColorPicker = withEditAttributeTracker(
 	class EditAttributeColorPicker extends EditAttributeBase {
 		constructor(props) {
 			super(props)
@@ -974,7 +974,7 @@ const EditAttributeColorPicker = wrapEditAttribute(
 		}
 	}
 )
-const EditAttributeIconPicker = wrapEditAttribute(
+const EditAttributeIconPicker = withEditAttributeTracker(
 	class extends EditAttributeBase {
 		constructor(props) {
 			super(props)

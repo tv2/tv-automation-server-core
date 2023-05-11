@@ -157,8 +157,10 @@ export class EditAttributeBase<Props extends IEditAttributeBaseProps = IEditAttr
 	}
 }
 
-export function wrapEditAttribute(newClass) {
-	return withTracker((props: IEditAttributeBaseProps) => {
+export function withEditAttributeTracker<Props extends IEditAttributeBaseProps, State>(
+	newClass: React.ComponentClass<Props, State>
+) {
+	return withTracker<Props, State, { myObject?: any }>((props: IEditAttributeBaseProps) => {
 		// These properties will be exposed under this.props
 		// Note that these properties are reactively recalculated
 		return {

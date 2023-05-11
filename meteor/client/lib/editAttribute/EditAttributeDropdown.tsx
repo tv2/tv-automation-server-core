@@ -1,4 +1,4 @@
-import { EditAttributeBase, IEditAttributeBaseProps, wrapEditAttribute } from './EditAttributeBase'
+import { EditAttributeBase, IEditAttributeBaseProps, withEditAttributeTracker } from './EditAttributeBase'
 import ClassNames from 'classnames'
 import * as React from 'react'
 
@@ -13,11 +13,7 @@ interface EditAttributeDropdownProps extends IEditAttributeBaseProps {
 	allowNoSelection?: boolean
 }
 
-export function EditAttributeDropdown(props: EditAttributeDropdownProps) {
-	return <WrappedEditAttributeDropdown {...props} />
-}
-
-const WrappedEditAttributeDropdown = wrapEditAttribute(
+export const EditAttributeDropdown = withEditAttributeTracker(
 	class EditAttributeDropdown extends EditAttributeBase<EditAttributeDropdownProps> {
 		constructor(props: EditAttributeDropdownProps) {
 			super(props)
@@ -37,8 +33,7 @@ const WrappedEditAttributeDropdown = wrapEditAttribute(
 		}
 
 		private updateSelectedOptionIfLabelIsChanged(): void {
-			const props = this.props as EditAttributeDropdownProps
-			if (!props.shouldSaveLabel) {
+			if (!this.props.shouldSaveLabel) {
 				return
 			}
 
@@ -70,8 +65,7 @@ const WrappedEditAttributeDropdown = wrapEditAttribute(
 			if (!selectedOption) {
 				return
 			}
-			const props = this.props as EditAttributeDropdownProps
-			this.handleUpdate(props.shouldSaveLabel ? selectedOption : selectedOption.value)
+			this.handleUpdate(this.props.shouldSaveLabel ? selectedOption : selectedOption.value)
 		}
 
 		private getCurrentlySelectedOption(): DropdownOption {

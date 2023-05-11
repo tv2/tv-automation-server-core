@@ -1,27 +1,23 @@
 import { MultiSelect, MultiSelectOption } from '../multiSelect'
 import ClassNames from 'classnames'
 import * as React from 'react'
-import { EditAttributeBase, IEditAttributeBaseProps, wrapEditAttribute } from './EditAttributeBase'
+import { EditAttributeBase, IEditAttributeBaseProps, withEditAttributeTracker } from './EditAttributeBase'
 
 interface EditAttributeMultiSelectProps extends IEditAttributeBaseProps {
 	options: MultiSelectOption[]
 	shouldSaveLabel?: boolean
 }
 
-export function EditAttributeMultiSelect(props: EditAttributeMultiSelectProps) {
-	return <WrappedEditAttributeMultiSelect {...props} />
-}
-
-const WrappedEditAttributeMultiSelect = wrapEditAttribute(
-	class EditAttributeMultiSelect extends EditAttributeBase {
-		constructor(props) {
+export const EditAttributeMultiSelect = withEditAttributeTracker(
+	class EditAttributeMultiSelect extends EditAttributeBase<EditAttributeMultiSelectProps> {
+		constructor(props: EditAttributeMultiSelectProps) {
 			super(props)
 
 			this.handleChange = this.handleChange.bind(this)
 		}
 
 		private handleChange(changedOptions: MultiSelectOption[]): void {
-			const props = this.props as EditAttributeMultiSelectProps
+			const props = this.props
 			if (props.shouldSaveLabel) {
 				this.handleUpdate(changedOptions)
 				return
@@ -41,7 +37,7 @@ const WrappedEditAttributeMultiSelect = wrapEditAttribute(
 		}
 
 		private updateSelectedOptionsIfLabelsHasChanged(): void {
-			const props = this.props as EditAttributeMultiSelectProps
+			const props = this.props
 			if (!props.shouldSaveLabel) {
 				return
 			}
@@ -95,7 +91,7 @@ const WrappedEditAttributeMultiSelect = wrapEditAttribute(
 		}
 
 		private getAvailableOptions(): MultiSelectOption[] {
-			return (this.props as EditAttributeMultiSelectProps).options
+			return this.props.options
 		}
 
 		private getMissingOptions(availableOptions: MultiSelectOption[]): MultiSelectOption[] {
@@ -119,7 +115,7 @@ const WrappedEditAttributeMultiSelect = wrapEditAttribute(
 					value={currentlySelectedOptions}
 					placeholder={this.props.label}
 					onChange={this.handleChange}
-				></MultiSelect>
+				/>
 			)
 		}
 	}
