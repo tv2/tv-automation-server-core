@@ -952,4 +952,3 @@ export class ConfigManifestSettings<
 function prependWithEmptyOption(t, processedOptions: SelectOption[]): SelectOption[] {
 	return [{ value: '', label: t('None') }, ...processedOptions]
 }
-
