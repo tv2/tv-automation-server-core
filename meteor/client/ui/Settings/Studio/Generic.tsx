@@ -12,7 +12,7 @@ import { BlueprintManifestType } from '@sofie-automation/blueprints-integration'
 import { StudioBaselineStatus } from './Baseline'
 import { ShowStyleBaseId } from '@sofie-automation/corelib/dist/dataModel/Ids'
 import { ShowStyleBase } from '../../../../lib/collections/ShowStyleBases'
-import { EditAttributeMultiSelect } from '../../../lib/editAttribute/edit-attribute-multi-select'
+import { EditAttributeMultiSelect } from '../../../lib/editAttribute/EditAttributeMultiSelect'
 
 interface IStudioGenericPropertiesProps {
 	studio: Studio

@@ -30,7 +30,10 @@ interface IEditAttributeBaseState {
 	editing: boolean
 }
 
-export class EditAttributeBase extends React.Component<IEditAttributeBaseProps, IEditAttributeBaseState> {
+export class EditAttributeBase<Props extends IEditAttributeBaseProps = IEditAttributeBaseProps> extends React.Component<
+	Props,
+	IEditAttributeBaseState
+> {
 	constructor(props) {
 		super(props)
 
@@ -139,14 +142,14 @@ export class EditAttributeBase extends React.Component<IEditAttributeBaseProps, 
 		if (this.props.updateFunction && typeof this.props.updateFunction === 'function') {
 			this.props.updateFunction(this, newValue)
 		} else {
-			if (this.props.collection && this.props.attribute) {
+			if (this.props.collection && this.props.attribute && this.props.obj) {
 				if (newValue === undefined) {
 					const m = {}
-					m[this.props.attribute] = 1
+					m[this.props.attribute as string] = 1
 					this.props.collection.update(this.props.obj._id, { $unset: m })
 				} else {
 					const m = {}
-					m[this.props.attribute] = newValue
+					m[this.props.attribute as string] = newValue
 					this.props.collection.update(this.props.obj._id, { $set: m })
 				}
 			}
@@ -154,8 +157,10 @@ export class EditAttributeBase extends React.Component<IEditAttributeBaseProps, 
 	}
 }
 
-export function wrapEditAttribute(newClass) {
-	return withTracker((props: IEditAttributeBaseProps) => {
+export function withEditAttributeTracker<Props extends IEditAttributeBaseProps, State>(
+	newClass: React.ComponentClass<Props, State>
+) {
+	return withTracker<Props, State, { myObject?: any }>((props: IEditAttributeBaseProps) => {
 		// These properties will be exposed under this.props
 		// Note that these properties are reactively recalculated
 		return {

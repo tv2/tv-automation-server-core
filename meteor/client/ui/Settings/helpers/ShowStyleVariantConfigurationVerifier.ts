@@ -10,7 +10,7 @@ import {
 } from '@sofie-automation/blueprints-integration'
 import ConfigManifestTableEntrySelector, {
 	DEFAULT_VALUE_FOR_NO_AVAILABLE_OPTION,
-} from './config-manifest-table-entry-selector'
+} from './ConfigManifestTableEntrySelector'
 
 class ShowStyleVariantConfigurationVerifier {
 	private configManifestTableEntrySelector = ConfigManifestTableEntrySelector
