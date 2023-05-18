@@ -61,6 +61,12 @@ export interface ISettings {
 	 * in such cases this must be set to 'Enter' to exclude it.
 	 */
 	confirmKeyCode: 'Enter' | 'AnyEnter'
+
+	/**
+	 * If true, strings in selected fields of Shelf Layouts will be treated as templates and interpolated.
+	 * The syntax is `{{variable.nestedProp}}`. `studio` (`DBStudio`) and `showStyleBase` (`DBShowStyleBase`) are exposed.
+	 */
+	interpolateStringsInLayouts: boolean
 }
 
 /**
@@ -87,6 +93,7 @@ const DEFAULT_SETTINGS = Object.freeze<ISettings>({
 	useCountdownToFreezeFrame: true,
 	confirmKeyCode: 'Enter',
 	customizationClassName: 'tv2',
+	interpolateStringsInLayouts: false,
 })
 
 /**

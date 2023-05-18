@@ -16,6 +16,7 @@ import { PieceUi } from '../SegmentTimeline/SegmentTimelineContainer'
 import { useTranslation } from 'react-i18next'
 import { BucketAdLibItem } from './RundownViewBuckets'
 import { IAdLibListItem } from './AdLibListItem'
+import { InterpolatedPropsSource, interpolatePanelStrings } from './ShelfDashboardLayout'
 
 export interface IShelfRundownLayoutProps {
 	rundownLayout: RundownLayout | undefined
@@ -118,30 +119,7 @@ export function ShelfRundownLayout(props: IShelfRundownLayoutProps) {
 						></GlobalAdLibPanel>
 					</>
 				) : (
-					rundownLayout.filters.map((panel) =>
-						RundownLayoutsAPI.isFilter(panel) ? (
-							<AdLibPanel
-								key={panel._id}
-								visible={(props.selectedTab || SHELF_DEFAULT_TAB) === `${ShelfTabs.ADLIB_LAYOUT_FILTER}_${panel._id}`}
-								includeGlobalAdLibs={true}
-								filter={panel}
-								selectedPiece={props.selectedPiece}
-								onSelectPiece={props.onSelectPiece}
-								playlist={props.playlist}
-								showStyleBase={props.showStyleBase}
-								studioMode={props.studioMode}
-								studio={props.studio}
-							/>
-						) : RundownLayoutsAPI.isExternalFrame(panel) ? (
-							<ExternalFramePanel
-								key={panel._id}
-								panel={panel}
-								layout={rundownLayout}
-								visible={(props.selectedTab || SHELF_DEFAULT_TAB) === `${ShelfTabs.ADLIB_LAYOUT_FILTER}_${panel._id}`}
-								playlist={props.playlist}
-							/>
-						) : undefined
-					)
+					renderLayout(rundownLayout, props)
 				)}
 				<HotkeyHelpPanel
 					visible={(props.selectedTab || SHELF_DEFAULT_TAB) === ShelfTabs.SYSTEM_HOTKEYS}
@@ -151,4 +129,36 @@ export function ShelfRundownLayout(props: IShelfRundownLayoutProps) {
 			</div>
 		</>
 	)
+}
+function renderLayout(rundownLayout: RundownLayout, props: IShelfRundownLayoutProps) {
+	const interpolableSource: InterpolatedPropsSource = {
+		studio: props.studio,
+		showStyleBase: props.showStyleBase,
+	}
+	return rundownLayout.filters
+		.map((panel) => interpolatePanelStrings(panel, interpolableSource))
+		.map((panel) =>
+			RundownLayoutsAPI.isFilter(panel) ? (
+				<AdLibPanel
+					key={panel._id}
+					visible={(props.selectedTab || SHELF_DEFAULT_TAB) === `${ShelfTabs.ADLIB_LAYOUT_FILTER}_${panel._id}`}
+					includeGlobalAdLibs={true}
+					filter={panel}
+					selectedPiece={props.selectedPiece}
+					onSelectPiece={props.onSelectPiece}
+					playlist={props.playlist}
+					showStyleBase={props.showStyleBase}
+					studioMode={props.studioMode}
+					studio={props.studio}
+				/>
+			) : RundownLayoutsAPI.isExternalFrame(panel) ? (
+				<ExternalFramePanel
+					key={panel._id}
+					panel={panel}
+					layout={rundownLayout}
+					visible={(props.selectedTab || SHELF_DEFAULT_TAB) === `${ShelfTabs.ADLIB_LAYOUT_FILTER}_${panel._id}`}
+					playlist={props.playlist}
+				/>
+			) : undefined
+		)
 }
