@@ -1,11 +1,5 @@
 import * as React from 'react'
-import {
-	DashboardLayout,
-	DashboardLayoutFilter,
-	RundownLayoutElementAny,
-	RundownLayoutElementBase,
-	RundownLayoutElementType,
-} from '../../../lib/collections/RundownLayouts'
+import { DashboardLayout, DashboardLayoutFilter } from '../../../lib/collections/RundownLayouts'
 import { RundownLayoutsAPI } from '../../../lib/api/rundownLayouts'
 import { TimelineDashboardPanel } from './TimelineDashboardPanel'
 import { DashboardPanel, IDashboardPanelProps } from './DashboardPanel'
@@ -40,7 +34,7 @@ import { ColoredBoxPanel } from './ColoredBoxPanel'
 import { Settings } from '../../../lib/Settings'
 import { KeyboardPreviewPanel } from './Keyboard/KeyboardPreviewPanel'
 import { IAdLibPanelProps } from './AdLibPanel'
-import { double as phrase } from 'paraphrase'
+import { InterpolatedPropsSource, interpolatePanelStrings } from './utils/interpolatePanelStrings'
 
 export interface IShelfDashboardLayoutProps {
 	rundownLayout: DashboardLayout
@@ -258,39 +252,4 @@ export function ShelfDashboardLayout(props: IShelfDashboardLayoutProps) {
 			)}
 		</div>
 	)
-}
-
-export interface InterpolatedPropsSource {
-	studio: Studio
-	showStyleBase: ShowStyleBase
-}
-
-const RUNDOWN_LAYOUT_ELEMENT_INTERPOLABLE_PROPS: {
-	[key in RundownLayoutElementType]?: (keyof Extract<RundownLayoutElementAny, { type: key }>)[]
-} = {
-	[RundownLayoutElementType.FILTER]: ['name'],
-	[RundownLayoutElementType.TEXT_LABEL]: ['name', 'text'],
-	[RundownLayoutElementType.EXTERNAL_FRAME]: ['name', 'url'],
-	[RundownLayoutElementType.NEXT_INFO]: ['name'],
-}
-
-export function interpolatePanelStrings<T extends RundownLayoutElementBase>(
-	panel: T,
-	source: InterpolatedPropsSource
-): T {
-	const interpolableProps = RUNDOWN_LAYOUT_ELEMENT_INTERPOLABLE_PROPS[panel.type ?? RundownLayoutElementType.FILTER]
-	if (!interpolableProps) {
-		return panel
-	}
-
-	const interpolatedPanel: Partial<T> = {}
-	for (const prop of interpolableProps) {
-		if (typeof panel[prop] === 'string') {
-			interpolatedPanel[prop] = phrase(panel[prop], source)
-		}
-	}
-	return {
-		...panel,
-		...interpolatedPanel,
-	}
 }

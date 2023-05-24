@@ -16,7 +16,7 @@ import { PieceUi } from '../SegmentTimeline/SegmentTimelineContainer'
 import { useTranslation } from 'react-i18next'
 import { BucketAdLibItem } from './RundownViewBuckets'
 import { IAdLibListItem } from './AdLibListItem'
-import { InterpolatedPropsSource, interpolatePanelStrings } from './ShelfDashboardLayout'
+import { InterpolatedPropsSource, interpolatePanelStrings } from './utils/interpolatePanelStrings'
 
 export interface IShelfRundownLayoutProps {
 	rundownLayout: RundownLayout | undefined
@@ -130,6 +130,7 @@ export function ShelfRundownLayout(props: IShelfRundownLayoutProps) {
 		</>
 	)
 }
+
 function renderLayout(rundownLayout: RundownLayout, props: IShelfRundownLayoutProps) {
 	const interpolableSource: InterpolatedPropsSource = {
 		studio: props.studio,
