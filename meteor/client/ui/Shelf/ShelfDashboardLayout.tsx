@@ -278,9 +278,6 @@ export function interpolatePanelStrings<T extends RundownLayoutElementBase>(
 	panel: T,
 	source: InterpolatedPropsSource
 ): T {
-	if (!Settings.interpolateStringsInLayouts) {
-		return panel
-	}
 	const interpolableProps = RUNDOWN_LAYOUT_ELEMENT_INTERPOLABLE_PROPS[panel.type ?? RundownLayoutElementType.FILTER]
 	if (!interpolableProps) {
 		return panel
