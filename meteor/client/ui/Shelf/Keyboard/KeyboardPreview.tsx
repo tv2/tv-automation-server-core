@@ -204,7 +204,7 @@ export const KeyboardPreviewKey: React.FC<IKeyboardPreviewKeyProps> = React.memo
 				}
 			)}
 			style={{
-				fontSize: props.keyPosition.width >= 0 ? (props.keyPosition.width || 1) + 'em' : undefined,
+				width: props.keyPosition.width >= 0 ? (props.keyPosition.width || 1) + 'em' : undefined,
 				backgroundColor: props.custom?.buttonColor,
 			}}
 			onClick={(e) =>
