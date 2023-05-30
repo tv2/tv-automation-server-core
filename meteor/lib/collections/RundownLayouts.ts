@@ -287,6 +287,30 @@ export interface DashboardPanelUnits {
 	heightUnit?: DashboardPanelUnit
 }
 
+export type RundownLayoutElementAny =
+	| RundownLayoutExternalFrame
+	| RundownLayoutAdLibRegion
+	| RundownLayoutPieceCountdown
+	| RundownLayoutNextInfo
+	| RundownLayoutPlaylistStartTimer
+	| RundownLayoutNextBreakTiming
+	| RundownLayoutPlaylistEndTimer
+	| RundownLayoutEndWords
+	| RundownLayoutSegmentTiming
+	| RundownLayoutPartTiming
+	| RundownLayoutTextLabel
+	| RundownLayoutPlaylistName
+	| RundownLayoutStudioName
+	| RundownLayoutTimeOfDay
+	| RundownLayoutSytemStatus
+	| RundownLayoutShowStyleDisplay
+	| RundownLayoutSegmentName
+	| RundownLayoutPartName
+	| RundownLayoutColoredBox
+	| RundownLayoutKeyboardPreview
+	| RundownLayoutMiniRundown
+	| RundownLayoutFilterBase
+
 type DashboardPanel<T> = T & DashboardPanelBase & DashboardPanelUnits
 
 export type DashboardLayoutExternalFrame = DashboardPanel<RundownLayoutExternalFrame>
