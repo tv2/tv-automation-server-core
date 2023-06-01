@@ -24,7 +24,6 @@
 	  max-width: 1em;
 	  height: var(--keyboard-preview-height);
 
-	  font-size: 3em;
 	  margin-right: var(--keyboard-preview-key-margin);
 
 	  &.keyboard-preview__blank-space--spring {
@@ -36,12 +35,9 @@
 
 	.keyboard-preview__key {
 	  position: relative;
-	  min-width: 1em;
-	  max-width: 1em;
 
 	  height: var(--keyboard-preview-height);
 
-	  font-size: 3em;
 	  margin-right: var(--keyboard-preview-key-margin);
 
 	  background: #333;
@@ -72,7 +68,7 @@
 	  }
 
 	  > .keyboard-preview__key__label {
-		font-size: 16px;
+		font-size: 0.59em;
 		font-weight: bold;
 		text-align: right;
 		padding: 3px;
@@ -83,7 +79,7 @@
 	  }
 
 	  > .keyboard-preview__key__function-label {
-		font-size: 16px;
+		font-size: 0.59em;
 		font-weight: bold;
 		text-align: left;
 		padding: 3px;
@@ -138,12 +134,5 @@
 
   > .keyboard-preview {
 	--keyboard-preview-height: calc(100vw / 23 * var(--dashboard-panel-scale));
-
-	.keyboard-preview__key-row .keyboard-preview__key > .keyboard-preview__key__function-label {
-	  font-size: calc(var(--dashboard-panel-scale) * 16px);
-	}
-	.keyboard-preview__key-row .keyboard-preview__key > .keyboard-preview__key__label {
-	  font-size: calc(var(--dashboard-panel-scale) * 16px);
-	}
   }
 }

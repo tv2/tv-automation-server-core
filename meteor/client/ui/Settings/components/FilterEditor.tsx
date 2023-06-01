@@ -1464,7 +1464,7 @@ export default withTranslation()(
 									type="dropdown"
 									collection={RundownLayouts}
 									className="input text-input"
-									mutateDisplayValue={(v) => (v === undefined ? DashboardPanelUnit.EM : v)}
+									mutateDisplayValue={(v) => (v === undefined ? DashboardPanelUnit.REM : v)}
 								/>
 							</label>
 						</div>
@@ -1489,7 +1489,7 @@ export default withTranslation()(
 									type="dropdown"
 									collection={RundownLayouts}
 									className="input text-input"
-									mutateDisplayValue={(v) => (v === undefined ? DashboardPanelUnit.EM : v)}
+									mutateDisplayValue={(v) => (v === undefined ? DashboardPanelUnit.REM : v)}
 								/>
 							</label>
 						</div>
@@ -1514,7 +1514,7 @@ export default withTranslation()(
 									type="dropdown"
 									collection={RundownLayouts}
 									className="input text-input"
-									mutateDisplayValue={(v) => (v === undefined ? DashboardPanelUnit.EM : v)}
+									mutateDisplayValue={(v) => (v === undefined ? DashboardPanelUnit.REM : v)}
 								/>
 							</label>
 						</div>
@@ -1539,7 +1539,7 @@ export default withTranslation()(
 									type="dropdown"
 									collection={RundownLayouts}
 									className="input text-input"
-									mutateDisplayValue={(v) => (v === undefined ? DashboardPanelUnit.EM : v)}
+									mutateDisplayValue={(v) => (v === undefined ? DashboardPanelUnit.REM : v)}
 								/>
 							</label>
 						</div>
