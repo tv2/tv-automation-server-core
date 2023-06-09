@@ -16,6 +16,7 @@ import {
 	IRundownTimingEventContext,
 	IStudioBaselineContext,
 	IGetRundownContext,
+	ISetNextContext,
 } from './context'
 import { IngestAdlib, ExtendedIngestRundown, IngestSegment } from './ingest'
 import { IBlueprintExternalMessageQueueObj } from './message'
@@ -162,6 +163,8 @@ export interface ShowStyleBlueprintManifest extends BlueprintManifestBase {
 
 		playoutStatus: 'previous' | 'current' | 'next'
 	) => void
+
+	setNext?: (context: ISetNextContext, existingPartInstance: BlueprintSyncIngestPartInstance) => void
 
 	/** Execute an action defined by an IBlueprintActionManifest */
 	executeAction?: (

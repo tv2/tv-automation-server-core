@@ -1,5 +1,12 @@
 import { TimelineObjGeneric } from '@sofie-automation/corelib/dist/dataModel/Timeline'
-import { applyToArray, assertNever, clone, getRandomId, literal } from '@sofie-automation/corelib/dist/lib'
+import {
+	applyToArray,
+	assertNever,
+	clone,
+	getRandomId,
+	literal,
+	stringifyError,
+} from '@sofie-automation/corelib/dist/lib'
 import { Time, TSR } from '@sofie-automation/blueprints-integration'
 import { DBSegment, SegmentOrphanedReason } from '@sofie-automation/corelib/dist/dataModel/Segment'
 import { DBPart, isPartPlayable } from '@sofie-automation/corelib/dist/dataModel/Part'
@@ -29,6 +36,8 @@ import { IngestJobs } from '@sofie-automation/corelib/dist/worker/ingest'
 import { calculatePartExpectedDurationWithPreroll } from '@sofie-automation/corelib/dist/playout/timings'
 import { MongoQuery } from '../db'
 import _ = require('underscore')
+import { SetNextContext } from '../blueprints/context/setNext'
+import { convertPartInstanceToBlueprints, convertPieceInstanceToBlueprints } from '../blueprints/context/lib'
 
 /**
  * Reset the rundownPlaylist (all of the rundowns within the playlist):
@@ -347,6 +356,50 @@ export async function setNextPart(
 			rundownId: nextPart.rundownId,
 			'part._id': nextPart._id,
 		})
+
+		const nextPartInstance2 = cache.PartInstances.findOne(newInstanceId)
+		if (!nextPartInstance2) {
+			throw new Error(`Could not find PartInstance ${newInstanceId}`)
+		}
+		const rundown = cache.Rundowns.findOne(nextPartInstance2.rundownId)
+		if (!rundown) {
+			throw new Error(`Could not find rundown ${nextPartInstance2.rundownId}`)
+		}
+
+		const showStyle = await context.getShowStyleCompound(rundown.showStyleVariantId, rundown.showStyleBaseId)
+
+		const pieceInstancesInPart = cache.PieceInstances.findFetch({ partInstanceId: newInstanceId })
+
+		const blueprint = await context.getShowStyleBlueprint(showStyle._id)
+
+		if (blueprint?.blueprint.setNext) {
+			const syncContext = new SetNextContext(
+				context,
+				{
+					name: `Update to ${nextPartInstance2.part.externalId}`,
+					identifier: `rundownId=${nextPartInstance2.part.rundownId},segmentId=${nextPartInstance2.part.segmentId}`,
+				},
+				cache.Playlist.doc.activationId,
+				context.studio,
+				showStyle,
+				rundown,
+				nextPartInstance2,
+				pieceInstancesInPart
+			)
+			try {
+				// The blueprint handles what in the updated part is going to be synced into the partInstance:
+				blueprint.blueprint.setNext(syncContext, {
+					partInstance: convertPartInstanceToBlueprints(nextPartInstance2),
+					pieceInstances: pieceInstancesInPart.map(convertPieceInstanceToBlueprints),
+				})
+
+				// If the blueprint function throws, no changes will be synced to the cache:
+				syncContext.applyChangesToCache(cache)
+				updateExpectedDurationWithPrerollForPartInstance(cache, nextPartInstance2._id)
+			} catch (err) {
+				logger.error(`Error in showStyleBlueprint.setNext: ${stringifyError(err)}`)
+			}
+		}
 
 		const nextPartInstanceTmp = nextPartInfo.type === 'partinstance' ? nextPartInfo.instance : null
 		cache.Playlist.update({
