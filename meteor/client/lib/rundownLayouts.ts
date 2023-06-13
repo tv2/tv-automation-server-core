@@ -1,13 +1,11 @@
-import { processAndPrunePieceInstanceTimings } from '@sofie-automation/corelib/dist/playout/infinites'
 import _ from 'underscore'
-import { PartInstances } from '../../lib/collections/PartInstances'
-import { PieceInstance, PieceInstances } from '../../lib/collections/PieceInstances'
+import { PieceInstance } from '../../lib/collections/PieceInstances'
 import { RequiresActiveLayers } from '../../lib/collections/RundownLayouts'
 import { RundownPlaylist } from '../../lib/collections/RundownPlaylists'
 import { DBShowStyleBase } from '../../lib/collections/ShowStyleBases'
-import { getCurrentTime } from '../../lib/lib'
 import { invalidateAt } from './invalidatingTime'
 import { memoizedIsolatedAutorun } from './reactiveData/reactiveDataHelper'
+import { getUnfinishedPieceInstances } from '../../lib/Rundown'
 
 /**
  * If the conditions of the filter are met, activePieceInstance will include the first piece instance found that matches the filter, otherwise it will be undefined.
@@ -53,61 +51,12 @@ export function getIsFilterActive(
 export function getUnfinishedPieceInstancesReactive(playlist: RundownPlaylist, showStyleBase: DBShowStyleBase) {
 	if (playlist.activationId && playlist.currentPartInstanceId) {
 		return memoizedIsolatedAutorun(
-			(playlistActivationId, currentPartInstanceId, showStyleBase) => {
-				const now = getCurrentTime()
-				let prospectivePieces: PieceInstance[] = []
-
-				const partInstance = PartInstances.findOne(currentPartInstanceId)
-
-				if (partInstance) {
-					prospectivePieces = PieceInstances.find({
-						partInstanceId: currentPartInstanceId,
-						playlistActivationId: playlistActivationId,
-					}).fetch()
-
-					const nowInPart = partInstance.timings?.startedPlayback
-						? now - partInstance.timings.startedPlayback
-						: 0
-					prospectivePieces = processAndPrunePieceInstanceTimings(showStyleBase, prospectivePieces, nowInPart)
-
-					let nearestEnd = Number.POSITIVE_INFINITY
-					prospectivePieces = prospectivePieces.filter((pieceInstance) => {
-						const piece = pieceInstance.piece
-
-						if (!pieceInstance.adLibSourceId && !piece.tags) {
-							// No effect on the data, so ignore
-							return false
-						}
-
-						let end: number | undefined
-						if (pieceInstance.stoppedPlayback) {
-							end = pieceInstance.stoppedPlayback
-						} else if (pieceInstance.userDuration && typeof pieceInstance.userDuration.end === 'number') {
-							end = pieceInstance.userDuration.end
-						} else if (typeof piece.enable.duration === 'number' && pieceInstance.startedPlayback) {
-							end = piece.enable.duration + pieceInstance.startedPlayback
-						}
-
-						if (end !== undefined) {
-							if (end > now) {
-								nearestEnd = Math.min(nearestEnd, end)
-								return true
-							} else {
-								return false
-							}
-						}
-						return true
-					})
-
-					if (Number.isFinite(nearestEnd)) invalidateAt(nearestEnd)
-				}
-
-				return prospectivePieces
-			},
+			getUnfinishedPieceInstances,
 			'getUnfinishedPieceInstancesReactive',
 			playlist.activationId,
 			playlist.currentPartInstanceId,
-			showStyleBase
+			showStyleBase,
+			invalidateAt
 		)
 	}
 

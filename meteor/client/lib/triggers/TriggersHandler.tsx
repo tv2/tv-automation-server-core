@@ -50,6 +50,7 @@ interface IProps {
 	nextPartId: PartId | null
 	currentSegmentPartIds: PartId[]
 	nextSegmentPartIds: PartId[]
+	unfinishedTags: string[]
 
 	/** Should this component actually try to bind to the hotkeys, or should it just populate the MountedAdLibTriggers
 	 * and MountedGenericTriggers collections. */
@@ -388,6 +389,7 @@ export const TriggersHandler: React.FC<IProps> = function TriggersHandler(
 						currentSegmentPartIds: new ReactiveVar(props.currentSegmentPartIds),
 						nextSegmentPartIds: new ReactiveVar(props.nextSegmentPartIds),
 						currentPartInstanceId: new ReactiveVar(playlist.currentPartInstanceId),
+						unfinishedTags: new ReactiveVar(props.unfinishedTags),
 					}
 					rundownPlaylistContext.set(context)
 				} else {
@@ -398,6 +400,7 @@ export const TriggersHandler: React.FC<IProps> = function TriggersHandler(
 					context.nextPartId.set(props.nextPartId)
 					context.currentSegmentPartIds.set(props.currentSegmentPartIds)
 					context.nextSegmentPartIds.set(props.nextSegmentPartIds)
+					context.unfinishedTags.set(props.unfinishedTags)
 				}
 			}
 		})
@@ -408,6 +411,7 @@ export const TriggersHandler: React.FC<IProps> = function TriggersHandler(
 		JSON.stringify(props.currentSegmentPartIds),
 		props.nextPartId,
 		JSON.stringify(props.nextSegmentPartIds),
+		JSON.stringify(props.unfinishedTags),
 	])
 
 	const triggerSubReady = useSubscription(PubSub.triggeredActions, {

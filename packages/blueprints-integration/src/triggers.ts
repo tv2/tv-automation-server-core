@@ -120,7 +120,7 @@ export type IGUIContextFilterLink = {
 export type IAdLibFilterLink =
 	| {
 			object: 'adLib'
-			field: 'sourceLayerId' | 'outputLayerId' | 'tag' | 'label'
+			field: 'sourceLayerId' | 'outputLayerId' | 'tag' | 'label' | 'whileTag'
 			value: string[]
 			/** TODO: Support "NOT" filters */
 	  }

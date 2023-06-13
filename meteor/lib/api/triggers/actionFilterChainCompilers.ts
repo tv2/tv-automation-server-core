@@ -43,6 +43,7 @@ type CompiledFilter<T> = {
 	 * it's safe to skip it entirely.
 	 */
 	skip?: true
+	whileTags?: string[]
 }
 
 type SomeAdLib = RundownBaselineAdLibItem | RundownBaselineAdLibAction | AdLibPiece | AdLibAction
@@ -204,6 +205,9 @@ function sharedSourceLayerFilterCompiler(
 			case 'pickEnd':
 				// we can skip the pick stage here, it's done later anyway
 				return
+			case 'whileTag':
+				// ???
+				return
 			default:
 				assertNever(link)
 				return
@@ -288,7 +292,8 @@ function compileAdLibActionFilter(
 	let global: boolean | undefined = undefined
 	let skip: true | undefined = undefined
 	let segment: 'current' | 'next' | undefined = undefined
-	let part: 'current' | 'next' | undefined = undefined
+	let part: 'current' | 'next' | undefined
+	let whileTags: string[] | undefined
 
 	filterChain.forEach((link) => {
 		switch (link.field) {
@@ -351,6 +356,9 @@ function compileAdLibActionFilter(
 			case 'pickEnd':
 				pick = (link.value + 1) * -1
 				return
+			case 'whileTag':
+				whileTags = link.value
+				return
 			default:
 				assertNever(link)
 				return
@@ -366,6 +374,7 @@ function compileAdLibActionFilter(
 		limit,
 		pick,
 		skip,
+		whileTags,
 	}
 }
 
@@ -383,6 +392,7 @@ function compileAdLibPieceFilter(
 	let skip: true | undefined = undefined
 	let segment: 'current' | 'next' | undefined = undefined
 	let part: 'current' | 'next' | undefined = undefined
+	let whileTags: string[] | undefined
 
 	filterChain.forEach((link) => {
 		switch (link.field) {
@@ -445,6 +455,9 @@ function compileAdLibPieceFilter(
 			case 'pickEnd':
 				pick = (link.value + 1) * -1
 				return
+			case 'whileTag':
+				whileTags = link.value
+				return
 			default:
 				assertNever(link)
 				return
@@ -460,6 +473,7 @@ function compileAdLibPieceFilter(
 		limit,
 		pick,
 		skip,
+		whileTags,
 	}
 }
 
@@ -481,6 +495,11 @@ export function compileAdLibFilter(
 	const stickyAdLibs = compileAndRunStickyFilter(onlyAdLibLinks, showStyleBase)
 
 	return (context: ReactivePlaylistActionContext) => {
+		const unfinishedTags = context.unfinishedTags.get()
+		if (adLibPieceTypeFilter.whileTags?.some((x) => !unfinishedTags.includes(x))) {
+			return []
+		}
+
 		let rundownBaselineAdLibItems: IWrappedAdLib[] = []
 		let adLibPieces: IWrappedAdLib[] = []
 		let rundownBaselineAdLibActions: IWrappedAdLib[] = []
