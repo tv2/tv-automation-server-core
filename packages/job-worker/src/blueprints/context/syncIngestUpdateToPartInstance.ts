@@ -33,6 +33,7 @@ import { JobContext } from '../../jobs'
 import { logChanges } from '../../cache/lib'
 import { EditableMongoModifier } from '../../db'
 import { serializePieceTimelineObjectsBlob } from '@sofie-automation/corelib/dist/dataModel/Piece'
+import { ProcessedShowStyleConfig } from '../config'
 
 export class SyncIngestUpdateToPartInstanceContext
 	extends RundownUserContext
@@ -51,19 +52,13 @@ export class SyncIngestUpdateToPartInstanceContext
 		studio: ReadonlyDeep<DBStudio>,
 		showStyleCompound: ReadonlyDeep<ShowStyleCompound>,
 		rundown: ReadonlyDeep<DBRundown>,
+		config: ProcessedShowStyleConfig,
 		partInstance: DBPartInstance,
 		pieceInstances: PieceInstance[],
 		proposedPieceInstances: PieceInstance[],
 		private playStatus: 'previous' | 'current' | 'next'
 	) {
-		super(
-			contextInfo,
-			studio,
-			_context.getStudioBlueprintConfig(),
-			showStyleCompound,
-			_context.getShowStyleBlueprintConfig(showStyleCompound),
-			rundown
-		)
+		super(contextInfo, studio, _context.getStudioBlueprintConfig(), showStyleCompound, config, rundown)
 
 		this.partInstance = partInstance
 

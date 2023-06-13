@@ -82,11 +82,11 @@ export class ActionExecutionContext extends ShowStyleUserContext implements IAct
 		context: JobContext,
 		cache: CacheForPlayout,
 		showStyle: ReadonlyDeep<ShowStyleCompound>,
-		_showStyleBlueprintConfig: ProcessedShowStyleConfig,
+		showStyleBlueprintConfig: ProcessedShowStyleConfig,
 		rundown: DBRundown,
 		watchedPackages: WatchedPackagesHelper
 	) {
-		super(contextInfo, context, showStyle, watchedPackages)
+		super(contextInfo, context, showStyle, showStyleBlueprintConfig, watchedPackages)
 		this._context = context
 		this._cache = cache
 		this.rundown = rundown

@@ -155,6 +155,7 @@ export async function syncChangesToPartInstances(
 					context.studio,
 					showStyle,
 					rundown,
+					await context.getShowStyleBlueprintConfig(showStyle),
 					existingPartInstance,
 					pieceInstancesInPart,
 					proposedPieceInstances,

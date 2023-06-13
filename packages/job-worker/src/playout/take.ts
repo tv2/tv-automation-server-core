@@ -124,7 +124,7 @@ export async function takeNextPartInnerSync(context: JobContext, cache: CacheFor
 					context.studio,
 					context.getStudioBlueprintConfig(),
 					showStyle,
-					context.getShowStyleBlueprintConfig(showStyle),
+					await context.getShowStyleBlueprintConfig(showStyle),
 					takeRundown,
 					takePartInstance
 				)
@@ -135,7 +135,15 @@ export async function takeNextPartInnerSync(context: JobContext, cache: CacheFor
 		if (span) span.end()
 	}
 
-	updatePartInstanceOnTake(context, cache, showStyle, blueprint, takeRundown, takePartInstance, currentPartInstance)
+	await updatePartInstanceOnTake(
+		context,
+		cache,
+		showStyle,
+		blueprint,
+		takeRundown,
+		takePartInstance,
+		currentPartInstance
+	)
 
 	cache.Playlist.update({
 		$set: {
@@ -278,7 +286,7 @@ async function afterTakeUpdateTimingsAndEvents(
 							context.studio,
 							context.getStudioBlueprintConfig(),
 							showStyle,
-							context.getShowStyleBlueprintConfig(showStyle),
+							await context.getShowStyleBlueprintConfig(showStyle),
 							takeRundown,
 							takePartInstance
 						)
@@ -299,7 +307,7 @@ async function afterTakeUpdateTimingsAndEvents(
 						context.studio,
 						context.getStudioBlueprintConfig(),
 						showStyle,
-						context.getShowStyleBlueprintConfig(showStyle),
+						await context.getShowStyleBlueprintConfig(showStyle),
 						takeRundown,
 						takePartInstance
 					)
@@ -312,7 +320,7 @@ async function afterTakeUpdateTimingsAndEvents(
 	}
 }
 
-export function updatePartInstanceOnTake(
+export async function updatePartInstanceOnTake(
 	context: JobContext,
 	cache: CacheForPlayout,
 	showStyle: ReadonlyDeep<ShowStyleCompound>,
@@ -320,7 +328,7 @@ export function updatePartInstanceOnTake(
 	takeRundown: DBRundown,
 	takePartInstance: DBPartInstance,
 	currentPartInstance: DBPartInstance | undefined
-): void {
+): Promise<void> {
 	const playlist = cache.Playlist.doc
 
 	// TODO - the state could change after this sampling point. This should be handled properly
@@ -341,7 +349,7 @@ export function updatePartInstanceOnTake(
 				context.studio,
 				context.getStudioBlueprintConfig(),
 				showStyle,
-				context.getShowStyleBlueprintConfig(showStyle),
+				await context.getShowStyleBlueprintConfig(showStyle),
 				takeRundown
 			)
 			previousPartEndState = blueprint.blueprint.getEndStateForPart(

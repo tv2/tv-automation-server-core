@@ -6,6 +6,7 @@ import {
 	ConfigItemValue,
 	ConfigManifestEntry,
 	IBlueprintConfig,
+	IBlueprintShowStyleVariant,
 	ShowStyleBlueprintManifest,
 	StudioBlueprintManifest,
 	TableConfigItemValue,
@@ -121,7 +122,8 @@ export function preprocessStudioConfig(
 
 export function preprocessShowStyleConfig(
 	showStyle: ReadonlyDeep<ShowStyleCompound>,
-	blueprint: ReadonlyDeep<ShowStyleBlueprintManifest>
+	blueprint: ReadonlyDeep<ShowStyleBlueprintManifest>,
+	showStyleVariants: ReadonlyDeep<Array<IBlueprintShowStyleVariant>>
 ): ProcessedShowStyleConfig {
 	let res: any = {}
 	if (blueprint.showStyleConfigManifest !== undefined) {
@@ -136,7 +138,7 @@ export function preprocessShowStyleConfig(
 				name: `preprocessShowStyleConfig`,
 				identifier: `showStyleBaseId=${showStyle._id},showStyleVariantId=${showStyle.showStyleVariantId}`,
 			})
-			res = blueprint.preprocessConfig(context, res)
+			res = blueprint.preprocessConfig(context, res, showStyleVariants)
 		}
 	} catch (err) {
 		logger.error(`Error in showStyleBlueprint.preprocessConfig: ${stringifyError(err)}`)

@@ -181,7 +181,11 @@ export interface ShowStyleBlueprintManifest extends BlueprintManifestBase {
 	) => IBlueprintAdLibPiece | IBlueprintActionManifest | null
 
 	/** Preprocess config before storing it by core to later be returned by context's getShowStyleConfig. If not provided, getShowStyleConfig will return unprocessed blueprint config */
-	preprocessConfig?: (context: ICommonContext, config: IBlueprintConfig) => unknown
+	preprocessConfig?: (
+		context: ICommonContext,
+		config: IBlueprintConfig,
+		showStyleVariants: ReadonlyDeep<Array<IBlueprintShowStyleVariant>>
+	) => unknown
 
 	// Events
 

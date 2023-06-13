@@ -33,6 +33,7 @@ import { JobContext } from '../../jobs'
 import { logChanges } from '../../cache/lib'
 import { EditableMongoModifier } from '../../db'
 import { serializePieceTimelineObjectsBlob } from '@sofie-automation/corelib/dist/dataModel/Piece'
+import { ProcessedShowStyleConfig } from '../config'
 
 export class SetNextContext extends RundownUserContext implements ISetNextContext {
 	private readonly _partInstanceCache: DbCacheWriteCollection<DBPartInstance>
@@ -47,17 +48,11 @@ export class SetNextContext extends RundownUserContext implements ISetNextContex
 		studio: ReadonlyDeep<DBStudio>,
 		showStyleCompound: ReadonlyDeep<ShowStyleCompound>,
 		rundown: ReadonlyDeep<DBRundown>,
+		config: ProcessedShowStyleConfig,
 		partInstance: DBPartInstance,
 		pieceInstances: PieceInstance[]
 	) {
-		super(
-			contextInfo,
-			studio,
-			_context.getStudioBlueprintConfig(),
-			showStyleCompound,
-			_context.getShowStyleBlueprintConfig(showStyleCompound),
-			rundown
-		)
+		super(contextInfo, studio, _context.getStudioBlueprintConfig(), showStyleCompound, config, rundown)
 
 		this.partInstance = partInstance
 

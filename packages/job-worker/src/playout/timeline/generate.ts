@@ -328,7 +328,7 @@ async function getTimelineRundown(
 					context.studio,
 					context.getStudioBlueprintConfig(),
 					showStyle,
-					context.getShowStyleBlueprintConfig(showStyle),
+					await context.getShowStyleBlueprintConfig(showStyle),
 					cache.Playlist.doc,
 					activeRundown,
 					previousPartInstance,

@@ -108,7 +108,7 @@ export async function activateRundownPlaylist(
 					context.studio,
 					context.getStudioBlueprintConfig(),
 					showStyle,
-					context.getShowStyleBlueprintConfig(showStyle),
+					await context.getShowStyleBlueprintConfig(showStyle),
 					rundown
 				)
 
@@ -135,7 +135,7 @@ export async function deactivateRundownPlaylist(context: JobContext, cache: Cach
 						context.studio,
 						context.getStudioBlueprintConfig(),
 						showStyle,
-						context.getShowStyleBlueprintConfig(showStyle),
+						await context.getShowStyleBlueprintConfig(showStyle),
 						rundown
 					)
 					await blueprint.blueprint.onRundownDeActivate(context2)

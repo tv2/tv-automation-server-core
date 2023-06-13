@@ -104,7 +104,8 @@ export async function handlePartInstanceTimings(context: JobContext, data: PartI
 				rundown,
 				previousPartInstance,
 				partInstance,
-				nextPartInstance
+				nextPartInstance,
+				await context.getShowStyleBlueprintConfig(showStyle)
 			)
 
 			try {
@@ -214,7 +215,8 @@ export async function handleRundownDataHasChanged(context: JobContext, data: Run
 						identifier: `rundownId=${rundown._id},timestamp=${timestamp}`,
 					},
 					showStyle,
-					rundown
+					rundown,
+					await context.getShowStyleBlueprintConfig(showStyle)
 				)
 
 				const messages = await blueprint.onRundownDataChangedEvent(context2)

@@ -131,6 +131,7 @@ export async function calculateSegmentsFromIngestData(
 				context,
 				showStyle,
 				rundown,
+				await context.getShowStyleBlueprintConfig(showStyle),
 				watchedPackages
 			)
 			let blueprintSegment0: BlueprintResultSegment | null = null
@@ -615,6 +616,7 @@ export async function getRundownFromIngestData(
 		context,
 		showStyle.compound,
 		rundownBaselinePackages,
+		await context.getShowStyleBlueprintConfig(showStyle.compound),
 		async () => {
 			// Note: This can cause a mild race-condition, in the case of two Rundowns being created at the same time.
 			// But we're just ignoreing that for now.

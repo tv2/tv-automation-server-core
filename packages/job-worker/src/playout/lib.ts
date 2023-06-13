@@ -383,6 +383,7 @@ export async function setNextPart(
 				context.studio,
 				showStyle,
 				rundown,
+				await context.getShowStyleBlueprintConfig(showStyle),
 				nextPartInstance2,
 				pieceInstancesInPart
 			)

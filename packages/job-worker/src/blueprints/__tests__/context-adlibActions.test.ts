@@ -148,7 +148,7 @@ describe('Test blueprint api context', () => {
 		expect(activationId).toBeTruthy()
 
 		const showStyle = await jobContext.getShowStyleCompound(rundown.showStyleVariantId, rundown.showStyleBaseId)
-		const showStyleConfig = jobContext.getShowStyleBlueprintConfig(showStyle)
+		const showStyleConfig = await jobContext.getShowStyleBlueprintConfig(showStyle)
 
 		const watchedPackages = WatchedPackagesHelper.empty(jobContext) // Not needed by the tests for now
 

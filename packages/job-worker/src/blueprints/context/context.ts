@@ -273,15 +273,10 @@ export class ShowStyleUserContext extends ShowStyleContext implements IShowStyle
 		contextInfo: UserContextInfo,
 		context: JobContext,
 		showStyleCompound: ReadonlyDeep<ShowStyleCompound>,
+		config: ProcessedShowStyleConfig,
 		private readonly watchedPackages: WatchedPackagesHelper
 	) {
-		super(
-			contextInfo,
-			context.studio,
-			context.getStudioBlueprintConfig(),
-			showStyleCompound,
-			context.getShowStyleBlueprintConfig(showStyleCompound)
-		)
+		super(contextInfo, context.studio, context.getStudioBlueprintConfig(), showStyleCompound, config)
 		this.tempSendNotesIntoBlackHole = contextInfo.tempSendUserNotesIntoBlackHole ?? false
 		this.jobContext = context
 	}
@@ -343,11 +338,12 @@ export class GetRundownContext extends ShowStyleUserContext implements IGetRundo
 		context: JobContext,
 		showStyleCompound: ReadonlyDeep<ShowStyleCompound>,
 		watchedPackages: WatchedPackagesHelper,
+		config: ProcessedShowStyleConfig,
 		private getPlaylistsInStudio: () => Promise<DBRundownPlaylist[]>,
 		private getRundownsInStudio: () => Promise<Pick<Rundown, '_id' | 'playlistId'>[]>,
 		private getExistingRundown: () => Promise<ReadonlyObjectDeep<Rundown> | undefined>
 	) {
-		super(contextInfo, context, showStyleCompound, watchedPackages)
+		super(contextInfo, context, showStyleCompound, config, watchedPackages)
 	}
 	private async _getPlaylistsInStudio() {
 		if (!this.cachedPlaylistsInStudio) {
@@ -492,16 +488,10 @@ export class SegmentUserContext extends RundownContext implements ISegmentUserCo
 		context: JobContext,
 		showStyleCompound: ReadonlyDeep<ShowStyleCompound>,
 		rundown: ReadonlyDeep<DBRundown>,
+		config: ProcessedShowStyleConfig,
 		private readonly watchedPackages: WatchedPackagesHelper
 	) {
-		super(
-			contextInfo,
-			context.studio,
-			context.getStudioBlueprintConfig(),
-			showStyleCompound,
-			context.getShowStyleBlueprintConfig(showStyleCompound),
-			rundown
-		)
+		super(contextInfo, context.studio, context.getStudioBlueprintConfig(), showStyleCompound, config, rundown)
 		this.jobContext = context
 	}
 
@@ -792,16 +782,10 @@ export class RundownDataChangedEventContext extends RundownContext implements IR
 		protected readonly context: JobContext,
 		contextInfo: ContextInfo,
 		showStyleCompound: ReadonlyDeep<ShowStyleCompound>,
-		rundown: ReadonlyDeep<DBRundown>
+		rundown: ReadonlyDeep<DBRundown>,
+		config: ProcessedShowStyleConfig
 	) {
-		super(
-			contextInfo,
-			context.studio,
-			context.getStudioBlueprintConfig(),
-			showStyleCompound,
-			context.getShowStyleBlueprintConfig(showStyleCompound),
-			rundown
-		)
+		super(contextInfo, context.studio, context.getStudioBlueprintConfig(), showStyleCompound, config, rundown)
 	}
 
 	getCurrentTime(): number {
@@ -853,9 +837,10 @@ export class RundownTimingEventContext extends RundownDataChangedEventContext im
 		rundown: ReadonlyDeep<DBRundown>,
 		previousPartInstance: DBPartInstance | undefined,
 		partInstance: DBPartInstance,
-		nextPartInstance: DBPartInstance | undefined
+		nextPartInstance: DBPartInstance | undefined,
+		config: ProcessedShowStyleConfig
 	) {
-		super(context, contextInfo, showStyleCompound, rundown)
+		super(context, contextInfo, showStyleCompound, rundown, config)
 
 		if (previousPartInstance) this.partInstanceCache.set(previousPartInstance._id, previousPartInstance)
 		if (partInstance) this.partInstanceCache.set(partInstance._id, partInstance)
