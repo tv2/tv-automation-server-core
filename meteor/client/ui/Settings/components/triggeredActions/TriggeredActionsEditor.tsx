@@ -36,7 +36,6 @@ import { Meteor } from 'meteor/meteor'
 import { doModalDialog } from '../../../../lib/ModalDialog'
 import { MongoQuery } from '../../../../../lib/typings/meteor'
 import _ from 'underscore'
-import { getUnfinishedPieceInstancesGrouped } from '../../../../lib/shelf'
 
 export interface PreviewContext {
 	rundownPlaylist: RundownPlaylist | null
@@ -404,12 +403,6 @@ export const TriggeredActionsEditor: React.FC<IProps> = function TriggeredAction
 		reader.readAsText(file)
 	}, [])
 
-	const unfinishedTags: string[] = useTracker(() => {
-		return rundownPlaylist && showStyleBase
-			? getUnfinishedPieceInstancesGrouped(rundownPlaylist, showStyleBase).unfinishedTags
-			: []
-	}, [showStyleBaseId, rundownPlaylist])
-
 	return (
 		<div>
 			{sorensen && previewContext.rundownPlaylist && showStyleBaseId && (
@@ -421,10 +414,11 @@ export const TriggeredActionsEditor: React.FC<IProps> = function TriggeredAction
 						currentRundownId={previewContext.currentRundownId}
 						rundownPlaylistId={previewContext.rundownPlaylist._id}
 						currentPartId={previewContext.currentPartId}
+						currentPartInstanceId={previewContext.rundownPlaylist.currentPartInstanceId}
+						rundownPlaylistActivationId={previewContext.rundownPlaylist.activationId}
 						nextPartId={previewContext.nextPartId}
 						currentSegmentPartIds={previewContext.currentSegmentPartIds}
 						nextSegmentPartIds={previewContext.nextSegmentPartIds}
-						unfinishedTags={unfinishedTags}
 					/>
 				</ErrorBoundary>
 			)}

@@ -2,11 +2,11 @@ import { IOutputLayer, ISourceLayer } from '@sofie-automation/blueprints-integra
 import _ from 'underscore'
 import { AdLibAction } from '../../lib/collections/AdLibActions'
 import { AdLibPiece } from '../../lib/collections/AdLibPieces'
-import { PartInstance } from '../../lib/collections/PartInstances'
+import { PartInstance, PartInstanceId } from '../../lib/collections/PartInstances'
 import { PieceInstance, PieceInstances } from '../../lib/collections/PieceInstances'
 import { PieceId } from '../../lib/collections/Pieces'
 import { RundownBaselineAdLibAction } from '../../lib/collections/RundownBaselineAdLibActions'
-import { RundownPlaylist } from '../../lib/collections/RundownPlaylists'
+import { RundownPlaylist, RundownPlaylistActivationId } from '../../lib/collections/RundownPlaylists'
 import { DBSegment, SegmentId } from '../../lib/collections/Segments'
 import { DBShowStyleBase, ShowStyleBase } from '../../lib/collections/ShowStyleBases'
 import { ScanInfoForPackages } from '../../lib/mediaObjects'
@@ -81,10 +81,15 @@ export function getNextPiecesReactive(playlist: RundownPlaylist, showsStyleBase:
 }
 
 export function getUnfinishedPieceInstancesGrouped(
-	playlist: RundownPlaylist,
+	playlistActivationId: RundownPlaylistActivationId | undefined,
+	currentPartInstanceId: PartInstanceId | null,
 	showStyleBase: DBShowStyleBase
 ): { unfinishedPieceInstances: PieceInstance[]; unfinishedAdLibIds: PieceId[]; unfinishedTags: string[] } {
-	const unfinishedPieceInstances = getUnfinishedPieceInstancesReactive(playlist, showStyleBase)
+	const unfinishedPieceInstances = getUnfinishedPieceInstancesReactive(
+		playlistActivationId,
+		currentPartInstanceId,
+		showStyleBase
+	)
 
 	const unfinishedAdLibIds: PieceId[] = unfinishedPieceInstances
 		.filter((piece) => !!piece.adLibSourceId)

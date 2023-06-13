@@ -77,7 +77,8 @@ function getPieceWithScript(props: IEndsWordsPanelProps): PieceInstance | undefi
 	const currentPartInstanceId: any = props.playlist.currentPartInstanceId
 
 	const unfinishedPiecesIncludingFinishedPiecesWhereEndTimeHaveNotBeenSet = getUnfinishedPieceInstancesReactive(
-		props.playlist,
+		props.playlist.activationId,
+		props.playlist.currentPartInstanceId,
 		props.showStyleBase
 	)
 

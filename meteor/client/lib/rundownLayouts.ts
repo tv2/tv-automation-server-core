@@ -1,11 +1,12 @@
 import _ from 'underscore'
 import { PieceInstance } from '../../lib/collections/PieceInstances'
 import { RequiresActiveLayers } from '../../lib/collections/RundownLayouts'
-import { RundownPlaylist } from '../../lib/collections/RundownPlaylists'
+import { RundownPlaylist, RundownPlaylistActivationId } from '../../lib/collections/RundownPlaylists'
 import { DBShowStyleBase } from '../../lib/collections/ShowStyleBases'
 import { invalidateAt } from './invalidatingTime'
 import { memoizedIsolatedAutorun } from './reactiveData/reactiveDataHelper'
 import { getUnfinishedPieceInstances } from '../../lib/Rundown'
+import { PartInstanceId } from '@sofie-automation/corelib/dist/dataModel/Ids'
 
 /**
  * If the conditions of the filter are met, activePieceInstance will include the first piece instance found that matches the filter, otherwise it will be undefined.
@@ -15,7 +16,11 @@ export function getIsFilterActive(
 	showStyleBase: DBShowStyleBase,
 	panel: RequiresActiveLayers
 ): { active: boolean; activePieceInstance: PieceInstance | undefined } {
-	const unfinishedPieces = getUnfinishedPieceInstancesReactive(playlist, showStyleBase)
+	const unfinishedPieces = getUnfinishedPieceInstancesReactive(
+		playlist.activationId,
+		playlist.currentPartInstanceId,
+		showStyleBase
+	)
 	let activePieceInstance: PieceInstance | undefined
 	const activeLayers = unfinishedPieces.map((p) => p.piece.sourceLayerId)
 	const containsEveryRequiredLayer = panel.requireAllAdditionalSourcelayers
@@ -48,13 +53,17 @@ export function getIsFilterActive(
 	}
 }
 
-export function getUnfinishedPieceInstancesReactive(playlist: RundownPlaylist, showStyleBase: DBShowStyleBase) {
-	if (playlist.activationId && playlist.currentPartInstanceId) {
+export function getUnfinishedPieceInstancesReactive(
+	playlistActivationId: RundownPlaylistActivationId | undefined,
+	currentPartInstanceId: PartInstanceId | null,
+	showStyleBase: DBShowStyleBase
+) {
+	if (playlistActivationId && currentPartInstanceId) {
 		return memoizedIsolatedAutorun(
 			getUnfinishedPieceInstances,
 			'getUnfinishedPieceInstancesReactive',
-			playlist.activationId,
-			playlist.currentPartInstanceId,
+			playlistActivationId,
+			currentPartInstanceId,
 			showStyleBase,
 			invalidateAt
 		)

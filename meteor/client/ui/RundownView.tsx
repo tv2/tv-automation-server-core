@@ -122,7 +122,7 @@ import { UserError, UserErrorMessage } from '@sofie-automation/corelib/dist/erro
 import { SegmentStoryboardContainer } from './SegmentStoryboard/SegmentStoryboardContainer'
 import { SegmentViewMode } from './SegmentContainer/SegmentViewModes'
 import { UIStateStorage } from '../lib/UIStateStorage'
-import { AdLibPieceUi, AdlibSegmentUi, getUnfinishedPieceInstancesGrouped, ShelfDisplayOptions } from '../lib/shelf'
+import { AdLibPieceUi, AdlibSegmentUi, ShelfDisplayOptions } from '../lib/shelf'
 import { SourceLayerLookup, fetchAndFilter } from './Shelf/AdLibPanel'
 import { matchFilter } from './Shelf/AdLibListView'
 import { ExecuteActionResult } from '@sofie-automation/corelib/dist/worker/studio'
@@ -1152,7 +1152,6 @@ interface ITrackedProps {
 	nextPartInstance: PartInstance | undefined
 	currentSegmentPartIds: PartId[]
 	nextSegmentPartIds: PartId[]
-	unfinishedTags: string[]
 }
 export const RundownView = translateWithTracker<IProps, IState, ITrackedProps>((props: Translated<IProps>) => {
 	let playlistId
@@ -1200,8 +1199,6 @@ export const RundownView = translateWithTracker<IProps, IState, ITrackedProps>((
 	}
 
 	const rundownLayouts = RundownLayouts.find({ showStyleBaseId }).fetch()
-	const { unfinishedTags } =
-		playlist && showStyleBase ? getUnfinishedPieceInstancesGrouped(playlist, showStyleBase) : { unfinishedTags: [] }
 
 	// let rundownDurations = calculateDurations(rundown, parts)
 	return {
@@ -1291,7 +1288,6 @@ export const RundownView = translateWithTracker<IProps, IState, ITrackedProps>((
 					}
 			  ).map((part) => part._id)
 			: [],
-		unfinishedTags,
 	}
 })(
 	class RundownView extends MeteorReactComponent<Translated<IProps & ITrackedProps>, IState> {
@@ -3068,14 +3064,15 @@ export const RundownView = translateWithTracker<IProps, IState, ITrackedProps>((
 						this.props.studio &&
 						this.props.showStyleBase && (
 							<TriggersHandler
+								rundownPlaylistActivationId={this.props.playlist?.activationId}
 								rundownPlaylistId={this.props.rundownPlaylistId}
 								showStyleBaseId={this.props.showStyleBase._id}
 								currentRundownId={this.props.currentRundown?._id || null}
 								currentPartId={this.props.currentPartInstance?.part._id || null}
+								currentPartInstanceId={this.props.currentPartInstance?._id || null}
 								nextPartId={this.props.nextPartInstance?.part._id || null}
 								currentSegmentPartIds={this.props.currentSegmentPartIds}
 								nextSegmentPartIds={this.props.nextSegmentPartIds}
-								unfinishedTags={this.props.unfinishedTags}
 								sorensen={sorensen}
 								global={this.isHotkeyAllowed}
 							/>

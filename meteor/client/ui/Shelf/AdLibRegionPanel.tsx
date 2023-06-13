@@ -243,7 +243,8 @@ export const AdLibRegionPanel = translateWithTracker<
 	(props: Translated<IAdLibPanelProps & IAdLibRegionPanelProps>) => {
 		const studio = RundownPlaylistCollectionUtil.getStudio(props.playlist)
 		const { unfinishedAdLibIds, unfinishedTags, unfinishedPieceInstances } = getUnfinishedPieceInstancesGrouped(
-			props.playlist,
+			props.playlist.activationId,
+			props.playlist.currentPartInstanceId,
 			props.showStyleBase
 		)
 		const { nextAdLibIds, nextTags, nextPieceInstances } = getNextPieceInstancesGrouped(
