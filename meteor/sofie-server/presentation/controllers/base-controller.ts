@@ -47,7 +47,7 @@ export abstract class BaseController {
 	}
 }
 
-export function Path(path: string): RouteDecorator {
+export function RestController(path: string): RouteDecorator {
 	return (constructor: Constructor) => setBasePath(constructor.prototype, path)
 }
 

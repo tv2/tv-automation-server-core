@@ -51,4 +51,21 @@ export class SofieCoreMeteorRundownService implements RundownService {
 			httpHeaders: {}
 		}
 	}
+
+	resetRundown(rundownId: string): void {
+		const rundownPlaylistId: RundownPlaylistId = rundownId as unknown as RundownPlaylistId
+		ServerClientAPI.runUserActionInLogForPlaylistOnWorker(
+			this.getMeteorMethodContext(),
+			'ResetEvent',
+			new Date().getTime(),
+			rundownPlaylistId,
+			() => {
+				// Do nothing
+			},
+			StudioJobs.ResetRundownPlaylist,
+			{
+				playlistId: rundownPlaylistId,
+			}
+		)
+	}
 }

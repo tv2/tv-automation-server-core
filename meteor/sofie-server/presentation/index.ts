@@ -1,5 +1,4 @@
 import express, { Express, Router } from 'express'
-import { WebApp } from 'meteor/webapp'
 import { BaseController } from './controllers/base-controller'
 import { ControllerFacade } from './controllers/controller-facade'
 
@@ -42,9 +41,9 @@ class App {
 /**
  * Connect our Express instance to the same port as Meteor is running.
  */
-function attachExpressServerToMeteor() {
-	WebApp.connectHandlers.use(new App().server)
-}
+// function attachExpressServerToMeteor() {
+// 	WebApp.connectHandlers.use(new App().server)
+// }
 
 /**
  * Connect to our Express instance without using Meteor
@@ -55,5 +54,5 @@ function attachExpressServerToPort(port: number): void {
 	})
 }
 
-attachExpressServerToMeteor()
+// attachExpressServerToMeteor()
 attachExpressServerToPort(3005)
