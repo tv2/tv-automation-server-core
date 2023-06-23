@@ -1,8 +1,8 @@
-import { Rundown } from '../../../model/rundown'
-import { RundownRepository } from '../rundown-repository'
+import { Rundown } from '../../../model/entities/rundown'
+import { RundownRepository } from '../interfaces/rundown-repository'
 import { MongoEntityConverter, MongoRundown } from './mongo-entity-converter'
 import { MongoDatabase } from './mongo-database'
-import { SegmentRepository } from '../segment-repository'
+import { SegmentRepository } from '../interfaces/segment-repository'
 import { BaseMongoRepository } from './base-mongo-repository'
 
 const RUNDOWN_COLLECTION_NAME: string = 'rundowns'

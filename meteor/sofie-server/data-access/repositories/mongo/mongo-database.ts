@@ -25,7 +25,7 @@ export class MongoDatabase {
 
 	private async connectToDatabase(): Promise<void> {
 		if (this.db) {
-			console.log('Already connected to database. Skipping reconnection...')
+			console.log('### Already connected to database. Skipping reconnection...')
 			return
 		}
 
@@ -45,5 +45,9 @@ export class MongoDatabase {
 		if (!this.db) {
 			throw new Error(`Not connected to the database`)
 		}
+	}
+
+	getDatabaseName(): string {
+		return MONGO_DB_NAME
 	}
 }

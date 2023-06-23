@@ -1,5 +1,5 @@
-import { SegmentRepository } from '../segment-repository'
-import { Segment } from '../../../model/segment'
+import { SegmentRepository } from '../interfaces/segment-repository'
+import { Segment } from '../../../model/entities/segment'
 import { MongoDatabase } from './mongo-database'
 import { MongoEntityConverter, MongoSegment } from './mongo-entity-converter'
 import { BaseMongoRepository } from './base-mongo-repository'
@@ -21,5 +21,4 @@ export class MongoSegmentRepository extends BaseMongoRepository implements Segme
 		const mongoSegments: MongoSegment[] = await this.getCollection().find({ 'rundownId': rundownId }).toArray() as unknown as MongoSegment[]
 		return this.mongoEntityConverter.convertSegments(mongoSegments)
 	}
-
 }

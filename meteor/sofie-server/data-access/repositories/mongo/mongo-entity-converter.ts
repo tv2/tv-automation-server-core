@@ -1,5 +1,5 @@
-import { Rundown } from '../../../model/rundown'
-import { Segment } from '../../../model/segment'
+import { Rundown } from '../../../model/entities/rundown'
+import { Segment } from '../../../model/entities/segment'
 
 export interface MongoRundown {
 	_id: string

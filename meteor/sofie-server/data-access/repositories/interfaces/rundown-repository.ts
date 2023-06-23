@@ -1,4 +1,4 @@
-import { Rundown } from '../../model/rundown'
+import { Rundown } from '../../../model/entities/rundown'
 
 export interface RundownRepository {
 	getRundowns(): Promise<Rundown[]>

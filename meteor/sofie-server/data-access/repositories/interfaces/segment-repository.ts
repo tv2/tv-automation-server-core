@@ -1,4 +1,4 @@
-import { Segment } from '../../model/segment'
+import { Segment } from '../../../model/entities/segment'
 
 export interface SegmentRepository {
 	getSegments(rundownId: string): Promise<Segment[]>

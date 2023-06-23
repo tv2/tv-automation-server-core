@@ -19,7 +19,7 @@ export abstract class BaseMongoRepository {
 
 	protected assertDatabaseConnection(queryName: string): void {
 		if (!this.getCollection()) {
-			throw new Error(`Unable to perform query: ${queryName} - not connected to collection: ${this.getCollectionName()}`)
+			throw new Error(`Unable to perform query: ${queryName} - not connected to database.collection: ${this.mongoDatabase.getDatabaseName()}.${this.getCollectionName()}`)
 		}
 	}
 }

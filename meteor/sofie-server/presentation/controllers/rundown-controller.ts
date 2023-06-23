@@ -1,8 +1,8 @@
 import { Request, Response } from 'express'
-import { BaseController, GetRequest, RestController, PutRequest } from './base-controller'
-import { RundownService } from '../../business-logic/services/rundown-service-interface'
-import { RundownRepository } from '../../data-access/repositories/rundown-repository'
-import { Rundown } from '../../model/rundown'
+import { BaseController, GetRequest, PutRequest, RestController } from './base-controller'
+import { RundownService } from '../../business-logic/services/interfaces/rundown-service'
+import { RundownRepository } from '../../data-access/repositories/interfaces/rundown-repository'
+import { Rundown } from '../../model/entities/rundown'
 
 @RestController('/rundowns')
 export class RundownController extends BaseController {
@@ -29,10 +29,18 @@ export class RundownController extends BaseController {
 		res.send(rundown)
 	}
 
-	@PutRequest('/:rundownId/doTake')
-	doTake(reg: Request, res: Response): void {
+	@PutRequest('/:rundownId/takeNext')
+	takeNext(reg: Request, res: Response): void {
 		const rundownId: string = reg.params.rundownId
-		this.rundownService.doTake(rundownId)
+		this.rundownService.takeNext(rundownId)
+		res.send()
+	}
+
+	@PutRequest('/:rundownId/parts/:partId/setNext')
+	setNext(reg: Request, res: Response): void {
+		const rundownId: string = reg.params.rundownId
+		const partId: string = reg.params.partId
+		this.rundownService.setNext(rundownId, partId)
 		res.send()
 	}
 

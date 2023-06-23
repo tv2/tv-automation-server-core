@@ -1,4 +1,4 @@
-import { PieceType } from './piece-type'
+import { PieceType } from '../enums/piece-type'
 
 export interface Piece {
 	id: string
