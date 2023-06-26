@@ -65,7 +65,7 @@ export class RundownWebSocketEventServer implements RundownEventServer {
 		return webSocketServer
 	}
 
-	addListenerForWebSocket(webSocket: WebSocket): void {
+	private addListenerForWebSocket(webSocket: WebSocket): void {
 		this.rundownEventListener.onRundownEvent((rundownEvent: RundownEvent) => {
 			webSocket.send(JSON.stringify(rundownEvent))
 		})

@@ -1,5 +1,8 @@
 import { Rundown } from '../../../model/entities/rundown'
 import { Segment } from '../../../model/entities/segment'
+import { Part } from '../../../model/entities/part'
+import { Piece } from '../../../model/entities/piece'
+import { PieceType } from '../../../model/enums/piece-type'
 
 export interface MongoRundown {
 	_id: string
@@ -25,8 +28,25 @@ export interface MongoRundown {
 export interface MongoSegment {
 	_id: string
 	name: string
+	_rank: number
 	rundownId: string,
 	externalId: string
+}
+
+export interface MongoPart {
+	_id: string
+	title: string
+	_rank: number
+	expectedDuration: number
+}
+
+export interface MongoPiece {
+	_id: string
+	name: string
+	enable: {
+		start: number
+		duration: number
+	}
 }
 
 export class MongoEntityConverter {
@@ -48,6 +68,7 @@ export class MongoEntityConverter {
 		return {
 			id: mongoSegment._id,
 			name: mongoSegment.name,
+			rank: mongoSegment._rank,
 			isOnAir: false,
 			parts: []
 		}
@@ -55,5 +76,34 @@ export class MongoEntityConverter {
 
 	convertSegments(mongoSegments: MongoSegment[]): Segment[] {
 		return mongoSegments.map(this.convertSegment)
+	}
+
+	convertPart(mongoPart: MongoPart): Part {
+		return {
+			id: mongoPart._id,
+			name: mongoPart.title,
+			rank: mongoPart._rank,
+			expectedDuration: mongoPart.expectedDuration,
+			isOnAir: false,
+			pieces: []
+		}
+	}
+
+	convertParts(mongoParts: MongoPart[]): Part[] {
+		return mongoParts.map(this.convertPart)
+	}
+
+	convertPiece(mongoPiece: MongoPiece): Piece {
+		return {
+			id: mongoPiece._id,
+			name: mongoPiece.name,
+			type: PieceType.UNKNOWN,
+			start: mongoPiece.enable.start,
+			duration: mongoPiece.enable.duration
+		}
+	}
+
+	convertPieces(mongoPieces: MongoPiece[]): Piece[] {
+		return mongoPieces.map(this.convertPiece)
 	}
 }

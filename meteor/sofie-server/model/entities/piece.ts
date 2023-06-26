@@ -4,5 +4,6 @@ export interface Piece {
 	id: string
 	name: string
 	type: PieceType
-	expectedDuration: number
+	start: number
+	duration: number
 }
