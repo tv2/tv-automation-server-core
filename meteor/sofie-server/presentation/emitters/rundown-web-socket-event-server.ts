@@ -7,9 +7,9 @@ import { RundownEventListener } from '../../business-logic/services/interfaces/r
 
 export class RundownWebSocketEventServer implements RundownEventServer {
 
-	private static instance: RundownWebSocketEventServer
+	private static instance: RundownEventServer
 
-	static getInstance(rundownEventListener?: RundownEventListener): RundownWebSocketEventServer {
+	static getInstance(rundownEventListener?: RundownEventListener): RundownEventServer {
 		if (!this.instance) {
 			if (!rundownEventListener) {
 				throw new Error(`No RundownEventListener provided. Unable to create instance of ${RundownWebSocketEventServer.name}`)

@@ -12,7 +12,6 @@ export class MongoPieceRepository extends BaseMongoRepository implements PieceRe
 		super(mongoDatabase, mongoEntityConverter)
 	}
 
-
 	getCollectionName(): string {
 		return PIECE_COLLECTION_NAME
 	}

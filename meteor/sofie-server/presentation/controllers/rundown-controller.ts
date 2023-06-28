@@ -29,6 +29,13 @@ export class RundownController extends BaseController {
 		res.send(rundown)
 	}
 
+	@PutRequest('/:rundownId/activate')
+	activate(reg: Request, res: Response): void {
+		const rundownId: string = reg.params.rundownId
+		this.rundownService.activateRundown(rundownId)
+		res.send()
+	}
+
 	@PutRequest('/:rundownId/takeNext')
 	takeNext(reg: Request, res: Response): void {
 		const rundownId: string = reg.params.rundownId

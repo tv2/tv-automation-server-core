@@ -16,7 +16,6 @@ export class MongoPartRepository extends BaseMongoRepository implements PartRepo
 		this.pieceRepository = pieceRepository
 	}
 
-
 	getCollectionName(): string {
 		return PART_COLLECTION_NAME
 	}

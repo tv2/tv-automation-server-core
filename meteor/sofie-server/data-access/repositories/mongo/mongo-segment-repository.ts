@@ -25,7 +25,7 @@ export class MongoSegmentRepository extends BaseMongoRepository implements Segme
 		const mongoSegments: MongoSegment[] = await this.getCollection().find({ 'rundownId': rundownId }).toArray() as unknown as MongoSegment[]
 		const segments: Segment[] = this.mongoEntityConverter.convertSegments(mongoSegments)
 		return Promise.all(segments.map(async segment => {
-			segment.parts = await this.partRepository.getParts(segment.id)
+			segment.setParts(await this.partRepository.getParts(segment.id))
 			return segment
 		}))
 	}

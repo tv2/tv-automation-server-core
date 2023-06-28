@@ -1,11 +1,16 @@
-import { RundownService } from './interfaces/rundown-service'
-import { ServerClientAPI } from '../../../server/api/client'
+import { RundownService } from '../interfaces/rundown-service'
+import { ServerClientAPI } from '../../../../server/api/client'
 import { Meteor } from 'meteor/meteor'
-import { MethodContextAPI } from '../../../lib/api/methods'
+import { MethodContextAPI } from '../../../../lib/api/methods'
 import { StudioJobs } from '@sofie-automation/corelib/dist/worker/studio'
 import { RundownPlaylistId } from '@sofie-automation/shared-lib/dist/core/model/Ids'
 
 export class SofieCoreMeteorRundownService implements RundownService {
+
+	activateRundown(_rundownId: string) {
+		throw new Error('Not implemented exception')
+	}
+
 	takeNext(rundownId: string): void {
 		const rundownPlaylistId: RundownPlaylistId = rundownId as unknown as RundownPlaylistId
 		ServerClientAPI.runUserActionInLogForPlaylistOnWorker(

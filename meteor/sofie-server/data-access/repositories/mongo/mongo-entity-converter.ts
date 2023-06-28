@@ -3,6 +3,7 @@ import { Segment } from '../../../model/entities/segment'
 import { Part } from '../../../model/entities/part'
 import { Piece } from '../../../model/entities/piece'
 import { PieceType } from '../../../model/enums/piece-type'
+import { Timeline } from '../../../model/entities/timeline'
 
 export interface MongoRundown {
 	_id: string
@@ -35,6 +36,7 @@ export interface MongoSegment {
 
 export interface MongoPart {
 	_id: string
+	segmentId: string
 	title: string
 	_rank: number
 	expectedDuration: number
@@ -42,22 +44,32 @@ export interface MongoPart {
 
 export interface MongoPiece {
 	_id: string
+	startPartId: string
 	name: string
 	enable: {
 		start: number
 		duration: number
 	}
+	timelineObjectsString: string
+}
+
+export interface MongoTimeline {
+	_id: string
+	timelineHash: string
+	generated: number
+	timelineBlob: string
 }
 
 export class MongoEntityConverter {
 
 	convertRundown(mongoRundown: MongoRundown): Rundown {
-		return {
-			id: mongoRundown._id,
-			name: mongoRundown.name,
-			isActive: false,
-			segments: []
-		}
+		return new Rundown({
+				id: mongoRundown._id,
+				name: mongoRundown.name,
+				isActive: false,
+				segments: []
+			}
+		)
 	}
 
 	convertRundowns(mongoRundowns: MongoRundown[]): Rundown[] {
@@ -65,13 +77,15 @@ export class MongoEntityConverter {
 	}
 
 	convertSegment(mongoSegment: MongoSegment): Segment {
-		return {
-			id: mongoSegment._id,
-			name: mongoSegment.name,
-			rank: mongoSegment._rank,
-			isOnAir: false,
-			parts: []
-		}
+		return new Segment({
+				id: mongoSegment._id,
+				rundownId: mongoSegment.rundownId,
+				name: mongoSegment.name,
+				rank: mongoSegment._rank,
+				isOnAir: false,
+				parts: []
+			}
+		)
 	}
 
 	convertSegments(mongoSegments: MongoSegment[]): Segment[] {
@@ -79,14 +93,16 @@ export class MongoEntityConverter {
 	}
 
 	convertPart(mongoPart: MongoPart): Part {
-		return {
-			id: mongoPart._id,
-			name: mongoPart.title,
-			rank: mongoPart._rank,
-			expectedDuration: mongoPart.expectedDuration,
-			isOnAir: false,
-			pieces: []
-		}
+		return new Part({
+				id: mongoPart._id,
+				segmentId: mongoPart.segmentId,
+				name: mongoPart.title,
+				rank: mongoPart._rank,
+				expectedDuration: mongoPart.expectedDuration,
+				isOnAir: false,
+				pieces: []
+			}
+		)
 	}
 
 	convertParts(mongoParts: MongoPart[]): Part[] {
@@ -94,16 +110,28 @@ export class MongoEntityConverter {
 	}
 
 	convertPiece(mongoPiece: MongoPiece): Piece {
-		return {
-			id: mongoPiece._id,
-			name: mongoPiece.name,
-			type: PieceType.UNKNOWN,
-			start: mongoPiece.enable.start,
-			duration: mongoPiece.enable.duration
-		}
+		return new Piece({
+				id: mongoPiece._id,
+				partId: mongoPiece.startPartId,
+				name: mongoPiece.name,
+				type: PieceType.UNKNOWN,
+				start: mongoPiece.enable.start,
+				duration: mongoPiece.enable.duration,
+				timelineObjects: JSON.parse(mongoPiece.timelineObjectsString)
+			}
+		)
 	}
 
 	convertPieces(mongoPieces: MongoPiece[]): Piece[] {
 		return mongoPieces.map(this.convertPiece)
+	}
+
+	convertToMongoTimeline(timeline: Timeline): MongoTimeline {
+		return {
+			_id: 'studio0',
+			timelineHash: '',
+			generated: new Date().getTime(),
+			timelineBlob: JSON.stringify(timeline.timelineObjects)
+		}
 	}
 }

@@ -8,13 +8,18 @@ import { PartRepository } from '../repositories/interfaces/part-repository'
 import { PieceRepository } from '../repositories/interfaces/piece-repository'
 import { MongoPieceRepository } from '../repositories/mongo/mongo-piece-repository'
 import { MongoPartRepository } from '../repositories/mongo/mongo-part-repository'
+import { TimelineRepository } from '../repositories/interfaces/timeline-repository'
+import { MongoTimelineRepository } from '../repositories/mongo/mongo-timeline-repository'
+import { CachedRundownRepository } from '../repositories/cache/cached-rundown-repository'
 
 export class RepositoryFacade {
 	static createRundownRepository(): RundownRepository {
-		return new MongoRundownRepository(
-			MongoDatabase.getInstance(),
-			new MongoEntityConverter(),
-			this.createSegmentRepository()
+		return CachedRundownRepository.getInstance(
+			new MongoRundownRepository(
+				MongoDatabase.getInstance(),
+				new MongoEntityConverter(),
+				this.createSegmentRepository()
+			)
 		)
 	}
 
@@ -36,6 +41,13 @@ export class RepositoryFacade {
 
 	static createPieceRepository(): PieceRepository {
 		return new MongoPieceRepository(
+			MongoDatabase.getInstance(),
+			new MongoEntityConverter()
+		)
+	}
+
+	static createTimelineRepository(): TimelineRepository {
+		return new MongoTimelineRepository(
 			MongoDatabase.getInstance(),
 			new MongoEntityConverter()
 		)
