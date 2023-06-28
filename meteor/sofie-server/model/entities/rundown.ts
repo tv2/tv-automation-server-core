@@ -120,4 +120,8 @@ export class Rundown {
 	setSegments(segments: Segment[]): void {
 		this.segments = segments.sort((segmentOne: Segment, segmentTwo: Segment) => segmentOne.rank - segmentTwo.rank)
 	}
+
+	getSegments(): Segment[] {
+		return this.segments
+	}
 }

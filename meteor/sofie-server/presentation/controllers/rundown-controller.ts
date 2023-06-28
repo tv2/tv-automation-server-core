@@ -3,6 +3,7 @@ import { BaseController, GetRequest, PutRequest, RestController } from './base-c
 import { RundownService } from '../../business-logic/services/interfaces/rundown-service'
 import { RundownRepository } from '../../data-access/repositories/interfaces/rundown-repository'
 import { Rundown } from '../../model/entities/rundown'
+import { RundownDto } from '../dtos/rundown-dto'
 
 @RestController('/rundowns')
 export class RundownController extends BaseController {
@@ -18,15 +19,15 @@ export class RundownController extends BaseController {
 
 	@GetRequest()
 	async getRundowns(_reg: Request, res: Response): Promise<void> {
-		const rundowns = await this.rundownRepository.getRundowns()
-		res.send(rundowns)
+		const rundowns: Rundown[] = await this.rundownRepository.getRundowns()
+		res.send(rundowns.map(rundown => new RundownDto(rundown)))
 	}
 
 	@GetRequest('/:rundownId')
 	async getRundown(reg: Request, res: Response): Promise<void> {
 		const rundownId: string = reg.params.rundownId
 		const rundown: Rundown = await this.rundownRepository.getRundown(rundownId)
-		res.send(rundown)
+		res.send(new RundownDto(rundown))
 	}
 
 	@PutRequest('/:rundownId/activate')

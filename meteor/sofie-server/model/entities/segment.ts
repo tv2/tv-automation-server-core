@@ -16,8 +16,8 @@ export class Segment {
 	readonly rundownId: string
 	name: string
 	rank: number
-	isOnAir: boolean
 
+	private isSegmentOnAir: boolean
 	private parts: Part[]
 
 	constructor(segment: SegmentInterface) {
@@ -25,7 +25,7 @@ export class Segment {
 		this.rundownId = segment.rundownId
 		this.name = segment.name
 		this.rank = segment.rank
-		this.isOnAir = segment.isOnAir
+		this.isSegmentOnAir = segment.isOnAir
 
 		this.setParts(segment.parts ?? [])
 	}
@@ -35,11 +35,15 @@ export class Segment {
 	}
 
 	putOnAir(): void {
-		this.isOnAir = true
+		this.isSegmentOnAir = true
 	}
 
 	takeOffAir(): void {
-		this.isOnAir = false
+		this.isSegmentOnAir = false
+	}
+
+	isOnAir(): boolean {
+		return this.isSegmentOnAir
 	}
 
 	findNextPart(fromPart: Part): Part {
@@ -55,5 +59,9 @@ export class Segment {
 
 	setParts(parts: Part[]): void {
 		this.parts = parts.sort((partOne: Part, partTwo: Part) => partOne.rank - partTwo.rank)
+	}
+
+	getParts(): Part[] {
+		return this.parts
 	}
 }

@@ -17,8 +17,9 @@ export class Part {
 	name: string
 	rank: number
 	pieces: Piece[]
-	isOnAir: boolean
 	expectedDuration: number
+
+	private isPartOnAir: boolean
 
 	constructor(part: PartInterface) {
 		this.id = part.id
@@ -26,16 +27,20 @@ export class Part {
 		this.name = part.name
 		this.rank = part.rank
 		this.pieces = part.pieces ?? []
-		this.isOnAir = part.isOnAir
+		this.isPartOnAir = part.isOnAir
 		this.expectedDuration = part.expectedDuration
 	}
 
 	putOnAir(): void {
-		this.isOnAir = true
+		this.isPartOnAir = true
 	}
 
 	takeOffAir(): void {
-		this.isOnAir = false
+		this.isPartOnAir = false
+	}
+
+	isOnAir(): boolean {
+		return this.isPartOnAir
 	}
 
 	getTimelineObjects(): TimelineObject[] {
