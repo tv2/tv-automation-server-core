@@ -57,6 +57,14 @@ export class Segment {
 		return this.parts[fromPartIndex + 1]
 	}
 
+	findPart(partId: string): Part {
+		const part: Part | undefined = this.parts.find(part => part.id === partId)
+		if (!part) {
+			throw new NotFoundException(`Part "${partId}" does not exist in Segment "${this.id}"`)
+		}
+		return part
+	}
+
 	setParts(parts: Part[]): void {
 		this.parts = parts.sort((partOne: Part, partTwo: Part) => partOne.rank - partTwo.rank)
 	}

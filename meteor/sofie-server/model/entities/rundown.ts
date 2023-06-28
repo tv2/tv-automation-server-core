@@ -117,6 +117,19 @@ export class Rundown {
 		return this.activePart.getTimelineObjects()
 	}
 
+	setNext(segmentId: string, partId: string): void {
+		this.nextSegment = this.findSegment(segmentId)
+		this.nextPart = this.nextSegment.findPart(partId)
+	}
+
+	private findSegment(segmentId: string): Segment {
+		const segment: Segment | undefined = this.segments.find(segment => segment.id === segmentId)
+		if (!segment) {
+			throw new NotFoundException(`Segment "${segmentId}" does not exist in Rundown "${this.id}"`)
+		}
+		return segment
+	}
+
 	setSegments(segments: Segment[]): void {
 		this.segments = segments.sort((segmentOne: Segment, segmentTwo: Segment) => segmentOne.rank - segmentTwo.rank)
 	}

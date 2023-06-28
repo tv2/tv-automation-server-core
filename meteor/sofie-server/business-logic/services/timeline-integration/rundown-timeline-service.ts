@@ -43,6 +43,7 @@ export class RundownTimelineService implements RundownService {
 		const rundown: Rundown = await this.rundownRepository.getRundown(rundownId)
 
 		const timelineObjects: TimelineObject[] = rundown.takeNext()
+		this.rundownRepository.saveRundown(rundown)
 		this.timelineRepository.saveTimeline({ timelineObjects })
 
 		const takeEvent: RundownEvent = {
@@ -54,7 +55,11 @@ export class RundownTimelineService implements RundownService {
 		this.rundownEventEmitter.emitRundownEvent(takeEvent)
 	}
 
-	setNext(rundownId: string, partId: string): void {
+	async setNext(rundownId: string, segmentId: string, partId: string): Promise<void> {
+		const rundown: Rundown = await this.rundownRepository.getRundown(rundownId)
+		rundown.setNext(segmentId, partId)
+		this.rundownRepository.saveRundown(rundown)
+
 		const setNextEvent: RundownEvent = {
 			type: RundownEventType.SET_NEXT,
 			rundownId,

@@ -44,11 +44,12 @@ export class RundownController extends BaseController {
 		res.send()
 	}
 
-	@PutRequest('/:rundownId/parts/:partId/setNext')
+	@PutRequest('/:rundownId/segments/:segmentId/parts/:partId/setNext')
 	setNext(reg: Request, res: Response): void {
 		const rundownId: string = reg.params.rundownId
+		const segmentId: string = reg.params.segmentId
 		const partId: string = reg.params.partId
-		this.rundownService.setNext(rundownId, partId)
+		this.rundownService.setNext(rundownId, segmentId, partId)
 		res.send()
 	}
 
