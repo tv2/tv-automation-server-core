@@ -4,6 +4,7 @@ import * as http from 'http'
 import { RundownEvent } from '../../model/rundown-event'
 import { RundownEventServer } from './interfaces/rundown-event-server'
 import { RundownEventListener } from '../../business-logic/services/interfaces/rundown-event-listener'
+import { MisconfigurationException } from '../../model/exceptions/misconfiguration-exception'
 
 export class RundownWebSocketEventServer implements RundownEventServer {
 
@@ -12,7 +13,7 @@ export class RundownWebSocketEventServer implements RundownEventServer {
 	static getInstance(rundownEventListener?: RundownEventListener): RundownEventServer {
 		if (!this.instance) {
 			if (!rundownEventListener) {
-				throw new Error(`No RundownEventListener provided. Unable to create instance of ${RundownWebSocketEventServer.name}`)
+				throw new MisconfigurationException(`No RundownEventListener provided. Unable to create instance of ${RundownWebSocketEventServer.name}`)
 			}
 			this.instance = new RundownWebSocketEventServer(rundownEventListener)
 		}

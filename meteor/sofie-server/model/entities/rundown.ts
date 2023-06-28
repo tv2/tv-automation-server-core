@@ -5,6 +5,7 @@ import { Exception } from '../exceptions/exception'
 import { ErrorCode } from '../enums/error-code'
 import { LastPartInSegmentException } from '../exceptions/last-part-in-segment-exception'
 import { NotFoundException } from '../exceptions/not-found-exception'
+import { NotActivatedException } from '../exceptions/not-activated-exception'
 
 export interface RundownInterface {
 	id: string
@@ -91,7 +92,7 @@ export class Rundown {
 
 	private assertActive(operationName: string): void {
 		if (!this.isRundownActive) {
-			throw new Error(`Rundown "${this.name}" is not active. Unable to ${operationName}`)
+			throw new NotActivatedException(`Rundown "${this.name}" is not active. Unable to ${operationName}`)
 		}
 	}
 

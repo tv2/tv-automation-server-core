@@ -1,6 +1,7 @@
 import { MongoDatabase } from './mongo-database'
 import { MongoEntityConverter } from './mongo-entity-converter'
 import { Collection } from 'mongodb'
+import { DatabaseNotConnectedException } from '../../../model/exceptions/database-not-connected-exception'
 
 export abstract class BaseMongoRepository {
 	protected mongoDatabase: MongoDatabase
@@ -19,7 +20,7 @@ export abstract class BaseMongoRepository {
 
 	protected assertDatabaseConnection(queryName: string): void {
 		if (!this.getCollection()) {
-			throw new Error(`Unable to perform query: ${queryName} - not connected to database.collection: ${this.mongoDatabase.getDatabaseName()}.${this.getCollectionName()}`)
+			throw new DatabaseNotConnectedException(`Unable to perform query: ${queryName} - not connected to database.collection: ${this.mongoDatabase.getDatabaseName()}.${this.getCollectionName()}`)
 		}
 	}
 }

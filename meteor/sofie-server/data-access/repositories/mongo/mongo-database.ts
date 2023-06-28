@@ -1,5 +1,6 @@
 import * as mongodb from 'mongodb'
 import { Collection } from 'mongodb'
+import { DatabaseNotConnectedException } from '../../../model/exceptions/database-not-connected-exception'
 
 // TODO: Move to ENV variables
 const MONGO_CONNECTION_STRING: string = 'mongodb://localhost:3001'
@@ -43,7 +44,7 @@ export class MongoDatabase {
 
 	private assertDatabaseConnection(): void {
 		if (!this.db) {
-			throw new Error(`Not connected to the database`)
+			throw new DatabaseNotConnectedException(`Not connected to the database`)
 		}
 	}
 
