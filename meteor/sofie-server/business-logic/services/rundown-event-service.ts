@@ -1,11 +1,8 @@
-import EventEmitter from 'events'
 import { RundownEventListener } from './interfaces/rundown-event-listener'
 import { RundownEvent } from '../../model/rundown-event'
 import { RundownEventEmitter } from './interfaces/rundown-event-emitter'
 
-const RUNDOWN_EVENT: string = 'RUNDOWN_EVENT'
-
-export class RundownEventService extends EventEmitter implements RundownEventEmitter, RundownEventListener {
+export class RundownEventService implements RundownEventEmitter, RundownEventListener {
 	private static instance: RundownEventService
 
 	static getInstance(): RundownEventService {
@@ -15,15 +12,13 @@ export class RundownEventService extends EventEmitter implements RundownEventEmi
 		return this.instance
 	}
 
-	private constructor() {
-		super()
-	}
+	private callbacks: ((rundownEvent: RundownEvent) => void)[] = []
 
 	emitRundownEvent(rundownEvent: RundownEvent) {
-		this.emit(RUNDOWN_EVENT, rundownEvent)
+		this.callbacks.forEach(cb => cb(rundownEvent))
 	}
 
-	onRundownEvent(onRundownEventCallback: (rundownEvent: RundownEvent) => void) {
-		this.addListener(RUNDOWN_EVENT, onRundownEventCallback)
+	listenToRundownEvents(onRundownEventCallback: (rundownEvent: RundownEvent) => void) {
+		this.callbacks.push(onRundownEventCallback)
 	}
 }

@@ -77,4 +77,8 @@ export class SofieCoreMeteorRundownService implements RundownService {
 			}
 		)
 	}
+
+	async deactivateRundown(_rundownId: string): Promise<void> {
+		throw new Error(`NotImplementedException: Method not yet implemented in: ${SofieCoreMeteorRundownService.name}`)
+	}
 }

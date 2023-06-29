@@ -49,6 +49,17 @@ export class RundownController extends BaseController {
 		res.status(500).send(`${exception.errorCode} - ${exception.message}`)
 	}
 
+	@PutRequest('/:rundownId/deactivate')
+	async deactivate(reg: Request, res: Response): Promise<void> {
+		const rundownId: string = reg.params.rundownId
+		try {
+			await this.rundownService.deactivateRundown(rundownId)
+			res.send(`Rundown "${rundownId}" successfully deactivated`)
+		} catch (error) {
+			this.handleError(res, error as Exception)
+		}
+	}
+
 	@PutRequest('/:rundownId/takeNext')
 	async takeNext(reg: Request, res: Response): Promise<void> {
 		const rundownId: string = reg.params.rundownId

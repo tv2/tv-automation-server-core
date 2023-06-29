@@ -5,6 +5,7 @@ import { ErrorCode } from '../enums/error-code'
 import { LastPartInSegmentException } from '../exceptions/last-part-in-segment-exception'
 import { NotFoundException } from '../exceptions/not-found-exception'
 import { NotActivatedException } from '../exceptions/not-activated-exception'
+import { AlreadyActivatedException } from '../exceptions/already-activated-exception'
 
 export interface RundownInterface {
 	id: string
@@ -34,6 +35,10 @@ export class Rundown {
 	}
 
 	activate(): void {
+		if (this.isActive()) {
+			throw new AlreadyActivatedException('Can\'t activate Rundown since it is already activated')
+		}
+
 		this.activateFirstSegment()
 		this.activateFirstPart()
 		this.setNextFromActive()
@@ -99,9 +104,19 @@ export class Rundown {
 		return this.activeSegment
 	}
 
+	getNextSegment(): Segment {
+		this.assertActive('getNextSegment')
+		return this.nextSegment
+	}
+
 	getActivePart(): Part {
 		this.assertActive('getActivePart')
 		return this.activePart
+	}
+
+	getNextPart(): Part {
+		this.assertActive('getNextPart')
+		return this.nextPart
 	}
 
 	isActive(): boolean {
@@ -109,12 +124,22 @@ export class Rundown {
 	}
 
 	takeNext(): void {
+		this.assertActive('takeNext')
+
+		this.activePart.takeOffAir()
 		this.activePart = this.nextPart
+		this.activePart.putOnAir()
+
+		this.activeSegment.takeOffAir()
 		this.activeSegment = this.nextSegment
+		this.activeSegment.putOnAir()
+
 		this.setNextFromActive()
 	}
 
 	setNext(segmentId: string, partId: string): void {
+		this.assertActive('setNext')
+
 		this.nextSegment = this.findSegment(segmentId)
 		this.nextPart = this.nextSegment.findPart(partId)
 	}

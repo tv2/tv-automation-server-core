@@ -31,7 +31,8 @@ export interface MongoSegment {
 	name: string
 	_rank: number
 	rundownId: string,
-	externalId: string
+	externalId: string,
+	isHidden: boolean
 }
 
 export interface MongoPart {
@@ -89,7 +90,9 @@ export class MongoEntityConverter {
 	}
 
 	convertSegments(mongoSegments: MongoSegment[]): Segment[] {
-		return mongoSegments.map(this.convertSegment)
+		return mongoSegments
+			.filter(segment => !segment.isHidden)
+			.map(this.convertSegment)
 	}
 
 	convertPart(mongoPart: MongoPart): Part {

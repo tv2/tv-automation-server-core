@@ -43,6 +43,32 @@ export class RundownTimelineService implements RundownService {
 			partId: rundown.getActivePart().id
 		}
 		this.rundownEventEmitter.emitRundownEvent(activateEvent)
+
+		const setNextEvent: RundownEvent = {
+			type: RundownEventType.SET_NEXT,
+			rundownId: rundown.id,
+			segmentId: rundown.getNextSegment().id,
+			partId: rundown.getNextPart().id
+		}
+		this.rundownEventEmitter.emitRundownEvent(setNextEvent)
+	}
+
+	async deactivateRundown(rundownId: string): Promise<void> {
+		const rundown: Rundown = await this.rundownRepository.getRundown(rundownId)
+
+		rundown.deactivate()
+		const timeline: Timeline = this.timelineBuilder.getBaseTimeline()
+
+		this.timelineRepository.saveTimeline(timeline)
+		this.rundownRepository.saveRundown(rundown)
+
+		const activateEvent: RundownEvent = {
+			type: RundownEventType.DEACTIVATE,
+			rundownId: rundown.id,
+			segmentId: '',
+			partId: ''
+		}
+		this.rundownEventEmitter.emitRundownEvent(activateEvent)
 	}
 
 	async takeNext(rundownId: string): Promise<void> {
@@ -61,6 +87,14 @@ export class RundownTimelineService implements RundownService {
 			partId: rundown.getActivePart().id
 		}
 		this.rundownEventEmitter.emitRundownEvent(takeEvent)
+
+		const setNextEvent: RundownEvent = {
+			type: RundownEventType.SET_NEXT,
+			rundownId: rundown.id,
+			segmentId: rundown.getNextSegment().id,
+			partId: rundown.getNextPart().id
+		}
+		this.rundownEventEmitter.emitRundownEvent(setNextEvent)
 	}
 
 	async setNext(rundownId: string, segmentId: string, partId: string): Promise<void> {
@@ -71,8 +105,8 @@ export class RundownTimelineService implements RundownService {
 		const setNextEvent: RundownEvent = {
 			type: RundownEventType.SET_NEXT,
 			rundownId: rundown.id,
-			segmentId: rundown.getActiveSegment().id,
-			partId: rundown.getActivePart().id
+			segmentId: rundown.getNextSegment().id,
+			partId: rundown.getNextPart().id
 		}
 		this.rundownEventEmitter.emitRundownEvent(setNextEvent)
 	}

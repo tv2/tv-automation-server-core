@@ -1,3 +1,4 @@
+import cors from 'cors'
 import express, { Express, Router } from 'express'
 import { BaseController } from './controllers/base-controller'
 import { ControllerFacade } from './facades/controller-facade'
@@ -23,6 +24,7 @@ class SofieServer {
 	configureServer(): void {
 		this.server = express()
 		this.server.use(express.json())
+		this.server.use(cors())
 	}
 
 	configureRoutes(): void {
