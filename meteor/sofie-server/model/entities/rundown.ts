@@ -1,6 +1,5 @@
 import { Segment } from './segment'
 import { Part } from './part'
-import { TimelineObject } from './timeline-object'
 import { Exception } from '../exceptions/exception'
 import { ErrorCode } from '../enums/error-code'
 import { LastPartInSegmentException } from '../exceptions/last-part-in-segment-exception'
@@ -34,13 +33,12 @@ export class Rundown {
 		this.isRundownActive = rundown.isActive
 	}
 
-	activate(): TimelineObject[] {
+	activate(): void {
 		this.activateFirstSegment()
 		this.activateFirstPart()
 		this.setNextFromActive()
 
 		this.isRundownActive = true
-		return this.activePart.getTimelineObjects()
 	}
 
 	private activateFirstSegment(): void {
@@ -110,11 +108,10 @@ export class Rundown {
 		return this.isRundownActive
 	}
 
-	takeNext(): TimelineObject[] {
+	takeNext(): void {
 		this.activePart = this.nextPart
 		this.activeSegment = this.nextSegment
 		this.setNextFromActive()
-		return this.activePart.getTimelineObjects()
 	}
 
 	setNext(segmentId: string, partId: string): void {

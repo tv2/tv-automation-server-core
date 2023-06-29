@@ -3,32 +3,38 @@ import { RundownEvent } from '../../../model/rundown-event'
 import { RundownEventType } from '../../../model/enums/rundown-event-type'
 import { RundownEventEmitter } from '../interfaces/rundown-event-emitter'
 import { RundownRepository } from '../../../data-access/repositories/interfaces/rundown-repository'
-import { TimelineObject } from '../../../model/entities/timeline-object'
 import { Rundown } from '../../../model/entities/rundown'
 import { TimelineRepository } from '../../../data-access/repositories/interfaces/timeline-repository'
+import { TimelineBuilder } from '../interfaces/timeline-builder'
+import { Timeline } from '../../../model/entities/timeline'
 
 export class RundownTimelineService implements RundownService {
 
 	private rundownEventEmitter: RundownEventEmitter
 	private rundownRepository: RundownRepository
 	private timelineRepository: TimelineRepository
+	private timelineBuilder: TimelineBuilder
 
 	constructor(
 			eventEmitter: RundownEventEmitter,
 			rundownRepository: RundownRepository,
-			timelineRepository: TimelineRepository
+			timelineRepository: TimelineRepository,
+			timelineBuilder: TimelineBuilder
 	) {
 		this.rundownEventEmitter = eventEmitter
 		this.rundownRepository = rundownRepository
 		this.timelineRepository = timelineRepository
+		this.timelineBuilder = timelineBuilder
 	}
 
 	async activateRundown(rundownId: string): Promise<void> {
 		const rundown: Rundown = await this.rundownRepository.getRundown(rundownId)
 
-		const timelineObjects: TimelineObject[] = rundown.activate()
+		rundown.activate()
+		const timeline: Timeline = this.timelineBuilder.buildTimeline(rundown)
+
+		this.timelineRepository.saveTimeline(timeline)
 		this.rundownRepository.saveRundown(rundown)
-		this.timelineRepository.saveTimeline({ timelineObjects: timelineObjects })
 
 		const activateEvent: RundownEvent = {
 			type: RundownEventType.ACTIVATE,
@@ -42,9 +48,11 @@ export class RundownTimelineService implements RundownService {
 	async takeNext(rundownId: string): Promise<void> {
 		const rundown: Rundown = await this.rundownRepository.getRundown(rundownId)
 
-		const timelineObjects: TimelineObject[] = rundown.takeNext()
+		rundown.takeNext()
+		const timeline: Timeline = this.timelineBuilder.buildTimeline(rundown)
+
+		this.timelineRepository.saveTimeline(timeline)
 		this.rundownRepository.saveRundown(rundown)
-		this.timelineRepository.saveTimeline({ timelineObjects })
 
 		const takeEvent: RundownEvent = {
 			type: RundownEventType.TAKE,
