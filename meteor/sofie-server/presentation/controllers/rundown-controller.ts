@@ -4,6 +4,7 @@ import { RundownService } from '../../business-logic/services/interfaces/rundown
 import { RundownRepository } from '../../data-access/repositories/interfaces/rundown-repository'
 import { Rundown } from '../../model/entities/rundown'
 import { RundownDto } from '../dtos/rundown-dto'
+import { Exception } from '../../model/exceptions/exception'
 
 @RestController('/rundowns')
 export class RundownController extends BaseController {
@@ -31,32 +32,56 @@ export class RundownController extends BaseController {
 	}
 
 	@PutRequest('/:rundownId/activate')
-	activate(reg: Request, res: Response): void {
+	async activate(reg: Request, res: Response): Promise<void> {
 		const rundownId: string = reg.params.rundownId
-		this.rundownService.activateRundown(rundownId)
-		res.send()
+		try {
+			await this.rundownService.activateRundown(rundownId)
+			res.send(`Rundown "${rundownId}" successfully activated`)
+		} catch (error) {
+			this.handleError(res, error as Exception)
+		}
+	}
+
+	handleError(res: Response, exception: Exception) {
+		console.log(`Caught Exception: "${exception.errorCode}". Message: ${exception.message}`)
+		console.log(exception.stack)
+
+		res.status(500).send(`${exception.errorCode} - ${exception.message}`)
 	}
 
 	@PutRequest('/:rundownId/takeNext')
-	takeNext(reg: Request, res: Response): void {
+	async takeNext(reg: Request, res: Response): Promise<void> {
 		const rundownId: string = reg.params.rundownId
-		this.rundownService.takeNext(rundownId)
-		res.send()
+		try {
+			await this.rundownService.takeNext(rundownId)
+			res.send(`Rundown "${rundownId}" successfully took next`)
+		} catch (error) {
+			this.handleError(res, error as Exception)
+		}
 	}
 
 	@PutRequest('/:rundownId/segments/:segmentId/parts/:partId/setNext')
-	setNext(reg: Request, res: Response): void {
+	async setNext(reg: Request, res: Response): Promise<void> {
 		const rundownId: string = reg.params.rundownId
 		const segmentId: string = reg.params.segmentId
 		const partId: string = reg.params.partId
-		this.rundownService.setNext(rundownId, segmentId, partId)
-		res.send()
+
+		try {
+			await this.rundownService.setNext(rundownId, segmentId, partId)
+			res.send(`Part "${partId}" is now set as next`)
+		} catch (error) {
+			this.handleError(res, error as Exception)
+		}
 	}
 
 	@PutRequest('/:rundownId/reset')
-	resetRundown(reg: Request, res: Response): void {
+	async resetRundown(reg: Request, res: Response): Promise<void> {
 		const rundownId: string = reg.params.rundownId
-		this.rundownService.resetRundown(rundownId)
-		res.send()
+		try {
+			await this.rundownService.resetRundown(rundownId)
+			res.send(`Rundown "${rundownId}" has been reset`)
+		} catch (error) {
+			this.handleError(res, error as Exception)
+		}
 	}
 }

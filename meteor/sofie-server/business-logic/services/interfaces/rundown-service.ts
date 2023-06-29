@@ -1,6 +1,6 @@
 export interface RundownService {
-	activateRundown(rundownId: string): void
-	takeNext(rundownId: string): void
-	setNext(rundownId: string, segmentId: string, partId: string): void
-	resetRundown(rundownId: string): void
+	activateRundown(rundownId: string): Promise<void>
+	takeNext(rundownId: string): Promise<void>
+	setNext(rundownId: string, segmentId: string, partId: string): Promise<void>
+	resetRundown(rundownId: string): Promise<void>
 }

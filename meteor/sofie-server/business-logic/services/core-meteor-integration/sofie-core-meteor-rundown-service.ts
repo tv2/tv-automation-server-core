@@ -7,11 +7,11 @@ import { RundownPlaylistId } from '@sofie-automation/shared-lib/dist/core/model/
 
 export class SofieCoreMeteorRundownService implements RundownService {
 
-	activateRundown(_rundownId: string) {
+	async activateRundown(_rundownId: string): Promise<void> {
 		throw new Error('Not implemented exception')
 	}
 
-	takeNext(rundownId: string): void {
+	async takeNext(rundownId: string): Promise<void> {
 		const rundownPlaylistId: RundownPlaylistId = rundownId as unknown as RundownPlaylistId
 		ServerClientAPI.runUserActionInLogForPlaylistOnWorker(
 			this.getMeteorMethodContext(),
@@ -57,11 +57,11 @@ export class SofieCoreMeteorRundownService implements RundownService {
 		}
 	}
 
-	setNext(_rundownId: string, _partId: string): void {
+	async setNext(_rundownId: string, _partId: string): Promise<void> {
 		throw new Error(`NotImplementedException: Method not yet implemented in: ${SofieCoreMeteorRundownService.name}`)
 	}
 
-	resetRundown(rundownId: string): void {
+	async resetRundown(rundownId: string): Promise<void> {
 		const rundownPlaylistId: RundownPlaylistId = rundownId as unknown as RundownPlaylistId
 		ServerClientAPI.runUserActionInLogForPlaylistOnWorker(
 			this.getMeteorMethodContext(),

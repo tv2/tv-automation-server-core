@@ -62,14 +62,14 @@ export class RundownTimelineService implements RundownService {
 
 		const setNextEvent: RundownEvent = {
 			type: RundownEventType.SET_NEXT,
-			rundownId,
-			segmentId: 'someSegmentIdFromTheServer',
-			partId
+			rundownId: rundown.id,
+			segmentId: rundown.getActiveSegment().id,
+			partId: rundown.getActivePart().id
 		}
 		this.rundownEventEmitter.emitRundownEvent(setNextEvent)
 	}
 
-	resetRundown(_rundownId: string): void {
+	async resetRundown(_rundownId: string): Promise<void> {
 		throw new Error(`NotImplementedException: Method not yet implemented in: ${RundownTimelineService.name}`)
 	}
 }
