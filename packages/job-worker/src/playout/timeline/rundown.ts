@@ -242,12 +242,10 @@ function generateCurrentInfinitePieceObjects(
 	}
 	const pieceEnable = getPieceEnableInsidePart(pieceInstance, currentPartInstanceTimings, currentPartGroup.id)
 
-	let nowInParent = currentPartInfo.nowInPart
 	if (pieceInstance.startedPlayback) {
 		// Make the start time stick
 		infiniteGroup.enable = { start: pieceInstance.startedPlayback }
 		let infiniteGroupStart = pieceInstance.startedPlayback
-		nowInParent = currentTime - pieceInstance.startedPlayback
 
 		// infiniteGroupStart had an actual timestamp inside and pieceEnable.start being a number
 		// means that it expects an offset from it's parent
@@ -311,7 +309,7 @@ function generateCurrentInfinitePieceObjects(
 			activePlaylist._id,
 			currentPartGroup,
 			infiniteGroup,
-			nowInParent,
+			currentPartInfo.nowInPart,
 			pieceInstance,
 			pieceEnable,
 			0,
