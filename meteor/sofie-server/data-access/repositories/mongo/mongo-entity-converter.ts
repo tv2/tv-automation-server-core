@@ -84,6 +84,7 @@ export class MongoEntityConverter {
 				name: mongoSegment.name,
 				rank: mongoSegment._rank,
 				isOnAir: false,
+				isNext: false,
 				parts: []
 			}
 		)
@@ -103,6 +104,7 @@ export class MongoEntityConverter {
 				rank: mongoPart._rank,
 				expectedDuration: mongoPart.expectedDuration,
 				isOnAir: false,
+				isNext: false,
 				pieces: []
 			}
 		)

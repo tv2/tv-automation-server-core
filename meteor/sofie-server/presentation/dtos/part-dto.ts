@@ -7,6 +7,7 @@ export class PartDto {
 	readonly name: string
 	readonly pieces: PieceDto[]
 	readonly isOnAir: boolean
+	readonly isNext: boolean
 
 	constructor(part: Part) {
 		this.id = part.id
@@ -14,5 +15,6 @@ export class PartDto {
 		this.name = part.name
 		this.pieces = part.pieces.map(piece => new PieceDto(piece))
 		this.isOnAir = part.isOnAir()
+		this.isNext = part.isNext()
 	}
 }

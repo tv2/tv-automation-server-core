@@ -9,6 +9,7 @@ export interface SegmentInterface {
 	rank: number
 	parts: Part[]
 	isOnAir: boolean
+	isNext: boolean
 }
 
 export class Segment {
@@ -18,6 +19,7 @@ export class Segment {
 	rank: number
 
 	private isSegmentOnAir: boolean
+	private isSegmentNext: boolean
 	private parts: Part[]
 
 	constructor(segment: SegmentInterface) {
@@ -26,6 +28,7 @@ export class Segment {
 		this.name = segment.name
 		this.rank = segment.rank
 		this.isSegmentOnAir = segment.isOnAir
+		this.isSegmentNext = segment.isNext
 
 		this.setParts(segment.parts ?? [])
 	}
@@ -44,6 +47,18 @@ export class Segment {
 
 	isOnAir(): boolean {
 		return this.isSegmentOnAir
+	}
+
+	setAsNext(): void {
+		this.isSegmentNext = true
+	}
+
+	removeAsNext(): void {
+		this.isSegmentNext = false
+	}
+
+	isNext(): boolean {
+		return this.isSegmentNext
 	}
 
 	findNextPart(fromPart: Part): Part {

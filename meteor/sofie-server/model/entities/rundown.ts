@@ -64,6 +64,8 @@ export class Rundown {
 	}
 
 	private setNextFromActive(): void {
+		this.unmarkNextSegmentAndPart()
+
 		try {
 			this.nextPart = this.activeSegment.findNextPart(this.activePart)
 		} catch (exception) {
@@ -72,6 +74,26 @@ export class Rundown {
 			}
 			this.nextSegment = this.findNextSegment()
 			this.nextPart = this.nextSegment.findFirstPart()
+		}
+
+		this.markNextSegmentAndPart()
+	}
+
+	private unmarkNextSegmentAndPart(): void {
+		if (this.nextSegment) {
+			this.nextSegment.removeAsNext()
+		}
+		if (this.nextPart) {
+			this.nextPart.removeAsNext()
+		}
+	}
+
+	private markNextSegmentAndPart(): void {
+		if (this.nextSegment) {
+			this.nextSegment.setAsNext()
+		}
+		if (this.nextPart) {
+			this.nextPart.setAsNext()
 		}
 	}
 
@@ -90,6 +112,7 @@ export class Rundown {
 		this.assertActive('deactivate')
 		this.activeSegment.takeOffAir()
 		this.activePart.takeOffAir()
+		this.unmarkNextSegmentAndPart()
 		this.isRundownActive = false
 	}
 
@@ -140,8 +163,12 @@ export class Rundown {
 	setNext(segmentId: string, partId: string): void {
 		this.assertActive('setNext')
 
+		this.unmarkNextSegmentAndPart()
+
 		this.nextSegment = this.findSegment(segmentId)
 		this.nextPart = this.nextSegment.findPart(partId)
+
+		this.markNextSegmentAndPart()
 	}
 
 	private findSegment(segmentId: string): Segment {
