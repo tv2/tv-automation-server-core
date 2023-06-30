@@ -41,6 +41,7 @@ export function buildPastInfinitePiecesForThisPartQuery(
 							PieceLifespan.OutOnRundownEnd,
 							PieceLifespan.OutOnRundownChange,
 							PieceLifespan.OutOnShowStyleEnd,
+							PieceLifespan.OutOnRundownChangeWithSegmentLookback,
 						],
 					},
 					startRundownId: part.rundownId,
@@ -56,6 +57,7 @@ export function buildPastInfinitePiecesForThisPartQuery(
 							PieceLifespan.OutOnRundownEnd,
 							PieceLifespan.OutOnRundownChange,
 							PieceLifespan.OutOnShowStyleEnd,
+							PieceLifespan.OutOnRundownChangeWithSegmentLookback,
 						],
 					},
 					startRundownId: part.rundownId,
@@ -109,6 +111,7 @@ export function getPlayheadTrackingInfinitesForPart(
 		[PieceLifespan.OutOnShowStyleEnd]?: PieceInstance
 		[PieceLifespan.OutOnRundownEnd]?: PieceInstance
 		[PieceLifespan.OutOnSegmentEnd]?: PieceInstance
+		[PieceLifespan.OutOnRundownChangeWithSegmentLookback]?: PieceInstance
 		onChange?: PieceInstance
 	}
 	const piecesOnSourceLayers = new Map<string, InfinitePieceSet>()
@@ -151,6 +154,7 @@ export function getPlayheadTrackingInfinitesForPart(
 					}
 					break
 				case PieceLifespan.OutOnRundownChange:
+				case PieceLifespan.OutOnRundownChangeWithSegmentLookback:
 					if (lastPieceInstance.rundownId === part.rundownId) {
 						// Still in the same rundown
 						isUsed = true
@@ -176,11 +180,13 @@ export function getPlayheadTrackingInfinitesForPart(
 				PieceLifespan.OutOnRundownEnd,
 				PieceLifespan.OutOnSegmentEnd,
 				PieceLifespan.OutOnShowStyleEnd,
+				PieceLifespan.OutOnRundownChangeWithSegmentLookback,
 			]) {
 				const mode = mode0 as
 					| PieceLifespan.OutOnRundownEnd
 					| PieceLifespan.OutOnSegmentEnd
 					| PieceLifespan.OutOnShowStyleEnd
+					| PieceLifespan.OutOnRundownChangeWithSegmentLookback
 				const pieces = (piecesByInfiniteMode[mode] || []).filter(
 					(p) => p.infinite && (p.infinite.fromPreviousPlayhead || p.dynamicallyInserted)
 				)
@@ -192,6 +198,7 @@ export function getPlayheadTrackingInfinitesForPart(
 					let isValid = false
 					switch (mode) {
 						case PieceLifespan.OutOnSegmentEnd:
+						case PieceLifespan.OutOnRundownChangeWithSegmentLookback:
 							isValid =
 								currentPartInstance.segmentId === part.segmentId &&
 								partsBeforeThisInSegmentSet.has(candidatePiece.piece.startPartId)
@@ -319,6 +326,19 @@ export function isPiecePotentiallyActiveInPart(
 					segmentsBeforeThisInRundown.has(pieceToCheck.startSegmentId)
 				)
 			}
+		case PieceLifespan.OutOnRundownChangeWithSegmentLookback:
+			if (previousPartInstance !== undefined) {
+				return (
+					pieceToCheck.startSegmentId === part.segmentId &&
+					partsBeforeThisInSegment.has(pieceToCheck.startPartId)
+				)
+			} else {
+				// Predicting what will happen at arbitrary point in the future
+				return (
+					pieceToCheck.startRundownId === part.rundownId &&
+					segmentsBeforeThisInRundown.has(pieceToCheck.startSegmentId)
+				)
+			}
 		case PieceLifespan.OutOnShowStyleEnd:
 			return previousPartInstance && pieceToCheck.lifespan === PieceLifespan.OutOnShowStyleEnd
 				? continueShowStyleEndInfinites(
@@ -372,6 +392,7 @@ export function getPieceInstancesForPart(
 		[PieceLifespan.OutOnShowStyleEnd]?: Piece
 		[PieceLifespan.OutOnRundownEnd]?: Piece
 		[PieceLifespan.OutOnSegmentEnd]?: Piece
+		[PieceLifespan.OutOnRundownChangeWithSegmentLookback]?: Piece
 		// onChange?: PieceInstance
 	}
 	const piecesOnSourceLayers = new Map<string, InfinitePieceSet>()
@@ -382,7 +403,8 @@ export function getPieceInstancesForPart(
 			candidatePiece.startPartId !== part._id &&
 			(candidatePiece.lifespan === PieceLifespan.OutOnShowStyleEnd ||
 				candidatePiece.lifespan === PieceLifespan.OutOnRundownEnd ||
-				candidatePiece.lifespan === PieceLifespan.OutOnSegmentEnd)
+				candidatePiece.lifespan === PieceLifespan.OutOnSegmentEnd ||
+				candidatePiece.lifespan === PieceLifespan.OutOnRundownChangeWithSegmentLookback)
 		) {
 			const useIt = isPiecePotentiallyActiveInPart(
 				playingPartInstance,
@@ -473,6 +495,7 @@ export function getPieceInstancesForPart(
 			pieceSet[PieceLifespan.OutOnShowStyleEnd],
 			pieceSet[PieceLifespan.OutOnRundownEnd],
 			pieceSet[PieceLifespan.OutOnSegmentEnd],
+			pieceSet[PieceLifespan.OutOnRundownChangeWithSegmentLookback],
 		])
 		result.push(...onEndPieces.map(wrapPiece))
 
@@ -481,7 +504,12 @@ export function getPieceInstancesForPart(
 		// }
 	}
 
-	return result
+	const uniqueIds = new Set(result.map((piece) => piece._id))
+	return result.filter((piece) => {
+		const available = uniqueIds.has(piece._id)
+		uniqueIds.delete(piece._id)
+		return available
+	})
 }
 
 export interface PieceInstanceWithTimings extends PieceInstance {
@@ -716,6 +744,7 @@ function findPieceInstancesOnInfiniteLayers(pieces: PieceInstance[]): PieceInsta
 			case PieceLifespan.OutOnRundownChange:
 			case PieceLifespan.OutOnSegmentChange:
 			case PieceLifespan.WithinPart:
+			case PieceLifespan.OutOnRundownChangeWithSegmentLookback:
 				if (!res.other || isCandidateBetterToBeContinued(res.other, piece)) {
 					res.other = {
 						...piece,

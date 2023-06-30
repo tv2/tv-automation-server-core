@@ -638,6 +638,7 @@ export function innerStopPieces(
 			switch (pieceInstance.piece.lifespan) {
 				case PieceLifespan.WithinPart:
 				case PieceLifespan.OutOnSegmentChange:
+				case PieceLifespan.OutOnRundownChangeWithSegmentLookback:
 				case PieceLifespan.OutOnRundownChange: {
 					logger.info(`Blueprint action: Cropping PieceInstance "${pieceInstance._id}" to ${stopAt}`)
 					const up: Partial<PieceInstance> = {
