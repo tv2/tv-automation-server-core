@@ -1,4 +1,4 @@
-import { RundownEventType } from './enums/rundown-event-type'
+import { RundownEventType } from '../enums/rundown-event-type'
 
 export interface RundownEvent {
 	type: RundownEventType

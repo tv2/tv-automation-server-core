@@ -4,6 +4,8 @@ import { Part } from '../../../model/entities/part'
 import { Piece } from '../../../model/entities/piece'
 import { PieceType } from '../../../model/enums/piece-type'
 import { Timeline } from '../../../model/entities/timeline'
+import { Identifier } from '../../../model/interfaces/identifier'
+import { AdLibPiece } from '../../../model/entities/ad-lib-piece'
 
 export interface MongoRundown {
 	_id: string
@@ -59,6 +61,14 @@ export interface MongoTimeline {
 	timelineHash: string
 	generated: number
 	timelineBlob: string
+}
+
+export interface MongoAdLibPiece {
+	_id: string
+	rundownId: string
+	name: string
+	expectedDuration: number
+	timelineObjectsString: string
 }
 
 export class MongoEntityConverter {
@@ -138,5 +148,30 @@ export class MongoEntityConverter {
 			generated: new Date().getTime(),
 			timelineBlob: JSON.stringify(timeline.timelineObjects)
 		}
+	}
+
+	convertMongoAdLibPieceToIdentifier(mongoAdLibPiece: MongoAdLibPiece): Identifier {
+		return {
+			id: mongoAdLibPiece._id,
+			name: mongoAdLibPiece.name
+		}
+	}
+
+	convertMongoAdLibPiecesToIdentifiers(mongoAdLibPieces: MongoAdLibPiece[]): Identifier[] {
+		return mongoAdLibPieces.map(piece => this.convertMongoAdLibPieceToIdentifier(piece))
+	}
+
+	convertAdLib(mongoAdLibPiece: MongoAdLibPiece): AdLibPiece {
+		return {
+			id: mongoAdLibPiece._id,
+			rundownId: mongoAdLibPiece.rundownId,
+			name: mongoAdLibPiece.name,
+			duration: mongoAdLibPiece.expectedDuration,
+			timelineObjects: JSON.parse(mongoAdLibPiece.timelineObjectsString)
+		}
+	}
+
+	convertAdLibs(mongoAdLibPieces: MongoAdLibPiece[]): AdLibPiece[] {
+		return mongoAdLibPieces.map(piece => this.convertAdLib(piece))
 	}
 }

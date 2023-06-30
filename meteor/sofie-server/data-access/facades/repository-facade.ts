@@ -11,6 +11,8 @@ import { MongoPartRepository } from '../repositories/mongo/mongo-part-repository
 import { TimelineRepository } from '../repositories/interfaces/timeline-repository'
 import { MongoTimelineRepository } from '../repositories/mongo/mongo-timeline-repository'
 import { CachedRundownRepository } from '../repositories/cache/cached-rundown-repository'
+import { AdLibPieceRepository } from '../repositories/interfaces/ad-lib-piece-repository'
+import { MongoAdLibPieceRepository } from '../repositories/mongo/mongo-ad-lib-piece-repository'
 
 export class RepositoryFacade {
 	static createRundownRepository(): RundownRepository {
@@ -48,6 +50,13 @@ export class RepositoryFacade {
 
 	static createTimelineRepository(): TimelineRepository {
 		return new MongoTimelineRepository(
+			MongoDatabase.getInstance(),
+			new MongoEntityConverter()
+		)
+	}
+
+	static createAdLibRepository(): AdLibPieceRepository {
+		return new MongoAdLibPieceRepository(
 			MongoDatabase.getInstance(),
 			new MongoEntityConverter()
 		)

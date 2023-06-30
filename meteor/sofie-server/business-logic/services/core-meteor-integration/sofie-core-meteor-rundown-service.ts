@@ -58,7 +58,7 @@ export class SofieCoreMeteorRundownService implements RundownService {
 	}
 
 	async setNext(_rundownId: string, _partId: string): Promise<void> {
-		throw new Error(`NotImplementedException: Method not yet implemented in: ${SofieCoreMeteorRundownService.name}`)
+		throw new Error('Not implemented exception')
 	}
 
 	async resetRundown(rundownId: string): Promise<void> {
@@ -79,6 +79,10 @@ export class SofieCoreMeteorRundownService implements RundownService {
 	}
 
 	async deactivateRundown(_rundownId: string): Promise<void> {
-		throw new Error(`NotImplementedException: Method not yet implemented in: ${SofieCoreMeteorRundownService.name}`)
+		throw new Error('Not implemented exception')
+	}
+
+	executeAdLibPiece(_rundownId: string, _adLibId: string): Promise<void> {
+		throw new Error('Not implemented exception')
 	}
 }

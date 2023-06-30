@@ -5,17 +5,21 @@ import { RundownRepository } from '../../data-access/repositories/interfaces/run
 import { Rundown } from '../../model/entities/rundown'
 import { RundownDto } from '../dtos/rundown-dto'
 import { Exception } from '../../model/exceptions/exception'
+import { Identifier } from '../../model/interfaces/identifier'
+import { AdLibPieceRepository } from '../../data-access/repositories/interfaces/ad-lib-piece-repository'
 
 @RestController('/rundowns')
 export class RundownController extends BaseController {
 
 	private rundownService: RundownService
 	private rundownRepository: RundownRepository
+	private adLibRepository: AdLibPieceRepository
 
-	constructor(rundownService: RundownService, rundownRepository: RundownRepository) {
+	constructor(rundownService: RundownService, rundownRepository: RundownRepository, adLibRepository: AdLibPieceRepository) {
 		super()
 		this.rundownService = rundownService
 		this.rundownRepository = rundownRepository
+		this.adLibRepository = adLibRepository
 	}
 
 	@GetRequest()
@@ -91,6 +95,29 @@ export class RundownController extends BaseController {
 		try {
 			await this.rundownService.resetRundown(rundownId)
 			res.send(`Rundown "${rundownId}" has been reset`)
+		} catch (error) {
+			this.handleError(res, error as Exception)
+		}
+	}
+
+	@GetRequest('/:rundownId/adLibPieces')
+	async getAdLibPiecesForRundown(reg: Request, res: Response): Promise<void> {
+		const rundownId: string = reg.params.rundownId
+		try {
+			const identifiers: Identifier[] = await this.adLibRepository.getAdLibPieceIdentifiers(rundownId)
+			res.send(identifiers)
+		} catch (error) {
+			this.handleError(res, error as Exception)
+		}
+	}
+
+	@PutRequest('/:rundownId/adLibPieces/:adLibPieceId')
+	async executeAdLibPiece(reg: Request, res: Response): Promise<void> {
+		const rundownId: string = reg.params.rundownId
+		const adLibId: string = reg.params.adLibPieceId
+		try {
+			await this.rundownService.executeAdLibPiece(rundownId, adLibId)
+			res.send(`Successfully executed AdLib ${adLibId} on Rundown ${rundownId}`)
 		} catch (error) {
 			this.handleError(res, error as Exception)
 		}

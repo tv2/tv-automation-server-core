@@ -1,5 +1,6 @@
 import { Piece } from './piece'
 import { TimelineObject } from './timeline-object'
+import { AdLibPiece } from './ad-lib-piece'
 
 export interface PartInterface {
 	id: string
@@ -22,6 +23,8 @@ export class Part {
 
 	private isPartOnAir: boolean
 	private isPartNext: boolean
+
+	private adLibPieces: AdLibPiece[] = []
 
 	constructor(part: PartInterface) {
 		this.id = part.id
@@ -59,6 +62,21 @@ export class Part {
 	}
 
 	getTimelineObjects(): TimelineObject[] {
-		return this.pieces.flatMap(piece => piece.timelineObjects)
+		const now: number = new Date().getTime()
+		const adLibTimelineObjects: TimelineObject[] = this.adLibPieces
+			.filter(piece => this.shouldAdLibPieceBeShown(piece, now))
+			.flatMap(piece => piece.timelineObjects)
+		const pieceTimelineObjects: TimelineObject[] = this.pieces.flatMap(piece => piece.timelineObjects)
+		return adLibTimelineObjects.concat(pieceTimelineObjects)
+	}
+
+	private shouldAdLibPieceBeShown(adLibPiece: AdLibPiece, executionTime: number): boolean {
+		return !!adLibPiece.executedAt
+			&& (adLibPiece.executedAt <= executionTime)
+			&& ((adLibPiece.executedAt + adLibPiece.duration) > executionTime)
+	}
+
+	addAdLibPiece(adLibPiece: AdLibPiece): void {
+		this.adLibPieces.push(adLibPiece)
 	}
 }

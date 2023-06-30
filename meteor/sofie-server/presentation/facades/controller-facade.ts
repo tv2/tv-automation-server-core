@@ -6,7 +6,8 @@ export class ControllerFacade {
 	static createRundownController(): RundownController {
 		return new RundownController(
 			ServiceFacade.createRundownService(),
-			RepositoryFacade.createRundownRepository()
+			RepositoryFacade.createRundownRepository(),
+			RepositoryFacade.createAdLibRepository()
 		)
 	}
 }

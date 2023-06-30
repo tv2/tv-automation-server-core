@@ -6,6 +6,7 @@ import { LastPartInSegmentException } from '../exceptions/last-part-in-segment-e
 import { NotFoundException } from '../exceptions/not-found-exception'
 import { NotActivatedException } from '../exceptions/not-activated-exception'
 import { AlreadyActivatedException } from '../exceptions/already-activated-exception'
+import { AdLibPiece } from './ad-lib-piece'
 
 export interface RundownInterface {
 	id: string
@@ -185,5 +186,10 @@ export class Rundown {
 
 	getSegments(): Segment[] {
 		return this.segments
+	}
+
+	adAdLibPiece(adLibPiece: AdLibPiece): void {
+		this.assertActive('adAdLiPiece')
+		this.activePart.addAdLibPiece(adLibPiece)
 	}
 }
