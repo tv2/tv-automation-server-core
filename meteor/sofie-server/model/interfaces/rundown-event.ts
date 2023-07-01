@@ -6,3 +6,13 @@ export interface RundownEvent {
 	segmentId: string
 	partId: string
 }
+
+export interface AdLibPieceInsertedRundownEvent extends RundownEvent {
+	type: RundownEventType.AD_LIB_PIECE_INSERTED,
+	adLibPiece: {
+		id: string
+		name: string,
+		start: number,
+		duration: number
+	}
+}

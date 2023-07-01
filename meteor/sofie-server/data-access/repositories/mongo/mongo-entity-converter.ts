@@ -75,12 +75,11 @@ export class MongoEntityConverter {
 
 	convertRundown(mongoRundown: MongoRundown): Rundown {
 		return new Rundown({
-				id: mongoRundown._id,
-				name: mongoRundown.name,
-				isActive: false,
-				segments: []
-			}
-		)
+			id: mongoRundown._id,
+			name: mongoRundown.name,
+			isActive: false,
+			segments: []
+		})
 	}
 
 	convertRundowns(mongoRundowns: MongoRundown[]): Rundown[] {
@@ -89,15 +88,14 @@ export class MongoEntityConverter {
 
 	convertSegment(mongoSegment: MongoSegment): Segment {
 		return new Segment({
-				id: mongoSegment._id,
-				rundownId: mongoSegment.rundownId,
-				name: mongoSegment.name,
-				rank: mongoSegment._rank,
-				isOnAir: false,
-				isNext: false,
-				parts: []
-			}
-		)
+			id: mongoSegment._id,
+			rundownId: mongoSegment.rundownId,
+			name: mongoSegment.name,
+			rank: mongoSegment._rank,
+			isOnAir: false,
+			isNext: false,
+			parts: []
+		})
 	}
 
 	convertSegments(mongoSegments: MongoSegment[]): Segment[] {
@@ -108,16 +106,15 @@ export class MongoEntityConverter {
 
 	convertPart(mongoPart: MongoPart): Part {
 		return new Part({
-				id: mongoPart._id,
-				segmentId: mongoPart.segmentId,
-				name: mongoPart.title,
-				rank: mongoPart._rank,
-				expectedDuration: mongoPart.expectedDuration,
-				isOnAir: false,
-				isNext: false,
-				pieces: []
-			}
-		)
+			id: mongoPart._id,
+			segmentId: mongoPart.segmentId,
+			name: mongoPart.title,
+			rank: mongoPart._rank,
+			expectedDuration: mongoPart.expectedDuration,
+			isOnAir: false,
+			isNext: false,
+			pieces: []
+		})
 	}
 
 	convertParts(mongoParts: MongoPart[]): Part[] {
@@ -126,15 +123,14 @@ export class MongoEntityConverter {
 
 	convertPiece(mongoPiece: MongoPiece): Piece {
 		return new Piece({
-				id: mongoPiece._id,
-				partId: mongoPiece.startPartId,
-				name: mongoPiece.name,
-				type: PieceType.UNKNOWN,
-				start: mongoPiece.enable.start,
-				duration: mongoPiece.enable.duration,
-				timelineObjects: JSON.parse(mongoPiece.timelineObjectsString)
-			}
-		)
+			id: mongoPiece._id,
+			partId: mongoPiece.startPartId,
+			name: mongoPiece.name,
+			type: PieceType.UNKNOWN,
+			start: mongoPiece.enable.start,
+			duration: mongoPiece.enable.duration,
+			timelineObjects: JSON.parse(mongoPiece.timelineObjectsString)
+		})
 	}
 
 	convertPieces(mongoPieces: MongoPiece[]): Piece[] {
@@ -162,13 +158,13 @@ export class MongoEntityConverter {
 	}
 
 	convertAdLib(mongoAdLibPiece: MongoAdLibPiece): AdLibPiece {
-		return {
+		return new AdLibPiece({
 			id: mongoAdLibPiece._id,
 			rundownId: mongoAdLibPiece.rundownId,
 			name: mongoAdLibPiece.name,
 			duration: mongoAdLibPiece.expectedDuration,
 			timelineObjects: JSON.parse(mongoAdLibPiece.timelineObjectsString)
-		}
+		})
 	}
 
 	convertAdLibs(mongoAdLibPieces: MongoAdLibPiece[]): AdLibPiece[] {

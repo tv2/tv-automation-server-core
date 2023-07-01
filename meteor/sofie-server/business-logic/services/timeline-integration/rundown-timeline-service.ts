@@ -1,5 +1,5 @@
 import { RundownService } from '../interfaces/rundown-service'
-import { RundownEvent } from '../../../model/interfaces/rundown-event'
+import { AdLibPieceInsertedRundownEvent, RundownEvent } from '../../../model/interfaces/rundown-event'
 import { RundownEventType } from '../../../model/enums/rundown-event-type'
 import { RundownEventEmitter } from '../interfaces/rundown-event-emitter'
 import { RundownRepository } from '../../../data-access/repositories/interfaces/rundown-repository'
@@ -124,19 +124,24 @@ export class RundownTimelineService implements RundownService {
 		const rundown: Rundown = await this.rundownRepository.getRundown(rundownId)
 		const adLibPiece: AdLibPiece = await this.adLibPieceRepository.getAdLibPiece(adLibPieceId)
 
-		adLibPiece.executedAt = new Date().getTime()
+		adLibPiece.setExecutedAt(new Date().getTime())
 		rundown.adAdLibPiece(adLibPiece)
 		const timeline: Timeline = this.timelineBuilder.buildTimeline(rundown)
 
 		this.timelineRepository.saveTimeline(timeline)
 		this.rundownRepository.saveRundown(rundown)
 
-		// TODO: Update Event to send relevant AdLib data to frontend
-		const adLibPieceInsertedEvent: RundownEvent = {
+		const adLibPieceInsertedEvent: AdLibPieceInsertedRundownEvent = {
 			type: RundownEventType.AD_LIB_PIECE_INSERTED,
 			rundownId: rundown.id,
 			segmentId: rundown.getActiveSegment().id,
-			partId: rundown.getActivePart().id
+			partId: rundown.getActivePart().id,
+			adLibPiece: {
+				id: adLibPiece.id,
+				name: adLibPiece.name,
+				start: adLibPiece.getExecutedAt(),
+				duration: adLibPiece.duration
+			}
 		}
 		this.rundownEventEmitter.emitRundownEvent(adLibPieceInsertedEvent)
 	}

@@ -71,9 +71,9 @@ export class Part {
 	}
 
 	private shouldAdLibPieceBeShown(adLibPiece: AdLibPiece, executionTime: number): boolean {
-		return !!adLibPiece.executedAt
-			&& (adLibPiece.executedAt <= executionTime)
-			&& ((adLibPiece.executedAt + adLibPiece.duration) > executionTime)
+		return adLibPiece.getExecutedAt() > 0
+			&& (adLibPiece.getExecutedAt() <= executionTime)
+			&& ((adLibPiece.getExecutedAt() + adLibPiece.duration) > executionTime)
 	}
 
 	addAdLibPiece(adLibPiece: AdLibPiece): void {

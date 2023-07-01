@@ -15,7 +15,7 @@ export class AdLibPiece {
 	duration: number
 	timelineObjects: TimelineObject[]
 
-	executedAt?: number
+	private executedAt?: number
 
 	constructor(adLib: AdLibPieceInterface) {
 		this.id = adLib.id
@@ -23,5 +23,28 @@ export class AdLibPiece {
 		this.name = adLib.name
 		this.duration = adLib.duration
 		this.timelineObjects = adLib.timelineObjects
+	}
+
+	setExecutedAt(executionTime: number): void {
+		this.executedAt = executionTime
+		if (this.duration <= 0) {
+			return
+		}
+		this.hackSetProperEnableBecauseOfTheWayOurBlueprintsGenerateEnableForAdLibHtmlGraphics()
+	}
+
+	private hackSetProperEnableBecauseOfTheWayOurBlueprintsGenerateEnableForAdLibHtmlGraphics(): void {
+		this.timelineObjects = this.timelineObjects.map(object => {
+			if (object.enable && object.enable['while'] === '!.full') {
+				object.enable['while'] = undefined
+				object.enable['start'] = this.executedAt
+				object.enable['duration'] = this.duration
+			}
+			return object
+		})
+	}
+
+	getExecutedAt(): number {
+		return this.executedAt ?? 0
 	}
 }
