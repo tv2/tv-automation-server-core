@@ -22,10 +22,10 @@ export class RundownController extends BaseController {
 		this.adLibRepository = adLibRepository
 	}
 
-	@GetRequest()
-	async getRundowns(_reg: Request, res: Response): Promise<void> {
-		const rundowns: Rundown[] = await this.rundownRepository.getRundowns()
-		res.send(rundowns.map(rundown => new RundownDto(rundown)))
+	@GetRequest('/identifiers')
+	async getRundownIdentifiers(_reg: Request, res: Response): Promise<void> {
+		const rundownIdentifiers: Identifier[] = await this.rundownRepository.getRundownIdentifiers()
+		res.send(rundownIdentifiers)
 	}
 
 	@GetRequest('/:rundownId')

@@ -1,9 +1,10 @@
 import { Rundown } from '../../../model/entities/rundown'
 import { RundownRepository } from '../interfaces/rundown-repository'
-import { MongoEntityConverter, MongoRundown } from './mongo-entity-converter'
+import { MongoEntityConverter, MongoIdentifier, MongoRundown } from './mongo-entity-converter'
 import { MongoDatabase } from './mongo-database'
 import { SegmentRepository } from '../interfaces/segment-repository'
 import { BaseMongoRepository } from './base-mongo-repository'
+import { Identifier } from '../../../model/interfaces/identifier'
 
 const RUNDOWN_COLLECTION_NAME: string = 'rundowns'
 
@@ -20,14 +21,13 @@ export class MongoRundownRepository extends BaseMongoRepository implements Rundo
 		return RUNDOWN_COLLECTION_NAME
 	}
 
-	async getRundowns(): Promise<Rundown[]> {
+	async getRundownIdentifiers(): Promise<Identifier[]> {
 		this.assertDatabaseConnection('getRundowns')
-		const mongoRundowns: MongoRundown[] =  await this.getCollection().find({}).toArray() as unknown as MongoRundown[]
-		const rundowns: Rundown[] = this.mongoEntityConverter.convertRundowns(mongoRundowns)
-		return Promise.all(rundowns.map(async rundown => {
-			rundown.setSegments(await this.segmentRepository.getSegments(rundown.id))
-			return rundown
-		}))
+		const mongoIdentifiers: MongoIdentifier[] =  await this.getCollection()
+			.find({})
+			.project({ _id: 1, name: 1})
+			.toArray() as unknown as MongoIdentifier[]
+		return this.mongoEntityConverter.convertIdentifiers(mongoIdentifiers)
 	}
 
 	async getRundown(rundownId: string): Promise<Rundown> {

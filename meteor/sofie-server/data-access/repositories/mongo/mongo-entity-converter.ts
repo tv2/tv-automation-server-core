@@ -7,6 +7,11 @@ import { Timeline } from '../../../model/entities/timeline'
 import { Identifier } from '../../../model/interfaces/identifier'
 import { AdLibPiece } from '../../../model/entities/ad-lib-piece'
 
+export interface MongoIdentifier {
+	_id: string
+	name: string
+}
+
 export interface MongoRundown {
 	_id: string
 	externalId: string,
@@ -72,6 +77,17 @@ export interface MongoAdLibPiece {
 }
 
 export class MongoEntityConverter {
+
+	convertIdentifier(mongoIdentifier: MongoIdentifier): Identifier {
+		return {
+			id: mongoIdentifier._id,
+			name: mongoIdentifier.name
+		}
+	}
+
+	convertIdentifiers(mongoIdentifiers: MongoIdentifier[]): Identifier[] {
+		return mongoIdentifiers.map(this.convertIdentifier)
+	}
 
 	convertRundown(mongoRundown: MongoRundown): Rundown {
 		return new Rundown({

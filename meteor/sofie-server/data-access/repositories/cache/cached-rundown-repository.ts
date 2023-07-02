@@ -1,6 +1,7 @@
 import { RundownRepository } from '../interfaces/rundown-repository'
 import { Rundown } from '../../../model/entities/rundown'
 import { MisconfigurationException } from '../../../model/exceptions/misconfiguration-exception'
+import { Identifier } from '../../../model/interfaces/identifier'
 
 export class CachedRundownRepository implements RundownRepository {
 
@@ -33,13 +34,8 @@ export class CachedRundownRepository implements RundownRepository {
 		return this.cachedRundowns.get(rundownId) as Rundown
 	}
 
-	/**
-	 * ATTENTION: We currently have no way of knowing if we have all Rundowns loaded in cache or not.
-	 * Since the functionality of "getRundowns" most likely isn't needed (and hence will be deleted),
-	 * it won't be implementing a cache for now.
-	 */
-	async getRundowns(): Promise<Rundown[]> {
-		return this.rundownRepository.getRundowns()
+	async getRundownIdentifiers(): Promise<Identifier[]> {
+		return this.rundownRepository.getRundownIdentifiers()
 	}
 
 	// Only save in memory for now
