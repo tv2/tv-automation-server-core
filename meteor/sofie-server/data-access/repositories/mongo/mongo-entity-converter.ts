@@ -6,6 +6,7 @@ import { PieceType } from '../../../model/enums/piece-type'
 import { Timeline } from '../../../model/entities/timeline'
 import { Identifier } from '../../../model/interfaces/identifier'
 import { AdLibPiece } from '../../../model/entities/ad-lib-piece'
+import { PieceLifeSpan } from '../../../model/enums/PieceLifeSpan'
 
 export interface MongoIdentifier {
 	_id: string
@@ -54,11 +55,13 @@ export interface MongoPiece {
 	_id: string
 	startPartId: string
 	name: string
+	sourceLayerId: string
 	enable: {
 		start: number
 		duration: number
 	}
 	timelineObjectsString: string
+	lifespan: string
 }
 
 export interface MongoTimeline {
@@ -142,15 +145,35 @@ export class MongoEntityConverter {
 			id: mongoPiece._id,
 			partId: mongoPiece.startPartId,
 			name: mongoPiece.name,
+			layer: mongoPiece.sourceLayerId,
 			type: PieceType.UNKNOWN,
+			pieceLifeSpan: this.mapMongoPieceLifeSpan(mongoPiece.lifespan),
 			start: mongoPiece.enable.start,
 			duration: mongoPiece.enable.duration,
 			timelineObjects: JSON.parse(mongoPiece.timelineObjectsString)
 		})
 	}
 
+	mapMongoPieceLifeSpan(mongoPieceLifeSpan: string): PieceLifeSpan {
+		switch (mongoPieceLifeSpan) {
+			case 'showstyle-end':
+			case 'rundown-end':
+			case 'rundown-change': {
+				return PieceLifeSpan.INFINITE_RUNDOWN
+			}
+			case 'segment-end':
+			case 'segment-change': {
+				return PieceLifeSpan.INFINITE_SEGMENT
+			}
+			case 'part-only':
+			default: {
+				return PieceLifeSpan.NORMAL
+			}
+		}
+	}
+
 	convertPieces(mongoPieces: MongoPiece[]): Piece[] {
-		return mongoPieces.map(this.convertPiece)
+		return mongoPieces.map((mongoPiece) => this.convertPiece(mongoPiece))
 	}
 
 	convertToMongoTimeline(timeline: Timeline): MongoTimeline {

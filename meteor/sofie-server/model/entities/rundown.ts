@@ -7,6 +7,7 @@ import { NotFoundException } from '../exceptions/not-found-exception'
 import { NotActivatedException } from '../exceptions/not-activated-exception'
 import { AlreadyActivatedException } from '../exceptions/already-activated-exception'
 import { AdLibPiece } from './ad-lib-piece'
+import { Piece } from './piece'
 
 export interface RundownInterface {
 	id: string
@@ -28,6 +29,8 @@ export class Rundown {
 	private nextSegment: Segment
 	private nextPart: Part
 
+	private infinitePieces: Map<string, Piece> = new Map()
+
 	constructor(rundown: RundownInterface) {
 		this.id = rundown.id
 		this.name = rundown.name
@@ -35,22 +38,16 @@ export class Rundown {
 		this.isRundownActive = rundown.isActive
 	}
 
-	activate(): void {
+	public activate(): void {
 		if (this.isActive()) {
 			throw new AlreadyActivatedException('Can\'t activate Rundown since it is already activated')
 		}
-
-		this.activateFirstSegment()
-		this.activateFirstPart()
-		this.setNextFromActive()
-
 		this.isRundownActive = true
-	}
 
-	private activateFirstSegment(): void {
-		this.activeSegment = this.findFirstSegment()
-		this.activeSegment.putOnAir()
-		this.nextSegment = this.segments[1] // TODO: Assert that the next Segment is there
+		this.nextSegment = this.findFirstSegment()
+		this.nextPart = this.nextSegment.findFirstPart()
+
+		this.takeNext()
 	}
 
 	private findFirstSegment(): Segment {
@@ -59,10 +56,6 @@ export class Rundown {
 		})
 	}
 
-	private activateFirstPart(): void {
-		this.activePart = this.activeSegment.findFirstPart()
-		this.activePart.putOnAir()
-	}
 
 	private setNextFromActive(): void {
 		this.unmarkNextSegmentAndPart()
@@ -109,7 +102,7 @@ export class Rundown {
 		return this.segments[activeSegmentIndex + 1]
 	}
 
-	deactivate(): void {
+	public deactivate(): void {
 		this.assertActive('deactivate')
 		this.activeSegment.takeOffAir()
 		this.activePart.takeOffAir()
@@ -123,45 +116,59 @@ export class Rundown {
 		}
 	}
 
-	getActiveSegment(): Segment {
+	public getActiveSegment(): Segment {
 		this.assertActive('getActiveSegment')
 		return this.activeSegment
 	}
 
-	getNextSegment(): Segment {
+	public getNextSegment(): Segment {
 		this.assertActive('getNextSegment')
 		return this.nextSegment
 	}
 
-	getActivePart(): Part {
+	public getActivePart(): Part {
 		this.assertActive('getActivePart')
 		return this.activePart
 	}
 
-	getNextPart(): Part {
+	public getNextPart(): Part {
 		this.assertActive('getNextPart')
 		return this.nextPart
 	}
 
-	isActive(): boolean {
+	public isActive(): boolean {
 		return this.isRundownActive
 	}
 
-	takeNext(): void {
+	public takeNext(): void {
 		this.assertActive('takeNext')
-
-		this.activePart.takeOffAir()
-		this.activePart = this.nextPart
-		this.activePart.putOnAir()
-
-		this.activeSegment.takeOffAir()
-		this.activeSegment = this.nextSegment
-		this.activeSegment.putOnAir()
-
+		this.takeNextPart()
+		this.takeNextSegment()
 		this.setNextFromActive()
 	}
 
-	setNext(segmentId: string, partId: string): void {
+	private takeNextPart(): void {
+		if (this.activePart) {
+			this.activePart.takeOffAir()
+		}
+		this.activePart = this.nextPart
+		this.activePart.putOnAir()
+		this.activePart.getInfiniteRundownPieces().forEach((piece: Piece) => this.infinitePieces.set(piece.layer, piece))
+	}
+
+	/**
+	 * This needs information from the current active Part, so this must be called after the active Part has been updated.
+	 */
+	private takeNextSegment(): void {
+		if (this.activeSegment) {
+			this.activeSegment.takeOffAir()
+		}
+		this.activeSegment = this.nextSegment
+		this.activeSegment.putOnAir()
+		this.activeSegment.addInfinitePieces(this.activePart.getSegmentRundownPieces())
+	}
+
+	public setNext(segmentId: string, partId: string): void {
 		this.assertActive('setNext')
 
 		this.unmarkNextSegmentAndPart()
@@ -180,16 +187,20 @@ export class Rundown {
 		return segment
 	}
 
-	setSegments(segments: Segment[]): void {
+	public setSegments(segments: Segment[]): void {
 		this.segments = segments.sort((segmentOne: Segment, segmentTwo: Segment) => segmentOne.rank - segmentTwo.rank)
 	}
 
-	getSegments(): Segment[] {
+	public getSegments(): Segment[] {
 		return this.segments
 	}
 
-	adAdLibPiece(adLibPiece: AdLibPiece): void {
+	public adAdLibPiece(adLibPiece: AdLibPiece): void {
 		this.assertActive('adAdLiPiece')
 		this.activePart.addAdLibPiece(adLibPiece)
+	}
+
+	public getInfinitePieces(): Piece[] {
+		return Array.from(this.infinitePieces.values())
 	}
 }

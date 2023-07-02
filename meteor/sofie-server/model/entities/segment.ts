@@ -1,6 +1,7 @@
 import { Part } from './part'
 import { LastPartInSegmentException } from '../exceptions/last-part-in-segment-exception'
 import { NotFoundException } from '../exceptions/not-found-exception'
+import { Piece } from './piece'
 
 export interface SegmentInterface {
 	id: string
@@ -22,6 +23,8 @@ export class Segment {
 	private isSegmentNext: boolean
 	private parts: Part[]
 
+	private infinitePieces: Map<string, Piece> = new Map()
+
 	constructor(segment: SegmentInterface) {
 		this.id = segment.id
 		this.rundownId = segment.rundownId
@@ -33,35 +36,35 @@ export class Segment {
 		this.setParts(segment.parts ?? [])
 	}
 
-	findFirstPart(): Part {
+	public findFirstPart(): Part {
 		return this.parts[0]
 	}
 
-	putOnAir(): void {
+	public putOnAir(): void {
 		this.isSegmentOnAir = true
 	}
 
-	takeOffAir(): void {
+	public takeOffAir(): void {
 		this.isSegmentOnAir = false
 	}
 
-	isOnAir(): boolean {
+	public isOnAir(): boolean {
 		return this.isSegmentOnAir
 	}
 
-	setAsNext(): void {
+	public setAsNext(): void {
 		this.isSegmentNext = true
 	}
 
-	removeAsNext(): void {
+	public removeAsNext(): void {
 		this.isSegmentNext = false
 	}
 
-	isNext(): boolean {
+	public isNext(): boolean {
 		return this.isSegmentNext
 	}
 
-	findNextPart(fromPart: Part): Part {
+	public findNextPart(fromPart: Part): Part {
 		const fromPartIndex: number = this.parts.findIndex(part => part.id === fromPart.id)
 		if (fromPartIndex === -1) {
 			throw new NotFoundException(`Part does not exist in Segment`)
@@ -72,7 +75,7 @@ export class Segment {
 		return this.parts[fromPartIndex + 1]
 	}
 
-	findPart(partId: string): Part {
+	public findPart(partId: string): Part {
 		const part: Part | undefined = this.parts.find(part => part.id === partId)
 		if (!part) {
 			throw new NotFoundException(`Part "${partId}" does not exist in Segment "${this.id}"`)
@@ -80,11 +83,19 @@ export class Segment {
 		return part
 	}
 
-	setParts(parts: Part[]): void {
+	public setParts(parts: Part[]): void {
 		this.parts = parts.sort((partOne: Part, partTwo: Part) => partOne.rank - partTwo.rank)
 	}
 
-	getParts(): Part[] {
+	public getParts(): Part[] {
 		return this.parts
+	}
+
+	public addInfinitePieces(infinitePieces: Piece[]): void {
+		infinitePieces.forEach((piece: Piece) => this.infinitePieces.set(piece.layer, piece))
+	}
+
+	public getInfinitePieces(): Piece[] {
+		return Array.from(this.infinitePieces.values())
 	}
 }

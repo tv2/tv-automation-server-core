@@ -1,6 +1,7 @@
 import { Piece } from './piece'
 import { TimelineObject } from './timeline-object'
 import { AdLibPiece } from './ad-lib-piece'
+import { PieceLifeSpan } from '../enums/PieceLifeSpan'
 
 export interface PartInterface {
 	id: string
@@ -37,31 +38,31 @@ export class Part {
 		this.expectedDuration = part.expectedDuration
 	}
 
-	putOnAir(): void {
+	public putOnAir(): void {
 		this.isPartOnAir = true
 	}
 
-	takeOffAir(): void {
+	public takeOffAir(): void {
 		this.isPartOnAir = false
 	}
 
-	isOnAir(): boolean {
+	public isOnAir(): boolean {
 		return this.isPartOnAir
 	}
 
-	setAsNext(): void {
+	public setAsNext(): void {
 		this.isPartNext = true
 	}
 
-	removeAsNext(): void {
+	public removeAsNext(): void {
 		this.isPartNext = false
 	}
 
-	isNext(): boolean {
+	public isNext(): boolean {
 		return this.isPartNext
 	}
 
-	getTimelineObjects(): TimelineObject[] {
+	public getTimelineObjects(): TimelineObject[] {
 		const now: number = new Date().getTime()
 		const adLibTimelineObjects: TimelineObject[] = this.adLibPieces
 			.filter(piece => this.shouldAdLibPieceBeShown(piece, now))
@@ -76,7 +77,15 @@ export class Part {
 			&& ((adLibPiece.getExecutedAt() + adLibPiece.duration) > executionTime)
 	}
 
-	addAdLibPiece(adLibPiece: AdLibPiece): void {
+	public addAdLibPiece(adLibPiece: AdLibPiece): void {
 		this.adLibPieces.push(adLibPiece)
+	}
+
+	public getInfiniteRundownPieces(): Piece[] {
+		return this.pieces.filter(piece => piece.pieceLifeSpan === PieceLifeSpan.INFINITE_RUNDOWN)
+	}
+
+	public getSegmentRundownPieces(): Piece[] {
+		return this.pieces.filter(piece => piece.pieceLifeSpan === PieceLifeSpan.INFINITE_SEGMENT)
 	}
 }

@@ -1,5 +1,8 @@
 import { RundownService } from '../interfaces/rundown-service'
-import { AdLibPieceInsertedRundownEvent, RundownEvent } from '../../../model/interfaces/rundown-event'
+import {
+	AdLibPieceInsertedEvent,
+	InfiniteRundownPieceAddedEvent, RundownEvent
+} from '../../../model/interfaces/rundown-event'
 import { RundownEventType } from '../../../model/enums/rundown-event-type'
 import { RundownEventEmitter } from '../interfaces/rundown-event-emitter'
 import { RundownRepository } from '../../../data-access/repositories/interfaces/rundown-repository'
@@ -9,6 +12,7 @@ import { TimelineBuilder } from '../interfaces/timeline-builder'
 import { Timeline } from '../../../model/entities/timeline'
 import { AdLibPieceRepository } from '../../../data-access/repositories/interfaces/ad-lib-piece-repository'
 import { AdLibPiece } from '../../../model/entities/ad-lib-piece'
+import { Piece } from '../../../model/entities/piece'
 
 export class RundownTimelineService implements RundownService {
 
@@ -36,9 +40,12 @@ export class RundownTimelineService implements RundownService {
 		const rundown: Rundown = await this.rundownRepository.getRundown(rundownId)
 
 		rundown.activate()
+		
 		const timeline: Timeline = this.timelineBuilder.buildTimeline(rundown)
-
 		this.timelineRepository.saveTimeline(timeline)
+
+		this.emitAddInfinitePieces(rundown, [])
+
 		this.rundownRepository.saveRundown(rundown)
 
 		const activateEvent: RundownEvent = {
@@ -67,22 +74,26 @@ export class RundownTimelineService implements RundownService {
 		this.timelineRepository.saveTimeline(timeline)
 		this.rundownRepository.saveRundown(rundown)
 
-		const activateEvent: RundownEvent = {
+		const deactivateEvent: RundownEvent = {
 			type: RundownEventType.DEACTIVATE,
 			rundownId: rundown.id,
 			segmentId: '',
 			partId: ''
 		}
-		this.rundownEventEmitter.emitRundownEvent(activateEvent)
+		this.rundownEventEmitter.emitRundownEvent(deactivateEvent)
 	}
 
 	async takeNext(rundownId: string): Promise<void> {
 		const rundown: Rundown = await this.rundownRepository.getRundown(rundownId)
+		const infinitePiecesBefore: Piece[] = rundown.getInfinitePieces()
 
 		rundown.takeNext()
-		const timeline: Timeline = this.timelineBuilder.buildTimeline(rundown)
 
+		const timeline: Timeline = this.timelineBuilder.buildTimeline(rundown)
 		this.timelineRepository.saveTimeline(timeline)
+
+		this.emitAddInfinitePieces(rundown, infinitePiecesBefore)
+
 		this.rundownRepository.saveRundown(rundown)
 
 		const takeEvent: RundownEvent = {
@@ -100,6 +111,22 @@ export class RundownTimelineService implements RundownService {
 			partId: rundown.getNextPart().id
 		}
 		this.rundownEventEmitter.emitRundownEvent(setNextEvent)
+	}
+
+	private emitAddInfinitePieces(rundown: Rundown, infinitePiecesBefore: Piece[]): void {
+		const infinitePiecesAfter: Piece[] = rundown.getInfinitePieces()
+		infinitePiecesAfter
+			.filter(piece => !infinitePiecesBefore.includes(piece))
+			.forEach(piece => {
+				const infinitePieceAddedEvent: InfiniteRundownPieceAddedEvent = {
+					type: RundownEventType.INFINITE_RUNDOWN_PIECE_ADDED,
+					rundownId: rundown.id,
+					segmentId: '',
+					partId: '',
+					infinitePiece: piece
+				}
+				this.rundownEventEmitter.emitRundownEvent(infinitePieceAddedEvent)
+			})
 	}
 
 	async setNext(rundownId: string, segmentId: string, partId: string): Promise<void> {
@@ -131,7 +158,7 @@ export class RundownTimelineService implements RundownService {
 		this.timelineRepository.saveTimeline(timeline)
 		this.rundownRepository.saveRundown(rundown)
 
-		const adLibPieceInsertedEvent: AdLibPieceInsertedRundownEvent = {
+		const adLibPieceInsertedEvent: AdLibPieceInsertedEvent = {
 			type: RundownEventType.AD_LIB_PIECE_INSERTED,
 			rundownId: rundown.id,
 			segmentId: rundown.getActiveSegment().id,

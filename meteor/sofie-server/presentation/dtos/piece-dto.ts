@@ -6,6 +6,7 @@ export class PieceDto {
 	readonly name: string
 	readonly start: number
 	readonly duration: number
+	readonly layer: string
 
 	constructor(piece: Piece) {
 		this.id = piece.id
@@ -13,5 +14,6 @@ export class PieceDto {
 		this.name = piece.name
 		this.start = piece.start
 		this.duration = piece.duration
+		this.layer = piece.layer
 	}
 }
