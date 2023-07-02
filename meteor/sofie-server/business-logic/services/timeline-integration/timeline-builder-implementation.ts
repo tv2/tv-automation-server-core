@@ -4,11 +4,11 @@ import { Timeline } from '../../../model/entities/timeline'
 
 export class TimelineBuilderImplementation implements TimelineBuilder {
 
-	getBaseTimeline(): Timeline {
+	public getBaseTimeline(): Timeline {
 		return { timelineObjects: [] }
 	}
 
-	buildTimeline(rundown: Rundown): Timeline {
+	public buildTimeline(rundown: Rundown): Timeline {
 		return {
 			timelineObjects: rundown.getActivePart().getTimelineObjects()
 		}

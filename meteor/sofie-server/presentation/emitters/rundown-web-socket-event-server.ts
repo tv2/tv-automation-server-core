@@ -10,7 +10,7 @@ export class RundownWebSocketEventServer implements RundownEventServer {
 
 	private static instance: RundownEventServer
 
-	static getInstance(rundownEventListener?: RundownEventListener): RundownEventServer {
+	public static getInstance(rundownEventListener?: RundownEventListener): RundownEventServer {
 		if (!this.instance) {
 			if (!rundownEventListener) {
 				throw new MisconfigurationException(`No RundownEventListener provided. Unable to create instance of ${RundownWebSocketEventServer.name}`)
@@ -28,7 +28,7 @@ export class RundownWebSocketEventServer implements RundownEventServer {
 		this.rundownEventListener = rundownEventListener
 	}
 
-	startServer(port: number): void {
+	public startServer(port: number): void {
 		if (this.webSocketServer) {
 			console.log('### Server is already started')
 			return
@@ -72,7 +72,7 @@ export class RundownWebSocketEventServer implements RundownEventServer {
 		})
 	}
 
-	killServer(): void {
+	public killServer(): void {
 		if (!this.webSocketServer) {
 			console.log('### Server is already dead')
 			return

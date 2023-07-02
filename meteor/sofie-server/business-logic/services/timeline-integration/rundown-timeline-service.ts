@@ -36,11 +36,11 @@ export class RundownTimelineService implements RundownService {
 		this.timelineBuilder = timelineBuilder
 	}
 
-	async activateRundown(rundownId: string): Promise<void> {
+	public async activateRundown(rundownId: string): Promise<void> {
 		const rundown: Rundown = await this.rundownRepository.getRundown(rundownId)
 
 		rundown.activate()
-		
+
 		const timeline: Timeline = this.timelineBuilder.buildTimeline(rundown)
 		this.timelineRepository.saveTimeline(timeline)
 
@@ -65,7 +65,7 @@ export class RundownTimelineService implements RundownService {
 		this.rundownEventEmitter.emitRundownEvent(setNextEvent)
 	}
 
-	async deactivateRundown(rundownId: string): Promise<void> {
+	public async deactivateRundown(rundownId: string): Promise<void> {
 		const rundown: Rundown = await this.rundownRepository.getRundown(rundownId)
 
 		rundown.deactivate()
@@ -83,7 +83,7 @@ export class RundownTimelineService implements RundownService {
 		this.rundownEventEmitter.emitRundownEvent(deactivateEvent)
 	}
 
-	async takeNext(rundownId: string): Promise<void> {
+	public async takeNext(rundownId: string): Promise<void> {
 		const rundown: Rundown = await this.rundownRepository.getRundown(rundownId)
 		const infinitePiecesBefore: Piece[] = rundown.getInfinitePieces()
 
@@ -129,7 +129,7 @@ export class RundownTimelineService implements RundownService {
 			})
 	}
 
-	async setNext(rundownId: string, segmentId: string, partId: string): Promise<void> {
+	public async setNext(rundownId: string, segmentId: string, partId: string): Promise<void> {
 		const rundown: Rundown = await this.rundownRepository.getRundown(rundownId)
 		rundown.setNext(segmentId, partId)
 		this.rundownRepository.saveRundown(rundown)
@@ -143,11 +143,11 @@ export class RundownTimelineService implements RundownService {
 		this.rundownEventEmitter.emitRundownEvent(setNextEvent)
 	}
 
-	async resetRundown(_rundownId: string): Promise<void> {
+	public async resetRundown(_rundownId: string): Promise<void> {
 		throw new Error('Not implemented exception')
 	}
 
-	async executeAdLibPiece(rundownId: string, adLibPieceId: string): Promise<void> {
+	public async executeAdLibPiece(rundownId: string, adLibPieceId: string): Promise<void> {
 		const rundown: Rundown = await this.rundownRepository.getRundown(rundownId)
 		const adLibPiece: AdLibPiece = await this.adLibPieceRepository.getAdLibPiece(adLibPieceId)
 

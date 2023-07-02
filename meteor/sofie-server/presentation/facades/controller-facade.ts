@@ -4,7 +4,7 @@ import { RepositoryFacade } from '../../data-access/facades/repository-facade'
 import { ExpressErrorHandler } from '../express-error-handler'
 
 export class ControllerFacade {
-	static createRundownController(): RundownController {
+	public static createRundownController(): RundownController {
 		return new RundownController(
 			ServiceFacade.createRundownService(),
 			RepositoryFacade.createRundownRepository(),

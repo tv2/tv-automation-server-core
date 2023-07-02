@@ -17,11 +17,11 @@ export class MongoRundownRepository extends BaseMongoRepository implements Rundo
 		this.segmentRepository = segmentRepository
 	}
 
-	getCollectionName(): string {
+	protected getCollectionName(): string {
 		return RUNDOWN_COLLECTION_NAME
 	}
 
-	async getRundownIdentifiers(): Promise<Identifier[]> {
+	public async getRundownIdentifiers(): Promise<Identifier[]> {
 		this.assertDatabaseConnection('getRundowns')
 		const mongoIdentifiers: MongoIdentifier[] =  await this.getCollection()
 			.find({})
@@ -30,7 +30,7 @@ export class MongoRundownRepository extends BaseMongoRepository implements Rundo
 		return this.mongoEntityConverter.convertIdentifiers(mongoIdentifiers)
 	}
 
-	async getRundown(rundownId: string): Promise<Rundown> {
+	public async getRundown(rundownId: string): Promise<Rundown> {
 		this.assertDatabaseConnection('getRundown')
 		const mongoRundown: MongoRundown = await this.getCollection().findOne({ '_id': rundownId }) as unknown as MongoRundown
 		const rundown = this.mongoEntityConverter.convertRundown(mongoRundown)
@@ -38,7 +38,7 @@ export class MongoRundownRepository extends BaseMongoRepository implements Rundo
 		return rundown
 	}
 
-	saveRundown(_rundown: Rundown): void {
+	public saveRundown(_rundown: Rundown): void {
 		throw new Error('Not implemented')
 	}
 }

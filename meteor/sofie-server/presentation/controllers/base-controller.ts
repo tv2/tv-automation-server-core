@@ -25,7 +25,7 @@ interface Route {
 }
 
 export abstract class BaseController {
-	getRoutes(): Route[] {
+	public getRoutes(): Route[] {
 		const methods = getMethods(this)
 		const paths = getPaths(this)
 		return [...methods.keys()].map((methodName: string) => ({

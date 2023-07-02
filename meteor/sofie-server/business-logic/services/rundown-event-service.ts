@@ -5,7 +5,7 @@ import { RundownEventEmitter } from './interfaces/rundown-event-emitter'
 export class RundownEventService implements RundownEventEmitter, RundownEventListener {
 	private static instance: RundownEventService
 
-	static getInstance(): RundownEventService {
+	public static getInstance(): RundownEventService {
 		if (!this.instance) {
 			this.instance = new RundownEventService()
 		}
@@ -14,11 +14,11 @@ export class RundownEventService implements RundownEventEmitter, RundownEventLis
 
 	private callbacks: ((rundownEvent: RundownEvent) => void)[] = []
 
-	emitRundownEvent(rundownEvent: RundownEvent) {
+	public emitRundownEvent(rundownEvent: RundownEvent) {
 		this.callbacks.forEach(cb => cb(rundownEvent))
 	}
 
-	listenToRundownEvents(onRundownEventCallback: (rundownEvent: RundownEvent) => void) {
+	public listenToRundownEvents(onRundownEventCallback: (rundownEvent: RundownEvent) => void) {
 		this.callbacks.push(onRundownEventCallback)
 	}
 }

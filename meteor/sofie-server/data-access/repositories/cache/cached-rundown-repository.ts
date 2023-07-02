@@ -7,7 +7,7 @@ export class CachedRundownRepository implements RundownRepository {
 
 	private static instance: RundownRepository
 
-	static getInstance(rundownRepository?: RundownRepository): RundownRepository {
+	public static getInstance(rundownRepository?: RundownRepository): RundownRepository {
 		if (!this.instance) {
 			if (!rundownRepository) {
 				throw new MisconfigurationException(`No RundownRepository provided. Unable to create instance of ${CachedRundownRepository.name}`)
@@ -25,7 +25,7 @@ export class CachedRundownRepository implements RundownRepository {
 		this.rundownRepository = rundownRepository
 	}
 
-	async getRundown(rundownId: string): Promise<Rundown> {
+	public async getRundown(rundownId: string): Promise<Rundown> {
 		if (!this.cachedRundowns.has(rundownId)) {
 			console.log(`### Rundown with id: "${rundownId}" not found in cache. Loading rundown from database...`)
 			const rundown: Rundown = await this.rundownRepository.getRundown(rundownId)
@@ -34,12 +34,12 @@ export class CachedRundownRepository implements RundownRepository {
 		return this.cachedRundowns.get(rundownId) as Rundown
 	}
 
-	async getRundownIdentifiers(): Promise<Identifier[]> {
+	public async getRundownIdentifiers(): Promise<Identifier[]> {
 		return this.rundownRepository.getRundownIdentifiers()
 	}
 
 	// Only save in memory for now
-	saveRundown(rundown: Rundown): void {
+	public saveRundown(rundown: Rundown): void {
 		if (this.cachedRundowns.has(rundown.id)) {
 			this.cachedRundowns.set(rundown.id, rundown)
 		}

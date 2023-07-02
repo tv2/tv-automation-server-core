@@ -21,25 +21,25 @@ class SofieServer {
 		this.configureRoutes()
 	}
 
-	configureServer(): void {
+	public configureServer(): void {
 		this.server = express()
 		this.server.use(express.json())
 		this.server.use(cors())
 	}
 
-	configureRoutes(): void {
+	public configureRoutes(): void {
 		controllers
 			.map(this.mapControllerToRouter)
 			.forEach(router => this.addRouterToServer(router))
 	}
 
-	mapControllerToRouter(controller: BaseController): Router {
+	public mapControllerToRouter(controller: BaseController): Router {
 		const router = Router()
 		controller.getRoutes().forEach((route) => router[route.method](route.path, route.action.bind(controller)))
 		return router
 	}
 
-	addRouterToServer(router: Router): void {
+	public addRouterToServer(router: Router): void {
 		this.server.use('/api', router)
 	}
 }

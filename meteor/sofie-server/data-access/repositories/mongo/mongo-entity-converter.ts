@@ -81,18 +81,18 @@ export interface MongoAdLibPiece {
 
 export class MongoEntityConverter {
 
-	convertIdentifier(mongoIdentifier: MongoIdentifier): Identifier {
+	public convertIdentifier(mongoIdentifier: MongoIdentifier): Identifier {
 		return {
 			id: mongoIdentifier._id,
 			name: mongoIdentifier.name
 		}
 	}
 
-	convertIdentifiers(mongoIdentifiers: MongoIdentifier[]): Identifier[] {
+	public convertIdentifiers(mongoIdentifiers: MongoIdentifier[]): Identifier[] {
 		return mongoIdentifiers.map(this.convertIdentifier)
 	}
 
-	convertRundown(mongoRundown: MongoRundown): Rundown {
+	public convertRundown(mongoRundown: MongoRundown): Rundown {
 		return new Rundown({
 			id: mongoRundown._id,
 			name: mongoRundown.name,
@@ -101,11 +101,11 @@ export class MongoEntityConverter {
 		})
 	}
 
-	convertRundowns(mongoRundowns: MongoRundown[]): Rundown[] {
+	public convertRundowns(mongoRundowns: MongoRundown[]): Rundown[] {
 		return mongoRundowns.map(this.convertRundown)
 	}
 
-	convertSegment(mongoSegment: MongoSegment): Segment {
+	public convertSegment(mongoSegment: MongoSegment): Segment {
 		return new Segment({
 			id: mongoSegment._id,
 			rundownId: mongoSegment.rundownId,
@@ -117,13 +117,13 @@ export class MongoEntityConverter {
 		})
 	}
 
-	convertSegments(mongoSegments: MongoSegment[]): Segment[] {
+	public convertSegments(mongoSegments: MongoSegment[]): Segment[] {
 		return mongoSegments
 			.filter(segment => !segment.isHidden)
 			.map(this.convertSegment)
 	}
 
-	convertPart(mongoPart: MongoPart): Part {
+	public convertPart(mongoPart: MongoPart): Part {
 		return new Part({
 			id: mongoPart._id,
 			segmentId: mongoPart.segmentId,
@@ -136,11 +136,11 @@ export class MongoEntityConverter {
 		})
 	}
 
-	convertParts(mongoParts: MongoPart[]): Part[] {
+	public convertParts(mongoParts: MongoPart[]): Part[] {
 		return mongoParts.map(this.convertPart)
 	}
 
-	convertPiece(mongoPiece: MongoPiece): Piece {
+	public convertPiece(mongoPiece: MongoPiece): Piece {
 		return new Piece({
 			id: mongoPiece._id,
 			partId: mongoPiece.startPartId,
@@ -154,7 +154,7 @@ export class MongoEntityConverter {
 		})
 	}
 
-	mapMongoPieceLifeSpan(mongoPieceLifeSpan: string): PieceLifeSpan {
+	private mapMongoPieceLifeSpan(mongoPieceLifeSpan: string): PieceLifeSpan {
 		switch (mongoPieceLifeSpan) {
 			case 'showstyle-end':
 			case 'rundown-end':
@@ -172,11 +172,11 @@ export class MongoEntityConverter {
 		}
 	}
 
-	convertPieces(mongoPieces: MongoPiece[]): Piece[] {
+	public convertPieces(mongoPieces: MongoPiece[]): Piece[] {
 		return mongoPieces.map((mongoPiece) => this.convertPiece(mongoPiece))
 	}
 
-	convertToMongoTimeline(timeline: Timeline): MongoTimeline {
+	public convertToMongoTimeline(timeline: Timeline): MongoTimeline {
 		return {
 			_id: 'studio0',
 			timelineHash: '',
@@ -185,18 +185,18 @@ export class MongoEntityConverter {
 		}
 	}
 
-	convertMongoAdLibPieceToIdentifier(mongoAdLibPiece: MongoAdLibPiece): Identifier {
+	public convertMongoAdLibPieceToIdentifier(mongoAdLibPiece: MongoAdLibPiece): Identifier {
 		return {
 			id: mongoAdLibPiece._id,
 			name: mongoAdLibPiece.name
 		}
 	}
 
-	convertMongoAdLibPiecesToIdentifiers(mongoAdLibPieces: MongoAdLibPiece[]): Identifier[] {
+	public convertMongoAdLibPiecesToIdentifiers(mongoAdLibPieces: MongoAdLibPiece[]): Identifier[] {
 		return mongoAdLibPieces.map(piece => this.convertMongoAdLibPieceToIdentifier(piece))
 	}
 
-	convertAdLib(mongoAdLibPiece: MongoAdLibPiece): AdLibPiece {
+	public convertAdLib(mongoAdLibPiece: MongoAdLibPiece): AdLibPiece {
 		return new AdLibPiece({
 			id: mongoAdLibPiece._id,
 			rundownId: mongoAdLibPiece.rundownId,
@@ -206,7 +206,7 @@ export class MongoEntityConverter {
 		})
 	}
 
-	convertAdLibs(mongoAdLibPieces: MongoAdLibPiece[]): AdLibPiece[] {
+	public convertAdLibs(mongoAdLibPieces: MongoAdLibPiece[]): AdLibPiece[] {
 		return mongoAdLibPieces.map(piece => this.convertAdLib(piece))
 	}
 }

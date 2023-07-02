@@ -12,11 +12,11 @@ export class MongoTimelineRepository extends BaseMongoRepository implements Time
 		super(mongoDatabase, mongoEntityConverter)
 	}
 
-	getCollectionName(): string {
+	protected getCollectionName(): string {
 		return TIMELINE_COLLECTION_NAME
 	}
 
-	async saveTimeline(timeline: Timeline): Promise<void> {
+	public async saveTimeline(timeline: Timeline): Promise<void> {
 		this.assertDatabaseConnection('saveTimeline')
 		const mongoTimeline: MongoTimeline = this.mongoEntityConverter.convertToMongoTimeline(timeline)
 		await this.getCollection().replaceOne({ _id: mongoTimeline._id }, mongoTimeline)

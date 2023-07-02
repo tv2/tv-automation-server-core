@@ -25,7 +25,7 @@ export class AdLibPiece {
 		this.timelineObjects = adLib.timelineObjects
 	}
 
-	setExecutedAt(executionTime: number): void {
+	public setExecutedAt(executionTime: number): void {
 		this.executedAt = executionTime
 		if (this.duration <= 0) {
 			return
@@ -44,7 +44,7 @@ export class AdLibPiece {
 		})
 	}
 
-	getExecutedAt(): number {
+	public getExecutedAt(): number {
 		return this.executedAt ?? 0
 	}
 }

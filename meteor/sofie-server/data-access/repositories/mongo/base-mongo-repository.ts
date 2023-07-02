@@ -12,7 +12,7 @@ export abstract class BaseMongoRepository {
 		this.mongoEntityConverter = mongoEntityConverter
 	}
 
-	abstract getCollectionName(): string
+	protected abstract getCollectionName(): string
 
 	protected getCollection(): Collection {
 		return this.mongoDatabase.getCollection(this.getCollectionName())

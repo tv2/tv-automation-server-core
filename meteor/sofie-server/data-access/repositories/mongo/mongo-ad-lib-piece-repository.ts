@@ -14,17 +14,17 @@ export class MongoAdLibPieceRepository extends BaseMongoRepository implements Ad
 		super(mongoDatabase, mongoEntityConverter)
 	}
 
-	getCollectionName(): string {
+	protected getCollectionName(): string {
 		return AD_LIB_COLLECTION_NAME
 	}
 
-	async getAdLibPieceIdentifiers(rundownId: string): Promise<Identifier[]> {
+	public async getAdLibPieceIdentifiers(rundownId: string): Promise<Identifier[]> {
 		this.assertDatabaseConnection('getAdLibIdentifiers')
 		const mongoAdLibPieces: MongoAdLibPiece[] = await this.getCollection().find({ 'rundownId': rundownId }).toArray() as unknown as MongoAdLibPiece[]
 		return this.mongoEntityConverter.convertMongoAdLibPiecesToIdentifiers(mongoAdLibPieces)
 	}
 
-	async getAdLibPiece(adLibPieceId: string): Promise<AdLibPiece> {
+	public async getAdLibPiece(adLibPieceId: string): Promise<AdLibPiece> {
 		this.assertDatabaseConnection('getAdLibPiece')
 		const mongoAdLibPiece: MongoAdLibPiece = await this.getCollection().findOne({ '_id': adLibPieceId }) as unknown as MongoAdLibPiece
 		if (!mongoAdLibPiece) {

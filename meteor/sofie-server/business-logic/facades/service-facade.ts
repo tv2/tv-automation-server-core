@@ -6,7 +6,7 @@ import { TimelineBuilder } from '../services/interfaces/timeline-builder'
 import { TimelineBuilderImplementation } from '../services/timeline-integration/timeline-builder-implementation'
 
 export class ServiceFacade {
-	static createRundownService(): RundownService {
+	public static createRundownService(): RundownService {
 		// return new SofieCoreMeteorRundownService()
 		return new RundownTimelineService(
 			RundownEventService.getInstance(),
@@ -17,7 +17,7 @@ export class ServiceFacade {
 		)
 	}
 
-	static createTimelineBuilder(): TimelineBuilder {
+	public static createTimelineBuilder(): TimelineBuilder {
 		return new TimelineBuilderImplementation()
 	}
 }

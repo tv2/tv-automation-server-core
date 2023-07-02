@@ -31,20 +31,20 @@ export class RundownController extends BaseController {
 	}
 
 	@GetRequest('/identifiers')
-	async getRundownIdentifiers(_reg: Request, res: Response): Promise<void> {
+	public async getRundownIdentifiers(_reg: Request, res: Response): Promise<void> {
 		const rundownIdentifiers: Identifier[] = await this.rundownRepository.getRundownIdentifiers()
 		res.send(rundownIdentifiers)
 	}
 
 	@GetRequest('/:rundownId')
-	async getRundown(reg: Request, res: Response): Promise<void> {
+	public async getRundown(reg: Request, res: Response): Promise<void> {
 		const rundownId: string = reg.params.rundownId
 		const rundown: Rundown = await this.rundownRepository.getRundown(rundownId)
 		res.send(new RundownDto(rundown))
 	}
 
 	@PutRequest('/:rundownId/activate')
-	async activate(reg: Request, res: Response): Promise<void> {
+	public async activate(reg: Request, res: Response): Promise<void> {
 		try {
 			const rundownId: string = reg.params.rundownId
 			await this.rundownService.activateRundown(rundownId)
@@ -55,7 +55,7 @@ export class RundownController extends BaseController {
 	}
 
 	@PutRequest('/:rundownId/deactivate')
-	async deactivate(reg: Request, res: Response): Promise<void> {
+	public async deactivate(reg: Request, res: Response): Promise<void> {
 		try {
 			const rundownId: string = reg.params.rundownId
 			await this.rundownService.deactivateRundown(rundownId)
@@ -66,7 +66,7 @@ export class RundownController extends BaseController {
 	}
 
 	@PutRequest('/:rundownId/takeNext')
-	async takeNext(reg: Request, res: Response): Promise<void> {
+	public async takeNext(reg: Request, res: Response): Promise<void> {
 		try {
 			const rundownId: string = reg.params.rundownId
 			await this.rundownService.takeNext(rundownId)
@@ -77,7 +77,7 @@ export class RundownController extends BaseController {
 	}
 
 	@PutRequest('/:rundownId/segments/:segmentId/parts/:partId/setNext')
-	async setNext(reg: Request, res: Response): Promise<void> {
+	public async setNext(reg: Request, res: Response): Promise<void> {
 		try {
 			const rundownId: string = reg.params.rundownId
 			const segmentId: string = reg.params.segmentId
@@ -90,7 +90,7 @@ export class RundownController extends BaseController {
 	}
 
 	@PutRequest('/:rundownId/reset')
-	async resetRundown(reg: Request, res: Response): Promise<void> {
+	public async resetRundown(reg: Request, res: Response): Promise<void> {
 		try {
 			const rundownId: string = reg.params.rundownId
 			await this.rundownService.resetRundown(rundownId)
@@ -101,7 +101,7 @@ export class RundownController extends BaseController {
 	}
 
 	@GetRequest('/:rundownId/adLibPieces')
-	async getAdLibPiecesForRundown(reg: Request, res: Response): Promise<void> {
+	public async getAdLibPiecesForRundown(reg: Request, res: Response): Promise<void> {
 		try {
 			const rundownId: string = reg.params.rundownId
 			const identifiers: Identifier[] = await this.adLibRepository.getAdLibPieceIdentifiers(rundownId)
@@ -112,7 +112,7 @@ export class RundownController extends BaseController {
 	}
 
 	@PutRequest('/:rundownId/adLibPieces/:adLibPieceId')
-	async executeAdLibPiece(reg: Request, res: Response): Promise<void> {
+	public async executeAdLibPiece(reg: Request, res: Response): Promise<void> {
 		try {
 			const rundownId: string = reg.params.rundownId
 			const adLibId: string = reg.params.adLibPieceId

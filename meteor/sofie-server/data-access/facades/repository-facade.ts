@@ -15,7 +15,7 @@ import { AdLibPieceRepository } from '../repositories/interfaces/ad-lib-piece-re
 import { MongoAdLibPieceRepository } from '../repositories/mongo/mongo-ad-lib-piece-repository'
 
 export class RepositoryFacade {
-	static createRundownRepository(): RundownRepository {
+	public static createRundownRepository(): RundownRepository {
 		return CachedRundownRepository.getInstance(
 			new MongoRundownRepository(
 				MongoDatabase.getInstance(),
@@ -25,7 +25,7 @@ export class RepositoryFacade {
 		)
 	}
 
-	static createSegmentRepository(): SegmentRepository {
+	public static createSegmentRepository(): SegmentRepository {
 		return new MongoSegmentRepository(
 			MongoDatabase.getInstance(),
 			new MongoEntityConverter(),
@@ -33,7 +33,7 @@ export class RepositoryFacade {
 		)
 	}
 
-	static createPartRepository(): PartRepository {
+	public static createPartRepository(): PartRepository {
 		return new MongoPartRepository(
 			MongoDatabase.getInstance(),
 			new MongoEntityConverter(),
@@ -41,21 +41,21 @@ export class RepositoryFacade {
 		)
 	}
 
-	static createPieceRepository(): PieceRepository {
+	public static createPieceRepository(): PieceRepository {
 		return new MongoPieceRepository(
 			MongoDatabase.getInstance(),
 			new MongoEntityConverter()
 		)
 	}
 
-	static createTimelineRepository(): TimelineRepository {
+	public static createTimelineRepository(): TimelineRepository {
 		return new MongoTimelineRepository(
 			MongoDatabase.getInstance(),
 			new MongoEntityConverter()
 		)
 	}
 
-	static createAdLibRepository(): AdLibPieceRepository {
+	public static createAdLibRepository(): AdLibPieceRepository {
 		return new MongoAdLibPieceRepository(
 			MongoDatabase.getInstance(),
 			new MongoEntityConverter()

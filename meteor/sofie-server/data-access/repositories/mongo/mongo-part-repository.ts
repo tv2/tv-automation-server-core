@@ -16,11 +16,11 @@ export class MongoPartRepository extends BaseMongoRepository implements PartRepo
 		this.pieceRepository = pieceRepository
 	}
 
-	getCollectionName(): string {
+	protected getCollectionName(): string {
 		return PART_COLLECTION_NAME
 	}
 
-	async getParts(segmentId: string): Promise<Part[]> {
+	public async getParts(segmentId: string): Promise<Part[]> {
 		this.assertDatabaseConnection('getParts')
 		const mongoParts: MongoPart[] = await this.getCollection().find({ 'segmentId': segmentId }).toArray() as unknown as MongoPart[]
 		const parts: Part[] = this.mongoEntityConverter.convertParts(mongoParts)

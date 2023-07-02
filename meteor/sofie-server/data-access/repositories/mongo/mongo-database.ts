@@ -10,7 +10,7 @@ export class MongoDatabase {
 
 	private static instance: MongoDatabase
 
-	static getInstance(): MongoDatabase {
+	public static getInstance(): MongoDatabase {
 		if (!this.instance) {
 			this.instance = new MongoDatabase()
 		}
@@ -37,7 +37,7 @@ export class MongoDatabase {
 		console.log(`### Connected to database: ${this.db.databaseName}`)
 	}
 
-	getCollection(collectionName: string): Collection {
+	public getCollection(collectionName: string): Collection {
 		this.assertDatabaseConnection()
 		return this.db.collection(collectionName)
 	}
@@ -48,7 +48,7 @@ export class MongoDatabase {
 		}
 	}
 
-	getDatabaseName(): string {
+	public getDatabaseName(): string {
 		return MONGO_DB_NAME
 	}
 }

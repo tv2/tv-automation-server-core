@@ -7,11 +7,11 @@ import { RundownPlaylistId } from '@sofie-automation/shared-lib/dist/core/model/
 
 export class SofieCoreMeteorRundownService implements RundownService {
 
-	async activateRundown(_rundownId: string): Promise<void> {
+	public async activateRundown(_rundownId: string): Promise<void> {
 		throw new Error('Not implemented exception')
 	}
 
-	async takeNext(rundownId: string): Promise<void> {
+	public async takeNext(rundownId: string): Promise<void> {
 		const rundownPlaylistId: RundownPlaylistId = rundownId as unknown as RundownPlaylistId
 		ServerClientAPI.runUserActionInLogForPlaylistOnWorker(
 			this.getMeteorMethodContext(),
@@ -57,11 +57,11 @@ export class SofieCoreMeteorRundownService implements RundownService {
 		}
 	}
 
-	async setNext(_rundownId: string, _partId: string): Promise<void> {
+	public async setNext(_rundownId: string, _partId: string): Promise<void> {
 		throw new Error('Not implemented exception')
 	}
 
-	async resetRundown(rundownId: string): Promise<void> {
+	public async resetRundown(rundownId: string): Promise<void> {
 		const rundownPlaylistId: RundownPlaylistId = rundownId as unknown as RundownPlaylistId
 		ServerClientAPI.runUserActionInLogForPlaylistOnWorker(
 			this.getMeteorMethodContext(),
@@ -78,11 +78,11 @@ export class SofieCoreMeteorRundownService implements RundownService {
 		)
 	}
 
-	async deactivateRundown(_rundownId: string): Promise<void> {
+	public async deactivateRundown(_rundownId: string): Promise<void> {
 		throw new Error('Not implemented exception')
 	}
 
-	executeAdLibPiece(_rundownId: string, _adLibId: string): Promise<void> {
+	public executeAdLibPiece(_rundownId: string, _adLibId: string): Promise<void> {
 		throw new Error('Not implemented exception')
 	}
 }

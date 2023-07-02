@@ -12,11 +12,11 @@ export class MongoPieceRepository extends BaseMongoRepository implements PieceRe
 		super(mongoDatabase, mongoEntityConverter)
 	}
 
-	getCollectionName(): string {
+	protected getCollectionName(): string {
 		return PIECE_COLLECTION_NAME
 	}
 
-	async getPieces(partId: string): Promise<Piece[]> {
+	public async getPieces(partId: string): Promise<Piece[]> {
 		this.assertDatabaseConnection('getPieces')
 		const mongoPieces: MongoPiece[] = await this.getCollection().find({ 'startPartId': partId}).toArray() as unknown as MongoPiece[]
 		return this.mongoEntityConverter.convertPieces(mongoPieces)
