@@ -7,6 +7,7 @@ import { RundownDto } from '../dtos/rundown-dto'
 import { Exception } from '../../model/exceptions/exception'
 import { Identifier } from '../../model/interfaces/identifier'
 import { AdLibPieceRepository } from '../../data-access/repositories/interfaces/ad-lib-piece-repository'
+import { HttpErrorHandler } from '../interfaces/http-error-handler'
 
 @RestController('/rundowns')
 export class RundownController extends BaseController {
@@ -14,12 +15,19 @@ export class RundownController extends BaseController {
 	private rundownService: RundownService
 	private rundownRepository: RundownRepository
 	private adLibRepository: AdLibPieceRepository
+	private httpErrorHandler: HttpErrorHandler
 
-	constructor(rundownService: RundownService, rundownRepository: RundownRepository, adLibRepository: AdLibPieceRepository) {
+	constructor(
+		rundownService: RundownService,
+		rundownRepository: RundownRepository,
+		adLibRepository: AdLibPieceRepository,
+		httpErrorHandler: HttpErrorHandler
+	) {
 		super()
 		this.rundownService = rundownService
 		this.rundownRepository = rundownRepository
 		this.adLibRepository = adLibRepository
+		this.httpErrorHandler = httpErrorHandler
 	}
 
 	@GetRequest('/identifiers')
@@ -37,89 +45,81 @@ export class RundownController extends BaseController {
 
 	@PutRequest('/:rundownId/activate')
 	async activate(reg: Request, res: Response): Promise<void> {
-		const rundownId: string = reg.params.rundownId
 		try {
+			const rundownId: string = reg.params.rundownId
 			await this.rundownService.activateRundown(rundownId)
 			res.send(`Rundown "${rundownId}" successfully activated`)
 		} catch (error) {
-			this.handleError(res, error as Exception)
+			this.httpErrorHandler.handleError(res, error as Exception)
 		}
-	}
-
-	handleError(res: Response, exception: Exception) {
-		console.log(`Caught Exception: "${exception.errorCode}". Message: ${exception.message}`)
-		console.log(exception.stack)
-
-		res.status(500).send(`${exception.errorCode} - ${exception.message}`)
 	}
 
 	@PutRequest('/:rundownId/deactivate')
 	async deactivate(reg: Request, res: Response): Promise<void> {
-		const rundownId: string = reg.params.rundownId
 		try {
+			const rundownId: string = reg.params.rundownId
 			await this.rundownService.deactivateRundown(rundownId)
 			res.send(`Rundown "${rundownId}" successfully deactivated`)
 		} catch (error) {
-			this.handleError(res, error as Exception)
+			this.httpErrorHandler.handleError(res, error as Exception)
 		}
 	}
 
 	@PutRequest('/:rundownId/takeNext')
 	async takeNext(reg: Request, res: Response): Promise<void> {
-		const rundownId: string = reg.params.rundownId
 		try {
+			const rundownId: string = reg.params.rundownId
 			await this.rundownService.takeNext(rundownId)
 			res.send(`Rundown "${rundownId}" successfully took next`)
 		} catch (error) {
-			this.handleError(res, error as Exception)
+			this.httpErrorHandler.handleError(res, error as Exception)
 		}
 	}
 
 	@PutRequest('/:rundownId/segments/:segmentId/parts/:partId/setNext')
 	async setNext(reg: Request, res: Response): Promise<void> {
-		const rundownId: string = reg.params.rundownId
-		const segmentId: string = reg.params.segmentId
-		const partId: string = reg.params.partId
-
 		try {
+			const rundownId: string = reg.params.rundownId
+			const segmentId: string = reg.params.segmentId
+			const partId: string = reg.params.partId
 			await this.rundownService.setNext(rundownId, segmentId, partId)
 			res.send(`Part "${partId}" is now set as next`)
 		} catch (error) {
-			this.handleError(res, error as Exception)
+			this.httpErrorHandler.handleError(res, error as Exception)
 		}
 	}
 
 	@PutRequest('/:rundownId/reset')
 	async resetRundown(reg: Request, res: Response): Promise<void> {
-		const rundownId: string = reg.params.rundownId
 		try {
+			const rundownId: string = reg.params.rundownId
 			await this.rundownService.resetRundown(rundownId)
 			res.send(`Rundown "${rundownId}" has been reset`)
 		} catch (error) {
-			this.handleError(res, error as Exception)
+			this.httpErrorHandler.handleError(res, error as Exception)
 		}
 	}
 
 	@GetRequest('/:rundownId/adLibPieces')
 	async getAdLibPiecesForRundown(reg: Request, res: Response): Promise<void> {
-		const rundownId: string = reg.params.rundownId
 		try {
+			const rundownId: string = reg.params.rundownId
 			const identifiers: Identifier[] = await this.adLibRepository.getAdLibPieceIdentifiers(rundownId)
 			res.send(identifiers)
 		} catch (error) {
-			this.handleError(res, error as Exception)
+			this.httpErrorHandler.handleError(res, error as Exception)
 		}
 	}
 
 	@PutRequest('/:rundownId/adLibPieces/:adLibPieceId')
 	async executeAdLibPiece(reg: Request, res: Response): Promise<void> {
-		const rundownId: string = reg.params.rundownId
-		const adLibId: string = reg.params.adLibPieceId
 		try {
+			const rundownId: string = reg.params.rundownId
+			const adLibId: string = reg.params.adLibPieceId
 			await this.rundownService.executeAdLibPiece(rundownId, adLibId)
 			res.send(`Successfully executed AdLib ${adLibId} on Rundown ${rundownId}`)
 		} catch (error) {
-			this.handleError(res, error as Exception)
+			this.httpErrorHandler.handleError(res, error as Exception)
 		}
 	}
 }
