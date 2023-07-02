@@ -1,7 +1,8 @@
 import { RundownService } from '../interfaces/rundown-service'
 import {
 	AdLibPieceInsertedEvent,
-	InfiniteRundownPieceAddedEvent, RundownEvent
+	InfiniteRundownPieceAddedEvent,
+	RundownEvent
 } from '../../../model/interfaces/rundown-event'
 import { RundownEventType } from '../../../model/enums/rundown-event-type'
 import { RundownEventEmitter } from '../interfaces/rundown-event-emitter'
@@ -143,8 +144,22 @@ export class RundownTimelineService implements RundownService {
 		this.rundownEventEmitter.emitRundownEvent(setNextEvent)
 	}
 
-	public async resetRundown(_rundownId: string): Promise<void> {
-		throw new Error('Not implemented exception')
+	public async resetRundown(rundownId: string): Promise<void> {
+		const rundown: Rundown = await this.rundownRepository.getRundown(rundownId)
+		rundown.reset()
+
+		const timeline: Timeline = this.timelineBuilder.buildTimeline(rundown)
+
+		this.timelineRepository.saveTimeline(timeline)
+		this.rundownRepository.saveRundown(rundown)
+
+		const resetEvent: RundownEvent = {
+			type: RundownEventType.RESET,
+			rundownId: rundown.id,
+			segmentId: '',
+			partId: ''
+		}
+		this.rundownEventEmitter.emitRundownEvent(resetEvent)
 	}
 
 	public async executeAdLibPiece(rundownId: string, adLibPieceId: string): Promise<void> {

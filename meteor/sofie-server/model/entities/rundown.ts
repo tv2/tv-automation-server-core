@@ -107,6 +107,7 @@ export class Rundown {
 		this.activeSegment.takeOffAir()
 		this.activePart.takeOffAir()
 		this.unmarkNextSegmentAndPart()
+		this.infinitePieces = new Map()
 		this.isRundownActive = false
 	}
 
@@ -202,5 +203,10 @@ export class Rundown {
 
 	public getInfinitePieces(): Piece[] {
 		return Array.from(this.infinitePieces.values())
+	}
+
+	public reset(): void {
+		this.deactivate()
+		this.activate()
 	}
 }
