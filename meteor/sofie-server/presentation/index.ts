@@ -9,9 +9,7 @@ export * from './controllers/rundown-controller'
 const REST_API_PORT: number = 3005
 const RUNDOWN_EVENT_SERVER_PORT: number = 3006
 
-const controllers: BaseController[] = [
-	ControllerFacade.createRundownController()
-]
+const controllers: BaseController[] = ControllerFacade.getControllers()
 
 class SofieServer {
 	public server: Express
