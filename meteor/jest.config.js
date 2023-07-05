@@ -11,7 +11,7 @@ const commonConfig = {
 				plugins: [
 					'@babel/plugin-transform-modules-commonjs',
 					// Fibers and await do not work well together. This transpiles await calls to something that works
-					'meteor-babel/plugins/async-await.js',
+					// 'meteor-babel/plugins/async-await.js',
 				],
 			},
 			diagnostics: {
@@ -25,8 +25,9 @@ const commonConfig = {
 		'^.+\\.(js|jsx|mjs)$': path.resolve('./scripts/babel-jest.js'),
 	},
 	transformIgnorePatterns: ['node_modules/(?!(debounce-fn|p-queue|p-timeout|mimic-fn)/)', '\\.pnp\\.[^\\/]+$'],
-	globalSetup: './__mocks__/global-setup.js',
-	setupFilesAfterEnv: ['./__mocks__/_setupMocks.ts'],
+	// globalSetup: './__mocks__/global-setup.js',
+	setupFilesAfterEnv: [],
+	// setupFilesAfterEnv: ['./__mocks__/_setupMocks.ts'],
 	coverageThreshold: {
 		global: {
 			branches: 0,
@@ -77,6 +78,14 @@ module.exports = {
 			testMatch: [
 				'<rootDir>/server/__tests__/**/*.(spec|test).(ts|js)',
 				'<rootDir>/server/**/__tests__/**/*.(spec|test).(ts|js)',
+				'!.meteor/*.*',
+			],
+			testEnvironment: 'node',
+		}),
+		Object.assign({}, commonConfig, {
+			displayName: 'sofie-server',
+			testMatch: [
+				'<rootDir>/sofie-server/**/*.(spec|test).(ts|js)',
 				'!.meteor/*.*',
 			],
 			testEnvironment: 'node',
