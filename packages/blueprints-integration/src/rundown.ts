@@ -573,6 +573,10 @@ export enum PieceLifespan {
 	/** The Piece will only exist in it's designated Rundown. It will begin playing when taken and will stop when the
 	 * playhead leaves the Rundown */
 	OutOnRundownChange = 'rundown-change',
+	/** The Piece will only exist in its designated Rundown. It will begin playing when taken and will stop when the
+	 * playhead leaves the Rundown. It will begin playing when entering the Segment through any Part, and any preceding
+	 * Part in that Segment includes this piece. */
+	OutOnRundownChangeWithSegmentLookback = 'rundown-change-segment-lookback',
 	/** The Piece will only exist in it's designated Rundown. It will begin playing when taken and will stop when the
 	 * playhead leaves the Rundown or the playhead moves before the beginning of the Piece */
 	OutOnRundownEnd = 'rundown-end',
