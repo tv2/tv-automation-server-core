@@ -332,13 +332,12 @@ export function isPiecePotentiallyActiveInPart(
 					pieceToCheck.startSegmentId === part.segmentId &&
 					partsBeforeThisInSegment.has(pieceToCheck.startPartId)
 				)
-			} else {
-				// Predicting what will happen at arbitrary point in the future
-				return (
-					pieceToCheck.startRundownId === part.rundownId &&
-					segmentsBeforeThisInRundown.has(pieceToCheck.startSegmentId)
-				)
 			}
+			// Predicting what will happen at arbitrary point in the future
+			return (
+				pieceToCheck.startRundownId === part.rundownId &&
+				segmentsBeforeThisInRundown.has(pieceToCheck.startSegmentId)
+			)
 		case PieceLifespan.OutOnShowStyleEnd:
 			return previousPartInstance && pieceToCheck.lifespan === PieceLifespan.OutOnShowStyleEnd
 				? continueShowStyleEndInfinites(
@@ -469,7 +468,7 @@ export function getPieceInstancesForPart(
 
 			instance.infinite.fromPreviousPart = instance.piece.startPartId !== part._id
 			if (existingPiece && (instance.piece.startPartId !== part._id || instance.dynamicallyInserted)) {
-				// If it doesnt start in this part, then mark it as a continuation
+				// If it doesn't start in this part, then mark it as a continuation
 				markPieceInstanceAsContinuation(existingPiece, instance)
 			}
 
@@ -489,7 +488,7 @@ export function getPieceInstancesForPart(
 	}
 
 	const normalPieces = possiblePieces.filter((p) => p.startPartId === part._id)
-	const result = normalPieces.map(wrapPiece).concat(infinitesFromPrevious)
+	const pieceInstances = normalPieces.map(wrapPiece).concat(infinitesFromPrevious)
 	for (const pieceSet of Array.from(piecesOnSourceLayers.values())) {
 		const onEndPieces = _.compact([
 			pieceSet[PieceLifespan.OutOnShowStyleEnd],
@@ -497,25 +496,29 @@ export function getPieceInstancesForPart(
 			pieceSet[PieceLifespan.OutOnSegmentEnd],
 			pieceSet[PieceLifespan.OutOnRundownChangeWithSegmentLookback],
 		])
-		result.push(...onEndPieces.map(wrapPiece))
-
-		// if (pieceSet.onChange) {
-		// 	result.push(rewrapInstance(pieceSet.onChange))
-		// }
+		pieceInstances.push(...onEndPieces.map(wrapPiece))
 	}
 
-	const uniqueIds = new Set(result.map((piece) => piece._id))
-	return result.filter((piece) => {
-		const available = uniqueIds.has(piece._id)
-		uniqueIds.delete(piece._id)
-		return available
-	})
+	return removeDuplicatePieceInstances(pieceInstances)
+}
+
+function removeDuplicatePieceInstances(pieceInstances: PieceInstance[]): PieceInstance[] {
+	return pieceInstances.reduce((uniquePieceInstances: PieceInstance[], pieceInstance: PieceInstance) => {
+		if (!isUniquePieceInstance(pieceInstances, pieceInstance)) {
+			return uniquePieceInstances
+		}
+		return [...uniquePieceInstances, pieceInstance]
+	}, [])
+}
+
+function isUniquePieceInstance(pieceInstances: PieceInstance[], pieceInstance: PieceInstance): boolean {
+	return pieceInstances.some(({ _id }) => _id == pieceInstance._id)
 }
 
 export interface PieceInstanceWithTimings extends PieceInstance {
 	/**
 	 * This is a maximum end point of the pieceInstance.
-	 * If the pieceInstance also has a enable.duration or userDuration set then the shortest one will need to be used
+	 * If the pieceInstance also has an enable.duration or userDuration set then the shortest one will need to be used
 	 * This can be:
 	 *  - 'now', if it was stopped by something that does not need a preroll (or is virtual)
 	 *  - '#something.start + 100', if it was stopped by something that needs a preroll
