@@ -253,7 +253,7 @@ function generateCurrentInfinitePieceObjects(
 		// The infiniteGroupStart is a timestamp of the actual start of the piece controlObj,
 		// which includes the value of `pieceEnable.start` so we need to offset by that value and avoid trimming
 		// the start of the piece group
-		if (typeof pieceEnable.start === 'number' && pieceEnable.start !== null) {
+		if (typeof pieceEnable.start === 'number') {
 			infiniteGroupStart -= pieceEnable.start
 		} else {
 			// We should never hit this, but in case pieceEnable.start is "now"
