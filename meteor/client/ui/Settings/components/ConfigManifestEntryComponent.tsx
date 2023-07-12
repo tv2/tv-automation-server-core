@@ -6,6 +6,7 @@ import { Translated } from '../../../lib/ReactMeteorData/react-meteor-data'
 import { ConfigManifestEntry, ConfigManifestEntryType } from '@sofie-automation/corelib/dist/deviceConfig'
 import { ConfigManifestEntry as BlueprintConfigManifestEntry } from '@sofie-automation/blueprints-integration'
 import { MongoCollection } from '../../../../lib/collections/lib'
+import { EditAttributeEnumDropdown } from '../../../lib/editAttribute/edit-attribute-enum-dropdown'
 
 export const renderEditAttribute = (
 	collection: MongoCollection<any>,
@@ -40,12 +41,11 @@ export const renderEditAttribute = (
 		return <EditAttribute {...opts} type="checkbox" className="input input-l"></EditAttribute>
 	} else if (configField.type === ConfigManifestEntryType.ENUM) {
 		return (
-			<EditAttribute
+			<EditAttributeEnumDropdown
 				{...opts}
-				type="dropdown"
 				options={(configField as ConfigManifestEntry).values || []}
 				className="input text-input input-l"
-			></EditAttribute>
+			></EditAttributeEnumDropdown>
 		)
 	} else if (configField.type === ConfigManifestEntryType.OBJECT) {
 		return (
@@ -105,6 +105,12 @@ export const ConfigManifestEntryComponent = withTranslation()(
 						{t(configField.name)}
 						{this.renderEditAttribute(configField, obj, prefix)}
 						{configField.hint && <span className="text-s dimmed">{t(configField.hint)}</span>}
+						{configField.hint && configField.defaultVal && <span className="text-s dimmed"> - </span>}
+						{configField.defaultVal && (
+							<span className="text-s dimmed">
+								{t("Defaults to '{{defaultVal}}' if left empty", { defaultVal: configField.defaultVal })}
+							</span>
+						)}
 					</label>
 				</div>
 			)

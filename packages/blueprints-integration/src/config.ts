@@ -14,6 +14,7 @@ export enum ConfigManifestEntryType {
 	SOURCE_LAYERS = 'source_layers',
 	LAYER_MAPPINGS = 'layer_mappings',
 	SELECT_FROM_COLUMN = 'select_from_column',
+	SELECT_FROM_TABLE_ENTRY_WITH_COMPARISON_MAPPINGS = 'select_from_table_entry_with_comparison_mappings',
 	JSON = 'json',
 }
 
@@ -28,6 +29,8 @@ export type BasicConfigManifestEntry =
 	| ConfigManifestEntrySelectFromOptions<false>
 	| ConfigManifestEntrySelectFromColumn<true>
 	| ConfigManifestEntrySelectFromColumn<false>
+	| ConfigManifestEntrySelectFromTableEntryWithComparisonMappings<true>
+	| ConfigManifestEntrySelectFromTableEntryWithComparisonMappings<false>
 	| ConfigManifestEntrySourceLayers<true>
 	| ConfigManifestEntrySourceLayers<false>
 	| ConfigManifestEntryLayerMappings<true>
@@ -87,6 +90,7 @@ export interface ConfigManifestEntryTable extends ConfigManifestEntryBase {
 		rank: number
 	})[]
 	defaultVal: TableConfigItemValue
+	disableRowManipulation?: boolean
 }
 
 interface ConfigManifestEntrySelectBase<Multiple extends boolean> extends ConfigManifestEntryBase {
@@ -107,6 +111,19 @@ export interface ConfigManifestEntrySelectFromColumn<Multiple extends boolean>
 	tableId: string
 	/** The id of a BasicConfigManifestEntry in the table */
 	columnId: string
+}
+
+export type ComparisonMapping = { targetColumnId: string; sourceColumnId: string }
+
+export interface ConfigManifestEntrySelectFromTableEntryWithComparisonMappings<Multiple extends boolean>
+	extends ConfigManifestEntrySelectBase<Multiple> {
+	type: ConfigManifestEntryType.SELECT_FROM_TABLE_ENTRY_WITH_COMPARISON_MAPPINGS
+
+	sourceTableId: string
+
+	comparisonMappings: ComparisonMapping[]
+
+	sourceColumnIdWithValue: string
 }
 
 export interface ConfigManifestEntrySourceLayers<Multiple extends boolean>

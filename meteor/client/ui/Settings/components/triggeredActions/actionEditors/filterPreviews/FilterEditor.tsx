@@ -5,6 +5,8 @@ import { EditAttribute, EditAttributeType } from '../../../../../../lib/EditAttr
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faAngleRight, faCheck, faTrash } from '@fortawesome/free-solid-svg-icons'
 import { sameWidth } from '../../../../../../lib/popperUtils'
+import { EditAttributeMultiSelect } from '../../../../../../lib/editAttribute/edit-attribute-multi-select'
+import { MultiSelectOption } from '../../../../../../lib/multiSelect'
 
 interface IProps {
 	fieldLabel: string
@@ -106,16 +108,31 @@ export const FilterEditor: React.FC<IProps> = function FilterEditor(props: IProp
 						/>
 					</div>
 					<div>
-						<EditAttribute
-							className={props.type === 'toggle' ? 'form-control' : 'form-control input text-input input-m'}
-							modifiedClassName="bghl"
-							type={props.type}
-							label={props.valueLabel}
-							options={props.values}
-							overrideDisplayValue={typeof props.value === 'number' ? String(props.value) : props.value}
-							attribute={''}
-							updateFunction={(_e, newVal) => props.onChange(newVal)}
-						/>
+						{props.type === 'multiselect' && (
+							<EditAttributeMultiSelect
+								className={'form-control input text-input input-m'}
+								modifiedClassName="bghl"
+								label={props.valueLabel}
+								overrideDisplayValue={typeof props.value === 'number' ? String(props.value) : props.value}
+								options={getOptionsForEditAttributeMultiSelect(props.values)}
+								updateFunction={(_e, newVal) => {
+									console.log(newVal)
+									props.onChange(newVal)
+								}}
+							/>
+						)}
+						{props.type !== 'multiselect' && (
+							<EditAttribute
+								className={props.type === 'toggle' ? 'form-control' : 'form-control input text-input input-m'}
+								modifiedClassName="bghl"
+								type={props.type}
+								label={props.valueLabel}
+								options={props.values}
+								overrideDisplayValue={typeof props.value === 'number' ? String(props.value) : props.value}
+								attribute={''}
+								updateFunction={(_e, newVal) => props.onChange(newVal)}
+							/>
+						)}
 					</div>
 					<div className="mts">
 						{!props.final ? (
@@ -138,4 +155,26 @@ export const FilterEditor: React.FC<IProps> = function FilterEditor(props: IProp
 			) : null}
 		</>
 	)
+}
+
+function getOptionsForEditAttributeMultiSelect(recordToMapFrom: Record<string, any> | undefined): MultiSelectOption[] {
+	if (!recordToMapFrom) {
+		return []
+	}
+
+	const keys = Object.keys(recordToMapFrom)
+	return keys.map((key) => {
+		if (isNaN(Number(key))) {
+			return {
+				value: key,
+				label: recordToMapFrom[key],
+			}
+		}
+		// Key is a Number meaning we need to find both value and label from the value part of the record
+		const recordValue = recordToMapFrom[key]
+		return {
+			value: 'value' in recordValue ? recordValue.value : '',
+			label: 'name' in recordValue ? recordValue.name : '',
+		}
+	})
 }

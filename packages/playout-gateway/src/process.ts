@@ -1,15 +1,15 @@
-import { Logger } from 'winston'
+import { Logger } from './logger'
 import _ = require('underscore')
 import * as fs from 'fs'
 import { ProcessConfig } from './connector'
 
 export class Process {
-	logger: Logger
+	private readonly logger: Logger
 
 	public certificates: Buffer[] = []
 
 	constructor(logger: Logger) {
-		this.logger = logger
+		this.logger = logger.tag(this.constructor.name)
 	}
 	init(processConfig: ProcessConfig): void {
 		if (processConfig.unsafeSSL) {
@@ -23,9 +23,9 @@ export class Process {
 			_.each(processConfig.certificates, (certificate) => {
 				try {
 					this.certificates.push(fs.readFileSync(certificate))
-					this.logger.info(`Using certificate "${certificate}"`)
+					this.logger.info(`Using certificate '${certificate}'`)
 				} catch (error) {
-					this.logger.error(`Error loading certificate "${certificate}"`, error)
+					this.logger.data(error).error(`Error loading certificate '${certificate}'`)
 				}
 			})
 		}

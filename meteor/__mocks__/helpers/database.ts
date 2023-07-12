@@ -42,7 +42,13 @@ import {
 	ShowStyleVariantId,
 } from '../../lib/collections/ShowStyleVariants'
 import { Blueprint, BlueprintId } from '../../lib/collections/Blueprints'
-import { ICoreSystem, CoreSystem, SYSTEM_ID, stripVersion } from '../../lib/collections/CoreSystem'
+import {
+	ICoreSystem,
+	CoreSystem,
+	SYSTEM_ID,
+	stripVersion,
+	parseCoreIntegrationCompatabilityRange,
+} from '../../lib/collections/CoreSystem'
 import { internalUploadBlueprint } from '../../server/api/blueprints/api'
 import { literal, getCurrentTime, protectString, unprotectString, getRandomId, getRandomString } from '../../lib/lib'
 import { DBRundown, Rundowns, RundownId } from '../../lib/collections/Rundowns'
@@ -79,17 +85,11 @@ export enum LAYER_IDS {
 }
 
 function getBlueprintDependencyVersions(): { TSR_VERSION: string; INTEGRATION_VERSION: string } {
-	const INTEGRATION_VERSION =
-		require('../../node_modules/@sofie-automation/blueprints-integration/package.json').version
+	const integrationVersionRange = parseCoreIntegrationCompatabilityRange(PackageInfo.version)
+	const version = integrationVersionRange.substring(1)
 
-	let TSR_VERSION = ''
-	try {
-		// eslint-disable-next-line node/no-missing-require
-		TSR_VERSION = require('../../node_modules/timeline-state-resolver-types/package.json').version
-	} catch (e) {
-		TSR_VERSION =
-			require('../../node_modules/@sofie-automation/blueprints-integration/node_modules/timeline-state-resolver-types/package.json').version
-	}
+	const INTEGRATION_VERSION = version
+	const TSR_VERSION = version
 
 	return {
 		INTEGRATION_VERSION,
@@ -279,6 +279,7 @@ export function setupMockShowStyleVariant(
 		showStyleBaseId: showStyleBaseId,
 		blueprintConfig: {},
 		_rundownVersionHash: '',
+		_rank: 0,
 	}
 	const showStyleVariant = _.extend(defaultShowStyleVariant, doc)
 	ShowStyleVariants.insert(showStyleVariant)

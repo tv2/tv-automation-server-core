@@ -19,6 +19,7 @@ import {
 	QuantelControlMode,
 	MappingVMixType,
 	MappingOBSType,
+	MappingTriCasterType,
 } from 'timeline-state-resolver'
 
 const PLAYOUT_SUBDEVICE_COMMON: ConfigManifestEntry[] = [
@@ -363,8 +364,9 @@ const PLAYOUT_SUBDEVICE_CONFIG: ImplementedSubDeviceConfig = {
 			type: ConfigManifestEntryType.INT,
 		},
 		{
-			id: 'options.showID',
-			name: 'Show ID',
+			id: 'options.showDirectoryPath',
+			name: '(Optional) Show Directory Path',
+			hint: 'Path where the show references are stored, relative to /directory/shows/',
 			type: ConfigManifestEntryType.STRING,
 		},
 		{
@@ -376,6 +378,7 @@ const PLAYOUT_SUBDEVICE_CONFIG: ImplementedSubDeviceConfig = {
 			id: 'options.playlistID',
 			name: '(Optional) Playlist ID',
 			type: ConfigManifestEntryType.STRING,
+			defaultVal: 'SOFIE',
 		},
 		{
 			id: 'options.preloadAllElements',
@@ -443,6 +446,7 @@ const PLAYOUT_SUBDEVICE_CONFIG: ImplementedSubDeviceConfig = {
 		},
 	],
 	[TSRDeviceType.TELEMETRICS]: [...PLAYOUT_SUBDEVICE_HOST],
+	[TSRDeviceType.TRICASTER]: [...PLAYOUT_SUBDEVICE_COMMON, ...PLAYOUT_SUBDEVICE_HOST_PORT],
 }
 
 // TODO: should come from types
@@ -657,6 +661,22 @@ const MAPPING_MANIFEST: ImplementedMappingsManifest = {
 		},
 	],
 	[TSRDeviceType.TELEMETRICS]: [],
+	[TSRDeviceType.TRICASTER]: [
+		{
+			id: 'mappingType',
+			type: ConfigManifestEntryType.ENUM,
+			values: Object.values(MappingTriCasterType),
+			name: 'Mapping Type',
+			includeInSummary: true,
+		},
+		{
+			id: 'name',
+			type: ConfigManifestEntryType.STRING,
+			name: 'Target Name',
+			includeInSummary: true,
+			optional: false,
+		},
+	],
 }
 
 export const PLAYOUT_DEVICE_CONFIG: DeviceConfigManifest = {

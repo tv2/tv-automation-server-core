@@ -13,7 +13,7 @@ import {
 	StudioRouteSetExclusivityGroup,
 	StudioRouteType,
 } from '../../../../lib/collections/Studios'
-import { EditAttribute, EditAttributeBase } from '../../../lib/EditAttribute'
+import { EditAttribute } from '../../../lib/EditAttribute'
 import { doModalDialog } from '../../../lib/ModalDialog'
 import { Translated } from '../../../lib/ReactMeteorData/react-meteor-data'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -25,6 +25,7 @@ import { MeteorCall } from '../../../../lib/api/methods'
 import { doUserAction, UserAction } from '../../../lib/userAction'
 import { MappingsManifest } from '@sofie-automation/corelib/dist/deviceConfig'
 import { DeviceMappingSettings } from './Mappings'
+import { EditAttributeBase } from '../../../lib/editAttribute/edit-attribute-base'
 
 interface IStudioRoutingsProps {
 	studio: Studio

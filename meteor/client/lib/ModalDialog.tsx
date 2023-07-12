@@ -8,9 +8,10 @@ import * as _ from 'underscore'
 import type { Sorensen } from '@sofie-automation/sorensen'
 import { withTranslation } from 'react-i18next'
 import { Translated } from './ReactMeteorData/ReactMeteorData'
-import { EditAttribute, EditAttributeType, EditAttributeBase } from './EditAttribute'
+import { EditAttribute, EditAttributeType } from './EditAttribute'
 import { SorensenContext } from './SorensenContext'
 import { Settings } from '../../lib/Settings'
+import { EditAttributeBase } from './editAttribute/edit-attribute-base'
 
 interface IModalDialogAttributes {
 	show?: boolean
@@ -25,6 +26,7 @@ interface IModalDialogAttributes {
 	actions?: ModalAction[]
 	className?: string
 }
+
 interface ModalInput {
 	type: EditAttributeType
 	label?: string
@@ -32,14 +34,17 @@ interface ModalInput {
 	text?: string
 	defaultValue?: any
 }
+
 interface ModalAction {
 	label: string
 	on: OnAction
 	classNames?: string
 }
+
 type OnAction = (e: SomeEvent, inputResult: ModalInputResult) => void
 export type ModalInputResult = { [attribute: string]: any }
 export type SomeEvent = Event | React.SyntheticEvent<object>
+
 export class ModalDialog extends React.Component<IModalDialogAttributes> {
 	sorensen: Sorensen
 
@@ -119,6 +124,7 @@ export class ModalDialog extends React.Component<IModalDialogAttributes> {
 			this.props.onSecondary(e, this.inputResult)
 		}
 	}
+
 	handleAction = (e: SomeEvent, on: OnAction) => {
 		if (on && typeof on === 'function') {
 			on(e, this.inputResult)
@@ -132,9 +138,11 @@ export class ModalDialog extends React.Component<IModalDialogAttributes> {
 			this.handleSecondary(e)
 		}
 	}
+
 	updatedInput = (edit: EditAttributeBase, newValue: any) => {
 		this.inputResult[edit.props.attribute || ''] = newValue
 	}
+
 	render() {
 		return this.props.show ? (
 			<Escape to="viewport">
@@ -291,31 +299,37 @@ class ModalDialogGlobalContainer0 extends React.Component<
 		}
 		// eslint-disable-next-line @typescript-eslint/no-this-alias
 		modalDialogGlobalContainerSingleton = this
-		this.state = {
-			queue: [],
-		}
+		this.state = { queue: [] }
 	}
+
 	public addQueue(q: ModalDialogQueueItem) {
 		const queue = this.state.queue
 		queue.push(q)
-		this.setState({
-			queue,
-		})
+		this.setState({ queue })
 	}
+
 	public queueHasItems(): boolean {
 		return this.state.queue.length > 0
 	}
+
+	public removeAllQueueItems(): void {
+		const queue = this.state.queue
+		queue.splice(0)
+		this.setState({ queue })
+	}
+
 	onAccept = (e: SomeEvent, inputResult: ModalInputResult) => {
 		const queue = this.state.queue
-		const onQueue = queue.pop()
+		const onQueue = queue.shift()
 		if (onQueue) {
 			this.setState({ queue })
 			onQueue.onAccept(e, inputResult)
 		}
 	}
+
 	onDiscard = (e: SomeEvent, inputResult: ModalInputResult) => {
 		const queue = this.state.queue
-		const onQueue = queue.pop()
+		const onQueue = queue.shift()
 		if (onQueue) {
 			this.setState({ queue })
 			if (onQueue.onDiscard) {
@@ -323,9 +337,10 @@ class ModalDialogGlobalContainer0 extends React.Component<
 			}
 		}
 	}
+
 	onSecondary = (e: SomeEvent, inputResult: ModalInputResult) => {
 		const queue = this.state.queue
-		const onQueue = queue.pop()
+		const onQueue = queue.shift()
 		if (onQueue) {
 			this.setState({ queue })
 			if (onQueue.onSecondary) {
@@ -333,14 +348,16 @@ class ModalDialogGlobalContainer0 extends React.Component<
 			}
 		}
 	}
+
 	onAction = (e: SomeEvent, inputResult: ModalInputResult, on: OnAction) => {
 		const queue = this.state.queue
-		const onQueue = queue.pop()
+		const onQueue = queue.shift()
 		if (onQueue) {
 			this.setState({ queue })
 			on(e, inputResult)
 		}
 	}
+
 	renderString = (str: string) => {
 		const lines = (str || '').split('\n')
 
@@ -348,6 +365,7 @@ class ModalDialogGlobalContainer0 extends React.Component<
 			return <p key={i}>{line.trim()}</p>
 		})
 	}
+
 	render() {
 		const { t } = this.props
 		const onQueue = _.first(this.state.queue)
@@ -379,6 +397,7 @@ class ModalDialogGlobalContainer0 extends React.Component<
 		} else return null
 	}
 }
+
 export const ModalDialogGlobalContainer = withTranslation()(ModalDialogGlobalContainer0)
 let modalDialogGlobalContainerSingleton: ModalDialogGlobalContainer0
 /**
@@ -408,4 +427,12 @@ export function isModalShowing(): boolean {
 		return modalDialogGlobalContainerSingleton.queueHasItems()
 	}
 	return false
+}
+
+export function removeAllQueueItems(): void {
+	if (!modalDialogGlobalContainerSingleton) {
+		logger.error('modalDialogGlobalContainerSingleton not set!')
+		return
+	}
+	modalDialogGlobalContainerSingleton.removeAllQueueItems()
 }

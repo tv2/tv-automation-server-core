@@ -1,10 +1,13 @@
 const process = require("process");
 const concurrently = require("concurrently");
-const args = process.argv.slice(2);
+const yargs = require('yargs/yargs');
+const { hideBin } = require('yargs/helpers');
+const args = yargs(hideBin(process.argv)).argv;
 
 const config = {
-	uiOnly: args.indexOf("--ui-only") >= 0 || false,
-	inspectMeteor: args.indexOf("--inspect-meteor") >= 0 || false,
+	uiOnly: args['ui-only'],
+	inspectMeteor: args['inspect-meteor'],
+	settings: args['settings'],
 };
 
 function watchPackages() {
@@ -40,7 +43,8 @@ function watchMeteor() {
 		{
 			command:
 				"meteor yarn debug" +
-				(config.inspectMeteor ? " --inspect" : ""),
+				(config.inspectMeteor ? " --inspect" : "") +
+				(config.settings ? ` --settings ${config.settings}` : ""),
 			cwd: "meteor",
 			name: "METEOR",
 			prefixColor: "cyan",

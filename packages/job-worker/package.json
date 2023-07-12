@@ -1,6 +1,6 @@
 {
 	"name": "@sofie-automation/job-worker",
-	"version": "46.1.0",
+	"version": "46.2.0",
 	"description": "Worker for things",
 	"main": "dist/index.js",
 	"license": "MIT",
@@ -52,8 +52,8 @@
 		"mongodb": "^4.9.1",
 		"p-lazy": "^3.1.0",
 		"p-timeout": "^4.1.0",
-		"superfly-timeline": "^8.2.8",
-		"threadedclass": "^1.1.0",
+		"superfly-timeline": "^8.3.1",
+		"threadedclass": "^1.2.0",
 		"tslib": "^2.4.0",
 		"type-fest": "^2.19.0",
 		"underscore": "^1.13.4",

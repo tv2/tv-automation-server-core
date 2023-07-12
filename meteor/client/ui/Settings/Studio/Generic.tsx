@@ -12,6 +12,7 @@ import { BlueprintManifestType } from '@sofie-automation/blueprints-integration'
 import { StudioBaselineStatus } from './Baseline'
 import { ShowStyleBaseId } from '@sofie-automation/corelib/dist/dataModel/Ids'
 import { ShowStyleBase } from '../../../../lib/collections/ShowStyleBases'
+import { EditAttributeMultiSelect } from '../../../lib/editAttribute/edit-attribute-multi-select'
 
 interface IStudioGenericPropertiesProps {
 	studio: Studio
@@ -132,12 +133,14 @@ export const StudioGenericProperties = withTranslation()(
 							</div>
 						) : null}
 						<div className="mdi">
-							<EditAttribute
+							<EditAttributeMultiSelect
 								attribute="supportedShowStyleBase"
 								obj={this.props.studio}
-								options={this.props.availableShowStyleBases}
+								options={this.props.availableShowStyleBases.map((base) => ({
+									label: base.name,
+									value: base.value + '',
+								}))}
 								label={t('Click to show available Show Styles')}
-								type="multiselect"
 								collection={Studios}
 							/>
 							{this.renderShowStyleEditButtons()}

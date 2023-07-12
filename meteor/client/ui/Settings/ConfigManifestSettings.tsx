@@ -9,94 +9,82 @@ import { ModalDialog } from '../../lib/ModalDialog'
 import { Translated } from '../../lib/ReactMeteorData/react-meteor-data'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
-	ConfigManifestEntry,
-	ConfigManifestEntryType,
-	IBlueprintConfig,
 	BasicConfigManifestEntry,
 	ConfigItemValue,
-	ConfigManifestEntryTable,
-	TableConfigItemValue,
-	ConfigManifestEntrySourceLayers,
-	ConfigManifestEntryLayerMappings,
-	SourceLayerType,
-	ConfigManifestEntrySelectFromColumn,
+	ConfigManifestEntry,
 	ConfigManifestEntryBoolean,
 	ConfigManifestEntryEnum,
 	ConfigManifestEntryFloat,
 	ConfigManifestEntryInt,
-	ConfigManifestEntryMultilineString,
-	ConfigManifestEntrySelectFromOptions,
-	ConfigManifestEntryString,
 	ConfigManifestEntryJson,
+	ConfigManifestEntrySelectFromTableEntryWithComparisonMappings,
+	ConfigManifestEntryLayerMappings,
+	ConfigManifestEntryMultilineString,
+	ConfigManifestEntrySelectFromColumn,
+	ConfigManifestEntrySelectFromOptions,
+	ConfigManifestEntrySourceLayers,
+	ConfigManifestEntryString,
+	ConfigManifestEntryTable,
+	ConfigManifestEntryType,
+	IBlueprintConfig,
+	SourceLayerType,
+	TableConfigItemValue,
 } from '@sofie-automation/blueprints-integration'
-import { DBObj, ProtectedString, objectPathGet, getRandomString } from '../../../lib/lib'
+import { DBObj, getRandomString, objectPathGet, ProtectedString } from '../../../lib/lib'
 import { MongoModifier } from '../../../lib/typings/meteor'
 import { Meteor } from 'meteor/meteor'
 import { getHelpMode } from '../../lib/localStorage'
 import {
-	faDownload,
-	faTrash,
-	faPencilAlt,
 	faCheck,
+	faDownload,
+	faPencilAlt,
 	faPlus,
-	faUpload,
-	faSortUp,
-	faSortDown,
 	faSort,
+	faSortDown,
+	faSortUp,
+	faTrash,
+	faUpload,
 } from '@fortawesome/free-solid-svg-icons'
 import { UploadButton } from '../../lib/uploadButton'
-import { NotificationCenter, NoticeLevel, Notification } from '../../lib/notifications/notifications'
+import { NoticeLevel, Notification, NotificationCenter } from '../../lib/notifications/notifications'
 import { MongoCollection } from '../../../lib/collections/lib'
+import { EditAttributeMultiSelect } from '../../lib/editAttribute/edit-attribute-multi-select'
+import { DropdownOption, EditAttributeDropdown } from '../../lib/editAttribute/edit-attribute-dropdown'
+import { MultiSelectOption } from '../../lib/multiSelect'
+import { EditAttributeTextDropdown } from '../../lib/editAttribute/edit-attribute-text-dropdown'
+import ConfigManifestTableEntrySelector from './helpers/config-manifest-table-entry-selector'
+
+const configurationTableEntrySelector = ConfigManifestTableEntrySelector
 
 function filterSourceLayers(
 	select: ConfigManifestEntrySourceLayers<true | false>,
 	layers: Array<{ name: string; value: string; type: SourceLayerType }>
-): Array<{ name: string; value: string; type: SourceLayerType }> {
+): SelectOption[] {
 	if (select.filters && select.filters.sourceLayerTypes) {
 		const sourceLayerTypes = select.filters.sourceLayerTypes
 		return _.filter(layers, (layer) => {
 			return sourceLayerTypes.includes(layer.type)
-		})
+		}).map((layer) => ({ label: layer.name, value: layer.value }))
 	} else {
-		return layers
+		return layers.map((layer) => ({ label: layer.name, value: layer.value }))
 	}
 }
 
 function filterLayerMappings(
 	select: ConfigManifestEntryLayerMappings<true | false>,
 	mappings: { [key: string]: MappingsExt }
-): Array<{ name: string; value: string }> {
+): SelectOption[] {
 	const deviceTypes = select.filters?.deviceTypes
-	const result: Array<{ name: string; value: string }> = []
+	const result: SelectOption[] = []
 
 	for (const studioMappings of Object.values(mappings)) {
 		for (const [layerId, mapping] of Object.entries(studioMappings)) {
 			if (!deviceTypes || deviceTypes.includes(mapping.device)) {
-				result.push({ name: mapping.layerName || layerId, value: layerId })
+				result.push({ label: mapping.layerName + '' || layerId + '', value: layerId + '' })
 			}
 		}
 	}
 
-	return result
-}
-
-function getTableColumnValues<DBInterface extends { _id: ProtectedString<any> }>(
-	item: ConfigManifestEntrySelectFromColumn<boolean>,
-	configPath: string,
-	object: DBInterface,
-	alternateObject?: any
-): string[] {
-	const attribute = `${configPath}.${item.tableId}`
-	const table = objectPathGet(object, attribute) ?? objectPathGet(alternateObject, attribute)
-	const result: string[] = []
-	if (!Array.isArray(table)) {
-		return result
-	}
-	table.forEach((row) => {
-		if (typeof row === 'object' && row[item.columnId] !== undefined) {
-			result.push(row[item.columnId])
-		}
-	})
 	return result
 }
 
@@ -174,11 +162,10 @@ function getEditAttribute<DBInterface extends { _id: ProtectedString<any> }>(
 			)
 		case ConfigManifestEntryType.ENUM:
 			return (
-				<EditAttribute
+				<EditAttributeTextDropdown
 					modifiedClassName="bghl"
 					attribute={attribute}
 					obj={object}
-					type="dropdown"
 					options={item.options || []}
 					collection={collection}
 					className="input text-input input-l"
@@ -196,57 +183,101 @@ function getEditAttribute<DBInterface extends { _id: ProtectedString<any> }>(
 					className="input text-input input-l"
 				/>
 			)
-		case ConfigManifestEntryType.SELECT:
-			return (
-				<EditAttribute
-					modifiedClassName="bghl"
-					attribute={attribute}
-					obj={object}
-					type={item.multiple ? 'multiselect' : 'dropdown'}
-					options={item.options}
-					collection={collection}
-					className="input text-input dropdown input-l"
-				/>
-			)
-		case ConfigManifestEntryType.SOURCE_LAYERS:
-			return (
-				<EditAttribute
-					modifiedClassName="bghl"
-					attribute={attribute}
-					obj={object}
-					type={item.multiple ? 'multiselect' : 'dropdown'}
-					options={'options' in item ? item.options : filterSourceLayers(item, sourceLayers ?? [])}
-					collection={collection}
-					className="input text-input dropdown input-l"
-				/>
-			)
-		case ConfigManifestEntryType.LAYER_MAPPINGS:
-			return (
-				<EditAttribute
-					modifiedClassName="bghl"
-					attribute={attribute}
-					obj={object}
-					type={item.multiple ? 'multiselect' : 'dropdown'}
-					options={'options' in item ? item.options : filterLayerMappings(item, layerMappings ?? {})}
-					collection={collection}
-					className="input text-input dropdown input-l"
-				/>
-			)
-		case ConfigManifestEntryType.SELECT_FROM_COLUMN:
-			return (
-				<EditAttribute
-					modifiedClassName="bghl"
-					attribute={attribute}
-					obj={object}
-					type={item.multiple ? 'multiselect' : 'dropdown'}
-					options={'options' in item ? item.options : getTableColumnValues(item, configPath, object, alternateObject)}
-					collection={collection}
-					className="input text-input dropdown input-l"
-				/>
-			)
+		case ConfigManifestEntryType.SELECT: {
+			const selectOptions: SelectOption[] = item.options.map((option) => ({ value: option, label: option }))
+			if (item.multiple) {
+				return renderMultiSelect(attribute, object, selectOptions, collection)
+			}
+			return renderDropdown(attribute, object, selectOptions, collection)
+		}
+		case ConfigManifestEntryType.SOURCE_LAYERS: {
+			const filterSourceLayerOptions = 'options' in item ? item.options : filterSourceLayers(item, sourceLayers ?? [])
+			if (item.multiple) {
+				return renderMultiSelect(attribute, object, filterSourceLayerOptions, collection)
+			}
+			return renderDropdown(attribute, object, filterSourceLayerOptions, collection)
+		}
+		case ConfigManifestEntryType.LAYER_MAPPINGS: {
+			const layerMappingOptions = 'options' in item ? item.options : filterLayerMappings(item, layerMappings ?? {})
+			if (item.multiple) {
+				return renderMultiSelect(attribute, object, layerMappingOptions, collection)
+			}
+			return renderDropdown(attribute, object, layerMappingOptions, collection)
+		}
+		case ConfigManifestEntryType.SELECT_FROM_COLUMN: {
+			const selectFromOptions =
+				'options' in item
+					? item.options
+					: configurationTableEntrySelector.getTableColumnValues(item, configPath, object, alternateObject)
+			if (item.multiple) {
+				return renderMultiSelect(attribute, object, selectFromOptions, collection, true)
+			}
+			return renderDropdown(attribute, object, selectFromOptions, collection, true)
+		}
+		case ConfigManifestEntryType.SELECT_FROM_TABLE_ENTRY_WITH_COMPARISON_MAPPINGS: {
+			const selectWithComparisonOptions =
+				'options' in item
+					? item.options
+					: configurationTableEntrySelector.getFilteredSelectOptionsFromComparison(
+							attribute,
+							item,
+							configPath,
+							object,
+							alternateObject
+					  )
+			if (item.multiple) {
+				return renderMultiSelect(attribute, object, selectWithComparisonOptions, collection, true)
+			}
+			return renderDropdown(attribute, object, selectWithComparisonOptions, collection, true)
+		}
 		default:
 			return null
 	}
+}
+
+function renderMultiSelect(
+	attribute: string,
+	obj: any,
+	options: MultiSelectOption[],
+	collection: MongoCollection<any>,
+	shouldSaveLabel: boolean = false
+) {
+	return (
+		<EditAttributeMultiSelect
+			modifiedClassName="bghl"
+			attribute={attribute}
+			obj={obj}
+			options={options}
+			collection={collection}
+			className="input text-input dropdown input-l"
+			shouldSaveLabel={shouldSaveLabel}
+		></EditAttributeMultiSelect>
+	)
+}
+
+function renderDropdown(
+	attribute: string,
+	obj: any,
+	options: DropdownOption[],
+	collection: MongoCollection<any>,
+	shouldSaveLabel: boolean = false
+) {
+	return (
+		<EditAttributeDropdown
+			modifiedClassName="bghl"
+			attribute={attribute}
+			obj={obj}
+			options={options}
+			collection={collection}
+			className="input text-input dropdown input-l"
+			shouldSaveLabel={shouldSaveLabel}
+		/>
+	)
+}
+
+export interface SelectOption {
+	value: string
+	label: string
 }
 
 type ResolvedBasicConfigManifestEntry =
@@ -257,9 +288,10 @@ type ResolvedBasicConfigManifestEntry =
 	| ConfigManifestEntryBoolean
 	| ConfigManifestEntryEnum
 	| ConfigManifestEntrySelectFromOptions<boolean>
-	| (ConfigManifestEntrySelectFromColumn<boolean> & { options: string[] })
-	| (ConfigManifestEntrySourceLayers<boolean> & { options: Array<{ name: string; value: string }> })
-	| (ConfigManifestEntryLayerMappings<boolean> & { options: Array<{ name: string; value: string }> })
+	| (ConfigManifestEntrySelectFromColumn<boolean> & { options: SelectOption[] })
+	| (ConfigManifestEntrySourceLayers<boolean> & { options: SelectOption[] })
+	| (ConfigManifestEntryLayerMappings<boolean> & { options: SelectOption[] })
+	| (ConfigManifestEntrySelectFromTableEntryWithComparisonMappings<boolean> & { options: SelectOption[] })
 	| ConfigManifestEntryJson
 
 interface IConfigManifestSettingsProps<
@@ -461,9 +493,23 @@ export class ConfigManifestTable<
 						case ConfigManifestEntryType.SELECT_FROM_COLUMN:
 							return {
 								...column,
-								options: props.layerMappings
-									? getTableColumnValues(column, props.configPath, props.object, props.alternateObject)
-									: [],
+								options: configurationTableEntrySelector.getTableColumnValues(
+									column,
+									props.configPath,
+									props.object,
+									props.alternateObject
+								),
+							}
+						case ConfigManifestEntryType.SELECT_FROM_TABLE_ENTRY_WITH_COMPARISON_MAPPINGS:
+							return {
+								...column,
+								options: configurationTableEntrySelector.getFilteredSelectOptionsFromComparison(
+									props.baseAttribute,
+									column,
+									props.configPath,
+									props.object,
+									props.alternateObject
+								),
 							}
 						default:
 							return column
@@ -552,53 +598,62 @@ export class ConfigManifestTable<
 												this.props.configPath,
 												this.props.object,
 												col,
-												`${baseAttribute}.${sortedIndices[i]}.${col.id}`
+												`${baseAttribute}.${sortedIndices[i]}.${col.id}`,
+												undefined,
+												undefined,
+												this.props.alternateObject
 											)}
 										</td>
 									))}
-									<td>
-										<button
-											className={ClassNames('btn btn-danger', {
-												'btn-tight': this.props.subPanel,
-											})}
-											onClick={() => this.removeRow(val._id, baseAttribute)}
-										>
-											<FontAwesomeIcon icon={faTrash} />
-										</button>
-									</td>
+									{!configEntry.disableRowManipulation && (
+										<td>
+											<button
+												className={ClassNames('btn btn-danger', {
+													'btn-tight': this.props.subPanel,
+												})}
+												onClick={() => this.removeRow(val._id, baseAttribute)}
+											>
+												<FontAwesomeIcon icon={faTrash} />
+											</button>
+										</td>
+									)}
 								</tr>
 							))}
 						</tbody>
 					</table>
 				</div>
-				<button
-					className={ClassNames('btn btn-primary', {
-						'btn-tight': this.props.subPanel,
-					})}
-					onClick={() => this.addRow(configEntry, baseAttribute)}
-				>
-					<FontAwesomeIcon icon={faPlus} />
-				</button>
-				<button
-					className={ClassNames('btn mlm btn-secondary', {
-						'btn-tight': this.props.subPanel,
-					})}
-					onClick={() => this.exportJSON(configEntry, vals)}
-				>
-					<FontAwesomeIcon icon={faDownload} />
-					&nbsp;{t('Export')}
-				</button>
-				<UploadButton
-					className={ClassNames('btn btn-secondary mls', {
-						'btn-tight': this.props.subPanel,
-					})}
-					accept="application/json,.json"
-					onChange={(e) => this.importJSON(e, configEntry, baseAttribute)}
-					key={this.state.uploadFileKey}
-				>
-					<FontAwesomeIcon icon={faUpload} />
-					&nbsp;{t('Import')}
-				</UploadButton>
+				{configEntry.disableRowManipulation || (
+					<div>
+						<button
+							className={ClassNames('btn btn-primary', {
+								'btn-tight': this.props.subPanel,
+							})}
+							onClick={() => this.addRow(configEntry, baseAttribute)}
+						>
+							<FontAwesomeIcon icon={faPlus} />
+						</button>
+						<button
+							className={ClassNames('btn mlm btn-secondary', {
+								'btn-tight': this.props.subPanel,
+							})}
+							onClick={() => this.exportJSON(configEntry, vals)}
+						>
+							<FontAwesomeIcon icon={faDownload} />
+							&nbsp;{t('Export')}
+						</button>
+						<UploadButton
+							className={ClassNames('btn btn-secondary mls', {
+								'btn-tight': this.props.subPanel,
+							})}
+							accept="application/json,.json"
+							onChange={(e) => this.importJSON(e, configEntry, baseAttribute)}
+							key={this.state.uploadFileKey}
+						>
+							<FontAwesomeIcon icon={faUpload} />
+							&nbsp;{t('Import')}
+						</UploadButton>
+					</div>
+				)}
 			</div>
 		)
 	}
@@ -736,7 +791,7 @@ export class ConfigManifestSettings<
 	renderConfigValue(item: ConfigManifestEntry, rawValue: ConfigItemValue | undefined) {
 		const { t } = this.props
 
-		const value = rawValue === undefined ? item.defaultVal : rawValue
+		const value = rawValue ?? item.defaultVal
 
 		const rawValueArr = rawValue as any[]
 
@@ -748,21 +803,23 @@ export class ConfigManifestSettings<
 			case ConfigManifestEntryType.SELECT:
 			case ConfigManifestEntryType.LAYER_MAPPINGS:
 			case ConfigManifestEntryType.SOURCE_LAYERS:
-				return _.isArray(value) ? (
-					<React.Fragment>
-						<ul className="table-values-list">
-							{_.map((value as string[]) || [], (val) => (
-								<li key={val}>{val}</li>
-							))}
-						</ul>
-					</React.Fragment>
-				) : (
-					value.toString()
-				)
+				if (_.isArray(value)) {
+					return (
+						<React.Fragment>
+							<ul className="table-values-list">
+								{_.map((value as (string | { value: string })[]) || [], (val) => {
+									const objectValue = typeof val === 'object' && 'value' in val ? val.value : val
+									return <li key={objectValue}>{objectValue}</li>
+								})}
+							</ul>
+						</React.Fragment>
+					)
+				}
+				return typeof value === 'object' && 'value' in value ? value.value : value.toString()
 			case ConfigManifestEntryType.INT:
 				return _.isNumber(value) && item.zeroBased ? (value + 1).toString() : value.toString()
 			default:
-				return value.toString()
+				return value['label'] ?? value.toString()
 		}
 	}
 
@@ -788,6 +845,7 @@ export class ConfigManifestSettings<
 				)
 			case ConfigManifestEntryType.SELECT:
 			case ConfigManifestEntryType.SELECT_FROM_COLUMN:
+			case ConfigManifestEntryType.SELECT_FROM_TABLE_ENTRY_WITH_COMPARISON_MAPPINGS:
 			case ConfigManifestEntryType.LAYER_MAPPINGS:
 			case ConfigManifestEntryType.SOURCE_LAYERS:
 				return (
@@ -890,9 +948,9 @@ export class ConfigManifestSettings<
 	}
 
 	getAddOptions() {
-		let addOptions: { value: string; name: string }[] = []
+		let addOptions: { value: string; label: string }[] = []
 		const config = this.getObjectConfig()
-		addOptions = this.props.manifest.map((c) => ({ value: c.id, name: c.name }))
+		addOptions = this.props.manifest.map((c) => ({ value: c.id, label: c.name }))
 
 		return addOptions.filter((o) => objectPathGet(config, o.value) === undefined)
 	}
@@ -913,9 +971,8 @@ export class ConfigManifestSettings<
 						<label className="field">
 							{t('Item')}
 							<div className="select focusable">
-								<EditAttribute
+								<EditAttributeDropdown
 									modifiedClassName="bghl"
-									type="dropdown"
 									options={this.getAddOptions()}
 									updateFunction={(_e, v) => this.setState({ addItemId: v })}
 									overrideDisplayValue={this.state.addItemId}

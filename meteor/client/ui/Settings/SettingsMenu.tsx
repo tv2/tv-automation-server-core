@@ -8,19 +8,21 @@ import { NavLink, useLocation } from 'react-router-dom'
 import { DBStudio, Studio, Studios } from '../../../lib/collections/Studios'
 import { PeripheralDevice, PeripheralDevices } from '../../../lib/collections/PeripheralDevices'
 
-import { NotificationCenter, Notification, NoticeLevel } from '../../lib/notifications/notifications'
+import { NoticeLevel, Notification, NotificationCenter } from '../../lib/notifications/notifications'
 
-import { faPlus, faTrash, faExclamationTriangle, faCaretRight, faCaretDown } from '@fortawesome/free-solid-svg-icons'
+import { faCaretDown, faCaretRight, faExclamationTriangle, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { MeteorReactComponent } from '../../lib/MeteorReactComponent'
-import { ShowStyleBases, ShowStyleBase } from '../../../lib/collections/ShowStyleBases'
+import { ShowStyleBase, ShowStyleBases } from '../../../lib/collections/ShowStyleBases'
 import { Blueprint, Blueprints } from '../../../lib/collections/Blueprints'
-import { PubSub, meteorSubscribe } from '../../../lib/api/pubsub'
+import { meteorSubscribe, PubSub } from '../../../lib/api/pubsub'
 import { MeteorCall } from '../../../lib/api/methods'
 import { Settings as MeteorSettings } from '../../../lib/Settings'
 import { StatusCode } from '@sofie-automation/blueprints-integration'
 import { TFunction, useTranslation } from 'react-i18next'
 import { RundownLayoutsAPI } from '../../../lib/api/rundownLayouts'
+import { ShowStyleVariant, ShowStyleVariants } from '../../../lib/collections/ShowStyleVariants'
+import ShowStyleVariantConfigurationVerifier from './helpers/show-style-variant-configuration-verifier'
 
 interface ISettingsMenuProps {
 	superAdmin?: boolean
@@ -30,6 +32,7 @@ interface ISettingsMenuState {}
 interface ISettingsMenuTrackedProps {
 	studios: Array<Studio>
 	showStyleBases: Array<ShowStyleBase>
+	showStyleVariants: Array<ShowStyleVariant>
 	blueprints: Array<Blueprint>
 	peripheralDevices: Array<PeripheralDevice>
 }
@@ -46,6 +49,7 @@ export const SettingsMenu = translateWithTracker<ISettingsMenuProps, ISettingsMe
 		return {
 			studios: Studios.find({}).fetch(),
 			showStyleBases: ShowStyleBases.find({}).fetch(),
+			showStyleVariants: ShowStyleVariants.find({}).fetch(),
 			peripheralDevices: PeripheralDevices.find(
 				{},
 				{
@@ -79,6 +83,14 @@ export const SettingsMenu = translateWithTracker<ISettingsMenuProps, ISettingsMe
 			})
 		}
 
+		findShowStyleVariantsForShowStyleBase(showStyleBase: ShowStyleBase): ShowStyleVariant[] {
+			return this.props.showStyleVariants.filter((variant) => variant.showStyleBaseId === showStyleBase._id)
+		}
+
+		findBlueprintForShowStyleBase(showStyleBase: ShowStyleBase): Blueprint | undefined {
+			return this.props.blueprints.find((blueprint) => blueprint._id === showStyleBase.blueprintId)
+		}
+
 		render() {
 			const { t } = this.props
 			return (
@@ -101,7 +113,12 @@ export const SettingsMenu = translateWithTracker<ISettingsMenuProps, ISettingsMe
 					</h2>
 					<hr className="vsubtle man" />
 					{this.props.showStyleBases.map((showStyleBase) => (
-						<SettingsMenuShowStyle key={unprotectString(showStyleBase._id)} showStyleBase={showStyleBase} />
+						<SettingsMenuShowStyle
+							key={unprotectString(showStyleBase._id)}
+							showStyleBase={showStyleBase}
+							showStyleVariantsForBase={this.findShowStyleVariantsForShowStyleBase(showStyleBase)}
+							blueprintsForBase={this.findBlueprintForShowStyleBase(showStyleBase)}
+						/>
 					))}
 					{(!MeteorSettings.enableUserAccounts || this.props.superAdmin) && (
 						<React.Fragment>
@@ -160,7 +177,7 @@ export const SettingsMenu = translateWithTracker<ISettingsMenuProps, ISettingsMe
 )
 
 interface SettingsCollapsibleGroupProps {
-	links: Array<{ label: string; subPath: string }>
+	links: Array<{ label: string; subPath: string; showErrorIcon?: boolean }>
 	basePath: string
 	title: string
 }
@@ -212,7 +229,16 @@ function SettingsCollapsibleGroup({
 							className="settings-menu__settings-menu-item selectable clickable menu-item-child"
 							to={`${basePath}/${link.subPath}`}
 						>
-							<h4>{link.label}</h4>
+							{link.showErrorIcon ? (
+								<h4>
+									{link.label}{' '}
+									<span className="right error-notice">
+										<FontAwesomeIcon icon={faExclamationTriangle} />
+									</span>
+								</h4>
+							) : (
+								<h4>{link.label}</h4>
+							)}
 						</NavLink>
 				  ))
 				: ''}
@@ -293,9 +319,22 @@ function studioHasError(studio: Studio): boolean {
 
 interface SettingsMenuShowStyleProps {
 	showStyleBase: ShowStyleBase
+	showStyleVariantsForBase: ShowStyleVariant[]
+	blueprintsForBase?: Blueprint
 }
-function SettingsMenuShowStyle({ showStyleBase }: SettingsMenuShowStyleProps) {
+function SettingsMenuShowStyle({
+	showStyleBase,
+	showStyleVariantsForBase,
+	blueprintsForBase,
+}: SettingsMenuShowStyleProps) {
 	const { t } = useTranslation()
+	const variantConfigurationVerifier = ShowStyleVariantConfigurationVerifier
+	const hasErrorInVariantBlueprintConfiguration =
+		variantConfigurationVerifier.isBlueprintConfigurationSelectedFromBaseInvalidForAllVariants(
+			showStyleVariantsForBase,
+			showStyleBase,
+			blueprintsForBase?.showStyleConfigManifest ?? []
+		)
 
 	const onDeleteShowStyleBase = React.useCallback(
 		(e: React.MouseEvent) => {
@@ -336,9 +375,9 @@ function SettingsMenuShowStyle({ showStyleBase }: SettingsMenuShowStyleProps) {
 			}),
 
 			{ label: t('Blueprint Configuration'), subPath: `blueprint-config` },
-			{ label: t('Variants'), subPath: `variants` },
+			{ label: t('Variants'), subPath: `variants`, showErrorIcon: hasErrorInVariantBlueprintConfiguration },
 		],
-		[showStyleBase._id]
+		[showStyleBase._id, hasErrorInVariantBlueprintConfiguration]
 	)
 
 	return (
@@ -350,7 +389,7 @@ function SettingsMenuShowStyle({ showStyleBase }: SettingsMenuShowStyleProps) {
 			<button className="action-btn right" onClick={onDeleteShowStyleBase}>
 				<FontAwesomeIcon icon={faTrash} />
 			</button>
-			{showStyleHasError(showStyleBase) ? (
+			{showStyleHasError(showStyleBase) || hasErrorInVariantBlueprintConfiguration ? (
 				<button className="action-btn right error-notice">
 					<FontAwesomeIcon icon={faExclamationTriangle} />
 				</button>
