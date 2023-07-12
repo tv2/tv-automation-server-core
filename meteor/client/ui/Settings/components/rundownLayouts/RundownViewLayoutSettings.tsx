@@ -5,8 +5,8 @@ import { RundownLayoutBase, RundownLayouts } from '../../../../../lib/collection
 import { ShowStyleBase } from '../../../../../lib/collections/ShowStyleBases'
 import { unprotectString } from '../../../../../lib/lib'
 import { EditAttribute } from '../../../../lib/EditAttribute'
-import { EditAttributeMultiSelect } from '../../../../lib/editAttribute/edit-attribute-multi-select'
-import { EditAttributeDropdown } from '../../../../lib/editAttribute/edit-attribute-dropdown'
+import { EditAttributeMultiSelect } from '../../../../lib/editAttribute/EditAttributeMultiSelect'
+import { EditAttributeDropdown } from '../../../../lib/editAttribute/EditAttributeDropdown'
 
 function filterLayouts(
 	rundownLayouts: RundownLayoutBase[],

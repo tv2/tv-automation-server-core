@@ -6,7 +6,7 @@ import { Translated } from '../../../lib/ReactMeteorData/react-meteor-data'
 import { ConfigManifestEntry, ConfigManifestEntryType } from '@sofie-automation/corelib/dist/deviceConfig'
 import { ConfigManifestEntry as BlueprintConfigManifestEntry } from '@sofie-automation/blueprints-integration'
 import { MongoCollection } from '../../../../lib/collections/lib'
-import { EditAttributeEnumDropdown } from '../../../lib/editAttribute/edit-attribute-enum-dropdown'
+import { EditAttributeEnumDropdown } from '../../../lib/editAttribute/EditAttributeEnumDropdown'
 
 export const renderEditAttribute = (
 	collection: MongoCollection<any>,
@@ -24,7 +24,7 @@ export const renderEditAttribute = (
 	}
 
 	if (configField.type === ConfigManifestEntryType.FLOAT) {
-		return <EditAttribute {...opts} type="float" className="input text-input input-l"></EditAttribute>
+		return <EditAttribute {...opts} type="float" className="input text-input input-l" />
 	} else if (configField.type === ConfigManifestEntryType.INT) {
 		return (
 			<EditAttribute
@@ -33,20 +33,14 @@ export const renderEditAttribute = (
 				className="input text-input input-l"
 				mutateDisplayValue={(v) => (configField.zeroBased ? v + 1 : v)}
 				mutateUpdateValue={(v) => (configField.zeroBased ? v - 1 : v)}
-			></EditAttribute>
+			/>
 		)
 	} else if (configField.type === ConfigManifestEntryType.STRING) {
-		return <EditAttribute {...opts} type="text" className="input text-input input-l"></EditAttribute>
+		return <EditAttribute {...opts} type="text" className="input text-input input-l" />
 	} else if (configField.type === ConfigManifestEntryType.BOOLEAN) {
-		return <EditAttribute {...opts} type="checkbox" className="input input-l"></EditAttribute>
+		return <EditAttribute {...opts} type="checkbox" className="input input-l" />
 	} else if (configField.type === ConfigManifestEntryType.ENUM) {
-		return (
-			<EditAttributeEnumDropdown
-				{...opts}
-				options={(configField as ConfigManifestEntry).values || []}
-				className="input text-input input-l"
-			></EditAttributeEnumDropdown>
-		)
+		return <EditAttributeEnumDropdown {...opts} options={configField.values} className="input text-input input-l" />
 	} else if (configField.type === ConfigManifestEntryType.OBJECT) {
 		return (
 			<EditAttribute
@@ -55,7 +49,7 @@ export const renderEditAttribute = (
 				mutateUpdateValue={(v) => JSON.parse(v)}
 				type="multiline"
 				className="input text-input input-l"
-			></EditAttribute>
+			/>
 		)
 	} else if (configField.type === ConfigManifestEntryType.MULTILINE_STRING) {
 		return (

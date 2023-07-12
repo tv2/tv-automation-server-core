@@ -40,6 +40,7 @@ export function createPieceGroupAndCap(
 	>,
 	controlObjClasses?: string[],
 	partGroup?: TimelineObjRundown,
+	parentGroup?: TimelineObjRundown,
 	pieceEnable?: TSR.Timeline.TimelineEnable,
 	pieceStartOffset?: number
 ): {
@@ -82,7 +83,7 @@ export function createPieceGroupAndCap(
 			callBackStopped: PlayoutChangedType.PIECE_PLAYBACK_STOPPED, // Will cause a callback to be called, when the object stops playing:
 		},
 		classes: controlObjClasses,
-		inGroup: partGroup && partGroup.id,
+		inGroup: parentGroup?.id,
 		metaData: {
 			isPieceTimeline: true,
 		},
@@ -96,7 +97,7 @@ export function createPieceGroupAndCap(
 			type: TimelineContentTypeOther.GROUP,
 		},
 		children: [],
-		inGroup: partGroup && partGroup.id,
+		inGroup: parentGroup?.id,
 		isGroup: true,
 		pieceInstanceId: unprotectString(pieceInstance._id),
 		infinitePieceInstanceId: pieceInstance.infinite?.infiniteInstanceId,
@@ -123,7 +124,7 @@ export function createPieceGroupAndCap(
 			enable: {
 				start: 'now',
 			},
-			inGroup: partGroup && partGroup.id,
+			inGroup: parentGroup?.id,
 			layer: '',
 			content: {
 				deviceType: TSR.DeviceType.ABSTRACT,
@@ -203,7 +204,7 @@ export function createPieceGroupAndCap(
 						type: TimelineContentTypeOther.GROUP,
 					},
 					isGroup: true,
-					inGroup: partGroup && partGroup.id,
+					inGroup: parentGroup?.id,
 					partInstanceId: controlObj.partInstanceId,
 					metaData: literal<PieceTimelineMetadata>({
 						isPieceTimeline: true,
@@ -214,6 +215,9 @@ export function createPieceGroupAndCap(
 			controlObj.inGroup = pieceEndCapGroup.id
 		}
 	} else {
+		if (typeof resolvedEndCap === 'number' && partGroup) {
+			resolvedEndCap = `#${partGroup.id}.start + ${resolvedEndCap}`
+		}
 		controlObj.enable.end = resolvedEndCap
 	}
 

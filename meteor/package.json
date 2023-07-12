@@ -109,7 +109,8 @@
 		"vm2": "^3.9.11",
 		"webmidi": "^2.5.3",
 		"winston": "^3.8.2",
-		"xmlbuilder": "^15.1.1"
+		"xmlbuilder": "^15.1.1",
+		"paraphrase": "^3.1.1"
 	},
 	"devDependencies": {
 		"@babel/core": "^7.19.1",

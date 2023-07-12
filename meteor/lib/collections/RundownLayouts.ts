@@ -265,9 +265,9 @@ export interface RundownLayoutKeyboardPreview extends RundownLayoutElementBase {
 }
 
 export enum DashboardPanelUnit {
-	/** Dashboard panels are defined in absolute (em) units */
-	EM = 'em',
-	/** Dashboard panels are defined in percent so that they scale with container/window size */
+	/** Dashboard panel dimensions are defined in units relative to the root element's font-size */
+	REM = 'rem',
+	/** Dashboard panel dimensions are defined in percent so that they scale with container/window size */
 	PERCENT = '%',
 }
 
@@ -286,6 +286,30 @@ export interface DashboardPanelUnits {
 	widthUnit?: DashboardPanelUnit
 	heightUnit?: DashboardPanelUnit
 }
+
+export type RundownLayoutElementAny =
+	| RundownLayoutExternalFrame
+	| RundownLayoutAdLibRegion
+	| RundownLayoutPieceCountdown
+	| RundownLayoutNextInfo
+	| RundownLayoutPlaylistStartTimer
+	| RundownLayoutNextBreakTiming
+	| RundownLayoutPlaylistEndTimer
+	| RundownLayoutEndWords
+	| RundownLayoutSegmentTiming
+	| RundownLayoutPartTiming
+	| RundownLayoutTextLabel
+	| RundownLayoutPlaylistName
+	| RundownLayoutStudioName
+	| RundownLayoutTimeOfDay
+	| RundownLayoutSytemStatus
+	| RundownLayoutShowStyleDisplay
+	| RundownLayoutSegmentName
+	| RundownLayoutPartName
+	| RundownLayoutColoredBox
+	| RundownLayoutKeyboardPreview
+	| RundownLayoutMiniRundown
+	| RundownLayoutFilterBase
 
 type DashboardPanel<T> = T & DashboardPanelBase & DashboardPanelUnits
 

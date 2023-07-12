@@ -22,7 +22,7 @@ import { StatusCode } from '@sofie-automation/blueprints-integration'
 import { TFunction, useTranslation } from 'react-i18next'
 import { RundownLayoutsAPI } from '../../../lib/api/rundownLayouts'
 import { ShowStyleVariant, ShowStyleVariants } from '../../../lib/collections/ShowStyleVariants'
-import ShowStyleVariantConfigurationVerifier from './helpers/show-style-variant-configuration-verifier'
+import ShowStyleVariantConfigurationVerifier from './helpers/ShowStyleVariantConfigurationVerifier'
 
 interface ISettingsMenuProps {
 	superAdmin?: boolean

@@ -48,11 +48,12 @@ import {
 import { UploadButton } from '../../lib/uploadButton'
 import { NoticeLevel, Notification, NotificationCenter } from '../../lib/notifications/notifications'
 import { MongoCollection } from '../../../lib/collections/lib'
-import { EditAttributeMultiSelect } from '../../lib/editAttribute/edit-attribute-multi-select'
-import { DropdownOption, EditAttributeDropdown } from '../../lib/editAttribute/edit-attribute-dropdown'
-import { MultiSelectOption } from '../../lib/multiSelect'
-import { EditAttributeTextDropdown } from '../../lib/editAttribute/edit-attribute-text-dropdown'
-import ConfigManifestTableEntrySelector from './helpers/config-manifest-table-entry-selector'
+import { EditAttributeMultiSelect } from '../../lib/editAttribute/EditAttributeMultiSelect'
+import { EditAttributeDropdown } from '../../lib/editAttribute/EditAttributeDropdown'
+import { EditAttributeTextDropdown } from '../../lib/editAttribute/EditAttributeTextDropdown'
+import ConfigManifestTableEntrySelector from './helpers/ConfigManifestTableEntrySelector'
+import { IEditAttributeBaseProps } from '../../lib/editAttribute/EditAttributeBase'
+import { useTranslation } from 'react-i18next'
 
 const configurationTableEntrySelector = ConfigManifestTableEntrySelector
 
@@ -88,36 +89,40 @@ function filterLayerMappings(
 	return result
 }
 
-function getEditAttribute<DBInterface extends { _id: ProtectedString<any> }>(
-	collection: MongoCollection<DBInterface>,
-	configPath: string,
-	object: DBInterface,
-	item: BasicConfigManifestEntry | ResolvedBasicConfigManifestEntry,
-	attribute: string,
-	layerMappings?: { [key: string]: MappingsExt },
-	sourceLayers?: Array<{ name: string; value: string; type: SourceLayerType }>,
+interface ConfigManifestEditAttributeProps<DBInterface extends DBObj> {
+	collection: MongoCollection<DBInterface>
+	configPath: string
+	obj: DBInterface
+	item: BasicConfigManifestEntry | ResolvedBasicConfigManifestEntry
+	attribute: string
+	layerMappings?: { [key: string]: MappingsExt }
+	sourceLayers?: Array<{ name: string; value: string; type: SourceLayerType }>
 	alternateObject?: any
-) {
+	allowEmptyDropdownWhenNotRequired?: boolean
+}
+function ConfigManifestEditAttribute<DBInterface extends DBObj>({
+	collection,
+	configPath,
+	obj,
+	item,
+	attribute,
+	layerMappings,
+	sourceLayers,
+	alternateObject,
+	allowEmptyDropdownWhenNotRequired,
+}: ConfigManifestEditAttributeProps<DBInterface>) {
+	const { t } = useTranslation()
+	const commonProps: IEditAttributeBaseProps = { attribute, obj, collection, modifiedClassName: 'bghl' }
+	let processedOptions: SelectOption[]
+	let shouldSaveLabel = false
 	switch (item.type) {
 		case ConfigManifestEntryType.STRING:
-			return (
-				<EditAttribute
-					modifiedClassName="bghl"
-					attribute={attribute}
-					obj={object}
-					type="text"
-					collection={collection}
-					className="input text-input input-l"
-				/>
-			)
+			return <EditAttribute {...commonProps} type="text" className="input text-input input-l" />
 		case ConfigManifestEntryType.MULTILINE_STRING:
 			return (
 				<EditAttribute
-					modifiedClassName="bghl"
-					attribute={attribute}
-					obj={object}
+					{...commonProps}
 					type="multiline"
-					collection={collection}
 					className="input text-input input-l"
 					mutateDisplayValue={(v) => (v === undefined || v.length === 0 ? undefined : v.join('\n'))}
 					mutateUpdateValue={(v) =>
@@ -128,147 +133,78 @@ function getEditAttribute<DBInterface extends { _id: ProtectedString<any> }>(
 		case ConfigManifestEntryType.INT:
 			return (
 				<EditAttribute
-					modifiedClassName="bghl"
-					attribute={attribute}
-					obj={object}
+					{...commonProps}
 					type="int"
-					collection={collection}
 					className="input text-input input-m"
 					mutateDisplayValue={(v) => (item.zeroBased ? v + 1 : v)}
 					mutateUpdateValue={(v) => (item.zeroBased ? v - 1 : v)}
 				/>
 			)
 		case ConfigManifestEntryType.FLOAT:
-			return (
-				<EditAttribute
-					modifiedClassName="bghl"
-					attribute={attribute}
-					obj={object}
-					type="float"
-					collection={collection}
-					className="input text-input input-m"
-				/>
-			)
+			return <EditAttribute {...commonProps} type="float" className="input text-input input-m" />
 		case ConfigManifestEntryType.BOOLEAN:
-			return (
-				<EditAttribute
-					modifiedClassName="bghl"
-					attribute={attribute}
-					obj={object}
-					type="checkbox"
-					collection={collection}
-					className="input"
-				/>
-			)
+			return <EditAttribute {...commonProps} type="checkbox" className="input" />
 		case ConfigManifestEntryType.ENUM:
 			return (
-				<EditAttributeTextDropdown
-					modifiedClassName="bghl"
-					attribute={attribute}
-					obj={object}
-					options={item.options || []}
-					collection={collection}
-					className="input text-input input-l"
-				/>
+				<EditAttributeTextDropdown {...commonProps} options={item.options || []} className="input text-input input-l" />
 			)
 		case ConfigManifestEntryType.JSON:
-			return (
-				<EditAttribute
-					modifiedClassName="bghl"
-					invalidClassName="warn"
-					attribute={attribute}
-					obj={object}
-					type="json"
-					collection={collection}
-					className="input text-input input-l"
-				/>
-			)
+			return <EditAttribute {...commonProps} invalidClassName="warn" type="json" className="input text-input input-l" />
 		case ConfigManifestEntryType.SELECT: {
-			const selectOptions: SelectOption[] = item.options.map((option) => ({ value: option, label: option }))
-			if (item.multiple) {
-				return renderMultiSelect(attribute, object, selectOptions, collection)
-			}
-			return renderDropdown(attribute, object, selectOptions, collection)
+			processedOptions = item.options.map((option) => ({ value: option, label: option }))
+			break
 		}
 		case ConfigManifestEntryType.SOURCE_LAYERS: {
-			const filterSourceLayerOptions = 'options' in item ? item.options : filterSourceLayers(item, sourceLayers ?? [])
-			if (item.multiple) {
-				return renderMultiSelect(attribute, object, filterSourceLayerOptions, collection)
-			}
-			return renderDropdown(attribute, object, filterSourceLayerOptions, collection)
+			processedOptions = 'options' in item ? item.options : filterSourceLayers(item, sourceLayers ?? [])
+			break
 		}
 		case ConfigManifestEntryType.LAYER_MAPPINGS: {
-			const layerMappingOptions = 'options' in item ? item.options : filterLayerMappings(item, layerMappings ?? {})
-			if (item.multiple) {
-				return renderMultiSelect(attribute, object, layerMappingOptions, collection)
-			}
-			return renderDropdown(attribute, object, layerMappingOptions, collection)
+			processedOptions = 'options' in item ? item.options : filterLayerMappings(item, layerMappings ?? {})
+			break
 		}
 		case ConfigManifestEntryType.SELECT_FROM_COLUMN: {
-			const selectFromOptions =
+			processedOptions =
 				'options' in item
 					? item.options
-					: configurationTableEntrySelector.getTableColumnValues(item, configPath, object, alternateObject)
-			if (item.multiple) {
-				return renderMultiSelect(attribute, object, selectFromOptions, collection, true)
-			}
-			return renderDropdown(attribute, object, selectFromOptions, collection, true)
+					: configurationTableEntrySelector.getTableColumnValues(item, configPath, obj, alternateObject)
+			shouldSaveLabel = true
+			break
 		}
 		case ConfigManifestEntryType.SELECT_FROM_TABLE_ENTRY_WITH_COMPARISON_MAPPINGS: {
-			const selectWithComparisonOptions =
+			processedOptions =
 				'options' in item
 					? item.options
 					: configurationTableEntrySelector.getFilteredSelectOptionsFromComparison(
 							attribute,
 							item,
 							configPath,
-							object,
+							obj,
 							alternateObject
 					  )
-			if (item.multiple) {
-				return renderMultiSelect(attribute, object, selectWithComparisonOptions, collection, true)
-			}
-			return renderDropdown(attribute, object, selectWithComparisonOptions, collection, true)
+			shouldSaveLabel = true
+			break
 		}
 		default:
 			return null
 	}
-}
 
-function renderMultiSelect(
-	attribute: string,
-	obj: any,
-	options: MultiSelectOption[],
-	collection: MongoCollection<any>,
-	shouldSaveLabel: boolean = false
-) {
-	return (
-		<EditAttributeMultiSelect
-			modifiedClassName="bghl"
-			attribute={attribute}
-			obj={obj}
-			options={options}
-			collection={collection}
-			className="input text-input dropdown input-l"
-			shouldSaveLabel={shouldSaveLabel}
-		></EditAttributeMultiSelect>
-	)
-}
-
-function renderDropdown(
-	attribute: string,
-	obj: any,
-	options: DropdownOption[],
-	collection: MongoCollection<any>,
-	shouldSaveLabel: boolean = false
-) {
+	if (item.multiple) {
+		return (
+			<EditAttributeMultiSelect
+				{...commonProps}
+				options={processedOptions}
+				className="input text-input dropdown input-l"
+				shouldSaveLabel={shouldSaveLabel}
+			/>
+		)
+	}
+	if (!item.required && allowEmptyDropdownWhenNotRequired) {
+		processedOptions = prependWithEmptyOption(t, processedOptions)
+	}
 	return (
 		<EditAttributeDropdown
-			modifiedClassName="bghl"
-			attribute={attribute}
-			obj={obj}
-			options={options}
-			collection={collection}
+			{...commonProps}
+			options={processedOptions}
 			className="input text-input dropdown input-l"
 			shouldSaveLabel={shouldSaveLabel}
 		/>
@@ -593,16 +529,15 @@ export class ConfigManifestTable<
 								<tr key={sortedIndices[i]}>
 									{_.map(this.state.resolvedColumns, (col) => (
 										<td key={col.id}>
-											{getEditAttribute(
-												this.props.collection,
-												this.props.configPath,
-												this.props.object,
-												col,
-												`${baseAttribute}.${sortedIndices[i]}.${col.id}`,
-												undefined,
-												undefined,
-												this.props.alternateObject
-											)}
+											<ConfigManifestEditAttribute
+												collection={this.props.collection}
+												configPath={this.props.configPath}
+												obj={this.props.object}
+												item={col}
+												attribute={`${baseAttribute}.${sortedIndices[i]}.${col.id}`}
+												alternateObject={this.props.alternateObject}
+												allowEmptyDropdownWhenNotRequired={true}
+											/>
 										</td>
 									))}
 									{!configEntry.disableRowManipulation && (
@@ -826,6 +761,7 @@ export class ConfigManifestSettings<
 	renderEditableArea(item: ConfigManifestEntry, valIndex: string) {
 		const baseAttribute = `${this.props.configPath}.${valIndex}`
 		const { t, collection, object, i18n, tReady } = this.props
+		let WrapperTag: 'div' | 'label'
 		switch (item.type) {
 			case ConfigManifestEntryType.TABLE:
 				return (
@@ -848,38 +784,27 @@ export class ConfigManifestSettings<
 			case ConfigManifestEntryType.SELECT_FROM_TABLE_ENTRY_WITH_COMPARISON_MAPPINGS:
 			case ConfigManifestEntryType.LAYER_MAPPINGS:
 			case ConfigManifestEntryType.SOURCE_LAYERS:
-				return (
-					<div className="field">
-						{t('Value')}
-						{getEditAttribute(
-							this.props.collection,
-							this.props.configPath,
-							this.props.object,
-							item as BasicConfigManifestEntry,
-							baseAttribute,
-							this.props.layerMappings,
-							this.props.sourceLayers,
-							this.props.alternateObject
-						)}
-					</div>
-				)
+				WrapperTag = 'div'
+				break
 			default:
-				return (
-					<label className="field">
-						{t('Value')}
-						{getEditAttribute(
-							this.props.collection,
-							this.props.configPath,
-							this.props.object,
-							item as BasicConfigManifestEntry,
-							baseAttribute,
-							this.props.layerMappings,
-							this.props.sourceLayers,
-							this.props.alternateObject
-						)}
-					</label>
-				)
+				WrapperTag = 'label'
+				break
 		}
+		return (
+			<WrapperTag className="field">
+				{t('Value')}
+				<ConfigManifestEditAttribute
+					collection={this.props.collection}
+					configPath={this.props.configPath}
+					obj={this.props.object}
+					item={item}
+					attribute={baseAttribute}
+					layerMappings={this.props.layerMappings}
+					sourceLayers={this.props.sourceLayers}
+					alternateObject={this.props.alternateObject}
+				/>
+			</WrapperTag>
+		)
 	}
 
 	renderItems() {
@@ -1023,4 +948,7 @@ export class ConfigManifestSettings<
 			</div>
 		)
 	}
+}
+function prependWithEmptyOption(t, processedOptions: SelectOption[]): SelectOption[] {
+	return [{ value: '', label: t('None') }, ...processedOptions]
 }

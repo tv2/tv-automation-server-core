@@ -12,15 +12,11 @@ $dashboard-button-height: 5.625em;
 	right: 2px;
 	overflow: auto;
 
-	--dashboard-button-grid-width: 1.875em;
-	--dashboard-button-grid-height: 1.625em;
-	--dashboard-panel-margin-width: 0.938em;
-	--dashboard-panel-margin-height: 2.75em;
+	--dashboard-button-grid-width: 1.875rem;
+	--dashboard-button-grid-height: 1.625rem;
+	--dashboard-panel-margin-width: 0.938rem;
+	--dashboard-panel-margin-height: 2.75rem;
 	--dashboard-panel-scale: 1;
-
-	.dashboard__panel--font-scaled {
-		font-size: calc(var(--dashboard-panel-scale) * 1.5em);
-	}
 }
 
 .dashboard-panel {

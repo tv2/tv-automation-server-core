@@ -19,7 +19,7 @@ import {
 import { LOOKAHEAD_DEFAULT_SEARCH_DISTANCE } from '@sofie-automation/shared-lib/dist/core/constants'
 import { MongoCollection } from '../../../../lib/collections/lib'
 import { renderEditAttribute } from '../components/ConfigManifestEntryComponent'
-import { EditAttributeBase } from '../../../lib/editAttribute/edit-attribute-base'
+import { EditAttributeBase } from '../../../lib/editAttribute/EditAttributeBase'
 
 interface IStudioMappingsProps {
 	studio: Studio

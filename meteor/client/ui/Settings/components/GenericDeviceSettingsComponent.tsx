@@ -19,7 +19,7 @@ import {
 import { ConfigManifestEntryComponent } from './ConfigManifestEntryComponent'
 import { ConfigManifestOAuthFlowComponent } from './ConfigManifestOAuthFlow'
 import { unprotectString } from '../../../../lib/lib'
-import { EditAttributeBase } from '../../../lib/editAttribute/edit-attribute-base'
+import { EditAttributeBase } from '../../../lib/editAttribute/EditAttributeBase'
 
 type EditId = PeripheralDeviceId | string
 interface IGenericDeviceSettingsComponentState {

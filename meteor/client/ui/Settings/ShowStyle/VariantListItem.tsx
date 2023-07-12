@@ -14,7 +14,7 @@ import { logger } from '../../../../lib/logging'
 import { doModalDialog, removeAllQueueItems } from '../../../lib/ModalDialog'
 import { TFunction } from 'react-i18next'
 import { i18n } from 'i18next'
-import ShowStyleVariantConfigurationVerifier from '../helpers/show-style-variant-configuration-verifier'
+import ShowStyleVariantConfigurationVerifier from '../helpers/ShowStyleVariantConfigurationVerifier'
 
 interface IShowStyleVariantItemProps {
 	index: number

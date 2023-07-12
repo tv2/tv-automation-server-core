@@ -41,6 +41,7 @@ export const L3rdListItemRenderer: React.FunctionComponent<ILayerItemRendererPro
 			case PieceLifespan.OutOnSegmentEnd:
 				sourceDuration = t('Until end of segment') as string
 				break
+			case PieceLifespan.OutOnRundownChangeWithSegmentLookback:
 			case PieceLifespan.OutOnRundownChange:
 				sourceDuration = t('Until next rundown') as string
 				break
