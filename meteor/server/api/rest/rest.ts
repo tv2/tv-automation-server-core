@@ -37,7 +37,7 @@ function typeConvertUrlParameters(args: any[]) {
 			if (!_.isNaN(Number(val))) {
 				val = Number(val)
 			} else {
-				let json: any = null
+				let json: object = {}
 				try {
 					json = JSON.parse(val)
 				} catch (e) {
@@ -46,7 +46,6 @@ function typeConvertUrlParameters(args: any[]) {
 				if (json) val = json
 			}
 		}
-
 		convertedArgs[i] = val
 	})
 
@@ -88,14 +87,9 @@ Meteor.startup(() => {
 				docString += `/:${paramName}`
 			})
 
-			assignRoute('GET', resource, docString, (args) => {
+			assignRoute('GET', resource, docString, async (args) => {
 				const convArgs = typeConvertUrlParameters(args)
-				const cursor = f.apply(
-					{
-						ready: () => null,
-					},
-					convArgs
-				)
+				const cursor = await f(...convArgs)
 				if (cursor) return cursor.fetch()
 				return []
 			})
