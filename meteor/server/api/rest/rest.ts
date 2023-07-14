@@ -28,7 +28,6 @@ function typeConvertUrlParameters(args: any[]) {
 	const convertedArgs: any[] = []
 
 	args.forEach((val, i) => {
-
 		if (val === 'null') val = null
 		else if (val === 'true') val = true
 		else if (val === 'false') val = false
@@ -88,7 +87,7 @@ Meteor.startup(() => {
 
 			assignRoute('GET', resource, docString, async (args) => {
 				const convArgs = typeConvertUrlParameters(args)
-				const cursor = await f(...convArgs).catch((error) => logger.error(error))
+				const cursor = await f(...convArgs)
 				if (cursor) return cursor.fetch()
 				return []
 			})
