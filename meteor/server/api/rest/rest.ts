@@ -37,16 +37,13 @@ function typeConvertUrlParameters(args: any[]) {
 			if (!_.isNaN(Number(val))) {
 				val = Number(val)
 			} else {
-				let json: any = null
 				try {
-					json = JSON.parse(val)
+					val = JSON.parse(val)
 				} catch (e) {
 					// ignore
 				}
-				if (json) val = json
 			}
 		}
-
 		convertedArgs[i] = val
 	})
 
@@ -88,14 +85,9 @@ Meteor.startup(() => {
 				docString += `/:${paramName}`
 			})
 
-			assignRoute('GET', resource, docString, (args) => {
+			assignRoute('GET', resource, docString, async (args) => {
 				const convArgs = typeConvertUrlParameters(args)
-				const cursor = f.apply(
-					{
-						ready: () => null,
-					},
-					convArgs
-				)
+				const cursor = await f(...convArgs)
 				if (cursor) return cursor.fetch()
 				return []
 			})
@@ -138,7 +130,7 @@ function assignRoute(routeType: 'POST' | 'GET', resource: string, indexResource:
 
 	index[routeType].push(indexResource)
 	route.route(resource, async (params: Params, req: IncomingMessage, res: ServerResponse) => {
-		logger.info(`REST APIv0: ${req.connection.remoteAddress} ${routeType} "${req.url}"`, {
+		logger.debug(`REST APIv0: ${req.connection.remoteAddress} ${routeType} "${req.url}"`, {
 			url: req.url,
 			method: routeType,
 			remoteAddress: req.connection.remoteAddress,
