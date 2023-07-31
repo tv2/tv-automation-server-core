@@ -1,7 +1,7 @@
 import { Piece } from './piece'
 import { TimelineObject } from './timeline-object'
 import { AdLibPiece } from './ad-lib-piece'
-import { PieceLifeSpan } from '../enums/PieceLifeSpan'
+import { PieceLifeSpan } from '../enums/piece-life-span'
 
 export interface PartInterface {
 	id: string

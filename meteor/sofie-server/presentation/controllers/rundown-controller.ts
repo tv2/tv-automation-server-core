@@ -28,15 +28,23 @@ export class RundownController extends BaseController {
 
 	@GetRequest('/identifiers')
 	public async getRundownIdentifiers(_reg: Request, res: Response): Promise<void> {
-		const rundownIdentifiers: Identifier[] = await this.rundownRepository.getRundownIdentifiers()
-		res.send(rundownIdentifiers)
+		try {
+			const rundownIdentifiers: Identifier[] = await this.rundownRepository.getRundownIdentifiers()
+			res.send(rundownIdentifiers)
+		} catch (error) {
+			this.httpErrorHandler.handleError(res, error as Exception)
+		}
 	}
 
 	@GetRequest('/:rundownId')
 	public async getRundown(reg: Request, res: Response): Promise<void> {
-		const rundownId: string = reg.params.rundownId
-		const rundown: Rundown = await this.rundownRepository.getRundown(rundownId)
-		res.send(new RundownDto(rundown))
+		try {
+			const rundownId: string = reg.params.rundownId
+			const rundown: Rundown = await this.rundownRepository.getRundown(rundownId)
+			res.send(new RundownDto(rundown))
+		} catch (error) {
+			this.httpErrorHandler.handleError(res, error as Exception)
+		}
 	}
 
 	@PutRequest('/:rundownId/activate')

@@ -6,7 +6,7 @@ import { PieceType } from '../../../model/enums/piece-type'
 import { Timeline } from '../../../model/entities/timeline'
 import { Identifier } from '../../../model/interfaces/identifier'
 import { AdLibPiece } from '../../../model/entities/ad-lib-piece'
-import { PieceLifeSpan } from '../../../model/enums/PieceLifeSpan'
+import { PieceLifeSpan } from '../../../model/enums/piece-life-span'
 
 export interface MongoIdentifier {
 	_id: string

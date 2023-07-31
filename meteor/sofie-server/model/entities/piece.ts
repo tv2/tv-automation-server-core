@@ -1,6 +1,6 @@
 import { PieceType } from '../enums/piece-type'
 import { TimelineObject } from './timeline-object'
-import { PieceLifeSpan } from '../enums/PieceLifeSpan'
+import { PieceLifeSpan } from '../enums/piece-life-span'
 
 export interface PieceInterface {
 	id: string
