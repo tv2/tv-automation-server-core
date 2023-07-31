@@ -6,11 +6,12 @@ import { TimelineBuilder } from '../services/interfaces/timeline-builder'
 import { TimelineBuilderImplementation } from '../services/timeline-integration/timeline-builder-implementation'
 import { RundownEventBuilderImplementation } from '../services/rundown-event-builder-implementation'
 import { RundownEventBuilder } from '../services/interfaces/rundown-event-builder'
+import { RundownLockService } from '../services/rundown-lock-service'
 
 export class ServiceFacade {
 	public static createRundownService(): RundownService {
 		// return new SofieCoreMeteorRundownService()
-		return new RundownTimelineService(
+		const timelineService: RundownService =  new RundownTimelineService(
 			RundownEventService.getInstance(),
 			RepositoryFacade.createRundownRepository(),
 			RepositoryFacade.createTimelineRepository(),
@@ -18,6 +19,7 @@ export class ServiceFacade {
 			ServiceFacade.createTimelineBuilder(),
 			ServiceFacade.createRundownEventBuilder()
 		)
+		return RundownLockService.getInstance(timelineService)
 	}
 
 	public static createTimelineBuilder(): TimelineBuilder {

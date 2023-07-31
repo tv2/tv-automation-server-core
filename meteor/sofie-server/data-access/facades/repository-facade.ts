@@ -10,18 +10,19 @@ import { MongoPieceRepository } from '../repositories/mongo/mongo-piece-reposito
 import { MongoPartRepository } from '../repositories/mongo/mongo-part-repository'
 import { TimelineRepository } from '../repositories/interfaces/timeline-repository'
 import { MongoTimelineRepository } from '../repositories/mongo/mongo-timeline-repository'
-import { CachedRundownRepository } from '../repositories/cache/cached-rundown-repository'
 import { AdLibPieceRepository } from '../repositories/interfaces/ad-lib-piece-repository'
 import { MongoAdLibPieceRepository } from '../repositories/mongo/mongo-ad-lib-piece-repository'
+import { CachedRundownRepository } from '../repositories/cache/cached-rundown-repository'
 
 export class RepositoryFacade {
 	public static createRundownRepository(): RundownRepository {
+		const mongoRundownRepository: RundownRepository = new MongoRundownRepository(
+			MongoDatabase.getInstance(),
+			new MongoEntityConverter(),
+			this.createSegmentRepository()
+		)
 		return CachedRundownRepository.getInstance(
-			new MongoRundownRepository(
-				MongoDatabase.getInstance(),
-				new MongoEntityConverter(),
-				this.createSegmentRepository()
-			)
+			mongoRundownRepository
 		)
 	}
 
