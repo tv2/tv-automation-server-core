@@ -5,14 +5,11 @@ import { HttpStatusCode } from './http-status-code'
 import { HttpErrorHandler } from './interfaces/http-error-handler'
 
 export class ExpressErrorHandler implements HttpErrorHandler {
-
 	public handleError(response: Response, exception: Exception): void {
 		console.log(`Caught Exception: "${exception.errorCode}". Message: ${exception.message}`)
 		console.log(exception.stack)
 
-		response
-			.status(this.getStatusCode(exception.errorCode))
-			.send(`${exception.errorCode} - ${exception.message}`)
+		response.status(this.getStatusCode(exception.errorCode)).send(`${exception.errorCode} - ${exception.message}`)
 	}
 
 	private getStatusCode(errorCode: ErrorCode): number {

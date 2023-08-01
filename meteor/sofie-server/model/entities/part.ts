@@ -65,16 +65,18 @@ export class Part {
 	public getTimelineObjects(): TimelineObject[] {
 		const now: number = new Date().getTime()
 		const adLibTimelineObjects: TimelineObject[] = this.adLibPieces
-			.filter(piece => this.shouldAdLibPieceBeShown(piece, now))
-			.flatMap(piece => piece.timelineObjects)
-		const pieceTimelineObjects: TimelineObject[] = this.pieces.flatMap(piece => piece.timelineObjects)
+			.filter((piece) => this.shouldAdLibPieceBeShown(piece, now))
+			.flatMap((piece) => piece.timelineObjects)
+		const pieceTimelineObjects: TimelineObject[] = this.pieces.flatMap((piece) => piece.timelineObjects)
 		return adLibTimelineObjects.concat(pieceTimelineObjects)
 	}
 
 	private shouldAdLibPieceBeShown(adLibPiece: AdLibPiece, executionTime: number): boolean {
-		return adLibPiece.getExecutedAt() > 0
-			&& (adLibPiece.getExecutedAt() <= executionTime)
-			&& ((adLibPiece.getExecutedAt() + adLibPiece.duration) > executionTime)
+		return (
+			adLibPiece.getExecutedAt() > 0 &&
+			adLibPiece.getExecutedAt() <= executionTime &&
+			adLibPiece.getExecutedAt() + adLibPiece.duration > executionTime
+		)
 	}
 
 	public addAdLibPiece(adLibPiece: AdLibPiece): void {
@@ -82,10 +84,10 @@ export class Part {
 	}
 
 	public getInfiniteRundownPieces(): Piece[] {
-		return this.pieces.filter(piece => piece.pieceLifeSpan === PieceLifeSpan.INFINITE_RUNDOWN)
+		return this.pieces.filter((piece) => piece.pieceLifeSpan === PieceLifeSpan.INFINITE_RUNDOWN)
 	}
 
 	public getSegmentRundownPieces(): Piece[] {
-		return this.pieces.filter(piece => piece.pieceLifeSpan === PieceLifeSpan.INFINITE_SEGMENT)
+		return this.pieces.filter((piece) => piece.pieceLifeSpan === PieceLifeSpan.INFINITE_SEGMENT)
 	}
 }

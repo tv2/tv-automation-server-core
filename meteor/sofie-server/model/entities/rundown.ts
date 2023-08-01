@@ -40,7 +40,7 @@ export class Rundown {
 
 	public activate(): void {
 		if (this.isActive()) {
-			throw new AlreadyActivatedException('Can\'t activate Rundown since it is already activated')
+			throw new AlreadyActivatedException("Can't activate Rundown since it is already activated")
 		}
 		this.isRundownActive = true
 
@@ -55,7 +55,6 @@ export class Rundown {
 			return previousSegment.rank < currentSegment.rank ? previousSegment : currentSegment
 		})
 	}
-
 
 	private setNextFromActive(): void {
 		this.unmarkNextSegmentAndPart()
@@ -92,7 +91,7 @@ export class Rundown {
 	}
 
 	private findNextSegment(): Segment {
-		const activeSegmentIndex: number = this.segments.findIndex(segment => segment.id === this.activeSegment.id)
+		const activeSegmentIndex: number = this.segments.findIndex((segment) => segment.id === this.activeSegment.id)
 		if (activeSegmentIndex === -1) {
 			throw new NotFoundException(`Segment does not exist in Rundown`)
 		}
@@ -154,7 +153,9 @@ export class Rundown {
 		}
 		this.activePart = this.nextPart
 		this.activePart.putOnAir()
-		this.activePart.getInfiniteRundownPieces().forEach((piece: Piece) => this.infinitePieces.set(piece.layer, piece))
+		this.activePart
+			.getInfiniteRundownPieces()
+			.forEach((piece: Piece) => this.infinitePieces.set(piece.layer, piece))
 	}
 
 	/**
@@ -181,7 +182,7 @@ export class Rundown {
 	}
 
 	private findSegment(segmentId: string): Segment {
-		const segment: Segment | undefined = this.segments.find(segment => segment.id === segmentId)
+		const segment: Segment | undefined = this.segments.find((segment) => segment.id === segmentId)
 		if (!segment) {
 			throw new NotFoundException(`Segment "${segmentId}" does not exist in Rundown "${this.id}"`)
 		}

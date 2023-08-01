@@ -11,7 +11,7 @@ import { RundownLockService } from '../services/rundown-lock-service'
 export class ServiceFacade {
 	public static createRundownService(): RundownService {
 		// return new SofieCoreMeteorRundownService()
-		const timelineService: RundownService =  new RundownTimelineService(
+		const timelineService: RundownService = new RundownTimelineService(
 			RundownEventService.getInstance(),
 			RepositoryFacade.createRundownRepository(),
 			RepositoryFacade.createTimelineRepository(),

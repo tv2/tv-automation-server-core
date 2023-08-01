@@ -65,7 +65,7 @@ export class Segment {
 	}
 
 	public findNextPart(fromPart: Part): Part {
-		const fromPartIndex: number = this.parts.findIndex(part => part.id === fromPart.id)
+		const fromPartIndex: number = this.parts.findIndex((part) => part.id === fromPart.id)
 		if (fromPartIndex === -1) {
 			throw new NotFoundException(`Part does not exist in Segment`)
 		}
@@ -76,7 +76,7 @@ export class Segment {
 	}
 
 	public findPart(partId: string): Part {
-		const part: Part | undefined = this.parts.find(part => part.id === partId)
+		const part: Part | undefined = this.parts.find((part) => part.id === partId)
 		if (!part) {
 			throw new NotFoundException(`Part "${partId}" does not exist in Segment "${this.id}"`)
 		}

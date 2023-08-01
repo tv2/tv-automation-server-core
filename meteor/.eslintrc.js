@@ -54,6 +54,12 @@ const tsBase = {
 			},
 		],
 		'jest/no-standalone-expect': 'off', // testInFiber confuses the rule
+		'node/no-unpublished-import': [
+			'error',
+			{
+				allowModules: ['ts-mockito'],
+			},
+		],
 		...tmpRules,
 	},
 }

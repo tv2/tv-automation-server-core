@@ -13,7 +13,7 @@ export class SegmentDto {
 		this.id = segment.id
 		this.rundownId = segment.rundownId
 		this.name = segment.name
-		this.parts = segment.getParts().map(part => new PartDto(part))
+		this.parts = segment.getParts().map((part) => new PartDto(part))
 		this.isOnAir = segment.isOnAir()
 		this.isNext = segment.isNext()
 	}

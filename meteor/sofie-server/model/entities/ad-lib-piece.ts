@@ -34,7 +34,7 @@ export class AdLibPiece {
 	}
 
 	private hackSetProperEnableBecauseOfTheWayOurBlueprintsGenerateEnableForAdLibHtmlGraphics(): void {
-		this.timelineObjects = this.timelineObjects.map(object => {
+		this.timelineObjects = this.timelineObjects.map((object) => {
 			if (object.enable && object.enable['while'] === '!.full') {
 				object.enable['while'] = undefined
 				object.enable['start'] = this.executedAt

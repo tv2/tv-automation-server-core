@@ -4,13 +4,14 @@ import { MisconfigurationException } from '../../../model/exceptions/misconfigur
 import { Identifier } from '../../../model/interfaces/identifier'
 
 export class CachedRundownRepository implements RundownRepository {
-
 	private static instance: RundownRepository
 
 	public static getInstance(rundownRepository?: RundownRepository): RundownRepository {
 		if (!this.instance) {
 			if (!rundownRepository) {
-				throw new MisconfigurationException(`No RundownRepository provided. Unable to create instance of ${CachedRundownRepository.name}`)
+				throw new MisconfigurationException(
+					`No RundownRepository provided. Unable to create instance of ${CachedRundownRepository.name}`
+				)
 			}
 			this.instance = new CachedRundownRepository(rundownRepository)
 		}

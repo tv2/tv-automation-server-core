@@ -10,7 +10,6 @@ import { HttpErrorHandler } from '../interfaces/http-error-handler'
 
 @RestController('/rundowns')
 export class RundownController extends BaseController {
-
 	private rundownService: RundownService
 	private rundownRepository: RundownRepository
 	private httpErrorHandler: HttpErrorHandler

@@ -3,6 +3,6 @@ export enum PieceType {
 	CAMERA = 'CAMERA',
 	LIVE = 'LIVE',
 	GRAPHIC = 'GRAPHIC',
-	SERVER = 'SERVER'
+	SERVER = 'SERVER',
 	// Add as needed
 }

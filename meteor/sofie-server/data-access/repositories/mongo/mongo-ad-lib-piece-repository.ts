@@ -9,7 +9,6 @@ import { NotFoundException } from '../../../model/exceptions/not-found-exception
 const AD_LIB_COLLECTION_NAME: string = 'adLibPieces'
 
 export class MongoAdLibPieceRepository extends BaseMongoRepository implements AdLibPieceRepository {
-
 	constructor(mongoDatabase: MongoDatabase, mongoEntityConverter: MongoEntityConverter) {
 		super(mongoDatabase, mongoEntityConverter)
 	}
@@ -20,13 +19,17 @@ export class MongoAdLibPieceRepository extends BaseMongoRepository implements Ad
 
 	public async getAdLibPieceIdentifiers(rundownId: string): Promise<Identifier[]> {
 		this.assertDatabaseConnection('getAdLibIdentifiers')
-		const mongoAdLibPieces: MongoAdLibPiece[] = await this.getCollection().find({ 'rundownId': rundownId }).toArray() as unknown as MongoAdLibPiece[]
+		const mongoAdLibPieces: MongoAdLibPiece[] = (await this.getCollection()
+			.find({ rundownId: rundownId })
+			.toArray()) as unknown as MongoAdLibPiece[]
 		return this.mongoEntityConverter.convertMongoAdLibPiecesToIdentifiers(mongoAdLibPieces)
 	}
 
 	public async getAdLibPiece(adLibPieceId: string): Promise<AdLibPiece> {
 		this.assertDatabaseConnection('getAdLibPiece')
-		const mongoAdLibPiece: MongoAdLibPiece = await this.getCollection().findOne({ '_id': adLibPieceId }) as unknown as MongoAdLibPiece
+		const mongoAdLibPiece: MongoAdLibPiece = (await this.getCollection().findOne({
+			_id: adLibPieceId,
+		})) as unknown as MongoAdLibPiece
 		if (!mongoAdLibPiece) {
 			throw new NotFoundException(`Could not find an AdLibPiece for "${adLibPieceId}"`)
 		}

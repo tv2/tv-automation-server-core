@@ -15,7 +15,7 @@ export class RundownEventService implements RundownEventEmitter, RundownEventLis
 	private callbacks: ((rundownEvent: RundownEvent) => void)[] = []
 
 	public emitRundownEvent(rundownEvent: RundownEvent) {
-		this.callbacks.forEach(cb => cb(rundownEvent))
+		this.callbacks.forEach((cb) => cb(rundownEvent))
 	}
 
 	public listenToRundownEvents(onRundownEventCallback: (rundownEvent: RundownEvent) => void) {

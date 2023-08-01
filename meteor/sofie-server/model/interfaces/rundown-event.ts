@@ -8,22 +8,22 @@ export interface RundownEvent {
 }
 
 export interface AdLibPieceInsertedEvent extends RundownEvent {
-	type: RundownEventType.AD_LIB_PIECE_INSERTED,
+	type: RundownEventType.AD_LIB_PIECE_INSERTED
 	segmentId: string
 	partId: string
 	adLibPiece: {
 		id: string
-		name: string,
-		start: number,
+		name: string
+		start: number
 		duration: number
 	}
 }
 
 export interface InfiniteRundownPieceAddedEvent extends RundownEvent {
-	type: RundownEventType.INFINITE_RUNDOWN_PIECE_ADDED,
+	type: RundownEventType.INFINITE_RUNDOWN_PIECE_ADDED
 	infinitePiece: {
-		id: string,
-		name: string,
+		id: string
+		name: string
 		layer: string
 	}
 }

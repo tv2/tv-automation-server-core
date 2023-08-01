@@ -6,12 +6,8 @@ import { AdLibPieceController } from '../controllers/ad-lib-piece-controller'
 import { BaseController } from '../controllers/base-controller'
 
 export class ControllerFacade {
-
 	public static getControllers(): BaseController[] {
-		return [
-			this.createRundownController(),
-			this.createAdLibPieceController()
-		]
+		return [this.createRundownController(), this.createAdLibPieceController()]
 	}
 
 	private static createRundownController(): RundownController {

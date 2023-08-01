@@ -26,9 +26,7 @@ class SofieServer {
 	}
 
 	public configureRoutes(): void {
-		controllers
-			.map(this.mapControllerToRouter)
-			.forEach(router => this.addRouterToServer(router))
+		controllers.map(this.mapControllerToRouter).forEach((router) => this.addRouterToServer(router))
 	}
 
 	public mapControllerToRouter(controller: BaseController): Router {
@@ -64,10 +62,7 @@ function attachExpressServerToPort(port: number): void {
 }
 
 function startRundownEventServer(): void {
-	RundownEventServerFacade
-		.createRundownEventServer()
-		.startServer(RUNDOWN_EVENT_SERVER_PORT)
+	RundownEventServerFacade.createRundownEventServer().startServer(RUNDOWN_EVENT_SERVER_PORT)
 }
-
 
 startSofieServer()

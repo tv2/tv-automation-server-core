@@ -9,7 +9,7 @@ describe('cached-rundown-repository', () => {
 			const mockRepo: RundownRepository = mock<RundownRepository>()
 
 			const randomRundownId: string = 'randomRundownId'
-			const randomRundown: Rundown = new Rundown({id: randomRundownId} as RundownInterface)
+			const randomRundown: Rundown = new Rundown({ id: randomRundownId } as RundownInterface)
 
 			when(mockRepo.getRundown(randomRundownId)).thenReturn(Promise.resolve(randomRundown))
 
@@ -23,7 +23,7 @@ describe('cached-rundown-repository', () => {
 			const mockRepo: RundownRepository = mock<RundownRepository>()
 
 			const randomRundownId: string = 'randomRundownId'
-			const randomRundown: Rundown = new Rundown({id: randomRundownId} as RundownInterface)
+			const randomRundown: Rundown = new Rundown({ id: randomRundownId } as RundownInterface)
 
 			when(mockRepo.getRundown(randomRundownId)).thenReturn(Promise.resolve(randomRundown))
 

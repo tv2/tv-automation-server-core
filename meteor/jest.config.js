@@ -84,10 +84,7 @@ module.exports = {
 		}),
 		Object.assign({}, commonConfig, {
 			displayName: 'sofie-server',
-			testMatch: [
-				'<rootDir>/sofie-server/**/*.(spec|test).(ts|js)',
-				'!.meteor/*.*',
-			],
+			testMatch: ['<rootDir>/sofie-server/**/*.(spec|test).(ts|js)', '!.meteor/*.*'],
 			testEnvironment: 'node',
 		}),
 	],

@@ -13,7 +13,7 @@ export class PartDto {
 		this.id = part.id
 		this.segmentId = part.segmentId
 		this.name = part.name
-		this.pieces = part.pieces.map(piece => new PieceDto(piece))
+		this.pieces = part.pieces.map((piece) => new PieceDto(piece))
 		this.isOnAir = part.isOnAir()
 		this.isNext = part.isNext()
 	}

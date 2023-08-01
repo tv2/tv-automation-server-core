@@ -8,7 +8,6 @@ import { RundownService } from '../../business-logic/services/interfaces/rundown
 
 @RestController('/adLibPieces')
 export class AdLibPieceController extends BaseController {
-
 	private rundownService: RundownService
 	private adLibRepository: AdLibPieceRepository
 	private httpErrorHandler: HttpErrorHandler

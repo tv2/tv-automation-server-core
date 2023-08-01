@@ -31,15 +31,13 @@ export abstract class BaseController {
 		return [...methods.keys()].map((methodName: string) => ({
 			path: this.getFullPath(paths.get(methodName) ?? ''),
 			method: methods.get(methodName) ?? Method.GET,
-			action: this.getAction(methodName as keyof this)
+			action: this.getAction(methodName as keyof this),
 		}))
 	}
 
 	private getFullPath(path: string): string {
 		const basePath = getBasePath(this)
-		return `/${basePath}/${path}`
-			.replace(/\/+/g, '/')
-			.replace(/(?<!^)\/$/g, '')
+		return `/${basePath}/${path}`.replace(/\/+/g, '/').replace(/(?<!^)\/$/g, '')
 	}
 
 	private getAction(methodName: keyof this): Action {

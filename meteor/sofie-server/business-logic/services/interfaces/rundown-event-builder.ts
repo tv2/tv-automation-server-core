@@ -2,7 +2,7 @@ import { Rundown } from '../../../model/entities/rundown'
 import {
 	AdLibPieceInsertedEvent,
 	InfiniteRundownPieceAddedEvent,
-	RundownEvent
+	RundownEvent,
 } from '../../../model/interfaces/rundown-event'
 import { AdLibPiece } from '../../../model/entities/ad-lib-piece'
 import { Piece } from '../../../model/entities/piece'

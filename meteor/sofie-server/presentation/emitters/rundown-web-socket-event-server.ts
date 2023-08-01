@@ -7,13 +7,14 @@ import { RundownEventListener } from '../../business-logic/services/interfaces/r
 import { MisconfigurationException } from '../../model/exceptions/misconfiguration-exception'
 
 export class RundownWebSocketEventServer implements RundownEventServer {
-
 	private static instance: RundownEventServer
 
 	public static getInstance(rundownEventListener?: RundownEventListener): RundownEventServer {
 		if (!this.instance) {
 			if (!rundownEventListener) {
-				throw new MisconfigurationException(`No RundownEventListener provided. Unable to create instance of ${RundownWebSocketEventServer.name}`)
+				throw new MisconfigurationException(
+					`No RundownEventListener provided. Unable to create instance of ${RundownWebSocketEventServer.name}`
+				)
 			}
 			this.instance = new RundownWebSocketEventServer(rundownEventListener)
 		}
@@ -57,7 +58,7 @@ export class RundownWebSocketEventServer implements RundownEventServer {
 	private createWebSocketServer(port: number): WebSocketServer {
 		const app = express()
 		const server = http.createServer(app)
-		const webSocketServer = new WebSocketServer({server})
+		const webSocketServer = new WebSocketServer({ server })
 
 		server.listen(port, () => {
 			console.log(`### WebSocketServer started on port: ${port}`)

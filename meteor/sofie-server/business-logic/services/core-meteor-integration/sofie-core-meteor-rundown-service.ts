@@ -6,14 +6,13 @@ import { StudioJobs } from '@sofie-automation/corelib/dist/worker/studio'
 import { RundownPlaylistId } from '@sofie-automation/shared-lib/dist/core/model/Ids'
 
 export class SofieCoreMeteorRundownService implements RundownService {
-
 	public async activateRundown(_rundownId: string): Promise<void> {
 		throw new Error('Not implemented exception')
 	}
 
 	public async takeNext(rundownId: string): Promise<void> {
 		const rundownPlaylistId: RundownPlaylistId = rundownId as unknown as RundownPlaylistId
-		ServerClientAPI.runUserActionInLogForPlaylistOnWorker(
+		await ServerClientAPI.runUserActionInLogForPlaylistOnWorker(
 			this.getMeteorMethodContext(),
 			'TakeEvent',
 			new Date().getTime(),
@@ -24,7 +23,7 @@ export class SofieCoreMeteorRundownService implements RundownService {
 			StudioJobs.TakeNextPart,
 			{
 				playlistId: rundownPlaylistId,
-				fromPartInstanceId: null
+				fromPartInstanceId: null,
 			}
 		)
 	}
@@ -39,7 +38,7 @@ export class SofieCoreMeteorRundownService implements RundownService {
 			},
 			unblock: () => {
 				// Do nothing
-			}
+			},
 		}
 	}
 
@@ -53,7 +52,7 @@ export class SofieCoreMeteorRundownService implements RundownService {
 				// Do nothing
 			},
 			clientAddress: '',
-			httpHeaders: {}
+			httpHeaders: {},
 		}
 	}
 
@@ -63,7 +62,7 @@ export class SofieCoreMeteorRundownService implements RundownService {
 
 	public async resetRundown(rundownId: string): Promise<void> {
 		const rundownPlaylistId: RundownPlaylistId = rundownId as unknown as RundownPlaylistId
-		ServerClientAPI.runUserActionInLogForPlaylistOnWorker(
+		await ServerClientAPI.runUserActionInLogForPlaylistOnWorker(
 			this.getMeteorMethodContext(),
 			'ResetEvent',
 			new Date().getTime(),
@@ -82,7 +81,7 @@ export class SofieCoreMeteorRundownService implements RundownService {
 		throw new Error('Not implemented exception')
 	}
 
-	public executeAdLibPiece(_rundownId: string, _adLibId: string): Promise<void> {
+	public async executeAdLibPiece(_rundownId: string, _adLibId: string): Promise<void> {
 		throw new Error('Not implemented exception')
 	}
 }

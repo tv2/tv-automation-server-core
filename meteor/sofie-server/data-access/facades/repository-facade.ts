@@ -21,9 +21,7 @@ export class RepositoryFacade {
 			new MongoEntityConverter(),
 			this.createSegmentRepository()
 		)
-		return CachedRundownRepository.getInstance(
-			mongoRundownRepository
-		)
+		return CachedRundownRepository.getInstance(mongoRundownRepository)
 	}
 
 	public static createSegmentRepository(): SegmentRepository {
@@ -43,23 +41,14 @@ export class RepositoryFacade {
 	}
 
 	public static createPieceRepository(): PieceRepository {
-		return new MongoPieceRepository(
-			MongoDatabase.getInstance(),
-			new MongoEntityConverter()
-		)
+		return new MongoPieceRepository(MongoDatabase.getInstance(), new MongoEntityConverter())
 	}
 
 	public static createTimelineRepository(): TimelineRepository {
-		return new MongoTimelineRepository(
-			MongoDatabase.getInstance(),
-			new MongoEntityConverter()
-		)
+		return new MongoTimelineRepository(MongoDatabase.getInstance(), new MongoEntityConverter())
 	}
 
 	public static createAdLibRepository(): AdLibPieceRepository {
-		return new MongoAdLibPieceRepository(
-			MongoDatabase.getInstance(),
-			new MongoEntityConverter()
-		)
+		return new MongoAdLibPieceRepository(MongoDatabase.getInstance(), new MongoEntityConverter())
 	}
 }

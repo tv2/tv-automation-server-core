@@ -2,7 +2,7 @@ import { RundownService } from '../interfaces/rundown-service'
 import {
 	AdLibPieceInsertedEvent,
 	InfiniteRundownPieceAddedEvent,
-	RundownEvent
+	RundownEvent,
 } from '../../../model/interfaces/rundown-event'
 import { RundownEventEmitter } from '../interfaces/rundown-event-emitter'
 import { RundownRepository } from '../../../data-access/repositories/interfaces/rundown-repository'
@@ -16,7 +16,6 @@ import { Piece } from '../../../model/entities/piece'
 import { RundownEventBuilder } from '../interfaces/rundown-event-builder'
 
 export class RundownTimelineService implements RundownService {
-
 	private rundownEventEmitter: RundownEventEmitter
 	private rundownRepository: RundownRepository
 	private timelineRepository: TimelineRepository
@@ -25,12 +24,12 @@ export class RundownTimelineService implements RundownService {
 	private rundownEventBuilder: RundownEventBuilder
 
 	constructor(
-			eventEmitter: RundownEventEmitter,
-			rundownRepository: RundownRepository,
-			timelineRepository: TimelineRepository,
-			adLibRepository: AdLibPieceRepository,
-			timelineBuilder: TimelineBuilder,
-			rundownEventBuilder: RundownEventBuilder
+		eventEmitter: RundownEventEmitter,
+		rundownRepository: RundownRepository,
+		timelineRepository: TimelineRepository,
+		adLibRepository: AdLibPieceRepository,
+		timelineBuilder: TimelineBuilder,
+		rundownEventBuilder: RundownEventBuilder
 	) {
 		this.rundownEventEmitter = eventEmitter
 		this.rundownRepository = rundownRepository
@@ -95,9 +94,10 @@ export class RundownTimelineService implements RundownService {
 	private emitAddInfinitePieces(rundown: Rundown, infinitePiecesBefore: Piece[]): void {
 		const infinitePiecesAfter: Piece[] = rundown.getInfinitePieces()
 		infinitePiecesAfter
-			.filter(piece => !infinitePiecesBefore.includes(piece))
-			.forEach(piece => {
-				const infinitePieceAddedEvent: InfiniteRundownPieceAddedEvent = this.rundownEventBuilder.buildInfiniteRundownPieceAddedEvent(rundown, piece)
+			.filter((piece) => !infinitePiecesBefore.includes(piece))
+			.forEach((piece) => {
+				const infinitePieceAddedEvent: InfiniteRundownPieceAddedEvent =
+					this.rundownEventBuilder.buildInfiniteRundownPieceAddedEvent(rundown, piece)
 				this.rundownEventEmitter.emitRundownEvent(infinitePieceAddedEvent)
 			})
 	}
@@ -135,7 +135,10 @@ export class RundownTimelineService implements RundownService {
 		this.timelineRepository.saveTimeline(timeline)
 		this.rundownRepository.saveRundown(rundown)
 
-		const adLibPieceInsertedEvent: AdLibPieceInsertedEvent = this.rundownEventBuilder.buildAdLibPieceInsertedEvent(rundown, adLibPiece)
+		const adLibPieceInsertedEvent: AdLibPieceInsertedEvent = this.rundownEventBuilder.buildAdLibPieceInsertedEvent(
+			rundown,
+			adLibPiece
+		)
 		this.rundownEventEmitter.emitRundownEvent(adLibPieceInsertedEvent)
 	}
 }

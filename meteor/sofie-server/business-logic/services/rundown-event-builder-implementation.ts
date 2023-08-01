@@ -3,20 +3,19 @@ import { Rundown } from '../../model/entities/rundown'
 import {
 	AdLibPieceInsertedEvent,
 	InfiniteRundownPieceAddedEvent,
-	RundownEvent
+	RundownEvent,
 } from '../../model/interfaces/rundown-event'
 import { RundownEventType } from '../../model/enums/rundown-event-type'
 import { AdLibPiece } from '../../model/entities/ad-lib-piece'
 import { Piece } from '../../model/entities/piece'
 
 export class RundownEventBuilderImplementation implements RundownEventBuilder {
-
 	public buildActivateEvent(rundown: Rundown): RundownEvent {
 		return {
 			type: RundownEventType.ACTIVATE,
 			rundownId: rundown.id,
 			segmentId: rundown.getActiveSegment().id,
-			partId: rundown.getActivePart().id
+			partId: rundown.getActivePart().id,
 		}
 	}
 
@@ -25,7 +24,7 @@ export class RundownEventBuilderImplementation implements RundownEventBuilder {
 			type: RundownEventType.DEACTIVATE,
 			rundownId: rundown.id,
 			segmentId: '',
-			partId: ''
+			partId: '',
 		}
 	}
 
@@ -34,7 +33,7 @@ export class RundownEventBuilderImplementation implements RundownEventBuilder {
 			type: RundownEventType.RESET,
 			rundownId: rundown.id,
 			segmentId: '',
-			partId: ''
+			partId: '',
 		}
 	}
 
@@ -43,7 +42,7 @@ export class RundownEventBuilderImplementation implements RundownEventBuilder {
 			type: RundownEventType.TAKE,
 			rundownId: rundown.id,
 			segmentId: rundown.getActiveSegment().id,
-			partId: rundown.getActivePart().id
+			partId: rundown.getActivePart().id,
 		}
 	}
 
@@ -52,7 +51,7 @@ export class RundownEventBuilderImplementation implements RundownEventBuilder {
 			type: RundownEventType.SET_NEXT,
 			rundownId: rundown.id,
 			segmentId: rundown.getNextSegment().id,
-			partId: rundown.getNextPart().id
+			partId: rundown.getNextPart().id,
 		}
 	}
 
@@ -66,8 +65,8 @@ export class RundownEventBuilderImplementation implements RundownEventBuilder {
 				id: adLibPiece.id,
 				name: adLibPiece.name,
 				start: adLibPiece.getExecutedAt(),
-				duration: adLibPiece.duration
-			}
+				duration: adLibPiece.duration,
+			},
 		}
 	}
 
@@ -77,7 +76,7 @@ export class RundownEventBuilderImplementation implements RundownEventBuilder {
 			rundownId: rundown.id,
 			segmentId: '',
 			partId: '',
-			infinitePiece
+			infinitePiece,
 		}
 	}
 }

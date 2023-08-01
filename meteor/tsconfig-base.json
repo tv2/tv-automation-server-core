@@ -13,6 +13,6 @@
 		"experimentalDecorators": true,
 		"emitDecoratorMetadata": true
 	},
-	"include": ["client/**/*", "server/**/*", "sofie-server", "lib/**/*", "__mocks__/**/*", "tslint-rules/**/*"],
+	"include": ["client/**/*", "server/**/*", "sofie-server/**/*", "lib/**/*", "__mocks__/**/*", "tslint-rules/**/*"],
 	"exclude": ["node_modules", "**/.coverage/**/*"]
 }

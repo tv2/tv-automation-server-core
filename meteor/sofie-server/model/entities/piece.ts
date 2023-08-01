@@ -36,5 +36,4 @@ export class Piece {
 		this.duration = piece.duration
 		this.timelineObjects = piece.timelineObjects
 	}
-
 }

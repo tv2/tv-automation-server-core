@@ -15,15 +15,15 @@ export interface MongoIdentifier {
 
 export interface MongoRundown {
 	_id: string
-	externalId: string,
-	name: string,
+	externalId: string
+	name: string
 	timing: {
 		type: string
 		expectedStart: number
 		expectedDuration: number
 		expectedEnd: number
 	}
-	playlistExternalId: string,
+	playlistExternalId: string
 	metaData: {
 		rank: number
 	}
@@ -38,8 +38,8 @@ export interface MongoSegment {
 	_id: string
 	name: string
 	_rank: number
-	rundownId: string,
-	externalId: string,
+	rundownId: string
+	externalId: string
 	isHidden: boolean
 }
 
@@ -80,11 +80,10 @@ export interface MongoAdLibPiece {
 }
 
 export class MongoEntityConverter {
-
 	public convertIdentifier(mongoIdentifier: MongoIdentifier): Identifier {
 		return {
 			id: mongoIdentifier._id,
-			name: mongoIdentifier.name
+			name: mongoIdentifier.name,
 		}
 	}
 
@@ -97,7 +96,7 @@ export class MongoEntityConverter {
 			id: mongoRundown._id,
 			name: mongoRundown.name,
 			isActive: false,
-			segments: []
+			segments: [],
 		})
 	}
 
@@ -113,14 +112,12 @@ export class MongoEntityConverter {
 			rank: mongoSegment._rank,
 			isOnAir: false,
 			isNext: false,
-			parts: []
+			parts: [],
 		})
 	}
 
 	public convertSegments(mongoSegments: MongoSegment[]): Segment[] {
-		return mongoSegments
-			.filter(segment => !segment.isHidden)
-			.map(this.convertSegment)
+		return mongoSegments.filter((segment) => !segment.isHidden).map(this.convertSegment)
 	}
 
 	public convertPart(mongoPart: MongoPart): Part {
@@ -132,7 +129,7 @@ export class MongoEntityConverter {
 			expectedDuration: mongoPart.expectedDuration,
 			isOnAir: false,
 			isNext: false,
-			pieces: []
+			pieces: [],
 		})
 	}
 
@@ -150,7 +147,7 @@ export class MongoEntityConverter {
 			pieceLifeSpan: this.mapMongoPieceLifeSpan(mongoPiece.lifespan),
 			start: mongoPiece.enable.start,
 			duration: mongoPiece.enable.duration,
-			timelineObjects: JSON.parse(mongoPiece.timelineObjectsString)
+			timelineObjects: JSON.parse(mongoPiece.timelineObjectsString),
 		})
 	}
 
@@ -181,19 +178,19 @@ export class MongoEntityConverter {
 			_id: 'studio0',
 			timelineHash: '',
 			generated: new Date().getTime(),
-			timelineBlob: JSON.stringify(timeline.timelineObjects)
+			timelineBlob: JSON.stringify(timeline.timelineObjects),
 		}
 	}
 
 	public convertMongoAdLibPieceToIdentifier(mongoAdLibPiece: MongoAdLibPiece): Identifier {
 		return {
 			id: mongoAdLibPiece._id,
-			name: mongoAdLibPiece.name
+			name: mongoAdLibPiece.name,
 		}
 	}
 
 	public convertMongoAdLibPiecesToIdentifiers(mongoAdLibPieces: MongoAdLibPiece[]): Identifier[] {
-		return mongoAdLibPieces.map(piece => this.convertMongoAdLibPieceToIdentifier(piece))
+		return mongoAdLibPieces.map((piece) => this.convertMongoAdLibPieceToIdentifier(piece))
 	}
 
 	public convertAdLib(mongoAdLibPiece: MongoAdLibPiece): AdLibPiece {
@@ -202,11 +199,11 @@ export class MongoEntityConverter {
 			rundownId: mongoAdLibPiece.rundownId,
 			name: mongoAdLibPiece.name,
 			duration: mongoAdLibPiece.expectedDuration,
-			timelineObjects: JSON.parse(mongoAdLibPiece.timelineObjectsString)
+			timelineObjects: JSON.parse(mongoAdLibPiece.timelineObjectsString),
 		})
 	}
 
 	public convertAdLibs(mongoAdLibPieces: MongoAdLibPiece[]): AdLibPiece[] {
-		return mongoAdLibPieces.map(piece => this.convertAdLib(piece))
+		return mongoAdLibPieces.map((piece) => this.convertAdLib(piece))
 	}
 }
