@@ -8,15 +8,13 @@ import { PieceRepository } from '../interfaces/piece-repository'
 const PART_COLLECTION_NAME: string = 'parts'
 
 export class MongoPartRepository extends BaseMongoRepository implements PartRepository {
-	private pieceRepository: PieceRepository
 
 	constructor(
 		mongoDatabase: MongoDatabase,
 		mongoEntityConverter: MongoEntityConverter,
-		pieceRepository: PieceRepository
+		private pieceRepository: PieceRepository
 	) {
 		super(mongoDatabase, mongoEntityConverter)
-		this.pieceRepository = pieceRepository
 	}
 
 	protected getCollectionName(): string {

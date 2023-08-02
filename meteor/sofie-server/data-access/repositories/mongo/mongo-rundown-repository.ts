@@ -9,15 +9,13 @@ import { Identifier } from '../../../model/interfaces/identifier'
 const RUNDOWN_COLLECTION_NAME: string = 'rundowns'
 
 export class MongoRundownRepository extends BaseMongoRepository implements RundownRepository {
-	private segmentRepository: SegmentRepository
 
 	constructor(
 		mongoDatabase: MongoDatabase,
 		mongoEntityConverter: MongoEntityConverter,
-		segmentRepository: SegmentRepository
+		private segmentRepository: SegmentRepository
 	) {
 		super(mongoDatabase, mongoEntityConverter)
-		this.segmentRepository = segmentRepository
 	}
 
 	protected getCollectionName(): string {

@@ -8,26 +8,20 @@ import { RundownService } from '../../business-logic/services/interfaces/rundown
 
 @RestController('/adLibPieces')
 export class AdLibPieceController extends BaseController {
-	private rundownService: RundownService
-	private adLibRepository: AdLibPieceRepository
-	private httpErrorHandler: HttpErrorHandler
 
 	constructor(
-		rundownService: RundownService,
-		adLibPieceRepository: AdLibPieceRepository,
-		httpErrorHandler: HttpErrorHandler
+		private rundownService: RundownService,
+		private adLibPieceRepository: AdLibPieceRepository,
+		private httpErrorHandler: HttpErrorHandler
 	) {
 		super()
-		this.rundownService = rundownService
-		this.adLibRepository = adLibPieceRepository
-		this.httpErrorHandler = httpErrorHandler
 	}
 
 	@GetRequest('/rundowns/:rundownId')
 	public async getAdLibPiecesForRundown(reg: Request, res: Response): Promise<void> {
 		try {
 			const rundownId: string = reg.params.rundownId
-			const identifiers: Identifier[] = await this.adLibRepository.getAdLibPieceIdentifiers(rundownId)
+			const identifiers: Identifier[] = await this.adLibPieceRepository.getAdLibPieceIdentifiers(rundownId)
 			res.send(identifiers)
 		} catch (error) {
 			this.httpErrorHandler.handleError(res, error as Exception)

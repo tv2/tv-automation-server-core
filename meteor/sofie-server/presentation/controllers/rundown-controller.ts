@@ -10,19 +10,13 @@ import { HttpErrorHandler } from '../interfaces/http-error-handler'
 
 @RestController('/rundowns')
 export class RundownController extends BaseController {
-	private rundownService: RundownService
-	private rundownRepository: RundownRepository
-	private httpErrorHandler: HttpErrorHandler
 
 	constructor(
-		rundownService: RundownService,
-		rundownRepository: RundownRepository,
-		httpErrorHandler: HttpErrorHandler
+		private rundownService: RundownService,
+		private rundownRepository: RundownRepository,
+		private httpErrorHandler: HttpErrorHandler
 	) {
 		super()
-		this.rundownService = rundownService
-		this.rundownRepository = rundownRepository
-		this.httpErrorHandler = httpErrorHandler
 	}
 
 	@GetRequest('/identifiers')

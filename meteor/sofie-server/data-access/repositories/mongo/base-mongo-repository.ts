@@ -4,13 +4,8 @@ import { Collection } from 'mongodb'
 import { DatabaseNotConnectedException } from '../../../model/exceptions/database-not-connected-exception'
 
 export abstract class BaseMongoRepository {
-	protected mongoDatabase: MongoDatabase
-	protected mongoEntityConverter: MongoEntityConverter
 
-	protected constructor(mongoConnection: MongoDatabase, mongoEntityConverter: MongoEntityConverter) {
-		this.mongoDatabase = mongoConnection
-		this.mongoEntityConverter = mongoEntityConverter
-	}
+	protected constructor(protected mongoDatabase: MongoDatabase, protected mongoEntityConverter: MongoEntityConverter) { }
 
 	protected abstract getCollectionName(): string
 
