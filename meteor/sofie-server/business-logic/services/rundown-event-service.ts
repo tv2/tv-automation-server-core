@@ -14,7 +14,9 @@ export class RundownEventService implements RundownEventEmitter, RundownEventLis
 
 	private callbacks: ((rundownEvent: RundownEvent) => void)[] = []
 
-	private constructor() {	}
+	// Disabling no-empty-function because we need to mark the constructor as private since it's a singleton.
+	// eslint-disable-next-line @typescript-eslint/no-empty-function
+	private constructor() {}
 
 	public emitRundownEvent(rundownEvent: RundownEvent) {
 		this.callbacks.forEach((cb) => cb(rundownEvent))

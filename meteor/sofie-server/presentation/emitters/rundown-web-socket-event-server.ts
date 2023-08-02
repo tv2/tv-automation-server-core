@@ -17,8 +17,7 @@ export class RundownWebSocketEventServer implements RundownEventServer {
 
 	private webSocketServer?: WebSocket.Server
 
-	private constructor(private rundownEventListener: RundownEventListener) {
-	}
+	private constructor(private rundownEventListener: RundownEventListener) {}
 
 	public startServer(port: number): void {
 		if (this.webSocketServer) {

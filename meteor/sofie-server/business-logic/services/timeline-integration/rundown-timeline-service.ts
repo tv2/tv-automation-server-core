@@ -16,7 +16,6 @@ import { Piece } from '../../../model/entities/piece'
 import { RundownEventBuilder } from '../interfaces/rundown-event-builder'
 
 export class RundownTimelineService implements RundownService {
-
 	constructor(
 		private rundownEventEmitter: RundownEventEmitter,
 		private rundownRepository: RundownRepository,
@@ -24,7 +23,7 @@ export class RundownTimelineService implements RundownService {
 		private adLibPieceRepository: AdLibPieceRepository,
 		private timelineBuilder: TimelineBuilder,
 		private rundownEventBuilder: RundownEventBuilder
-	) {	}
+	) {}
 
 	public async activateRundown(rundownId: string): Promise<void> {
 		const rundown: Rundown = await this.rundownRepository.getRundown(rundownId)

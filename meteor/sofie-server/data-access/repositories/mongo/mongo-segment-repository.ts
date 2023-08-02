@@ -8,7 +8,6 @@ import { PartRepository } from '../interfaces/part-repository'
 const SEGMENT_COLLECTION_NAME: string = 'segments'
 
 export class MongoSegmentRepository extends BaseMongoRepository implements SegmentRepository {
-
 	constructor(
 		mongoDatabase: MongoDatabase,
 		mongoEntityConverter: MongoEntityConverter,

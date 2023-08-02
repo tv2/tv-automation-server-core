@@ -14,7 +14,7 @@ export class CachedRundownRepository implements RundownRepository {
 
 	private cachedRundowns: Map<string, Rundown> = new Map()
 
-	constructor(private rundownRepository: RundownRepository) { }
+	constructor(private rundownRepository: RundownRepository) {}
 
 	public async getRundown(rundownId: string): Promise<Rundown> {
 		if (!this.cachedRundowns.has(rundownId)) {
