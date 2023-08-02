@@ -164,7 +164,7 @@ export class MongoEntityConverter {
 			}
 			case 'part-only':
 			default: {
-				return PieceLifeSpan.NORMAL
+				return PieceLifeSpan.WITHIN_PART
 			}
 		}
 	}
