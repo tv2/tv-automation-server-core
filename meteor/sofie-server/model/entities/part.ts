@@ -1,7 +1,7 @@
 import { Piece } from './piece'
 import { TimelineObject } from './timeline-object'
 import { AdLibPiece } from './ad-lib-piece'
-import { PieceLifeSpan } from '../enums/piece-life-span'
+import { PieceLifespan } from '../enums/piece-lifespan'
 
 export interface PartInterface {
 	id: string
@@ -83,11 +83,7 @@ export class Part {
 		this.adLibPieces.push(adLibPiece)
 	}
 
-	public getInfiniteRundownPieces(): Piece[] {
-		return this.pieces.filter((piece) => piece.pieceLifeSpan === PieceLifeSpan.INFINITE_RUNDOWN)
-	}
-
-	public getSegmentRundownPieces(): Piece[] {
-		return this.pieces.filter((piece) => piece.pieceLifeSpan === PieceLifeSpan.INFINITE_SEGMENT)
+	public getPieces(lifespanFilters: PieceLifespan[]): Piece[] {
+		return this.pieces.filter(piece => lifespanFilters.includes(piece.pieceLifespan))
 	}
 }

@@ -1,6 +1,6 @@
 import { PieceType } from '../enums/piece-type'
 import { TimelineObject } from './timeline-object'
-import { PieceLifeSpan } from '../enums/piece-life-span'
+import { PieceLifespan } from '../enums/piece-lifespan'
 
 export interface PieceInterface {
 	id: string
@@ -8,7 +8,7 @@ export interface PieceInterface {
 	name: string
 	layer: string
 	type: PieceType
-	pieceLifeSpan: PieceLifeSpan
+	pieceLifespan: PieceLifespan
 	start: number
 	duration: number
 	timelineObjects: TimelineObject[]
@@ -20,7 +20,7 @@ export class Piece {
 	name: string
 	layer: string
 	type: PieceType
-	pieceLifeSpan: PieceLifeSpan
+	pieceLifespan: PieceLifespan
 	start: number
 	duration: number
 	timelineObjects: TimelineObject[]
@@ -31,7 +31,7 @@ export class Piece {
 		this.name = piece.name
 		this.layer = piece.layer
 		this.type = piece.type
-		this.pieceLifeSpan = piece.pieceLifeSpan
+		this.pieceLifespan = piece.pieceLifespan
 		this.start = piece.start
 		this.duration = piece.duration
 		this.timelineObjects = piece.timelineObjects

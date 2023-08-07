@@ -6,7 +6,7 @@ import { PieceType } from '../../../model/enums/piece-type'
 import { Timeline } from '../../../model/entities/timeline'
 import { Identifier } from '../../../model/interfaces/identifier'
 import { AdLibPiece } from '../../../model/entities/ad-lib-piece'
-import { PieceLifeSpan } from '../../../model/enums/piece-life-span'
+import { PieceLifespan } from '../../../model/enums/piece-lifespan'
 
 export interface MongoIdentifier {
 	_id: string
@@ -144,27 +144,31 @@ export class MongoEntityConverter {
 			name: mongoPiece.name,
 			layer: mongoPiece.sourceLayerId,
 			type: PieceType.UNKNOWN,
-			pieceLifeSpan: this.mapMongoPieceLifeSpan(mongoPiece.lifespan),
+			pieceLifespan: this.mapMongoPieceLifeSpan(mongoPiece.lifespan),
 			start: mongoPiece.enable.start,
 			duration: mongoPiece.enable.duration,
 			timelineObjects: JSON.parse(mongoPiece.timelineObjectsString),
 		})
 	}
 
-	private mapMongoPieceLifeSpan(mongoPieceLifeSpan: string): PieceLifeSpan {
+	private mapMongoPieceLifeSpan(mongoPieceLifeSpan: string): PieceLifespan {
 		switch (mongoPieceLifeSpan) {
 			case 'showstyle-end':
-			case 'rundown-end':
 			case 'rundown-change': {
-				return PieceLifeSpan.INFINITE_RUNDOWN
+				return PieceLifespan.STICKY_UNTIL_RUNDOWN_CHANGE
 			}
-			case 'segment-end':
+			case 'rundown-end': {
+				return PieceLifespan.SPANNING_UNTIL_RUNDOWN_END
+			}
 			case 'segment-change': {
-				return PieceLifeSpan.INFINITE_SEGMENT
+				return PieceLifespan.STICKY_UNTIL_SEGMENT_CHANGE
+			}
+			case 'segment-end': {
+				return PieceLifespan.SPANNING_UNTIL_SEGMENT_END
 			}
 			case 'part-only':
 			default: {
-				return PieceLifeSpan.WITHIN_PART
+				return PieceLifespan.WITHIN_PART
 			}
 		}
 	}

@@ -2,6 +2,7 @@ import { Part } from './part'
 import { LastPartInSegmentException } from '../exceptions/last-part-in-segment-exception'
 import { NotFoundException } from '../exceptions/not-found-exception'
 import { Piece } from './piece'
+import { PieceLifespan } from '../enums/piece-lifespan'
 
 export interface SegmentInterface {
 	id: string
@@ -22,8 +23,6 @@ export class Segment {
 	private isSegmentOnAir: boolean
 	private isSegmentNext: boolean
 	private parts: Part[]
-
-	private infinitePieces: Map<string, Piece> = new Map()
 
 	constructor(segment: SegmentInterface) {
 		this.id = segment.id
@@ -91,11 +90,34 @@ export class Segment {
 		return this.parts
 	}
 
-	public addInfinitePieces(infinitePieces: Piece[]): void {
-		infinitePieces.forEach((piece: Piece) => this.infinitePieces.set(piece.layer, piece))
+	public getFirstSpanningPieceForEachLayerBeforePart(part: Part, layersToIgnore: Set<string>): Piece[] {
+		const indexOfPart = this.parts.findIndex(p => p.id === part.id)
+		return this.getPiecesFromIndex(indexOfPart - 1, layersToIgnore, [PieceLifespan.SPANNING_UNTIL_RUNDOWN_END, PieceLifespan.SPANNING_UNTIL_SEGMENT_END])
 	}
 
-	public getInfinitePieces(): Piece[] {
-		return Array.from(this.infinitePieces.values())
+	private getPiecesFromIndex(startIndex: number, layersToIgnore: Set<string>, lifespanFilters: PieceLifespan[]): Piece[] {
+		const pieces: Piece[] = []
+
+		for (let i = startIndex; i >= 0; i--) {
+			const piecesSpanningSegment: Piece[] = this.parts[i].getPieces(lifespanFilters)
+			for (let j = piecesSpanningSegment.length - 1; j >= 0; j--) {
+				const piece: Piece = piecesSpanningSegment[j]
+				if (layersToIgnore.has(piece.layer)) {
+					continue
+				}
+				pieces.push(piece)
+				layersToIgnore.add(piece.layer)
+			}
+		}
+
+		return pieces
+	}
+
+	public getFirstSpanningRundownPieceForEachLayerForAllParts(layersToIgnore: Set<string>): Piece[] {
+		return this.getPiecesFromIndex(this.parts.length - 1, layersToIgnore, [PieceLifespan.SPANNING_UNTIL_RUNDOWN_END])
+	}
+
+	public doesPieceBelongToSegment(piece: Piece): boolean {
+		return this.parts.findIndex(part => part.id === piece.partId) >= 0
 	}
 }

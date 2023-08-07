@@ -8,6 +8,8 @@ import { NotActivatedException } from '../exceptions/not-activated-exception'
 import { AlreadyActivatedException } from '../exceptions/already-activated-exception'
 import { AdLibPiece } from './ad-lib-piece'
 import { Piece } from './piece'
+import { PieceLifespan } from '../enums/piece-lifespan'
+import { UnsupportedOperation } from '../exceptions/unsupported-operation'
 
 export interface RundownInterface {
 	id: string
@@ -65,8 +67,12 @@ export class Rundown {
 			if ((exception as Exception).errorCode !== ErrorCode.LAST_PART_IN_SEGMENT) {
 				throw exception
 			}
-			this.nextSegment = this.findNextSegment()
-			this.nextPart = this.nextSegment.findFirstPart()
+			const segment: Segment = this.findNextSegment()
+			// TODO: Handle that we might be on the last Segment
+			if (segment) {
+				this.nextSegment = segment
+				this.nextPart = this.nextSegment.findFirstPart()
+			}
 		}
 
 		this.markNextSegmentAndPart()
@@ -102,7 +108,7 @@ export class Rundown {
 	}
 
 	public deactivate(): void {
-		this.assertActive('deactivate')
+		this.assertActive(this.deactivate.name)
 		this.activeSegment.takeOffAir()
 		this.activePart.takeOffAir()
 		this.unmarkNextSegmentAndPart()
@@ -117,22 +123,22 @@ export class Rundown {
 	}
 
 	public getActiveSegment(): Segment {
-		this.assertActive('getActiveSegment')
+		this.assertActive(this.getActiveSegment.name)
 		return this.activeSegment
 	}
 
 	public getNextSegment(): Segment {
-		this.assertActive('getNextSegment')
+		this.assertActive(this.getNextSegment.name)
 		return this.nextSegment
 	}
 
 	public getActivePart(): Part {
-		this.assertActive('getActivePart')
+		this.assertActive(this.getActivePart.name)
 		return this.activePart
 	}
 
 	public getNextPart(): Part {
-		this.assertActive('getNextPart')
+		this.assertActive(this.getNextPart.name)
 		return this.nextPart
 	}
 
@@ -141,10 +147,11 @@ export class Rundown {
 	}
 
 	public takeNext(): void {
-		this.assertActive('takeNext')
+		this.assertActive(this.takeNext.name)
 		this.takeNextPart()
 		this.takeNextSegment()
 		this.setNextFromActive()
+		this.updateInfinitePieces()
 	}
 
 	private takeNextPart(): void {
@@ -153,9 +160,6 @@ export class Rundown {
 		}
 		this.activePart = this.nextPart
 		this.activePart.putOnAir()
-		this.activePart
-			.getInfiniteRundownPieces()
-			.forEach((piece: Piece) => this.infinitePieces.set(piece.layer, piece))
 	}
 
 	/**
@@ -167,11 +171,88 @@ export class Rundown {
 		}
 		this.activeSegment = this.nextSegment
 		this.activeSegment.putOnAir()
-		this.activeSegment.addInfinitePieces(this.activePart.getSegmentRundownPieces())
+	}
+
+	private updateInfinitePieces(): void {
+		let layersWithPieces: Map<string, Piece> = new Map(this.getActivePart().pieces.map(piece => [piece.layer, piece]))
+
+		const piecesToCheckIfTheyHaveBeenOutlived: Piece[] = this.findOldInfinitePiecesNotOnLayers(new Set(layersWithPieces.keys()))
+		const piecesThatIsNotOutlived: Piece[] = piecesToCheckIfTheyHaveBeenOutlived.filter(piece => !this.isPieceOutlived(piece))
+		layersWithPieces = this.addPiecesToLayers(piecesThatIsNotOutlived, layersWithPieces)
+
+		layersWithPieces = this.addSpanningPiecesNotOnLayersFromActiveSegment(layersWithPieces)
+		layersWithPieces = this.addSpanningPiecesNotOnLayersFromPreviousSegments(layersWithPieces)
+
+		this.setInfinitePieces(layersWithPieces)
+	}
+
+	private findOldInfinitePiecesNotOnLayers(layers: Set<string>): Piece[] {
+		return  Array.from(this.infinitePieces.values()).filter(oldPiece => {
+			return !layers.has(oldPiece.layer)
+		})
+	}
+
+	private isPieceOutlived(piece: Piece): boolean {
+		switch (piece.pieceLifespan) {
+			case PieceLifespan.WITHIN_PART: {
+				// Not an infinite, so we don't care about it and just mark it as outlived.
+				return true
+			}
+			case PieceLifespan.STICKY_UNTIL_RUNDOWN_CHANGE: {
+				// Since we are in the context of a Rundown then the Piece will never be able to leave the Rundown, so the Piece is NOT outlived.
+				return false
+			}
+			case PieceLifespan.STICKY_UNTIL_SEGMENT_CHANGE: {
+				// If the Piece belongs to the active Segment, then the Piece is NOT outlived.
+				return !this.activeSegment.doesPieceBelongToSegment(piece)
+			}
+			case PieceLifespan.SPANNING_UNTIL_RUNDOWN_END:
+			case PieceLifespan.SPANNING_UNTIL_SEGMENT_END: {
+				// We always mark SPANNING as outlived because even it if isn't we need to check if there is another SPANNING Piece between this Piece and the active Part.
+				return true
+			}
+			default: {
+				throw new UnsupportedOperation(`{${piece.pieceLifespan}} is not supported. Are you missing an implementation?`)
+			}
+		}
+	}
+
+	private addPiecesToLayers(pieces: Piece[], layersWithPieces: Map<string, Piece>): Map<string, Piece> {
+		pieces.forEach(piece => {
+			if (layersWithPieces.has(piece.layer)) {
+				throw new Error(`${piece.pieceLifespan}: Trying to add an infinite Piece to a layer that already have an infinite Piece`)
+			}
+			layersWithPieces.set(piece.layer, piece)
+		})
+		return layersWithPieces
+	}
+
+	private addSpanningPiecesNotOnLayersFromActiveSegment(layersWithPieces: Map<string, Piece>): Map<string, Piece> {
+		const piecesToAdd: Piece[] = this.activeSegment.getFirstSpanningPieceForEachLayerBeforePart(this.activePart, new Set(layersWithPieces.keys()))
+		return this.addPiecesToLayers(piecesToAdd, layersWithPieces)
+	}
+
+	private addSpanningPiecesNotOnLayersFromPreviousSegments(layersWithPieces: Map<string, Piece>): Map<string, Piece> {
+		const indexOfActiveSegment = this.segments.findIndex(segment => segment.id === this.activeSegment.id)
+		for (let i = indexOfActiveSegment - 1; i >= 0; i--) {
+			const piecesSpanningSegment: Piece[] = this.segments[i].getFirstSpanningRundownPieceForEachLayerForAllParts(new Set(layersWithPieces.keys()))
+			layersWithPieces = this.addPiecesToLayers(piecesSpanningSegment, layersWithPieces)
+		}
+		return layersWithPieces
+	}
+
+	private setInfinitePieces(layersWithPieces: Map<string, Piece>): void {
+		this.infinitePieces = new Map()
+		layersWithPieces.forEach((piece: Piece, layer: string) => {
+			if (piece.pieceLifespan === PieceLifespan.WITHIN_PART) {
+				return
+			}
+			this.infinitePieces.set(layer, piece)
+		})
 	}
 
 	public setNext(segmentId: string, partId: string): void {
-		this.assertActive('setNext')
+		this.assertActive(this.setNext.name)
 
 		this.unmarkNextSegmentAndPart()
 
@@ -198,7 +279,7 @@ export class Rundown {
 	}
 
 	public adAdLibPiece(adLibPiece: AdLibPiece): void {
-		this.assertActive('adAdLiPiece')
+		this.assertActive(this.adAdLibPiece.name)
 		this.activePart.addAdLibPiece(adLibPiece)
 	}
 

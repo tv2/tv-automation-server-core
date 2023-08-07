@@ -67,6 +67,7 @@ export class RundownTimelineService implements RundownService {
 		this.timelineRepository.saveTimeline(timeline)
 
 		this.emitAddInfinitePieces(rundown, infinitePiecesBefore)
+		// TODO: Emit if any infinite Pieces no longer exist e.g. we had a Segment infinite Piece and we changed Segment
 
 		this.rundownRepository.saveRundown(rundown)
 
