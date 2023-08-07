@@ -78,10 +78,12 @@
 		"moment": "^2.29.2",
 		"mos-connection": "^2.0.1",
 		"nanoid": "^3.3.4",
+		"nodemon": "^3.0.1",
 		"ntp-client": "^0.5.3",
 		"object-path": "^0.11.8",
 		"p-lazy": "^3.1.0",
 		"p-queue": "^7.3.0",
+		"paraphrase": "^3.1.1",
 		"promise.allsettled": "^1.0.5",
 		"prop-types": "^15.8.1",
 		"query-string": "^6.14.1",
@@ -111,10 +113,9 @@
 		"velocity-react": "^1.4.3",
 		"vm2": "^3.9.11",
 		"webmidi": "^2.5.3",
-		"ws": "^8.13.0",
 		"winston": "^3.8.2",
-		"xmlbuilder": "^15.1.1",
-		"paraphrase": "^3.1.1"
+		"ws": "^8.13.0",
+		"xmlbuilder": "^15.1.1"
 	},
 	"devDependencies": {
 		"@babel/core": "^7.19.1",
