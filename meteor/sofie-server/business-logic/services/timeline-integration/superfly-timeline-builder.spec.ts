@@ -1,9 +1,7 @@
 describe('superfly-timeline-builder', () => {
 	describe('tmp', () => {
-		it('tmp', () =>{
-
+		it('tmp', () => {
+			// tmp
 		})
 	})
 })
-
-

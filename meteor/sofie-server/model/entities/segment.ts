@@ -91,11 +91,18 @@ export class Segment {
 	}
 
 	public getFirstSpanningPieceForEachLayerBeforePart(part: Part, layersToIgnore: Set<string>): Piece[] {
-		const indexOfPart = this.parts.findIndex(p => p.id === part.id)
-		return this.getPiecesFromIndex(indexOfPart - 1, layersToIgnore, [PieceLifespan.SPANNING_UNTIL_RUNDOWN_END, PieceLifespan.SPANNING_UNTIL_SEGMENT_END])
+		const indexOfPart = this.parts.findIndex((p) => p.id === part.id)
+		return this.getPiecesFromIndex(indexOfPart - 1, layersToIgnore, [
+			PieceLifespan.SPANNING_UNTIL_RUNDOWN_END,
+			PieceLifespan.SPANNING_UNTIL_SEGMENT_END,
+		])
 	}
 
-	private getPiecesFromIndex(startIndex: number, layersToIgnore: Set<string>, lifespanFilters: PieceLifespan[]): Piece[] {
+	private getPiecesFromIndex(
+		startIndex: number,
+		layersToIgnore: Set<string>,
+		lifespanFilters: PieceLifespan[]
+	): Piece[] {
 		const pieces: Piece[] = []
 
 		for (let i = startIndex; i >= 0; i--) {
@@ -114,10 +121,12 @@ export class Segment {
 	}
 
 	public getFirstSpanningRundownPieceForEachLayerForAllParts(layersToIgnore: Set<string>): Piece[] {
-		return this.getPiecesFromIndex(this.parts.length - 1, layersToIgnore, [PieceLifespan.SPANNING_UNTIL_RUNDOWN_END])
+		return this.getPiecesFromIndex(this.parts.length - 1, layersToIgnore, [
+			PieceLifespan.SPANNING_UNTIL_RUNDOWN_END,
+		])
 	}
 
 	public doesPieceBelongToSegment(piece: Piece): boolean {
-		return this.parts.findIndex(part => part.id === piece.partId) >= 0
+		return this.parts.findIndex((part) => part.id === piece.partId) >= 0
 	}
 }

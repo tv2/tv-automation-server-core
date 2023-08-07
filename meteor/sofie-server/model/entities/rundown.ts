@@ -174,10 +174,16 @@ export class Rundown {
 	}
 
 	private updateInfinitePieces(): void {
-		let layersWithPieces: Map<string, Piece> = new Map(this.getActivePart().pieces.map(piece => [piece.layer, piece]))
+		let layersWithPieces: Map<string, Piece> = new Map(
+			this.getActivePart().pieces.map((piece) => [piece.layer, piece])
+		)
 
-		const piecesToCheckIfTheyHaveBeenOutlived: Piece[] = this.findOldInfinitePiecesNotOnLayers(new Set(layersWithPieces.keys()))
-		const piecesThatIsNotOutlived: Piece[] = piecesToCheckIfTheyHaveBeenOutlived.filter(piece => !this.isPieceOutlived(piece))
+		const piecesToCheckIfTheyHaveBeenOutlived: Piece[] = this.findOldInfinitePiecesNotOnLayers(
+			new Set(layersWithPieces.keys())
+		)
+		const piecesThatIsNotOutlived: Piece[] = piecesToCheckIfTheyHaveBeenOutlived.filter(
+			(piece) => !this.isPieceOutlived(piece)
+		)
 		layersWithPieces = this.addPiecesToLayers(piecesThatIsNotOutlived, layersWithPieces)
 
 		layersWithPieces = this.addSpanningPiecesNotOnLayersFromActiveSegment(layersWithPieces)
@@ -187,7 +193,7 @@ export class Rundown {
 	}
 
 	private findOldInfinitePiecesNotOnLayers(layers: Set<string>): Piece[] {
-		return  Array.from(this.infinitePieces.values()).filter(oldPiece => {
+		return Array.from(this.infinitePieces.values()).filter((oldPiece) => {
 			return !layers.has(oldPiece.layer)
 		})
 	}
@@ -212,15 +218,19 @@ export class Rundown {
 				return true
 			}
 			default: {
-				throw new UnsupportedOperation(`{${piece.pieceLifespan}} is not supported. Are you missing an implementation?`)
+				throw new UnsupportedOperation(
+					`{${piece.pieceLifespan}} is not supported. Are you missing an implementation?`
+				)
 			}
 		}
 	}
 
 	private addPiecesToLayers(pieces: Piece[], layersWithPieces: Map<string, Piece>): Map<string, Piece> {
-		pieces.forEach(piece => {
+		pieces.forEach((piece) => {
 			if (layersWithPieces.has(piece.layer)) {
-				throw new Error(`${piece.pieceLifespan}: Trying to add an infinite Piece to a layer that already have an infinite Piece`)
+				throw new Error(
+					`${piece.pieceLifespan}: Trying to add an infinite Piece to a layer that already have an infinite Piece`
+				)
 			}
 			layersWithPieces.set(piece.layer, piece)
 		})
@@ -228,14 +238,19 @@ export class Rundown {
 	}
 
 	private addSpanningPiecesNotOnLayersFromActiveSegment(layersWithPieces: Map<string, Piece>): Map<string, Piece> {
-		const piecesToAdd: Piece[] = this.activeSegment.getFirstSpanningPieceForEachLayerBeforePart(this.activePart, new Set(layersWithPieces.keys()))
+		const piecesToAdd: Piece[] = this.activeSegment.getFirstSpanningPieceForEachLayerBeforePart(
+			this.activePart,
+			new Set(layersWithPieces.keys())
+		)
 		return this.addPiecesToLayers(piecesToAdd, layersWithPieces)
 	}
 
 	private addSpanningPiecesNotOnLayersFromPreviousSegments(layersWithPieces: Map<string, Piece>): Map<string, Piece> {
-		const indexOfActiveSegment = this.segments.findIndex(segment => segment.id === this.activeSegment.id)
+		const indexOfActiveSegment = this.segments.findIndex((segment) => segment.id === this.activeSegment.id)
 		for (let i = indexOfActiveSegment - 1; i >= 0; i--) {
-			const piecesSpanningSegment: Piece[] = this.segments[i].getFirstSpanningRundownPieceForEachLayerForAllParts(new Set(layersWithPieces.keys()))
+			const piecesSpanningSegment: Piece[] = this.segments[i].getFirstSpanningRundownPieceForEachLayerForAllParts(
+				new Set(layersWithPieces.keys())
+			)
 			layersWithPieces = this.addPiecesToLayers(piecesSpanningSegment, layersWithPieces)
 		}
 		return layersWithPieces

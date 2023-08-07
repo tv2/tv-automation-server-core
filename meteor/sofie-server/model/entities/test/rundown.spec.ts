@@ -39,9 +39,21 @@ describe('Rundown', () => {
 
 		it('has infinite pieces for active Part, infinite pieces are added', () => {
 			const segment: Segment = createSegment({} as SegmentInterface)
-			const pieceOne: Piece = createPiece({ id: 'p1', layer: 'someLayer', pieceLifespan: PieceLifespan.SPANNING_UNTIL_RUNDOWN_END } as PieceInterface)
-			const pieceTwo: Piece = createPiece({ id: 'p2', layer: 'someOtherLayer', pieceLifespan: PieceLifespan.SPANNING_UNTIL_RUNDOWN_END } as PieceInterface)
-			const part: Part = createPart({ rank: 1, segmentId: segment.id, pieces: [pieceOne, pieceTwo] } as PartInterface)
+			const pieceOne: Piece = createPiece({
+				id: 'p1',
+				layer: 'someLayer',
+				pieceLifespan: PieceLifespan.SPANNING_UNTIL_RUNDOWN_END,
+			} as PieceInterface)
+			const pieceTwo: Piece = createPiece({
+				id: 'p2',
+				layer: 'someOtherLayer',
+				pieceLifespan: PieceLifespan.SPANNING_UNTIL_RUNDOWN_END,
+			} as PieceInterface)
+			const part: Part = createPart({
+				rank: 1,
+				segmentId: segment.id,
+				pieces: [pieceOne, pieceTwo],
+			} as PartInterface)
 			segment.setParts([part])
 
 			const testee: Rundown = createTestee([segment])
@@ -56,8 +68,16 @@ describe('Rundown', () => {
 
 		it('has two Parts with infinite Pieces on different layers, Pieces from both Parts are added', () => {
 			const segment: Segment = createSegment({} as SegmentInterface)
-			const pieceOne: Piece = createPiece({ id: 'p1', layer: 'someLayer', pieceLifespan: PieceLifespan.SPANNING_UNTIL_RUNDOWN_END } as PieceInterface)
-			const pieceTwo: Piece = createPiece({ id: 'p2', layer: 'someOtherLayer', pieceLifespan: PieceLifespan.SPANNING_UNTIL_RUNDOWN_END } as PieceInterface)
+			const pieceOne: Piece = createPiece({
+				id: 'p1',
+				layer: 'someLayer',
+				pieceLifespan: PieceLifespan.SPANNING_UNTIL_RUNDOWN_END,
+			} as PieceInterface)
+			const pieceTwo: Piece = createPiece({
+				id: 'p2',
+				layer: 'someOtherLayer',
+				pieceLifespan: PieceLifespan.SPANNING_UNTIL_RUNDOWN_END,
+			} as PieceInterface)
 			const partOne: Part = createPart({ rank: 1, segmentId: segment.id, pieces: [pieceOne] } as PartInterface)
 			const partTwo: Part = createPart({ rank: 2, segmentId: segment.id, pieces: [pieceTwo] } as PartInterface)
 			segment.setParts([partOne, partTwo])
@@ -76,10 +96,18 @@ describe('Rundown', () => {
 			const layer: string = 'someLayer'
 			const segment: Segment = createSegment({} as SegmentInterface)
 
-			const pieceOne: Piece = createPiece({ id: 'p1', layer, pieceLifespan: PieceLifespan.SPANNING_UNTIL_RUNDOWN_END } as PieceInterface)
+			const pieceOne: Piece = createPiece({
+				id: 'p1',
+				layer,
+				pieceLifespan: PieceLifespan.SPANNING_UNTIL_RUNDOWN_END,
+			} as PieceInterface)
 			const partOne: Part = createPart({ rank: 1, segmentId: segment.id, pieces: [pieceOne] } as PartInterface)
 
-			const pieceTwo: Piece = createPiece({ id: 'p2', layer, pieceLifespan: PieceLifespan.SPANNING_UNTIL_RUNDOWN_END } as PieceInterface)
+			const pieceTwo: Piece = createPiece({
+				id: 'p2',
+				layer,
+				pieceLifespan: PieceLifespan.SPANNING_UNTIL_RUNDOWN_END,
+			} as PieceInterface)
 			const partTwo: Part = createPart({ rank: 2, segmentId: segment.id, pieces: [pieceTwo] } as PartInterface)
 
 			segment.setParts([partOne, partTwo])
@@ -95,12 +123,20 @@ describe('Rundown', () => {
 
 		it('has two Segments with infinite Pieces on different layers, Pieces from both Segments are added', () => {
 			const segmentOne: Segment = createSegment({ rank: 1 } as SegmentInterface)
-			const pieceOne: Piece = createPiece({ id: 'p1', layer: 'someLayer', pieceLifespan: PieceLifespan.SPANNING_UNTIL_RUNDOWN_END } as PieceInterface)
+			const pieceOne: Piece = createPiece({
+				id: 'p1',
+				layer: 'someLayer',
+				pieceLifespan: PieceLifespan.SPANNING_UNTIL_RUNDOWN_END,
+			} as PieceInterface)
 			const partOne: Part = createPart({ rank: 1, segmentId: segmentOne.id, pieces: [pieceOne] } as PartInterface)
 			segmentOne.setParts([partOne])
 
 			const segmentTwo: Segment = createSegment({ rank: 2 } as SegmentInterface)
-			const pieceTwo: Piece = createPiece({ id: 'p2', layer: 'someOtherLayer', pieceLifespan: PieceLifespan.SPANNING_UNTIL_RUNDOWN_END } as PieceInterface)
+			const pieceTwo: Piece = createPiece({
+				id: 'p2',
+				layer: 'someOtherLayer',
+				pieceLifespan: PieceLifespan.SPANNING_UNTIL_RUNDOWN_END,
+			} as PieceInterface)
 			const partTwo: Part = createPart({ rank: 2, segmentId: segmentTwo.id, pieces: [pieceTwo] } as PartInterface)
 			segmentTwo.setParts([partTwo])
 
@@ -118,12 +154,20 @@ describe('Rundown', () => {
 			const layer: string = 'someLayer'
 
 			const segmentOne: Segment = createSegment({ rank: 1 } as SegmentInterface)
-			const pieceOne: Piece = createPiece({ id: 'p1', layer, pieceLifespan: PieceLifespan.SPANNING_UNTIL_RUNDOWN_END } as PieceInterface)
+			const pieceOne: Piece = createPiece({
+				id: 'p1',
+				layer,
+				pieceLifespan: PieceLifespan.SPANNING_UNTIL_RUNDOWN_END,
+			} as PieceInterface)
 			const partOne: Part = createPart({ rank: 1, segmentId: segmentOne.id, pieces: [pieceOne] } as PartInterface)
 			segmentOne.setParts([partOne])
 
 			const segmentTwo: Segment = createSegment({ rank: 2 } as SegmentInterface)
-			const pieceTwo: Piece = createPiece({ id: 'p2', layer, pieceLifespan: PieceLifespan.SPANNING_UNTIL_RUNDOWN_END } as PieceInterface)
+			const pieceTwo: Piece = createPiece({
+				id: 'p2',
+				layer,
+				pieceLifespan: PieceLifespan.SPANNING_UNTIL_RUNDOWN_END,
+			} as PieceInterface)
 			const partTwo: Part = createPart({ rank: 2, segmentId: segmentTwo.id, pieces: [pieceTwo] } as PartInterface)
 			segmentTwo.setParts([partTwo])
 
@@ -139,13 +183,29 @@ describe('Rundown', () => {
 		it('has a sticky Rundown Piece, "skips" a Segment with sticky Rundown Piece, doesnt change sticky Piece', () => {
 			const firstSegment: Segment = createSegment({ rank: 1 } as SegmentInterface)
 			const layer: string = 'someLayer'
-			const firstPiece: Piece = createPiece({ id: 'p1', layer, pieceLifespan: PieceLifespan.STICKY_UNTIL_RUNDOWN_CHANGE } as PieceInterface)
-			const firstPart: Part = createPart({ rank: 1, segmentId: firstSegment.id, pieces: [firstPiece] } as PartInterface)
+			const firstPiece: Piece = createPiece({
+				id: 'p1',
+				layer,
+				pieceLifespan: PieceLifespan.STICKY_UNTIL_RUNDOWN_CHANGE,
+			} as PieceInterface)
+			const firstPart: Part = createPart({
+				rank: 1,
+				segmentId: firstSegment.id,
+				pieces: [firstPiece],
+			} as PartInterface)
 			firstSegment.setParts([firstPart])
 
 			const middleSegment: Segment = createSegment({ rank: 2 } as SegmentInterface)
-			const middlePiece: Piece = createPiece({ id: 'p2', layer, pieceLifespan: PieceLifespan.STICKY_UNTIL_RUNDOWN_CHANGE } as PieceInterface)
-			const middlePart: Part = createPart({ rank: 2, segmentId: middleSegment.id, pieces: [middlePiece] } as PartInterface)
+			const middlePiece: Piece = createPiece({
+				id: 'p2',
+				layer,
+				pieceLifespan: PieceLifespan.STICKY_UNTIL_RUNDOWN_CHANGE,
+			} as PieceInterface)
+			const middlePart: Part = createPart({
+				rank: 2,
+				segmentId: middleSegment.id,
+				pieces: [middlePiece],
+			} as PartInterface)
 			middleSegment.setParts([middlePart])
 
 			const lastSegment: Segment = createSegment({ rank: 3 } as SegmentInterface)
@@ -170,16 +230,30 @@ describe('Rundown', () => {
 			firstSegment.setParts([firstPart])
 
 			const middleSegment: Segment = createSegment({ rank: 2 } as SegmentInterface)
-			const middlePiece: Piece = createPiece({ id: 'p1', layer, pieceLifespan: PieceLifespan.STICKY_UNTIL_RUNDOWN_CHANGE } as PieceInterface)
-			const middlePart: Part = createPart({ rank: 2, segmentId: middleSegment.id, pieces: [middlePiece] } as PartInterface)
+			const middlePiece: Piece = createPiece({
+				id: 'p1',
+				layer,
+				pieceLifespan: PieceLifespan.STICKY_UNTIL_RUNDOWN_CHANGE,
+			} as PieceInterface)
+			const middlePart: Part = createPart({
+				rank: 2,
+				segmentId: middleSegment.id,
+				pieces: [middlePiece],
+			} as PartInterface)
 			middleSegment.setParts([middlePart])
 
 			const lastSegment: Segment = createSegment({ rank: 3 } as SegmentInterface)
-			const lastPiece: Piece = createPiece({ id: 'p2', layer, pieceLifespan: PieceLifespan.STICKY_UNTIL_RUNDOWN_CHANGE } as PieceInterface)
-			const lastPart: Part = createPart({ rank: 3, segmentId: lastSegment.id, pieces: [lastPiece] } as PartInterface)
+			const lastPiece: Piece = createPiece({
+				id: 'p2',
+				layer,
+				pieceLifespan: PieceLifespan.STICKY_UNTIL_RUNDOWN_CHANGE,
+			} as PieceInterface)
+			const lastPart: Part = createPart({
+				rank: 3,
+				segmentId: lastSegment.id,
+				pieces: [lastPiece],
+			} as PartInterface)
 			lastSegment.setParts([lastPart])
-
-
 
 			const testee: Rundown = createTestee([firstSegment, middleSegment, lastSegment])
 
@@ -202,15 +276,30 @@ describe('Rundown', () => {
 			const layer: string = 'someLayer'
 
 			const firstSegment: Segment = createSegment({ rank: 1 } as SegmentInterface)
-			const firstPiece: Piece = createPiece({ id: 'p1', layer, pieceLifespan: PieceLifespan.STICKY_UNTIL_RUNDOWN_CHANGE } as PieceInterface)
-			const firstPart: Part = createPart({ rank: 1, segmentId: firstSegment.id, pieces: [firstPiece] } as PartInterface)
+			const firstPiece: Piece = createPiece({
+				id: 'p1',
+				layer,
+				pieceLifespan: PieceLifespan.STICKY_UNTIL_RUNDOWN_CHANGE,
+			} as PieceInterface)
+			const firstPart: Part = createPart({
+				rank: 1,
+				segmentId: firstSegment.id,
+				pieces: [firstPiece],
+			} as PartInterface)
 			firstSegment.setParts([firstPart])
 
 			const lastSegment: Segment = createSegment({ rank: 2 } as SegmentInterface)
-			const lastPiece: Piece = createPiece({ id: 'p2', layer, pieceLifespan: PieceLifespan.STICKY_UNTIL_RUNDOWN_CHANGE } as PieceInterface)
-			const lastPart: Part = createPart({ rank: 2, segmentId: lastSegment.id, pieces: [lastPiece] } as PartInterface)
+			const lastPiece: Piece = createPiece({
+				id: 'p2',
+				layer,
+				pieceLifespan: PieceLifespan.STICKY_UNTIL_RUNDOWN_CHANGE,
+			} as PieceInterface)
+			const lastPart: Part = createPart({
+				rank: 2,
+				segmentId: lastSegment.id,
+				pieces: [lastPiece],
+			} as PartInterface)
 			lastSegment.setParts([lastPart])
-
 
 			const testee: Rundown = createTestee([firstSegment, lastSegment])
 
@@ -220,21 +309,35 @@ describe('Rundown', () => {
 			expect(result).toHaveLength(1)
 			expect(result).toContain(lastPiece)
 		})
-
 
 		it('has a sticky Rundown Piece, takes a Segment with a spanning Piece, change to spanning Rundown Piece', () => {
 			const layer: string = 'someLayer'
 
 			const firstSegment: Segment = createSegment({ rank: 1 } as SegmentInterface)
-			const firstPiece: Piece = createPiece({ id: 'p1', layer, pieceLifespan: PieceLifespan.STICKY_UNTIL_RUNDOWN_CHANGE } as PieceInterface)
-			const firstPart: Part = createPart({ rank: 1, segmentId: firstSegment.id, pieces: [firstPiece] } as PartInterface)
+			const firstPiece: Piece = createPiece({
+				id: 'p1',
+				layer,
+				pieceLifespan: PieceLifespan.STICKY_UNTIL_RUNDOWN_CHANGE,
+			} as PieceInterface)
+			const firstPart: Part = createPart({
+				rank: 1,
+				segmentId: firstSegment.id,
+				pieces: [firstPiece],
+			} as PartInterface)
 			firstSegment.setParts([firstPart])
 
 			const lastSegment: Segment = createSegment({ rank: 2 } as SegmentInterface)
-			const lastPiece: Piece = createPiece({ id: 'p2', layer, pieceLifespan: PieceLifespan.SPANNING_UNTIL_RUNDOWN_END } as PieceInterface)
-			const lastPart: Part = createPart({ rank: 2, segmentId: lastSegment.id, pieces: [lastPiece] } as PartInterface)
+			const lastPiece: Piece = createPiece({
+				id: 'p2',
+				layer,
+				pieceLifespan: PieceLifespan.SPANNING_UNTIL_RUNDOWN_END,
+			} as PieceInterface)
+			const lastPart: Part = createPart({
+				rank: 2,
+				segmentId: lastSegment.id,
+				pieces: [lastPiece],
+			} as PartInterface)
 			lastSegment.setParts([lastPart])
-
 
 			const testee: Rundown = createTestee([firstSegment, lastSegment])
 
@@ -245,17 +348,32 @@ describe('Rundown', () => {
 			expect(result).toContain(lastPiece)
 		})
 
-
 		it('has infinite Rundown Piece, "skips" a Segment with spanning Rundown Piece, change to new spanning Piece', () => {
 			const firstSegment: Segment = createSegment({ rank: 1 } as SegmentInterface)
 			const layer: string = 'someLayer'
-			const firstPiece: Piece = createPiece({ id: 'p1', layer, pieceLifespan: PieceLifespan.SPANNING_UNTIL_RUNDOWN_END } as PieceInterface)
-			const firstPart: Part = createPart({ rank: 1, segmentId: firstSegment.id, pieces: [firstPiece] } as PartInterface)
+			const firstPiece: Piece = createPiece({
+				id: 'p1',
+				layer,
+				pieceLifespan: PieceLifespan.SPANNING_UNTIL_RUNDOWN_END,
+			} as PieceInterface)
+			const firstPart: Part = createPart({
+				rank: 1,
+				segmentId: firstSegment.id,
+				pieces: [firstPiece],
+			} as PartInterface)
 			firstSegment.setParts([firstPart])
 
 			const middleSegment: Segment = createSegment({ rank: 2 } as SegmentInterface)
-			const middlePiece: Piece = createPiece({ id: 'p2', layer, pieceLifespan: PieceLifespan.SPANNING_UNTIL_RUNDOWN_END } as PieceInterface)
-			const middlePart: Part = createPart({ rank: 2, segmentId: middleSegment.id, pieces: [middlePiece] } as PartInterface)
+			const middlePiece: Piece = createPiece({
+				id: 'p2',
+				layer,
+				pieceLifespan: PieceLifespan.SPANNING_UNTIL_RUNDOWN_END,
+			} as PieceInterface)
+			const middlePart: Part = createPart({
+				rank: 2,
+				segmentId: middleSegment.id,
+				pieces: [middlePiece],
+			} as PartInterface)
 			middleSegment.setParts([middlePart])
 
 			const lastSegment: Segment = createSegment({ rank: 3 } as SegmentInterface)
@@ -276,8 +394,16 @@ describe('Rundown', () => {
 			const layer: string = 'someLayer'
 
 			const firstSegment: Segment = createSegment({ rank: 1 } as SegmentInterface)
-			const firstPiece: Piece = createPiece({ id: 'p1', layer, pieceLifespan: PieceLifespan.SPANNING_UNTIL_RUNDOWN_END } as PieceInterface)
-			const firstPart: Part = createPart({ rank: 1, segmentId: firstSegment.id, pieces: [firstPiece] } as PartInterface)
+			const firstPiece: Piece = createPiece({
+				id: 'p1',
+				layer,
+				pieceLifespan: PieceLifespan.SPANNING_UNTIL_RUNDOWN_END,
+			} as PieceInterface)
+			const firstPart: Part = createPart({
+				rank: 1,
+				segmentId: firstSegment.id,
+				pieces: [firstPiece],
+			} as PartInterface)
 			firstSegment.setParts([firstPart])
 
 			const middleSegment: Segment = createSegment({ rank: 2 } as SegmentInterface)
@@ -285,8 +411,16 @@ describe('Rundown', () => {
 			middleSegment.setParts([middlePart])
 
 			const lastSegment: Segment = createSegment({ rank: 3 } as SegmentInterface)
-			const lastPiece: Piece = createPiece({ id: 'p2', layer, pieceLifespan: PieceLifespan.SPANNING_UNTIL_RUNDOWN_END } as PieceInterface)
-			const lastPart: Part = createPart({ rank: 3, segmentId: lastSegment.id, pieces: [lastPiece] } as PartInterface)
+			const lastPiece: Piece = createPiece({
+				id: 'p2',
+				layer,
+				pieceLifespan: PieceLifespan.SPANNING_UNTIL_RUNDOWN_END,
+			} as PieceInterface)
+			const lastPart: Part = createPart({
+				rank: 3,
+				segmentId: lastSegment.id,
+				pieces: [lastPiece],
+			} as PartInterface)
 			lastSegment.setParts([lastPart])
 
 			const testee: Rundown = createTestee([firstSegment, middleSegment, lastSegment])
@@ -314,13 +448,29 @@ describe('Rundown', () => {
 			firstSegment.setParts([firstPart])
 
 			const middleSegment: Segment = createSegment({ rank: 2 } as SegmentInterface)
-			const middlePiece: Piece = createPiece({ id: 'p1', layer, pieceLifespan: PieceLifespan.SPANNING_UNTIL_RUNDOWN_END } as PieceInterface)
-			const middlePart: Part = createPart({ rank: 2, segmentId: middleSegment.id, pieces: [middlePiece] } as PartInterface)
+			const middlePiece: Piece = createPiece({
+				id: 'p1',
+				layer,
+				pieceLifespan: PieceLifespan.SPANNING_UNTIL_RUNDOWN_END,
+			} as PieceInterface)
+			const middlePart: Part = createPart({
+				rank: 2,
+				segmentId: middleSegment.id,
+				pieces: [middlePiece],
+			} as PartInterface)
 			middleSegment.setParts([middlePart])
 
 			const lastSegment: Segment = createSegment({ rank: 3 } as SegmentInterface)
-			const lastPiece: Piece = createPiece({ id: 'p2', layer, pieceLifespan: PieceLifespan.SPANNING_UNTIL_RUNDOWN_END } as PieceInterface)
-			const lastPart: Part = createPart({ rank: 3, segmentId: lastSegment.id, pieces: [lastPiece] } as PartInterface)
+			const lastPiece: Piece = createPiece({
+				id: 'p2',
+				layer,
+				pieceLifespan: PieceLifespan.SPANNING_UNTIL_RUNDOWN_END,
+			} as PieceInterface)
+			const lastPart: Part = createPart({
+				rank: 3,
+				segmentId: lastSegment.id,
+				pieces: [lastPiece],
+			} as PartInterface)
 			lastSegment.setParts([lastPart])
 
 			const testee: Rundown = createTestee([firstSegment, middleSegment, lastSegment])
@@ -343,13 +493,25 @@ describe('Rundown', () => {
 			const layer: string = 'someLayer'
 
 			const segmentOne: Segment = createSegment({ rank: 1 } as SegmentInterface)
-			const pieceOne: Piece = createPiece({ id: 'p1', layer, pieceLifespan: PieceLifespan.SPANNING_UNTIL_RUNDOWN_END } as PieceInterface)
+			const pieceOne: Piece = createPiece({
+				id: 'p1',
+				layer,
+				pieceLifespan: PieceLifespan.SPANNING_UNTIL_RUNDOWN_END,
+			} as PieceInterface)
 			const partOne: Part = createPart({ rank: 1, segmentId: segmentOne.id, pieces: [pieceOne] } as PartInterface)
 			segmentOne.setParts([partOne])
 
 			const segmentTwo: Segment = createSegment({ rank: 2 } as SegmentInterface)
-			const nonInfinitePiece: Piece = createPiece({ id: 'p2', layer, pieceLifespan: PieceLifespan.WITHIN_PART } as PieceInterface)
-			const partTwo: Part = createPart({ rank: 2, segmentId: segmentTwo.id, pieces: [nonInfinitePiece] } as PartInterface)
+			const nonInfinitePiece: Piece = createPiece({
+				id: 'p2',
+				layer,
+				pieceLifespan: PieceLifespan.WITHIN_PART,
+			} as PieceInterface)
+			const partTwo: Part = createPart({
+				rank: 2,
+				segmentId: segmentTwo.id,
+				pieces: [nonInfinitePiece],
+			} as PartInterface)
 			segmentTwo.setParts([partTwo])
 
 			const testee: Rundown = createTestee([segmentOne, segmentTwo])
@@ -364,11 +526,27 @@ describe('Rundown', () => {
 			const layer: string = 'someLayer'
 			const segment: Segment = createSegment({} as SegmentInterface)
 
-			const firstPiece: Piece = createPiece({ id: 'p1', layer, pieceLifespan: PieceLifespan.STICKY_UNTIL_SEGMENT_CHANGE } as PieceInterface)
-			const firstPart: Part = createPart({ rank: 1 , segmentId: segment.id, pieces: [firstPiece] } as PartInterface)
+			const firstPiece: Piece = createPiece({
+				id: 'p1',
+				layer,
+				pieceLifespan: PieceLifespan.STICKY_UNTIL_SEGMENT_CHANGE,
+			} as PieceInterface)
+			const firstPart: Part = createPart({
+				rank: 1,
+				segmentId: segment.id,
+				pieces: [firstPiece],
+			} as PartInterface)
 
-			const secondPiece: Piece = createPiece({ id: 'p2' , layer, pieceLifespan: PieceLifespan.STICKY_UNTIL_SEGMENT_CHANGE } as PieceInterface)
-			const secondPart: Part = createPart({ rank: 2, segmentId: segment.id, pieces: [secondPiece] } as PartInterface)
+			const secondPiece: Piece = createPiece({
+				id: 'p2',
+				layer,
+				pieceLifespan: PieceLifespan.STICKY_UNTIL_SEGMENT_CHANGE,
+			} as PieceInterface)
+			const secondPart: Part = createPart({
+				rank: 2,
+				segmentId: segment.id,
+				pieces: [secondPiece],
+			} as PartInterface)
 
 			segment.setParts([firstPart, secondPart])
 
@@ -386,12 +564,32 @@ describe('Rundown', () => {
 			const segment: Segment = createSegment({} as SegmentInterface)
 
 			const firstPartId: string = 'firstPart'
-			const firstPiece: Piece = createPiece({ id: 'p1', partId: firstPartId, layer, pieceLifespan: PieceLifespan.STICKY_UNTIL_SEGMENT_CHANGE } as PieceInterface)
-			const firstPart: Part = createPart({ id: firstPartId, rank: 1 , segmentId: segment.id, pieces: [firstPiece] } as PartInterface)
+			const firstPiece: Piece = createPiece({
+				id: 'p1',
+				partId: firstPartId,
+				layer,
+				pieceLifespan: PieceLifespan.STICKY_UNTIL_SEGMENT_CHANGE,
+			} as PieceInterface)
+			const firstPart: Part = createPart({
+				id: firstPartId,
+				rank: 1,
+				segmentId: segment.id,
+				pieces: [firstPiece],
+			} as PartInterface)
 
 			const middlePartId: string = 'middlePart'
-			const middlePiece: Piece = createPiece({ id: 'p2', partId: middlePartId, layer, pieceLifespan: PieceLifespan.STICKY_UNTIL_SEGMENT_CHANGE } as PieceInterface)
-			const middlePart: Part = createPart({ id: middlePartId, rank: 2, segmentId: segment.id, pieces: [middlePiece] } as PartInterface)
+			const middlePiece: Piece = createPiece({
+				id: 'p2',
+				partId: middlePartId,
+				layer,
+				pieceLifespan: PieceLifespan.STICKY_UNTIL_SEGMENT_CHANGE,
+			} as PieceInterface)
+			const middlePart: Part = createPart({
+				id: middlePartId,
+				rank: 2,
+				segmentId: segment.id,
+				pieces: [middlePiece],
+			} as PartInterface)
 
 			const lastPart: Part = createPart({ rank: 3, segmentId: segment.id } as PartInterface)
 
@@ -411,15 +609,35 @@ describe('Rundown', () => {
 			const layer: string = 'someLayer'
 			const segment: Segment = createSegment({} as SegmentInterface)
 
-			const firstPart: Part = createPart({ rank: 1 , segmentId: segment.id } as PartInterface)
+			const firstPart: Part = createPart({ rank: 1, segmentId: segment.id } as PartInterface)
 
 			const middlePartId: string = 'middlePart'
-			const middlePiece: Piece = createPiece({ id: 'p2', partId: middlePartId, layer, pieceLifespan: PieceLifespan.STICKY_UNTIL_SEGMENT_CHANGE } as PieceInterface)
-			const middlePart: Part = createPart({ id: middlePartId, rank: 2, segmentId: segment.id, pieces: [middlePiece] } as PartInterface)
+			const middlePiece: Piece = createPiece({
+				id: 'p2',
+				partId: middlePartId,
+				layer,
+				pieceLifespan: PieceLifespan.STICKY_UNTIL_SEGMENT_CHANGE,
+			} as PieceInterface)
+			const middlePart: Part = createPart({
+				id: middlePartId,
+				rank: 2,
+				segmentId: segment.id,
+				pieces: [middlePiece],
+			} as PartInterface)
 
 			const lastPartId: string = 'lastPart'
-			const lastPiece: Piece = createPiece({ id: 'p3', partId: lastPartId, layer, pieceLifespan: PieceLifespan.STICKY_UNTIL_SEGMENT_CHANGE } as PieceInterface)
-			const lastPart: Part = createPart({ id: lastPartId, rank: 3, segmentId: segment.id, pieces: [lastPiece] } as PartInterface)
+			const lastPiece: Piece = createPiece({
+				id: 'p3',
+				partId: lastPartId,
+				layer,
+				pieceLifespan: PieceLifespan.STICKY_UNTIL_SEGMENT_CHANGE,
+			} as PieceInterface)
+			const lastPart: Part = createPart({
+				id: lastPartId,
+				rank: 3,
+				segmentId: segment.id,
+				pieces: [lastPiece],
+			} as PartInterface)
 
 			segment.setParts([firstPart, middlePart, lastPart])
 
@@ -444,12 +662,32 @@ describe('Rundown', () => {
 			const segment: Segment = createSegment({} as SegmentInterface)
 
 			const firstPartId: string = 'firstPartId'
-			const firstPiece: Piece = createPiece({ id: 'p1', partId: firstPartId, layer, pieceLifespan: PieceLifespan.STICKY_UNTIL_SEGMENT_CHANGE } as PieceInterface)
-			const firstPart: Part = createPart({ id: firstPartId, rank: 1 , segmentId: segment.id, pieces: [firstPiece] } as PartInterface)
+			const firstPiece: Piece = createPiece({
+				id: 'p1',
+				partId: firstPartId,
+				layer,
+				pieceLifespan: PieceLifespan.STICKY_UNTIL_SEGMENT_CHANGE,
+			} as PieceInterface)
+			const firstPart: Part = createPart({
+				id: firstPartId,
+				rank: 1,
+				segmentId: segment.id,
+				pieces: [firstPiece],
+			} as PartInterface)
 
 			const lastPartId: string = 'lastPart'
-			const lastPiece: Piece = createPiece({ id: 'p2', partId: lastPartId, layer, pieceLifespan: PieceLifespan.SPANNING_UNTIL_SEGMENT_END } as PieceInterface)
-			const lastPart: Part = createPart({ id: lastPartId, rank: 2, segmentId: segment.id, pieces: [lastPiece] } as PartInterface)
+			const lastPiece: Piece = createPiece({
+				id: 'p2',
+				partId: lastPartId,
+				layer,
+				pieceLifespan: PieceLifespan.SPANNING_UNTIL_SEGMENT_END,
+			} as PieceInterface)
+			const lastPart: Part = createPart({
+				id: lastPartId,
+				rank: 2,
+				segmentId: segment.id,
+				pieces: [lastPiece],
+			} as PartInterface)
 
 			segment.setParts([firstPart, lastPart])
 
@@ -466,12 +704,32 @@ describe('Rundown', () => {
 			const segment: Segment = createSegment({} as SegmentInterface)
 
 			const firstPartId: string = 'firstPartId'
-			const firstPiece: Piece = createPiece({ id: 'p1', partId: firstPartId, layer, pieceLifespan: PieceLifespan.SPANNING_UNTIL_SEGMENT_END } as PieceInterface)
-			const firstPart: Part = createPart({ id: firstPartId, rank: 1 , segmentId: segment.id, pieces: [firstPiece] } as PartInterface)
+			const firstPiece: Piece = createPiece({
+				id: 'p1',
+				partId: firstPartId,
+				layer,
+				pieceLifespan: PieceLifespan.SPANNING_UNTIL_SEGMENT_END,
+			} as PieceInterface)
+			const firstPart: Part = createPart({
+				id: firstPartId,
+				rank: 1,
+				segmentId: segment.id,
+				pieces: [firstPiece],
+			} as PartInterface)
 
 			const middlePartId: string = 'middlePart'
-			const middlePiece: Piece = createPiece({ id: 'p2', partId: middlePartId, layer, pieceLifespan: PieceLifespan.SPANNING_UNTIL_SEGMENT_END } as PieceInterface)
-			const middlePart: Part = createPart({ id: middlePartId, rank: 2, segmentId: segment.id, pieces: [middlePiece] } as PartInterface)
+			const middlePiece: Piece = createPiece({
+				id: 'p2',
+				partId: middlePartId,
+				layer,
+				pieceLifespan: PieceLifespan.SPANNING_UNTIL_SEGMENT_END,
+			} as PieceInterface)
+			const middlePart: Part = createPart({
+				id: middlePartId,
+				rank: 2,
+				segmentId: segment.id,
+				pieces: [middlePiece],
+			} as PartInterface)
 
 			const lastPart: Part = createPart({ rank: 3, segmentId: segment.id } as PartInterface)
 
@@ -491,14 +749,34 @@ describe('Rundown', () => {
 			const segment: Segment = createSegment({} as SegmentInterface)
 
 			const firstPartId: string = 'firstPartId'
-			const firstPiece: Piece = createPiece({ id: 'p1', partId: firstPartId, layer, pieceLifespan: PieceLifespan.SPANNING_UNTIL_SEGMENT_END } as PieceInterface)
-			const firstPart: Part = createPart({ id: firstPartId, rank: 1 , segmentId: segment.id, pieces: [firstPiece] } as PartInterface)
+			const firstPiece: Piece = createPiece({
+				id: 'p1',
+				partId: firstPartId,
+				layer,
+				pieceLifespan: PieceLifespan.SPANNING_UNTIL_SEGMENT_END,
+			} as PieceInterface)
+			const firstPart: Part = createPart({
+				id: firstPartId,
+				rank: 1,
+				segmentId: segment.id,
+				pieces: [firstPiece],
+			} as PartInterface)
 
 			const middlePart: Part = createPart({ rank: 2, segmentId: segment.id } as PartInterface)
 
 			const lastPartId: string = 'lastPart'
-			const lastPiece: Piece = createPiece({ id: 'p3', partId: lastPartId, layer, pieceLifespan: PieceLifespan.SPANNING_UNTIL_SEGMENT_END } as PieceInterface)
-			const lastPart: Part = createPart({ id: lastPartId, rank: 3, segmentId: segment.id, pieces: [lastPiece] } as PartInterface)
+			const lastPiece: Piece = createPiece({
+				id: 'p3',
+				partId: lastPartId,
+				layer,
+				pieceLifespan: PieceLifespan.SPANNING_UNTIL_SEGMENT_END,
+			} as PieceInterface)
+			const lastPart: Part = createPart({
+				id: lastPartId,
+				rank: 3,
+				segmentId: segment.id,
+				pieces: [lastPiece],
+			} as PartInterface)
 
 			segment.setParts([firstPart, middlePart, lastPart])
 
@@ -522,13 +800,23 @@ describe('Rundown', () => {
 			const layer: string = 'someLayer'
 			const segment: Segment = createSegment({} as SegmentInterface)
 
-			const firstPart: Part = createPart({ rank: 1 , segmentId: segment.id } as PartInterface)
+			const firstPart: Part = createPart({ rank: 1, segmentId: segment.id } as PartInterface)
 
 			const middlePart: Part = createPart({ rank: 2, segmentId: segment.id } as PartInterface)
 
 			const lastPartId: string = 'lastPart'
-			const lastPiece: Piece = createPiece({ id: 'p3', partId: lastPartId, layer, pieceLifespan: PieceLifespan.SPANNING_UNTIL_SEGMENT_END } as PieceInterface)
-			const lastPart: Part = createPart({ id: lastPartId, rank: 3, segmentId: segment.id, pieces: [lastPiece] } as PartInterface)
+			const lastPiece: Piece = createPiece({
+				id: 'p3',
+				partId: lastPartId,
+				layer,
+				pieceLifespan: PieceLifespan.SPANNING_UNTIL_SEGMENT_END,
+			} as PieceInterface)
+			const lastPart: Part = createPart({
+				id: lastPartId,
+				rank: 3,
+				segmentId: segment.id,
+				pieces: [lastPiece],
+			} as PartInterface)
 
 			segment.setParts([firstPart, middlePart, lastPart])
 
@@ -550,10 +838,13 @@ describe('Rundown', () => {
 		it('has a Segment sticky Piece, change Segment, no longer any infinite Piece', () => {
 			const segmentOne: Segment = createSegment({ rank: 1 } as SegmentInterface)
 			const partId: string = 'somePartId'
-			const piece: Piece = createPiece({ id: 'p1', partId, pieceLifespan: PieceLifespan.STICKY_UNTIL_SEGMENT_CHANGE } as PieceInterface)
+			const piece: Piece = createPiece({
+				id: 'p1',
+				partId,
+				pieceLifespan: PieceLifespan.STICKY_UNTIL_SEGMENT_CHANGE,
+			} as PieceInterface)
 			const partOne: Part = createPart({ id: partId, segmentId: segmentOne.id, pieces: [piece] } as PartInterface)
 			segmentOne.setParts([partOne])
-
 
 			const segmentTwo: Segment = createSegment({ rank: 2 } as SegmentInterface)
 			const partTwo: Part = createPart({ segmentId: segmentTwo.id } as PartInterface)
@@ -565,15 +856,16 @@ describe('Rundown', () => {
 
 			const result: Piece[] = testee.getInfinitePieces()
 			expect(result).toHaveLength(0)
-
 		})
 
-		it ('has a Segment spanning Piece, change Segment, no longer any infinite Pieces', () => {
+		it('has a Segment spanning Piece, change Segment, no longer any infinite Pieces', () => {
 			const segmentOne: Segment = createSegment({ rank: 1 } as SegmentInterface)
-			const piece: Piece = createPiece({ id: 'p1', pieceLifespan: PieceLifespan.SPANNING_UNTIL_SEGMENT_END } as PieceInterface)
+			const piece: Piece = createPiece({
+				id: 'p1',
+				pieceLifespan: PieceLifespan.SPANNING_UNTIL_SEGMENT_END,
+			} as PieceInterface)
 			const partOne: Part = createPart({ segmentId: segmentOne.id, pieces: [piece] } as PartInterface)
 			segmentOne.setParts([partOne])
-
 
 			const segmentTwo: Segment = createSegment({ rank: 2 } as SegmentInterface)
 			const partTwo: Part = createPart({} as PartInterface)
@@ -586,7 +878,6 @@ describe('Rundown', () => {
 			const result: Piece[] = testee.getInfinitePieces()
 			expect(result).toHaveLength(0)
 		})
-
 	})
 })
 
@@ -595,7 +886,7 @@ function createTestee(segments: Segment[]): Rundown {
 		id: 'someId',
 		name: 'someName',
 		isActive: false,
-		segments
+		segments,
 	})
 	rundown.activate()
 	return rundown
@@ -609,7 +900,7 @@ function createSegment(segmentInterface: SegmentInterface): Segment {
 		isOnAir: segmentInterface.isOnAir,
 		rank: segmentInterface.rank ?? 1,
 		rundownId: segmentInterface.rundownId ?? 'rundownId',
-		parts: segmentInterface.parts ?? []
+		parts: segmentInterface.parts ?? [],
 	})
 }
 
@@ -622,7 +913,7 @@ function createPart(partInterface: PartInterface): Part {
 		isNext: partInterface.isNext,
 		isOnAir: partInterface.isOnAir,
 		expectedDuration: partInterface.expectedDuration ?? 0,
-		pieces: partInterface.pieces ?? []
+		pieces: partInterface.pieces ?? [],
 	}
 	return new Part(partInterfaceWithDefaultValues)
 }
@@ -637,6 +928,6 @@ function createPiece(pieceInterface: PieceInterface): Piece {
 		start: pieceInterface.start ?? 0,
 		duration: pieceInterface.duration ?? 0,
 		pieceLifespan: pieceInterface.pieceLifespan ?? PieceLifespan.WITHIN_PART,
-		timelineObjects: pieceInterface.timelineObjects ?? []
+		timelineObjects: pieceInterface.timelineObjects ?? [],
 	})
 }

@@ -84,6 +84,6 @@ export class Part {
 	}
 
 	public getPieces(lifespanFilters: PieceLifespan[]): Piece[] {
-		return this.pieces.filter(piece => lifespanFilters.includes(piece.pieceLifespan))
+		return this.pieces.filter((piece) => lifespanFilters.includes(piece.pieceLifespan))
 	}
 }

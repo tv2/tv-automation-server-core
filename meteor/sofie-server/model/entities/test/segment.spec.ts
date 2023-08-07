@@ -26,7 +26,10 @@ describe('Segment', () => {
 		it('has two Parts with each two Pieces, has to find before second Part, returns only spanning piece of first Part', () => {
 			const piece = createPiece('2', PieceLifespan.SPANNING_UNTIL_SEGMENT_END)
 			const partOne = createPart('1', 1, [createPiece('1'), piece])
-			const partTwo = createPart('2', 2, [createPiece('3'), createPiece('4', PieceLifespan.SPANNING_UNTIL_SEGMENT_END)])
+			const partTwo = createPart('2', 2, [
+				createPiece('3'),
+				createPiece('4', PieceLifespan.SPANNING_UNTIL_SEGMENT_END),
+			])
 			const testee = createSegment([partOne, partTwo])
 
 			const result = testee.getFirstSpanningPieceForEachLayerBeforePart(partTwo, new Set())
@@ -45,7 +48,10 @@ describe('Segment', () => {
 
 			const testee = createSegment([part, partToSearchBefore])
 
-			const result = testee.getFirstSpanningPieceForEachLayerBeforePart(partToSearchBefore, new Set([layerToBeIgnored]))
+			const result = testee.getFirstSpanningPieceForEachLayerBeforePart(
+				partToSearchBefore,
+				new Set([layerToBeIgnored])
+			)
 
 			expect(result).toHaveLength(1)
 			expect(result).toContain(pieceOne)
@@ -69,8 +75,12 @@ describe('Segment', () => {
 	})
 })
 
-function createPiece(id: string, pieceLifeSpan: PieceLifespan = PieceLifespan.WITHIN_PART, layer: string = 'someLayer'): Piece {
-	return  new Piece({
+function createPiece(
+	id: string,
+	pieceLifeSpan: PieceLifespan = PieceLifespan.WITHIN_PART,
+	layer: string = 'someLayer'
+): Piece {
+	return new Piece({
 		id,
 		partId: 'partId',
 		name: 'pieceName',
@@ -79,7 +89,7 @@ function createPiece(id: string, pieceLifeSpan: PieceLifespan = PieceLifespan.WI
 		start: 0,
 		duration: 10,
 		type: PieceType.LIVE,
-		timelineObjects: []
+		timelineObjects: [],
 	})
 }
 
@@ -92,18 +102,18 @@ function createPart(id: string, rank: number, pieces: Piece[] = []): Part {
 		isNext: false,
 		isOnAir: false,
 		expectedDuration: 10,
-		pieces
+		pieces,
 	})
 }
 
 function createSegment(parts: Part[] = []): Segment {
-	return  new Segment({
+	return new Segment({
 		id: 'segmentId',
 		name: 'segmentName',
 		isNext: false,
 		isOnAir: false,
 		rank: 1,
 		rundownId: 'rundownId',
-		parts
+		parts,
 	})
 }
