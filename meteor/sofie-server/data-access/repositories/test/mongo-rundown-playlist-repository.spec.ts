@@ -4,6 +4,7 @@ import { MongoEntityConverter } from '../mongo/mongo-entity-converter'
 import { MongoRundownPlaylistRepository } from '../mongo/mongo-rundown-playlist-repository'
 import { RundownRepository } from '../interfaces/rundown-repository'
 import { MongoDatabase } from '../mongo/mongo-database'
+// eslint-disable-next-line node/no-unpublished-import
 import { MongoMemoryServer } from 'mongodb-memory-server'
 import { MongoClient } from 'mongodb'
 
@@ -12,7 +13,7 @@ describe('mongo-rundown-playlist-repository.spec.ts', () => {
 	let client: MongoClient
 
 	beforeEach(async () => {
-		mongoServer = await MongoMemoryServer.create({ instance: { port: 27017 } })
+		mongoServer = await MongoMemoryServer.create()
 		client = await MongoClient.connect(mongoServer.getUri())
 	})
 
