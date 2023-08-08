@@ -35,4 +35,8 @@ export class CachedRundownRepository implements RundownRepository {
 			this.cachedRundowns.set(rundown.id, rundown)
 		}
 	}
+
+	public async deleteRundown(rundownId: string): Promise<boolean> {
+		return this.rundownRepository.deleteRundown(rundownId)
+	}
 }

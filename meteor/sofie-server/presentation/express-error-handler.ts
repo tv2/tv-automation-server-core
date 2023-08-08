@@ -17,6 +17,7 @@ export class ExpressErrorHandler implements HttpErrorHandler {
 			case ErrorCode.NOT_ACTIVATED:
 			case ErrorCode.ALREADY_ACTIVATED:
 			case ErrorCode.END_OF_RUNDOWN:
+			case ErrorCode.RUNDOWN_IS_ACTIVE:
 			case ErrorCode.LAST_PART_IN_SEGMENT: {
 				return HttpStatusCode.BAD_REQUEST
 			}

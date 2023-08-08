@@ -127,4 +127,8 @@ export class RundownTimelineService implements RundownService {
 		)
 		this.rundownEventEmitter.emitRundownEvent(adLibPieceInsertedEvent)
 	}
+
+	public async deleteRundown(_rundownId: string): Promise<void> {
+		throw new Error('Method not implemented.')
+	}
 }

@@ -22,7 +22,7 @@ export class MongoRundownRepository extends BaseMongoRepository implements Rundo
 	}
 
 	public async getRundownIdentifiers(): Promise<Identifier[]> {
-		this.assertDatabaseConnection('getRundowns')
+		this.assertDatabaseConnection(this.getRundownIdentifiers.name)
 		const mongoIdentifiers: MongoIdentifier[] = (await this.getCollection()
 			.find({})
 			.project({ _id: 1, name: 1 })
@@ -31,7 +31,7 @@ export class MongoRundownRepository extends BaseMongoRepository implements Rundo
 	}
 
 	public async getRundown(rundownId: string): Promise<Rundown> {
-		this.assertDatabaseConnection('getRundown')
+		this.assertDatabaseConnection(this.getRundown.name)
 		const mongoRundown: MongoRundown = (await this.getCollection().findOne({
 			_id: rundownId,
 		})) as unknown as MongoRundown
@@ -42,5 +42,14 @@ export class MongoRundownRepository extends BaseMongoRepository implements Rundo
 
 	public saveRundown(_rundown: Rundown): void {
 		throw new Error('Not implemented')
+	}
+
+	public async deleteRundown(rundownId: string): Promise<boolean> {
+		this.assertDatabaseConnection(this.deleteRundown.name)
+		const result = await this.getCollection().deleteOne({
+			_id: rundownId,
+		})
+
+		return result.acknowledged
 	}
 }
