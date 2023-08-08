@@ -51,11 +51,11 @@ export class MongoRundownPlaylistRepository extends BaseMongoRepository implemen
 
 		const activationStatus = (await cursor.toArray())[0]
 
-		if (Object.entries(activationStatus).length !== 0) {
+		if (Object.entries(activationStatus).length > 0) {
 			rundown.setActiveStatus(true)
+		} else {
+			rundown.setActiveStatus(false)
 		}
-		rundown.setActiveStatus(false)
-
 		return rundown
 	}
 
