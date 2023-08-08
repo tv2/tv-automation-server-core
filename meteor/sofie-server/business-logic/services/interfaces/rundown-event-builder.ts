@@ -13,6 +13,7 @@ export interface RundownEventBuilder {
 	buildResetEvent(rundown: Rundown): RundownEvent
 	buildTakeEvent(rundown: Rundown): RundownEvent
 	buildSetNextEvent(rundown: Rundown): RundownEvent
+	buildDeletedEvent(rundown: Rundown): RundownEvent
 	buildAdLibPieceInsertedEvent(rundown: Rundown, adLibPiece: AdLibPiece): AdLibPieceInsertedEvent
 	buildInfiniteRundownPieceAddedEvent(rundown: Rundown, infinitePiece: Piece): InfiniteRundownPieceAddedEvent
 }

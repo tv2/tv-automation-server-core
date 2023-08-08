@@ -1,8 +1,8 @@
 import { ErrorCode } from '../enums/error-code'
 import { Exception } from './exception'
 
-export class RundownActiveException extends Exception {
+export class DeletionFailedException extends Exception {
 	constructor(message?: string) {
-		super(ErrorCode.RUNDOWN_IS_ACTIVE, message)
+		super(ErrorCode.DELETION_FAILED, message)
 	}
 }

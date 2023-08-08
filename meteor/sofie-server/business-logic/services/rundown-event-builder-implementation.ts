@@ -10,6 +10,14 @@ import { AdLibPiece } from '../../model/entities/ad-lib-piece'
 import { Piece } from '../../model/entities/piece'
 
 export class RundownEventBuilderImplementation implements RundownEventBuilder {
+	public buildDeletedEvent(rundown: Rundown): RundownEvent {
+		return {
+			type: RundownEventType.DELETED,
+			rundownId: rundown.id,
+			segmentId: '',
+			partId: '',
+		}
+	}
 	public buildActivateEvent(rundown: Rundown): RundownEvent {
 		return {
 			type: RundownEventType.ACTIVATE,
