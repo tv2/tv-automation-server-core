@@ -1,6 +1,5 @@
 import { RundownRepository } from '../interfaces/rundown-repository'
 import { Rundown } from '../../../model/entities/rundown'
-import { Identifier } from '../../../model/interfaces/identifier'
 
 export class CachedRundownRepository implements RundownRepository {
 	private static instance: RundownRepository
@@ -25,8 +24,13 @@ export class CachedRundownRepository implements RundownRepository {
 		return this.cachedRundowns.get(rundownId) as Rundown
 	}
 
-	public async getRundownIdentifiers(): Promise<Identifier[]> {
-		return this.rundownRepository.getRundownIdentifiers()
+	public async getBasicRundowns(): Promise<Rundown[]> {
+		if (this.cachedRundowns.size === 0) {
+			console.log('### No ingested rundowns found in cache. Loading rundowns from database...')
+			const rundowns: Rundown[] = await this.rundownRepository.getBasicRundowns()
+			rundowns.forEach((rundown) => this.cachedRundowns.set(rundown.id, rundown))
+		}
+		return Array.from(this.cachedRundowns.values())
 	}
 
 	// Only save in memory for now

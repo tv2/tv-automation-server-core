@@ -5,7 +5,6 @@ import { RundownRepository } from '../../data-access/repositories/interfaces/run
 import { Rundown } from '../../model/entities/rundown'
 import { RundownDto } from '../dtos/rundown-dto'
 import { Exception } from '../../model/exceptions/exception'
-import { Identifier } from '../../model/interfaces/identifier'
 import { HttpErrorHandler } from '../interfaces/http-error-handler'
 
 @RestController('/rundowns')
@@ -18,11 +17,11 @@ export class RundownController extends BaseController {
 		super()
 	}
 
-	@GetRequest('/identifiers')
-	public async getRundownIdentifiers(_reg: Request, res: Response): Promise<void> {
+	@GetRequest('/basic')
+	public async getBasicRundowns(_reg: Request, res: Response): Promise<void> {
 		try {
-			const rundownIdentifiers: Identifier[] = await this.rundownRepository.getRundownIdentifiers()
-			res.send(rundownIdentifiers)
+			const basicRundowns: Rundown[] = await this.rundownRepository.getBasicRundowns()
+			res.send(basicRundowns.map((rundown) => new RundownDto(rundown)))
 		} catch (error) {
 			this.httpErrorHandler.handleError(res, error as Exception)
 		}

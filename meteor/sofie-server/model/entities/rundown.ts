@@ -14,6 +14,7 @@ export interface RundownInterface {
 	name: string
 	segments: Segment[]
 	isActive: boolean
+	lastTimeModified: number
 }
 
 export class Rundown {
@@ -21,7 +22,8 @@ export class Rundown {
 	readonly name: string
 
 	private segments: Segment[]
-	private isRundownActive: boolean = false
+	private isActive: boolean = false
+	private lastTimeModified: number
 
 	private activeSegment: Segment
 	private activePart: Part
@@ -35,14 +37,15 @@ export class Rundown {
 		this.id = rundown.id
 		this.name = rundown.name
 		this.segments = rundown.segments ?? []
-		this.isRundownActive = rundown.isActive
+		this.isActive = rundown.isActive
+		this.lastTimeModified = rundown.lastTimeModified
 	}
 
 	public activate(): void {
-		if (this.isActive()) {
+		if (this.getActiveStatus()) {
 			throw new AlreadyActivatedException("Can't activate Rundown since it is already activated")
 		}
-		this.isRundownActive = true
+		this.isActive = true
 
 		this.nextSegment = this.findFirstSegment()
 		this.nextPart = this.nextSegment.findFirstPart()
@@ -107,13 +110,21 @@ export class Rundown {
 		this.activePart.takeOffAir()
 		this.unmarkNextSegmentAndPart()
 		this.infinitePieces = new Map()
-		this.isRundownActive = false
+		this.isActive = false
 	}
 
 	private assertActive(operationName: string): void {
-		if (!this.isRundownActive) {
+		if (!this.isActive) {
 			throw new NotActivatedException(`Rundown "${this.name}" is not active. Unable to ${operationName}`)
 		}
+	}
+
+	public getLastTimeModified(): number {
+		return this.lastTimeModified
+	}
+
+	public setLastTimeModified(timeModified: number): void {
+		this.lastTimeModified = timeModified
 	}
 
 	public getActiveSegment(): Segment {
@@ -136,8 +147,12 @@ export class Rundown {
 		return this.nextPart
 	}
 
-	public isActive(): boolean {
-		return this.isRundownActive
+	public getActiveStatus(): boolean {
+		return this.isActive
+	}
+
+	public setActiveStatus(newActiveStatus: boolean): void {
+		this.isActive = newActiveStatus
 	}
 
 	public takeNext(): void {
