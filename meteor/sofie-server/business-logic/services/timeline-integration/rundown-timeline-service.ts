@@ -138,9 +138,11 @@ export class RundownTimelineService implements RundownService {
 		}
 
 		const success = await this.rundownRepository.deleteRundown(rundownId)
-
 		if (!success) {
 			throw new DeletionFailedException(`Failed to receive positive acknowledgement for deletion of ${rundownId}`)
 		}
+
+		const deletedEvent = this.rundownEventBuilder.buildDeletedEvent(rundown)
+		this.rundownEventEmitter.emitRundownEvent(deletedEvent)
 	}
 }

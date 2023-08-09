@@ -101,6 +101,7 @@ export class RundownController extends BaseController {
 		try {
 			const rundownId: string = reg.params.rundownId
 			await this.rundownService.deleteRundown(rundownId)
+			res.send(`Rundown "${rundownId}" has been deleted`)
 		} catch (error) {
 			this.httpErrorHandler.handleError(res, error as Exception)
 		}
