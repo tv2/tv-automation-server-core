@@ -28,12 +28,12 @@ describe('MongoRundownPlaylistRepository', () => {
 		isRundownActive: false,
 	} as RundownInterface)
 
-	beforeEach(async () => {
+	beforeAll(async () => {
 		mongoServer = await MongoMemoryServer.create()
 		client = await MongoClient.connect(mongoServer.getUri())
 	})
 
-	afterEach(async () => {
+	afterAll(async () => {
 		if (client) {
 			await client.close()
 		}
