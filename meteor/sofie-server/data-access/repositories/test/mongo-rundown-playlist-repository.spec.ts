@@ -10,6 +10,7 @@ import { MongoClient, Db } from 'mongodb'
 import { BasicRundown } from '../../../model/entities/basic-rundown'
 
 describe('MongoRundownPlaylistRepository', () => {
+	jest.setTimeout(15000)
 	let mongoServer: MongoMemoryServer
 	let client: MongoClient
 	const activatedRundown: Rundown = new Rundown({
