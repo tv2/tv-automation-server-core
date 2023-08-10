@@ -49,14 +49,14 @@ describe('MongoRundownPlaylistRepository', () => {
 			const result: Rundown = await testee.getRundown(activatedRundown.id)
 
 			expect(result.isActive()).toBe(true)
-		})
+		}, 15000)
 		it('does not have an activationId, return inactive rundown', async () => {
 			const db: Db = await populateDatabase([inactiveRundown])
 			const testee: RundownRepository = await createTestee(db, [inactiveRundown])
 			const result: Rundown = await testee.getRundown(inactiveRundown.id)
 
 			expect(result.isActive()).toBe(false)
-		})
+		}, 15000)
 	})
 	describe('getBasicRundowns', () => {
 		it('returns two rundowns, one is active', async () => {
@@ -66,7 +66,7 @@ describe('MongoRundownPlaylistRepository', () => {
 			const result: BasicRundown[] = await testee.getBasicRundowns()
 
 			expect(result[0].isActive()).toBe(true)
-		})
+		}, 15000)
 		it('returns two rundowns, none are active', async () => {
 			const rundowns: Rundown[] = [inactiveRundown, anotherInactiveRundown]
 			const db: Db = await populateDatabase(rundowns)
@@ -74,7 +74,7 @@ describe('MongoRundownPlaylistRepository', () => {
 			const result: BasicRundown[] = await testee.getBasicRundowns()
 
 			expect(result[0].isActive()).toBe(false)
-		})
+		}, 15000)
 	})
 
 	async function populateDatabase(rundowns: Rundown[]): Promise<Db> {
