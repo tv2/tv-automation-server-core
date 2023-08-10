@@ -13,21 +13,6 @@ describe('MongoRundownPlaylistRepository', () => {
 	jest.setTimeout(15000)
 	let mongoServer: MongoMemoryServer
 	let client: MongoClient
-	const activatedRundown: Rundown = new Rundown({
-		id: 'activatedRundownId',
-		name: 'INEWS_QUEUE_PATH_ONE',
-		isRundownActive: true,
-	} as RundownInterface)
-	const inactiveRundown: Rundown = new Rundown({
-		id: 'deactivatedRundownId',
-		name: 'INEWS_QUEUE_PATH_TWO',
-		isRundownActive: false,
-	} as RundownInterface)
-	const anotherInactiveRundown: Rundown = new Rundown({
-		id: 'anotherDeactivatedRundownId',
-		name: 'INEWS_QUEUE_PATH_THREE',
-		isRundownActive: false,
-	} as RundownInterface)
 
 	beforeAll(async () => {
 		mongoServer = await MongoMemoryServer.create()
@@ -45,36 +30,63 @@ describe('MongoRundownPlaylistRepository', () => {
 
 	describe('getRundown', () => {
 		it('has an activationId, return an active rundown', async () => {
-			const testee: RundownRepository = await createTestee([activatedRundown])
+			const activatedRundown: Rundown = createActiveRundown()
+
+			const db: Db = await populateDatabase([activatedRundown])
+			const testee: RundownRepository = await createTestee(db, [activatedRundown])
 			const result: Rundown = await testee.getRundown(activatedRundown.id)
 
 			expect(result.isActive()).toBe(true)
 		})
 		it('does not have an activationId, return inactive rundown', async () => {
-			const testee: RundownRepository = await createTestee([inactiveRundown])
+			const inactiveRundown: Rundown = createInactiveRundown()
+			const db: Db = await populateDatabase([inactiveRundown])
+			const testee: RundownRepository = await createTestee(db, [inactiveRundown])
 			const result: Rundown = await testee.getRundown(inactiveRundown.id)
 
 			expect(result.isActive()).toBe(false)
 		})
 	})
 	describe('getBasicRundowns', () => {
-		it('returns two rundowns, one is active', async () => {
-			const rundowns: Rundown[] = [activatedRundown, inactiveRundown]
-			const testee: RundownRepository = await createTestee(rundowns)
+		it('returns two rundowns, only one is active', async () => {
+			const activatedRundown: Rundown = createActiveRundown()
+			const inactiveRundown: Rundown = createInactiveRundown()
+			const db: Db = await populateDatabase([activatedRundown, inactiveRundown])
+			const testee: RundownRepository = await createTestee(db, [activatedRundown, inactiveRundown])
 			const result: BasicRundown[] = await testee.getBasicRundowns()
 
 			expect(result[0].isActive()).toBe(true)
+			expect(result[1].isActive()).toBe(false)
 		})
 		it('returns two rundowns, none are active', async () => {
-			const rundowns: Rundown[] = [inactiveRundown, anotherInactiveRundown]
-			const testee: RundownRepository = await createTestee(rundowns)
+			const inactiveRundown: Rundown = createInactiveRundown()
+			const secondInactiveRundown: Rundown = createInactiveRundown()
+			const db: Db = await populateDatabase([inactiveRundown, secondInactiveRundown])
+			const testee: RundownRepository = await createTestee(db, [inactiveRundown, secondInactiveRundown])
 			const result: BasicRundown[] = await testee.getBasicRundowns()
 
 			expect(result[0].isActive()).toBe(false)
+			expect(result[1].isActive()).toBe(false)
 		})
 	})
 
-	async function createTestee(rundowns: Rundown[]): Promise<RundownRepository> {
+	function createActiveRundown(): Rundown {
+		return new Rundown({
+			id: 'id' + Math.random(),
+			name: 'name' + Math.random(),
+			isRundownActive: true,
+		} as RundownInterface)
+	}
+
+	function createInactiveRundown(): Rundown {
+		return new Rundown({
+			id: 'id' + Math.random(),
+			name: 'name' + Math.random(),
+			isRundownActive: false,
+		} as RundownInterface)
+	}
+
+	async function populateDatabase(rundowns: Rundown[]): Promise<Db> {
 		const db: Db = client.db(mongoServer.instanceInfo!.dbName)
 
 		for (const rundown of rundowns) {
@@ -89,7 +101,10 @@ describe('MongoRundownPlaylistRepository', () => {
 				})
 			}
 		}
+		return db
+	}
 
+	async function createTestee(db: Db, rundowns: Rundown[]): Promise<RundownRepository> {
 		const rundownRepository: RundownRepository = mock<RundownRepository>()
 		const mongoDb: MongoDatabase = mock(MongoDatabase)
 		const mongoConverter: MongoEntityConverter = mock(MongoEntityConverter)
