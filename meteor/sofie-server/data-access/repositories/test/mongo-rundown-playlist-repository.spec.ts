@@ -75,7 +75,7 @@ describe('MongoRundownPlaylistRepository', () => {
 
 	async function createTestee(rundowns: Rundown[]): Promise<RundownRepository> {
 		const db: Db = client.db(mongoServer.instanceInfo!.dbName)
-		
+
 		for (const rundown of rundowns) {
 			if (rundown.isActive()) {
 				await db.collection('rundownPlaylists').insertOne({
