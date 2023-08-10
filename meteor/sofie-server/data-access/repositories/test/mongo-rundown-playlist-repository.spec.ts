@@ -6,11 +6,27 @@ import { RundownRepository } from '../interfaces/rundown-repository'
 import { MongoDatabase } from '../mongo/mongo-database'
 // eslint-disable-next-line node/no-unpublished-import
 import { MongoMemoryServer } from 'mongodb-memory-server'
-import { MongoClient } from 'mongodb'
+import { MongoClient, Db } from 'mongodb'
+import { BasicRundown } from '../../../model/entities/basic-rundown'
 
-describe('mongo-rundown-playlist-repository.spec.ts', () => {
+describe('MongoRundownPlaylistRepository', () => {
 	let mongoServer: MongoMemoryServer
 	let client: MongoClient
+	const activatedRundown: Rundown = new Rundown({
+		id: 'activatedRundownId',
+		name: 'INEWS_QUEUE_PATH_ONE',
+		isRundownActive: true,
+	} as RundownInterface)
+	const inactiveRundown: Rundown = new Rundown({
+		id: 'deactivatedRundownId',
+		name: 'INEWS_QUEUE_PATH_TWO',
+		isRundownActive: false,
+	} as RundownInterface)
+	const anotherInactiveRundown: Rundown = new Rundown({
+		id: 'anotherDeactivatedRundownId',
+		name: 'INEWS_QUEUE_PATH_THREE',
+		isRundownActive: false,
+	} as RundownInterface)
 
 	beforeEach(async () => {
 		mongoServer = await MongoMemoryServer.create()
@@ -28,114 +44,64 @@ describe('mongo-rundown-playlist-repository.spec.ts', () => {
 
 	describe('getRundown', () => {
 		it('has an activationId, return an active rundown', async () => {
-			const rundownId: string = 'activatedRundownId'
-			const testee: MongoRundownPlaylistRepository = await createTesteeForRundown(true, rundownId)
-			const result: Rundown = await testee.getRundown(rundownId)
+			const db: Db = await populateDatabase([activatedRundown])
+			const testee: RundownRepository = await createTestee(db, [activatedRundown])
+			const result: Rundown = await testee.getRundown(activatedRundown.id)
 
-			expect(result.getActiveStatus()).toBe(true)
+			expect(result.isActive()).toBe(true)
 		})
-		it('does not have an activationId, return deactivated rundown', async () => {
-			const rundownId: string = 'deactivatedRundownId'
-			const testee: MongoRundownPlaylistRepository = await createTesteeForRundown(false, rundownId)
-			const result: Rundown = await testee.getRundown(rundownId)
+		it('does not have an activationId, return inactive rundown', async () => {
+			const db: Db = await populateDatabase([inactiveRundown])
+			const testee: RundownRepository = await createTestee(db, [inactiveRundown])
+			const result: Rundown = await testee.getRundown(inactiveRundown.id)
 
-			expect(result.getActiveStatus()).toBe(false)
+			expect(result.isActive()).toBe(false)
 		})
 	})
 	describe('getBasicRundowns', () => {
 		it('returns two rundowns, one is active', async () => {
-			const firstRundownId: string = 'firstActivatedRundownId'
-			const secondRundownId: string = 'secondActivatedRundownId'
-			const testee: MongoRundownPlaylistRepository = await createTesteeForTwoRundowns(
-				true,
-				firstRundownId,
-				secondRundownId
-			)
-			const result: Rundown[] = await testee.getBasicRundowns()
+			const rundowns: Rundown[] = [activatedRundown, inactiveRundown]
+			const db: Db = await populateDatabase(rundowns)
+			const testee: RundownRepository = await createTestee(db, rundowns)
+			const result: BasicRundown[] = await testee.getBasicRundowns()
 
-			expect(result[0].getActiveStatus()).toBe(true)
+			expect(result[0].isActive()).toBe(true)
 		})
 		it('returns two rundowns, none are active', async () => {
-			const firstRundownId: string = 'firstDeactivatedRundownId'
-			const secondRundownId: string = 'secondDeactivatedRundownId'
-			const testee: MongoRundownPlaylistRepository = await createTesteeForTwoRundowns(
-				false,
-				firstRundownId,
-				secondRundownId
-			)
-			const result: Rundown[] = await testee.getBasicRundowns()
+			const rundowns: Rundown[] = [inactiveRundown, anotherInactiveRundown]
+			const db: Db = await populateDatabase(rundowns)
+			const testee: RundownRepository = await createTestee(db, rundowns)
+			const result: BasicRundown[] = await testee.getBasicRundowns()
 
-			expect(result[0].getActiveStatus()).toBe(false)
+			expect(result[0].isActive()).toBe(false)
 		})
 	})
 
-	async function createTesteeForRundown(
-		includeActiveRundown: boolean,
-		rundownId: string
-	): Promise<MongoRundownPlaylistRepository> {
-		const db = client.db(mongoServer.instanceInfo!.dbName)
-
-		const rundownName: string = 'INEWS_QUEUE_PATH'
-		const playlistExternalId: string = 'INEWS_QUEUE_PATH'
-
-		const rundown: Rundown = new Rundown({ id: rundownId, name: rundownName } as RundownInterface)
-
-		if (includeActiveRundown) {
-			await db.collection('rundownPlaylists').insertOne({
-				externalId: playlistExternalId,
-				activationId: 'activated',
-			})
-		} else {
-			await db.collection('rundownPlaylists').insertOne({
-				externalId: playlistExternalId,
-			})
+	async function populateDatabase(rundowns: Rundown[]): Promise<Db> {
+		const db: Db = client.db(mongoServer.instanceInfo!.dbName)
+		for (const rundown of rundowns) {
+			if (rundown.isActive()) {
+				await db.collection('rundownPlaylists').insertOne({
+					externalId: rundown.name,
+					activationId: 'activated',
+				})
+			} else {
+				await db.collection('rundownPlaylists').insertOne({
+					externalId: rundown.name,
+				})
+			}
 		}
-
-		const rundownRepository: RundownRepository = mock<RundownRepository>()
-		const mongoDb: MongoDatabase = mock(MongoDatabase)
-		const mongoConverter: MongoEntityConverter = mock(MongoEntityConverter)
-
-		when(rundownRepository.getRundown(rundown.id)).thenReturn(Promise.resolve(rundown))
-		when(mongoDb.getCollection('rundownPlaylists')).thenReturn(db.collection('rundownPlaylists'))
-
-		return new MongoRundownPlaylistRepository(instance(mongoDb), mongoConverter, instance(rundownRepository))
+		return db
 	}
 
-	async function createTesteeForTwoRundowns(
-		includeActivateRundown: boolean,
-		firstRundownId: string,
-		secondRundownId: string
-	): Promise<MongoRundownPlaylistRepository> {
-		const db = client.db(mongoServer.instanceInfo!.dbName)
-
-		const firstRundownName: string = 'INEWS_QUEUE_PATH_ONE'
-		const secondRundownName: string = 'INEWS_QUEUE_PATH_TWO'
-		const firstPlaylistExternalId: string = 'INEWS_QUEUE_PATH_ONE'
-		const secondPlaylistExternalId: string = 'INEWS_QUEUE_PATH_TWO'
-
-		const firstRundown: Rundown = new Rundown({ id: firstRundownId, name: firstRundownName } as RundownInterface)
-		const secondRundown: Rundown = new Rundown({ id: secondRundownId, name: secondRundownName } as RundownInterface)
-
-		const rundowns: Rundown[] = [firstRundown, secondRundown]
-
-		if (includeActivateRundown) {
-			await db.collection('rundownPlaylists').insertOne({
-				externalId: firstPlaylistExternalId,
-				activationId: 'activated',
-			})
-		} else {
-			await db.collection('rundownPlaylists').insertOne({
-				externalId: firstPlaylistExternalId,
-			})
-		}
-		await db.collection('rundownPlaylists').insertOne({
-			externalId: secondPlaylistExternalId,
-		})
-
+	async function createTestee(db: Db, rundowns: Rundown[]): Promise<RundownRepository> {
 		const rundownRepository: RundownRepository = mock<RundownRepository>()
 		const mongoDb: MongoDatabase = mock(MongoDatabase)
 		const mongoConverter: MongoEntityConverter = mock(MongoEntityConverter)
 
+		rundowns.forEach((rundown) => {
+			when(rundownRepository.getRundown(rundown.id)).thenReturn(Promise.resolve(rundown))
+		})
 		when(rundownRepository.getBasicRundowns()).thenReturn(Promise.resolve(rundowns))
 		when(mongoDb.getCollection('rundownPlaylists')).thenReturn(db.collection('rundownPlaylists'))
 

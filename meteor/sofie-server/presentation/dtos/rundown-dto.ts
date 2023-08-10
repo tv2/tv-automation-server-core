@@ -13,7 +13,7 @@ export class RundownDto {
 	constructor(rundown: Rundown) {
 		this.id = rundown.id
 		this.name = rundown.name
-		this.isActive = rundown.getActiveStatus()
+		this.isActive = rundown.isActive()
 		this.infinitePieces = rundown.getInfinitePieces().map((piece) => new PieceDto(piece))
 		this.segments = rundown.getSegments().map((segment) => new SegmentDto(segment))
 		this.lastTimeModified = rundown.getLastTimeModified()

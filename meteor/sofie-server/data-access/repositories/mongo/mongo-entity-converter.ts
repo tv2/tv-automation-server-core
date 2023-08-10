@@ -7,6 +7,7 @@ import { Timeline } from '../../../model/entities/timeline'
 import { Identifier } from '../../../model/interfaces/identifier'
 import { AdLibPiece } from '../../../model/entities/ad-lib-piece'
 import { PieceLifeSpan } from '../../../model/enums/piece-life-span'
+import { BasicRundown } from '../../../model/entities/basic-rundown'
 
 export interface MongoIdentifier {
 	_id: string
@@ -107,7 +108,7 @@ export class MongoEntityConverter {
 		return new Rundown({
 			id: mongoRundown._id,
 			name: mongoRundown.name,
-			isActive: false,
+			isRundownActive: false,
 			segments: [],
 			lastTimeModified: mongoRundown.modified,
 		})
@@ -115,6 +116,14 @@ export class MongoEntityConverter {
 
 	public convertRundowns(mongoRundowns: MongoRundown[]): Rundown[] {
 		return mongoRundowns.map(this.convertRundown)
+	}
+
+	public convertBasicRundown(mongoRundown: MongoRundown): BasicRundown {
+		return new BasicRundown(mongoRundown._id, mongoRundown.name, false, mongoRundown.modified)
+	}
+
+	public convertBasicRundowns(mongoRundowns: MongoRundown[]): BasicRundown[] {
+		return mongoRundowns.map(this.convertBasicRundown)
 	}
 
 	public convertSegment(mongoSegment: MongoSegment): Segment {

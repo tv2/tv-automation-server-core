@@ -4,6 +4,7 @@ import { MongoEntityConverter, MongoRundown } from './mongo-entity-converter'
 import { MongoDatabase } from './mongo-database'
 import { SegmentRepository } from '../interfaces/segment-repository'
 import { BaseMongoRepository } from './base-mongo-repository'
+import { BasicRundown } from '../../../model/entities/basic-rundown'
 
 const RUNDOWN_COLLECTION_NAME: string = 'rundowns'
 
@@ -20,13 +21,13 @@ export class MongoRundownRepository extends BaseMongoRepository implements Rundo
 		return RUNDOWN_COLLECTION_NAME
 	}
 
-	public async getBasicRundowns(): Promise<Rundown[]> {
+	public async getBasicRundowns(): Promise<BasicRundown[]> {
 		this.assertDatabaseConnection('getRundowns')
 		const rundowns: MongoRundown[] = (await this.getCollection()
 			.find({})
 			.project({ _id: 1, name: 1, modified: 1 })
 			.toArray()) as unknown as MongoRundown[]
-		return this.mongoEntityConverter.convertRundowns(rundowns)
+		return this.mongoEntityConverter.convertBasicRundowns(rundowns)
 	}
 
 	public async getRundown(rundownId: string): Promise<Rundown> {

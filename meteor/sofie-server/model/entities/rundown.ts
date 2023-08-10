@@ -8,22 +8,18 @@ import { NotActivatedException } from '../exceptions/not-activated-exception'
 import { AlreadyActivatedException } from '../exceptions/already-activated-exception'
 import { AdLibPiece } from './ad-lib-piece'
 import { Piece } from './piece'
+import { BasicRundown } from './basic-rundown'
 
 export interface RundownInterface {
 	id: string
 	name: string
 	segments: Segment[]
-	isActive: boolean
+	isRundownActive: boolean
 	lastTimeModified: number
 }
 
-export class Rundown {
-	readonly id: string
-	readonly name: string
-
+export class Rundown extends BasicRundown {
 	private segments: Segment[]
-	private isActive: boolean = false
-	private lastTimeModified: number
 
 	private activeSegment: Segment
 	private activePart: Part
@@ -34,18 +30,15 @@ export class Rundown {
 	private infinitePieces: Map<string, Piece> = new Map()
 
 	constructor(rundown: RundownInterface) {
-		this.id = rundown.id
-		this.name = rundown.name
+		super(rundown.id, rundown.name, rundown.isRundownActive, rundown.lastTimeModified)
 		this.segments = rundown.segments ?? []
-		this.isActive = rundown.isActive
-		this.lastTimeModified = rundown.lastTimeModified
 	}
 
 	public activate(): void {
-		if (this.getActiveStatus()) {
+		if (this.isActive()) {
 			throw new AlreadyActivatedException("Can't activate Rundown since it is already activated")
 		}
-		this.isActive = true
+		this.isRundownActive = true
 
 		this.nextSegment = this.findFirstSegment()
 		this.nextPart = this.nextSegment.findFirstPart()
@@ -110,21 +103,13 @@ export class Rundown {
 		this.activePart.takeOffAir()
 		this.unmarkNextSegmentAndPart()
 		this.infinitePieces = new Map()
-		this.isActive = false
+		this.isRundownActive = false
 	}
 
 	private assertActive(operationName: string): void {
-		if (!this.isActive) {
+		if (!this.isRundownActive) {
 			throw new NotActivatedException(`Rundown "${this.name}" is not active. Unable to ${operationName}`)
 		}
-	}
-
-	public getLastTimeModified(): number {
-		return this.lastTimeModified
-	}
-
-	public setLastTimeModified(timeModified: number): void {
-		this.lastTimeModified = timeModified
 	}
 
 	public getActiveSegment(): Segment {
@@ -145,14 +130,6 @@ export class Rundown {
 	public getNextPart(): Part {
 		this.assertActive('getNextPart')
 		return this.nextPart
-	}
-
-	public getActiveStatus(): boolean {
-		return this.isActive
-	}
-
-	public setActiveStatus(newActiveStatus: boolean): void {
-		this.isActive = newActiveStatus
 	}
 
 	public takeNext(): void {

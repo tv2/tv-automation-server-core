@@ -23,7 +23,7 @@ export class RepositoryFacade {
 			this.createSegmentRepository()
 		)
 
-		const mongoRundownPlaylistRepository = new MongoRundownPlaylistRepository(
+		const mongoRundownPlaylistRepository: MongoRundownPlaylistRepository = new MongoRundownPlaylistRepository(
 			MongoDatabase.getInstance(),
 			new MongoEntityConverter(),
 			mongoRundownRepository
