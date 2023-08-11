@@ -36,6 +36,7 @@ import { unprotectString } from '@sofie-automation/corelib/dist/protectedString'
 import { EventsJobFunc, getEventsQueueName } from '@sofie-automation/corelib/dist/worker/events'
 import { FastTrackTimelineFunc } from '../main'
 import { TimelineComplete } from '@sofie-automation/corelib/dist/dataModel/Timeline'
+import { convertShowStyleVariantToBlueprints } from '../blueprints/context/lib'
 
 export type QueueJobFunc = (queueName: string, jobName: string, jobData: unknown) => Promise<void>
 
@@ -241,7 +242,8 @@ export class StudioCacheContextImpl implements StudioCacheContext {
 
 		throw new Error(`Blueprint for ShowStyleBase "${id}" does not exist`)
 	}
-	getShowStyleBlueprintConfig(showStyle: ShowStyleCompound): ProcessedShowStyleConfig {
+
+	async getShowStyleBlueprintConfig(showStyle: ShowStyleCompound): Promise<ProcessedShowStyleConfig> {
 		const existing = this.cacheData.showStyleBlueprintConfig.get(showStyle.showStyleVariantId)
 		if (existing) {
 			return existing
@@ -251,7 +253,15 @@ export class StudioCacheContextImpl implements StudioCacheContext {
 		if (!blueprint)
 			throw new Error(`Blueprint "${showStyle.blueprintId}" must be loaded before its config can be retrieved`)
 
-		const config = deepFreeze(clone(preprocessShowStyleConfig(showStyle, blueprint.blueprint)))
+		const config = deepFreeze(
+			clone(
+				preprocessShowStyleConfig(
+					showStyle,
+					blueprint.blueprint,
+					(await this.getShowStyleVariants(showStyle._id)).map(convertShowStyleVariantToBlueprints)
+				)
+			)
+		)
 		this.cacheData.showStyleBlueprintConfig.set(showStyle.showStyleVariantId, config)
 
 		// Return the raw object, as it was frozen before being cached

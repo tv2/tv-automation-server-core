@@ -3064,10 +3064,12 @@ export const RundownView = translateWithTracker<IProps, IState, ITrackedProps>((
 						this.props.studio &&
 						this.props.showStyleBase && (
 							<TriggersHandler
+								rundownPlaylistActivationId={this.props.playlist?.activationId}
 								rundownPlaylistId={this.props.rundownPlaylistId}
 								showStyleBaseId={this.props.showStyleBase._id}
 								currentRundownId={this.props.currentRundown?._id || null}
 								currentPartId={this.props.currentPartInstance?.part._id || null}
+								currentPartInstanceId={this.props.currentPartInstance?._id || null}
 								nextPartId={this.props.nextPartInstance?.part._id || null}
 								currentSegmentPartIds={this.props.currentSegmentPartIds}
 								nextSegmentPartIds={this.props.nextSegmentPartIds}

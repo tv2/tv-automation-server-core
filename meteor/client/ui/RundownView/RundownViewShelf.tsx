@@ -286,7 +286,8 @@ export const RundownViewShelf = translateWithTracker<
 		const { unfinishedAdLibIds, unfinishedTags, nextAdLibIds, nextTags } = memoizedIsolatedAutorun(
 			(_currentPartInstanceId: PartInstanceId | null, _nextPartInstanceId: PartInstanceId | null) => {
 				const { unfinishedAdLibIds, unfinishedTags } = getUnfinishedPieceInstancesGrouped(
-					props.playlist,
+					props.playlist.activationId,
+					props.playlist.currentPartInstanceId,
 					props.showStyleBase
 				)
 				const { nextAdLibIds, nextTags } = getNextPieceInstancesGrouped(props.playlist, props.showStyleBase)

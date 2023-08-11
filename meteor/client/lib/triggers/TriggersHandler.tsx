@@ -9,6 +9,7 @@ import { TriggeredActionId, TriggeredActions } from '../../../lib/collections/Tr
 import { useSubscription, useTracker } from '../ReactMeteorData/ReactMeteorData'
 import {
 	RundownPlaylist,
+	RundownPlaylistActivationId,
 	RundownPlaylistCollectionUtil,
 	RundownPlaylistId,
 	RundownPlaylists,
@@ -39,14 +40,18 @@ import RundownViewEventBus, { RundownViewEvents, TriggerActionEvent } from '../.
 import { Tracker } from 'meteor/tracker'
 import { Settings } from '../../../lib/Settings'
 import { createInMemoryMongoCollection } from '../../../lib/collections/lib'
+import { getUnfinishedPieceInstancesGrouped } from '../shelf'
+import { PartInstanceId } from '@sofie-automation/corelib/dist/dataModel/Ids'
 
 type HotkeyTriggerListener = (e: KeyboardEvent) => void
 
 interface IProps {
 	rundownPlaylistId: RundownPlaylistId
+	rundownPlaylistActivationId: RundownPlaylistActivationId | undefined
 	currentRundownId: RundownId | null
 	showStyleBaseId: ShowStyleBaseId
 	currentPartId: PartId | null
+	currentPartInstanceId: PartInstanceId | null
 	nextPartId: PartId | null
 	currentSegmentPartIds: PartId[]
 	nextSegmentPartIds: PartId[]
@@ -363,6 +368,20 @@ export const TriggersHandler: React.FC<IProps> = function TriggersHandler(
 		}
 	}, [])
 
+	const showStyleBase = useTracker(() => ShowStyleBases.findOne(props.showStyleBaseId), [props.showStyleBaseId])
+
+	const unfinishedTags =
+		useTracker(() => {
+			const { unfinishedTags } = showStyleBase
+				? getUnfinishedPieceInstancesGrouped(
+						props.rundownPlaylistActivationId,
+						props.currentPartInstanceId,
+						showStyleBase
+				  )
+				: { unfinishedTags: [] }
+			return unfinishedTags
+		}, [showStyleBase, props.rundownPlaylistActivationId, props.currentPartInstanceId]) || []
+
 	useEffect(() => {
 		Tracker.nonreactive(() => {
 			const playlist = RundownPlaylists.findOne(props.rundownPlaylistId, {
@@ -388,6 +407,7 @@ export const TriggersHandler: React.FC<IProps> = function TriggersHandler(
 						currentSegmentPartIds: new ReactiveVar(props.currentSegmentPartIds),
 						nextSegmentPartIds: new ReactiveVar(props.nextSegmentPartIds),
 						currentPartInstanceId: new ReactiveVar(playlist.currentPartInstanceId),
+						unfinishedTags: new ReactiveVar(unfinishedTags),
 					}
 					rundownPlaylistContext.set(context)
 				} else {
@@ -398,6 +418,7 @@ export const TriggersHandler: React.FC<IProps> = function TriggersHandler(
 					context.nextPartId.set(props.nextPartId)
 					context.currentSegmentPartIds.set(props.currentSegmentPartIds)
 					context.nextSegmentPartIds.set(props.nextSegmentPartIds)
+					context.unfinishedTags.set(unfinishedTags)
 				}
 			}
 		})
@@ -408,6 +429,7 @@ export const TriggersHandler: React.FC<IProps> = function TriggersHandler(
 		JSON.stringify(props.currentSegmentPartIds),
 		props.nextPartId,
 		JSON.stringify(props.nextSegmentPartIds),
+		JSON.stringify(unfinishedTags),
 	])
 
 	const triggerSubReady = useSubscription(PubSub.triggeredActions, {
@@ -428,8 +450,6 @@ export const TriggersHandler: React.FC<IProps> = function TriggersHandler(
 			}
 			return []
 		}, [props.rundownPlaylistId]) || []
-
-	const showStyleBase = useTracker(() => ShowStyleBases.findOne(props.showStyleBaseId), [props.showStyleBaseId])
 
 	useSubscriptions(props.rundownPlaylistId, rundownIds, props.showStyleBaseId)
 

@@ -152,6 +152,7 @@ export async function handleBucketItemImport(context: JobContext, data: BucketIt
 			},
 			context,
 			showStyleCompound,
+			await context.getShowStyleBlueprintConfig(showStyleCompound),
 			watchedPackages
 		)
 

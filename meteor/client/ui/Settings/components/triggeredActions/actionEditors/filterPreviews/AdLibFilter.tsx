@@ -39,6 +39,8 @@ function fieldToType(field: IAdLibFilterLink['field']): EditAttributeType {
 	switch (field) {
 		case 'global':
 			return 'dropdown'
+		case 'whileTag':
+			return 'text'
 		case 'label':
 			return 'text'
 		case 'tag':
@@ -65,6 +67,8 @@ function fieldToLabel(t: TFunction, field: IAdLibFilterLink['field']): string {
 	switch (field) {
 		case 'global':
 			return t('Global AdLibs')
+		case 'whileTag':
+			return t('While tag is on air')
 		case 'label':
 			return t('Label')
 		case 'limit':
@@ -109,6 +113,7 @@ function fieldToOptions(
 		case 'pick':
 		case 'pickEnd':
 		case 'tag':
+		case 'whileTag':
 			return {}
 		case 'outputLayerId':
 			return showStyleBase
@@ -149,6 +154,7 @@ function fieldValueToValueLabel(t: TFunction, showStyleBase: ShowStyleBase | und
 		case 'label':
 		case 'limit':
 		case 'tag':
+		case 'whileTag':
 			return String(link.value)
 		case 'pick':
 		case 'pickEnd':
@@ -206,6 +212,7 @@ function fieldValueMutate(link: IAdLibFilterLink, newValue: any) {
 			return Boolean(newValue)
 		case 'label':
 		case 'tag':
+		case 'whileTag':
 			return String(newValue).split(/\,\s*/)
 		case 'limit':
 			return Number(newValue)
@@ -246,6 +253,7 @@ function fieldValueToEditorValue(link: IAdLibFilterLink) {
 			return Number(link.value + 1)
 		case 'label':
 		case 'tag':
+		case 'whileTag':
 			return link.value.join(',')
 		case 'limit':
 			return Number(link.value ?? 0)
@@ -304,6 +312,7 @@ export const AdLibFilter: React.FC<IProps> = function AdLibFilter({
 		'sourceLayerId',
 		'sourceLayerType',
 		'type',
+		'whileTag',
 	]
 
 	const availableOptions = useTracker<Record<string, any> | string[], Record<string, any> | string[]>(

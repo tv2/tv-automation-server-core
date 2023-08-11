@@ -1,8 +1,8 @@
-import { PieceInstanceId, RundownPlaylistActivationId } from '@sofie-automation/corelib/dist/dataModel/Ids'
+import { RundownPlaylistActivationId } from '@sofie-automation/corelib/dist/dataModel/Ids'
 import { DBPartInstance } from '@sofie-automation/corelib/dist/dataModel/PartInstance'
 import { PieceInstance, wrapPieceToInstance } from '@sofie-automation/corelib/dist/dataModel/PieceInstance'
 import { ShowStyleCompound } from '@sofie-automation/corelib/dist/dataModel/ShowStyleCompound'
-import { normalizeArrayToMap, omit } from '@sofie-automation/corelib/dist/lib'
+import { omit } from '@sofie-automation/corelib/dist/lib'
 import { protectString, protectStringArray, unprotectStringArray } from '@sofie-automation/corelib/dist/protectedString'
 import { DbCacheWriteCollection } from '../../cache/CacheCollection'
 import { CacheForPlayout } from '../../playout/cache'
@@ -11,7 +11,6 @@ import { ReadonlyDeep } from 'type-fest'
 import _ = require('underscore')
 import { ContextInfo, RundownUserContext } from './context'
 import {
-	ISyncIngestUpdateToPartInstanceContext,
 	IBlueprintPiece,
 	IBlueprintPieceInstance,
 	OmitId,
@@ -19,6 +18,7 @@ import {
 	IBlueprintPartInstance,
 	SomeContent,
 	WithTimeline,
+	ISetNextContext,
 } from '@sofie-automation/blueprints-integration'
 import { postProcessPieces, postProcessTimelineObjects } from '../postProcess'
 import {
@@ -35,13 +35,9 @@ import { EditableMongoModifier } from '../../db'
 import { serializePieceTimelineObjectsBlob } from '@sofie-automation/corelib/dist/dataModel/Piece'
 import { ProcessedShowStyleConfig } from '../config'
 
-export class SyncIngestUpdateToPartInstanceContext
-	extends RundownUserContext
-	implements ISyncIngestUpdateToPartInstanceContext
-{
+export class SetNextContext extends RundownUserContext implements ISetNextContext {
 	private readonly _partInstanceCache: DbCacheWriteCollection<DBPartInstance>
 	private readonly _pieceInstanceCache: DbCacheWriteCollection<PieceInstance>
-	private readonly _proposedPieceInstances: Map<PieceInstanceId, PieceInstance>
 
 	private partInstance: DBPartInstance | undefined
 
@@ -54,9 +50,7 @@ export class SyncIngestUpdateToPartInstanceContext
 		rundown: ReadonlyDeep<DBRundown>,
 		config: ProcessedShowStyleConfig,
 		partInstance: DBPartInstance,
-		pieceInstances: PieceInstance[],
-		proposedPieceInstances: PieceInstance[],
-		private playStatus: 'previous' | 'current' | 'next'
+		pieceInstances: PieceInstance[]
 	) {
 		super(contextInfo, studio, _context.getStudioBlueprintConfig(), showStyleCompound, config, rundown)
 
@@ -73,8 +67,6 @@ export class SyncIngestUpdateToPartInstanceContext
 			this._context.directCollections.PartInstances,
 			[partInstance]
 		)
-
-		this._proposedPieceInstances = normalizeArrayToMap(proposedPieceInstances, '_id')
 	}
 
 	applyChangesToCache(cache: CacheForPlayout): void {
@@ -91,46 +83,6 @@ export class SyncIngestUpdateToPartInstanceContext
 		logChanges('PieceInstances', pieceChanges)
 	}
 
-	syncPieceInstance(
-		pieceInstanceId: string,
-		modifiedPiece?: Omit<IBlueprintPiece, 'lifespan'>
-	): IBlueprintPieceInstance {
-		const proposedPieceInstance = this._proposedPieceInstances.get(protectString(pieceInstanceId))
-		if (!proposedPieceInstance) {
-			throw new Error(`PieceInstance "${pieceInstanceId}" could not be found`)
-		}
-
-		if (!this.partInstance) throw new Error(`PartInstance has been removed`)
-
-		// filter the submission to the allowed ones
-		const piece = modifiedPiece
-			? postProcessPieces(
-					this._context,
-					[
-						{
-							...modifiedPiece,
-							// Some properties arent allowed to be changed
-							lifespan: proposedPieceInstance.piece.lifespan,
-						},
-					],
-					this.showStyleCompound.blueprintId,
-					this.partInstance.rundownId,
-					this.partInstance.segmentId,
-					this.partInstance.part._id,
-					this.playStatus === 'current'
-			  )[0]
-			: proposedPieceInstance.piece
-
-		const existingPieceInstance = this._pieceInstanceCache.findOne(proposedPieceInstance._id)
-		const newPieceInstance: PieceInstance = {
-			...existingPieceInstance,
-			...proposedPieceInstance,
-			piece: piece,
-		}
-		this._pieceInstanceCache.replace(newPieceInstance)
-		return convertPieceInstanceToBlueprints(newPieceInstance)
-	}
-
 	insertPieceInstance(piece0: IBlueprintPiece): IBlueprintPieceInstance {
 		const trimmedPiece: IBlueprintPiece = _.pick(piece0, IBlueprintPieceObjectsSampleKeys)
 
@@ -143,7 +95,7 @@ export class SyncIngestUpdateToPartInstanceContext
 			this.partInstance.rundownId,
 			this.partInstance.segmentId,
 			this.partInstance.part._id,
-			this.playStatus === 'current'
+			false
 		)[0]
 		const newPieceInstance = wrapPieceToInstance(piece, this.playlistActivationId, this.partInstance._id)
 
@@ -154,6 +106,7 @@ export class SyncIngestUpdateToPartInstanceContext
 
 		return convertPieceInstanceToBlueprints(newPieceInstance)
 	}
+
 	updatePieceInstance(pieceInstanceId: string, updatedPiece: Partial<IBlueprintPiece>): IBlueprintPieceInstance {
 		// filter the submission to the allowed ones
 		const trimmedPiece: Partial<OmitId<IBlueprintPiece>> = _.pick(updatedPiece, IBlueprintPieceObjectsSampleKeys)
@@ -206,6 +159,7 @@ export class SyncIngestUpdateToPartInstanceContext
 
 		return convertPieceInstanceToBlueprints(updatedPieceInstance)
 	}
+
 	updatePartInstance(updatePart: Partial<IBlueprintMutatablePart>): IBlueprintPartInstance {
 		// filter the submission to the allowed ones
 		const trimmedProps: Partial<IBlueprintMutatablePart> = _.pick(updatePart, [
@@ -238,17 +192,6 @@ export class SyncIngestUpdateToPartInstanceContext
 		}
 
 		return convertPartInstanceToBlueprints(updatedPartInstance)
-	}
-
-	removePartInstance(): void {
-		if (this.playStatus !== 'next') throw new Error(`Only the 'next' PartInstance can be removed`)
-
-		if (this.partInstance) {
-			const partInstanceId = this.partInstance._id
-
-			this._partInstanceCache.remove(partInstanceId)
-			this._pieceInstanceCache.remove((piece) => piece.partInstanceId === partInstanceId)
-		}
 	}
 
 	removePieceInstances(...pieceInstanceIds: string[]): string[] {

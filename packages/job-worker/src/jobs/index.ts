@@ -68,5 +68,5 @@ export interface StudioCacheContext {
 	): Promise<ReadonlyDeep<ShowStyleCompound>>
 
 	getShowStyleBlueprint(id: ShowStyleBaseId): Promise<ReadonlyDeep<WrappedShowStyleBlueprint>>
-	getShowStyleBlueprintConfig(showStyle: ReadonlyDeep<ShowStyleCompound>): ProcessedShowStyleConfig
+	getShowStyleBlueprintConfig(showStyle: ReadonlyDeep<ShowStyleCompound>): Promise<ProcessedShowStyleConfig>
 }

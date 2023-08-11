@@ -3,13 +3,14 @@ import { Pieces, Piece } from './collections/Pieces'
 import { IOutputLayer, ISourceLayer, ITranslatableMessage } from '@sofie-automation/blueprints-integration'
 import { DBSegment, Segment, SegmentId } from './collections/Segments'
 import { PartId, DBPart } from './collections/Parts'
-import { PartInstance, wrapPartToTemporaryInstance } from './collections/PartInstances'
+import { PartInstance, PartInstanceId, PartInstances, wrapPartToTemporaryInstance } from './collections/PartInstances'
 import { PieceInstance, PieceInstances } from './collections/PieceInstances'
 import {
 	getPieceInstancesForPart,
 	buildPiecesStartingInThisPartQuery,
 	buildPastInfinitePiecesForThisPartQuery,
 	PieceInstanceWithTimings,
+	processAndPrunePieceInstanceTimings,
 } from '@sofie-automation/corelib/dist/playout/infinites'
 import { FindOptions, MongoQuery } from './typings/meteor'
 import { invalidateAfter } from '../client/lib/invalidatingTime'
@@ -26,7 +27,7 @@ import {
 	RundownPlaylistCollectionUtil,
 } from './collections/RundownPlaylists'
 import { Rundown, RundownId } from './collections/Rundowns'
-import { ShowStyleBaseId } from './collections/ShowStyleBases'
+import { ShowStyleBase, ShowStyleBaseId } from './collections/ShowStyleBases'
 import { isTranslatableMessage } from '@sofie-automation/corelib/dist/TranslatableMessage'
 import { mongoWhereFilter } from '@sofie-automation/corelib/dist/mongo'
 
@@ -312,6 +313,61 @@ export function getSegmentsWithPartInstances(
 			}
 		}
 	})
+}
+
+export function getUnfinishedPieceInstances(
+	playlistActivationId: RundownPlaylistActivationId,
+	currentPartInstanceId: PartInstanceId,
+	showStyleBase: ShowStyleBase,
+	invalidateAt?: Function
+) {
+	const now = getCurrentTime()
+	let prospectivePieces: PieceInstance[] = []
+
+	const partInstance = PartInstances.findOne(currentPartInstanceId)
+
+	if (partInstance) {
+		prospectivePieces = PieceInstances.find({
+			partInstanceId: currentPartInstanceId,
+			playlistActivationId: playlistActivationId,
+		}).fetch()
+
+		const nowInPart = partInstance.timings?.startedPlayback ? now - partInstance.timings.startedPlayback : 0
+		prospectivePieces = processAndPrunePieceInstanceTimings(showStyleBase, prospectivePieces, nowInPart)
+
+		let nearestEnd = Number.POSITIVE_INFINITY
+		prospectivePieces = prospectivePieces.filter((pieceInstance) => {
+			const piece = pieceInstance.piece
+
+			if (!pieceInstance.adLibSourceId && !piece.tags) {
+				// No effect on the data, so ignore
+				return false
+			}
+
+			let end: number | undefined
+			if (pieceInstance.stoppedPlayback) {
+				end = pieceInstance.stoppedPlayback
+			} else if (pieceInstance.userDuration && typeof pieceInstance.userDuration.end === 'number') {
+				end = pieceInstance.userDuration.end
+			} else if (typeof piece.enable.duration === 'number' && pieceInstance.startedPlayback) {
+				end = piece.enable.duration + pieceInstance.startedPlayback
+			}
+
+			if (end !== undefined) {
+				if (end > now) {
+					nearestEnd = Math.min(nearestEnd, end)
+					return true
+				} else {
+					return false
+				}
+			}
+			return true
+		})
+
+		if (Number.isFinite(nearestEnd) && invalidateAt) invalidateAt(nearestEnd)
+	}
+
+	return prospectivePieces
 }
 
 // 1 reactivelly listen to data changes

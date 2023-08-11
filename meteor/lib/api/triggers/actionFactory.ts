@@ -16,7 +16,7 @@ import { MeteorCall } from '../methods'
 import { PartInstance, PartInstanceId, PartInstances } from '../../collections/PartInstances'
 import { PartId, Parts } from '../../collections/Parts'
 import { RundownPlaylist, RundownPlaylistCollectionUtil, RundownPlaylistId } from '../../collections/RundownPlaylists'
-import { ShowStyleBase } from '../../collections/ShowStyleBases'
+import { ShowStyleBase, ShowStyleBases } from '../../collections/ShowStyleBases'
 import { Studio } from '../../collections/Studios'
 import { assertNever } from '../../lib'
 import { logger } from '../../logging'
@@ -30,8 +30,10 @@ import {
 	IWrappedAdLib,
 } from './actionFilterChainCompilers'
 import { ClientAPI } from '../client'
-import { RundownId } from '../../collections/Rundowns'
+import { DBRundown, RundownId, Rundowns } from '../../collections/Rundowns'
 import { ReactiveVar } from 'meteor/reactive-var'
+import { getUnfinishedPieceInstances } from '../../Rundown'
+import _ from 'underscore'
 
 // as described in this issue: https://github.com/Microsoft/TypeScript/issues/14094
 type Without<T, U> = { [P in Exclude<keyof T, keyof U>]?: never }
@@ -64,6 +66,7 @@ export interface ReactivePlaylistActionContext {
 	currentPartInstanceId: ReactiveVar<PartInstanceId | null>
 	currentPartId: ReactiveVar<PartId | null>
 	nextPartId: ReactiveVar<PartId | null>
+	unfinishedTags: ReactiveVar<string[]>
 }
 
 interface PlainPlaylistContext {
@@ -73,6 +76,7 @@ interface PlainPlaylistContext {
 	nextSegmentPartIds: PartId[]
 	currentPartId: PartId | null
 	nextPartId: PartId | null
+	unfinishedTags: string[]
 }
 
 interface PlainStudioContext {
@@ -134,6 +138,7 @@ function createRundownPlaylistContext(
 			currentSegmentPartIds: new DummyReactiveVar(playlistContext.currentSegmentPartIds),
 			nextSegmentPartIds: new DummyReactiveVar(playlistContext.nextSegmentPartIds),
 			currentPartInstanceId: new DummyReactiveVar(playlistContext.rundownPlaylist.currentPartInstanceId),
+			unfinishedTags: new DummyReactiveVar(playlistContext.unfinishedTags),
 		}
 	} else if (filterChain[0].object === 'rundownPlaylist' && context.studio && Meteor.isServer) {
 		const playlist = rundownPlaylistFilter(
@@ -146,16 +151,35 @@ function createRundownPlaylistContext(
 				nextPartId: PartId | null = null,
 				currentPartInstance: PartInstance | null = null,
 				currentSegmentPartIds: PartId[] = [],
-				nextSegmentPartIds: PartId[] = []
+				nextSegmentPartIds: PartId[] = [],
+				unfinishedTags: string[] = []
 
 			if (playlist.currentPartInstanceId) {
 				currentPartInstance = PartInstances.findOne(playlist.currentPartInstanceId) ?? null
 				const currentPart = currentPartInstance?.part ?? null
+				let currentRundown: DBRundown | undefined
 				if (currentPart) {
 					currentPartId = currentPart._id
 					currentSegmentPartIds = Parts.find({
 						segmentId: currentPart.segmentId,
 					}).map((part) => part._id)
+					currentRundown = Rundowns.findOne(currentPart.rundownId)
+				}
+				if (currentRundown && playlist.activationId) {
+					const showStyleBase = ShowStyleBases.findOne(currentRundown.showStyleBaseId)
+					if (showStyleBase) {
+						const unfinishedPieceInstances = getUnfinishedPieceInstances(
+							playlist.activationId,
+							playlist.currentPartInstanceId,
+							showStyleBase
+						)
+						unfinishedTags = _.uniq(
+							unfinishedPieceInstances
+								.filter((piece) => !!piece.piece.tags)
+								.map((piece) => piece.piece.tags!)
+								.reduce((a, b) => a.concat(b), [])
+						)
+					}
 				}
 			}
 			if (playlist.nextPartInstanceId) {
@@ -181,6 +205,7 @@ function createRundownPlaylistContext(
 				nextPartId: new DummyReactiveVar(nextPartId),
 				nextSegmentPartIds: new DummyReactiveVar(nextSegmentPartIds),
 				currentPartInstanceId: new DummyReactiveVar(playlist.currentPartInstanceId),
+				unfinishedTags: new DummyReactiveVar(unfinishedTags),
 			}
 		}
 	} else {

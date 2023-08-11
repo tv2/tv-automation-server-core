@@ -16,6 +16,7 @@ import {
 	IRundownTimingEventContext,
 	IStudioBaselineContext,
 	IGetRundownContext,
+	ISetNextContext,
 } from './context'
 import { IngestAdlib, ExtendedIngestRundown, IngestSegment } from './ingest'
 import { IBlueprintExternalMessageQueueObj } from './message'
@@ -163,6 +164,8 @@ export interface ShowStyleBlueprintManifest extends BlueprintManifestBase {
 		playoutStatus: 'previous' | 'current' | 'next'
 	) => void
 
+	setNext?: (context: ISetNextContext, existingPartInstance: BlueprintSyncIngestPartInstance) => void
+
 	/** Execute an action defined by an IBlueprintActionManifest */
 	executeAction?: (
 		context: IActionExecutionContext,
@@ -178,7 +181,11 @@ export interface ShowStyleBlueprintManifest extends BlueprintManifestBase {
 	) => IBlueprintAdLibPiece | IBlueprintActionManifest | null
 
 	/** Preprocess config before storing it by core to later be returned by context's getShowStyleConfig. If not provided, getShowStyleConfig will return unprocessed blueprint config */
-	preprocessConfig?: (context: ICommonContext, config: IBlueprintConfig) => unknown
+	preprocessConfig?: (
+		context: ICommonContext,
+		config: IBlueprintConfig,
+		showStyleVariants: ReadonlyDeep<Array<IBlueprintShowStyleVariant>>
+	) => unknown
 
 	// Events
 
