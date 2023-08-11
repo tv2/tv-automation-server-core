@@ -2,13 +2,13 @@ export class BasicRundown {
 	readonly id: string
 	readonly name: string
 	protected isRundownActive: boolean
-	protected lastTimeModified: number
+	protected modifiedAt: number
 
-	constructor(id: string, name: string, isActive: boolean, lastTimeModified: number) {
+	constructor(id: string, name: string, isActive: boolean, modifiedAt: number) {
 		this.id = id
 		this.name = name
 		this.isRundownActive = isActive
-		this.lastTimeModified = lastTimeModified
+		this.modifiedAt = modifiedAt
 	}
 
 	public isActive(): boolean {
@@ -16,6 +16,6 @@ export class BasicRundown {
 	}
 
 	public getLastTimeModified(): number {
-		return this.lastTimeModified
+		return this.modifiedAt
 	}
 }
