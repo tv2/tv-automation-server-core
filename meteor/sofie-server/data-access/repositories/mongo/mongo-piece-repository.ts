@@ -16,7 +16,7 @@ export class MongoPieceRepository extends BaseMongoRepository implements PieceRe
 	}
 
 	public async getPieces(partId: string): Promise<Piece[]> {
-		this.assertDatabaseConnection('getPieces')
+		this.assertDatabaseConnection(this.getPieces.name)
 		const mongoPieces: MongoPiece[] = (await this.getCollection()
 			.find({ startPartId: partId })
 			.toArray()) as unknown as MongoPiece[]
@@ -24,6 +24,7 @@ export class MongoPieceRepository extends BaseMongoRepository implements PieceRe
 	}
 
 	public async deletePieces(partId: string): Promise<boolean> {
+		this.assertDatabaseConnection(this.deletePieces.name)
 		const piecesDeletionResult = await this.getCollection().deleteMany({startPartId: partId})
 		return piecesDeletionResult.acknowledged
 	}

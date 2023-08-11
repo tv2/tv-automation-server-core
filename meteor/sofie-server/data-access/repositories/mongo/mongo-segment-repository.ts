@@ -21,7 +21,7 @@ export class MongoSegmentRepository extends BaseMongoRepository implements Segme
 	}
 
 	public async getSegments(rundownId: string): Promise<Segment[]> {
-		this.assertDatabaseConnection('getSegments')
+		this.assertDatabaseConnection(this.getSegments.name)
 		const mongoSegments: MongoSegment[] = (await this.getCollection()
 			.find({ rundownId: rundownId })
 			.toArray()) as unknown as MongoSegment[]
@@ -35,6 +35,7 @@ export class MongoSegmentRepository extends BaseMongoRepository implements Segme
 	}
 
 	public async deleteSegments(rundownId: string): Promise<boolean> {
+		this.assertDatabaseConnection(this.deleteSegments.name)
 		const segments = await this.getSegments(rundownId)
 
 		const ongoingDeletions = segments.map(async (segment: Segment) => this.partRepository.deleteParts(segment.id))
