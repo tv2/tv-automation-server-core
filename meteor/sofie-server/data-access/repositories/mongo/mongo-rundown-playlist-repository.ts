@@ -1,9 +1,9 @@
-import {RundownRepository} from '../interfaces/rundown-repository'
-import {BaseMongoRepository} from './base-mongo-repository'
-import {Rundown} from '../../../model/entities/rundown'
-import {MongoDatabase} from './mongo-database'
-import {MongoEntityConverter, MongoRundownPlaylist} from './mongo-entity-converter'
-import {BasicRundown} from '../../../model/entities/basic-rundown'
+import { RundownRepository } from '../interfaces/rundown-repository'
+import { BaseMongoRepository } from './base-mongo-repository'
+import { Rundown } from '../../../model/entities/rundown'
+import { MongoDatabase } from './mongo-database'
+import { MongoEntityConverter, MongoRundownPlaylist } from './mongo-entity-converter'
+import { BasicRundown } from '../../../model/entities/basic-rundown'
 
 const RUNDOWN_PLAYLIST_COLLECTION_NAME: string = 'rundownPlaylists'
 
@@ -67,7 +67,7 @@ export class MongoRundownPlaylistRepository extends BaseMongoRepository implemen
 	private async isRundownActive(rundown: Rundown) {
 		const cursor = this.getCollection().find({ externalId: rundown.name }).project({ _id: 0, activationId: 1 })
 		const activationStatus = (await cursor.toArray())[0]
-        return Object.entries(activationStatus).length > 0
+		return Object.entries(activationStatus).length > 0
 	}
 
 	saveRundown(_rundown: Rundown): void {
