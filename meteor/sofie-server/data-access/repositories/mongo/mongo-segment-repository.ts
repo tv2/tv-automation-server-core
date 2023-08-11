@@ -33,4 +33,14 @@ export class MongoSegmentRepository extends BaseMongoRepository implements Segme
 			})
 		)
 	}
+
+	public async deleteSegments(rundownId: string): Promise<boolean> {
+		const segments = await this.getSegments(rundownId)
+
+		const ongoingDeletions = segments.map(async (segment: Segment) => this.partRepository.deleteParts(segment.id))
+		const partsDeleteResult = await Promise.all(ongoingDeletions).then((results: boolean[]) => results.every((partResult: boolean) => partResult))
+		const segmentDeleteResult = await this.getCollection().deleteMany({rundownId: rundownId})
+
+		return segmentDeleteResult.acknowledged && partsDeleteResult
+	}
 }

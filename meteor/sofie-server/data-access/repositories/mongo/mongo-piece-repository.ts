@@ -22,4 +22,9 @@ export class MongoPieceRepository extends BaseMongoRepository implements PieceRe
 			.toArray()) as unknown as MongoPiece[]
 		return this.mongoEntityConverter.convertPieces(mongoPieces)
 	}
+
+	public async deletePieces(partId: string): Promise<boolean> {
+		const piecesDeletionResult = await this.getCollection().deleteMany({startPartId: partId})
+		return piecesDeletionResult.acknowledged
+	}
 }

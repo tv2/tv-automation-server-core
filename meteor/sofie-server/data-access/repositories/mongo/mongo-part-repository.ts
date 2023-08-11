@@ -33,4 +33,14 @@ export class MongoPartRepository extends BaseMongoRepository implements PartRepo
 			})
 		)
 	}
+
+	public async deleteParts(segmentId: string): Promise<boolean> {
+		const parts = await this.getParts(segmentId)
+
+		const ongoingDeletions: Promise<boolean>[] = parts.map(async (part: Part) => this.pieceRepository.deletePieces(part.id))
+		const piecesDeletedResult: boolean = await Promise.all(ongoingDeletions).then((results: boolean[]) => results.every((pieceResult: boolean) => pieceResult))
+		const partsDeletedResult = await this.getCollection().deleteMany({segmentId: segmentId})
+
+		return partsDeletedResult.acknowledged && piecesDeletedResult
+	}
 }
