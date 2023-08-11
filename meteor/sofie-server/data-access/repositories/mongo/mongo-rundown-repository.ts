@@ -1,10 +1,10 @@
 import { Rundown } from '../../../model/entities/rundown'
 import { RundownRepository } from '../interfaces/rundown-repository'
-import { MongoEntityConverter, MongoIdentifier, MongoRundown } from './mongo-entity-converter'
+import { MongoEntityConverter, MongoRundown } from './mongo-entity-converter'
 import { MongoDatabase } from './mongo-database'
 import { SegmentRepository } from '../interfaces/segment-repository'
 import { BaseMongoRepository } from './base-mongo-repository'
-import { Identifier } from '../../../model/interfaces/identifier'
+import { BasicRundown } from '../../../model/entities/basic-rundown'
 
 const RUNDOWN_COLLECTION_NAME: string = 'rundowns'
 
@@ -21,21 +21,21 @@ export class MongoRundownRepository extends BaseMongoRepository implements Rundo
 		return RUNDOWN_COLLECTION_NAME
 	}
 
-	public async getRundownIdentifiers(): Promise<Identifier[]> {
-		this.assertDatabaseConnection('getRundowns')
-		const mongoIdentifiers: MongoIdentifier[] = (await this.getCollection()
+	public async getBasicRundowns(): Promise<BasicRundown[]> {
+		this.assertDatabaseConnection(this.getBasicRundowns.name)
+		const basicRundowns: MongoRundown[] = (await this.getCollection()
 			.find({})
-			.project({ _id: 1, name: 1 })
-			.toArray()) as unknown as MongoIdentifier[]
-		return this.mongoEntityConverter.convertIdentifiers(mongoIdentifiers)
+			.project({ _id: 1, name: 1, modified: 1 })
+			.toArray()) as unknown as MongoRundown[]
+		return this.mongoEntityConverter.convertBasicRundowns(basicRundowns)
 	}
 
 	public async getRundown(rundownId: string): Promise<Rundown> {
-		this.assertDatabaseConnection('getRundown')
+		this.assertDatabaseConnection(this.getRundown.name)
 		const mongoRundown: MongoRundown = (await this.getCollection().findOne({
 			_id: rundownId,
 		})) as unknown as MongoRundown
-		const rundown = this.mongoEntityConverter.convertRundown(mongoRundown)
+		const rundown: Rundown = this.mongoEntityConverter.convertRundown(mongoRundown)
 		rundown.setSegments(await this.segmentRepository.getSegments(rundown.id))
 		return rundown
 	}
