@@ -15,7 +15,7 @@ export interface RundownInterface {
 	name: string
 	segments: Segment[]
 	isRundownActive: boolean
-	lastTimeModified: number
+	modifiedAt: number
 }
 
 export class Rundown extends BasicRundown {
@@ -30,7 +30,7 @@ export class Rundown extends BasicRundown {
 	private infinitePieces: Map<string, Piece> = new Map()
 
 	constructor(rundown: RundownInterface) {
-		super(rundown.id, rundown.name, rundown.isRundownActive, rundown.lastTimeModified)
+		super(rundown.id, rundown.name, rundown.isRundownActive, rundown.modifiedAt)
 		this.segments = rundown.segments ?? []
 	}
 

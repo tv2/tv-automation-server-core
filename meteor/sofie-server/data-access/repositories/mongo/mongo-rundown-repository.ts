@@ -22,20 +22,20 @@ export class MongoRundownRepository extends BaseMongoRepository implements Rundo
 	}
 
 	public async getBasicRundowns(): Promise<BasicRundown[]> {
-		this.assertDatabaseConnection('getRundowns')
-		const rundowns: MongoRundown[] = (await this.getCollection()
+		this.assertDatabaseConnection(this.getBasicRundowns.name)
+		const basicRundowns: MongoRundown[] = (await this.getCollection()
 			.find({})
 			.project({ _id: 1, name: 1, modified: 1 })
 			.toArray()) as unknown as MongoRundown[]
-		return this.mongoEntityConverter.convertBasicRundowns(rundowns)
+		return this.mongoEntityConverter.convertBasicRundowns(basicRundowns)
 	}
 
 	public async getRundown(rundownId: string): Promise<Rundown> {
-		this.assertDatabaseConnection('getRundown')
+		this.assertDatabaseConnection(this.getBasicRundowns.name)
 		const mongoRundown: MongoRundown = (await this.getCollection().findOne({
 			_id: rundownId,
 		})) as unknown as MongoRundown
-		const rundown = this.mongoEntityConverter.convertRundown(mongoRundown)
+		const rundown: Rundown = this.mongoEntityConverter.convertRundown(mongoRundown)
 		rundown.setSegments(await this.segmentRepository.getSegments(rundown.id))
 		return rundown
 	}

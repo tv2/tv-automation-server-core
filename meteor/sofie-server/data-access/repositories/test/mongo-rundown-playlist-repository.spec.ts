@@ -10,6 +10,7 @@ import { MongoClient, Db } from 'mongodb'
 import { BasicRundown } from '../../../model/entities/basic-rundown'
 
 describe('MongoRundownPlaylistRepository', () => {
+	// Set a timeout beyound the default of 5 Seconds to ensure CI tests don't exceed the limit on GitHub
 	jest.setTimeout(15000)
 	let mongoServer: MongoMemoryServer
 	let client: MongoClient

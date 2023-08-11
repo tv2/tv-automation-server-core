@@ -1,9 +1,9 @@
-import { RundownRepository } from '../interfaces/rundown-repository'
-import { BaseMongoRepository } from './base-mongo-repository'
-import { Rundown } from '../../../model/entities/rundown'
-import { MongoDatabase } from './mongo-database'
-import { MongoEntityConverter, MongoRundownPlaylist } from './mongo-entity-converter'
-import { BasicRundown } from '../../../model/entities/basic-rundown'
+import {RundownRepository} from '../interfaces/rundown-repository'
+import {BaseMongoRepository} from './base-mongo-repository'
+import {Rundown} from '../../../model/entities/rundown'
+import {MongoDatabase} from './mongo-database'
+import {MongoEntityConverter, MongoRundownPlaylist} from './mongo-entity-converter'
+import {BasicRundown} from '../../../model/entities/basic-rundown'
 
 const RUNDOWN_PLAYLIST_COLLECTION_NAME: string = 'rundownPlaylists'
 
@@ -21,8 +21,8 @@ export class MongoRundownPlaylistRepository extends BaseMongoRepository implemen
 	}
 
 	async getBasicRundowns(): Promise<BasicRundown[]> {
-		this.assertDatabaseConnection('getRundownPlaylists')
-		const rundowns: BasicRundown[] = await this.rundownRepository.getBasicRundowns()
+		this.assertDatabaseConnection(this.getBasicRundowns.name)
+		const basicRundowns: BasicRundown[] = await this.rundownRepository.getBasicRundowns()
 
 		const playlists: MongoRundownPlaylist[] = (await this.getCollection()
 			.find()
@@ -31,30 +31,28 @@ export class MongoRundownPlaylistRepository extends BaseMongoRepository implemen
 
 		const activePlaylist: MongoRundownPlaylist | undefined = playlists.find((playlist) => playlist.activationId)
 		if (!activePlaylist) {
-			return rundowns
+			return basicRundowns
 		}
 
-		const activeRundown: BasicRundown | undefined = rundowns.find(
-			(rundown) => rundown.name === activePlaylist.externalId
+		const basicRundown: BasicRundown | undefined = basicRundowns.find(
+			(basicRundown) => basicRundown.name === activePlaylist.externalId
 		)
-		if (!activeRundown) {
-			return rundowns
+		if (!basicRundown) {
+			return basicRundowns
 		}
 
 		Object.assign(
-			activeRundown,
-			new BasicRundown(activeRundown.id, activeRundown.name, true, activeRundown.getLastTimeModified())
+			basicRundown,
+			new BasicRundown(basicRundown.id, basicRundown.name, true, basicRundown.getLastTimeModified())
 		)
 
-		return rundowns
+		return basicRundowns
 	}
 
 	async getRundown(rundownId: string): Promise<Rundown> {
-		this.assertDatabaseConnection('getRundownPlaylist')
+		this.assertDatabaseConnection(this.getRundown.name)
 		const rundown: Rundown = await this.rundownRepository.getRundown(rundownId)
-		const cursor = this.getCollection().find({ externalId: rundown.name }).project({ _id: 0, activationId: 1 })
-		const activationStatus = (await cursor.toArray())[0]
-		const isRundownActive: boolean = Object.entries(activationStatus).length > 0
+		const isRundownActive = await this.isRundownActive(rundown)
 
 		const activatedRundown: BasicRundown = new BasicRundown(
 			rundown.id,
@@ -64,6 +62,12 @@ export class MongoRundownPlaylistRepository extends BaseMongoRepository implemen
 		)
 		Object.assign(rundown, activatedRundown)
 		return rundown
+	}
+
+	private async isRundownActive(rundown: Rundown) {
+		const cursor = this.getCollection().find({ externalId: rundown.name }).project({ _id: 0, activationId: 1 })
+		const activationStatus = (await cursor.toArray())[0]
+        return Object.entries(activationStatus).length > 0
 	}
 
 	saveRundown(_rundown: Rundown): void {

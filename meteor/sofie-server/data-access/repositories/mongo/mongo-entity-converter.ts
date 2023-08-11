@@ -14,14 +14,10 @@ export interface MongoIdentifier {
 	name: string
 }
 
-export interface MongoRundownPlaylist extends Document {
+export interface MongoRundownPlaylist {
 	_id: string
-	created: number
-	rundownIdsInOrder: string[]
 	externalId: string
-	studioId: string
 	name: string
-	rehearsal: string
 	activationId: string
 }
 
@@ -110,7 +106,7 @@ export class MongoEntityConverter {
 			name: mongoRundown.name,
 			isRundownActive: false,
 			segments: [],
-			lastTimeModified: mongoRundown.modified,
+			modifiedAt: mongoRundown.modified,
 		})
 	}
 
