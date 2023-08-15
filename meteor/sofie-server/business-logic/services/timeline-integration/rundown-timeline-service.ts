@@ -15,7 +15,6 @@ import { AdLibPiece } from '../../../model/entities/ad-lib-piece'
 import { Piece } from '../../../model/entities/piece'
 import { RundownEventBuilder } from '../interfaces/rundown-event-builder'
 import { RundownActiveException } from '../../../model/exceptions/rundown-active-exception'
-import { DeletionFailedException } from '../../../model/exceptions/deletion-failed-exception'
 
 export class RundownTimelineService implements RundownService {
 	constructor(
@@ -137,10 +136,7 @@ export class RundownTimelineService implements RundownService {
 			throw new RundownActiveException('Attempted to delete an active rundown')
 		}
 
-		const success = await this.rundownRepository.deleteRundown(rundownId)
-		if (!success) {
-			throw new DeletionFailedException(`Failed to receive positive acknowledgement for deletion of ${rundownId}`)
-		}
+		await this.rundownRepository.deleteRundown(rundownId)
 
 		const deletedEvent = this.rundownEventBuilder.buildDeletedEvent(rundown)
 		this.rundownEventEmitter.emitRundownEvent(deletedEvent)

@@ -22,7 +22,7 @@ export interface MongoRundownPlaylist {
 }
 
 export interface MongoRundown {
-	_id: string
+	_id: any
 	externalId: string
 	name: string
 	timing: {
@@ -89,6 +89,8 @@ export interface MongoAdLibPiece {
 }
 
 export class MongoEntityConverter {
+
+
 	public convertIdentifier(mongoIdentifier: MongoIdentifier): Identifier {
 		return {
 			id: mongoIdentifier._id,
@@ -112,6 +114,17 @@ export class MongoEntityConverter {
 
 	public convertRundowns(mongoRundowns: MongoRundown[]): Rundown[] {
 		return mongoRundowns.map(this.convertRundown)
+	}
+
+	public convertToMongoRundown(rundown: Rundown): Partial<MongoRundown> {
+		return {
+			_id: rundown.id,
+			name: rundown.name,
+		}
+	}
+
+	public convertToMongoRundowns(rundowns: Rundown[]) : Partial<MongoRundown>[] {
+		return rundowns.map(this.convertToMongoRundown)
 	}
 
 	public convertBasicRundown(mongoRundown: MongoRundown): BasicRundown {

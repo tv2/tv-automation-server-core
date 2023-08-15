@@ -5,6 +5,7 @@ import { MongoDatabase } from './mongo-database'
 import { SegmentRepository } from '../interfaces/segment-repository'
 import { BaseMongoRepository } from './base-mongo-repository'
 import { BasicRundown } from '../../../model/entities/basic-rundown'
+import {DeletionFailedException} from "../../../model/exceptions/deletion-failed-exception";
 
 const RUNDOWN_COLLECTION_NAME: string = 'rundowns'
 
@@ -44,13 +45,19 @@ export class MongoRundownRepository extends BaseMongoRepository implements Rundo
 		throw new Error('Not implemented')
 	}
 
-	public async deleteRundown(rundownId: string): Promise<boolean> {
+	public async deleteRundown(rundownId: string): Promise<void> {
 		this.assertDatabaseConnection(this.deleteRundown.name)
 		await this.segmentRepository.deleteSegments(rundownId)
-		const result = await this.getCollection().deleteOne({
+
+		const rundownDeletionResult = await this.getCollection().deleteOne({
 			_id: rundownId,
 		})
 
-		return result.acknowledged
+		if (!rundownDeletionResult.acknowledged) {
+			throw new DeletionFailedException('Deletion of rundown was not acknowledged')
+		}
+		if (rundownDeletionResult.deletedCount === 0) {
+			throw new DeletionFailedException('Expected to delete one rundown, but none was deleted')
+		}
 	}
 }

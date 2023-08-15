@@ -1,33 +1,18 @@
-import { instance, mock, when } from 'ts-mockito'
-import { Rundown, RundownInterface } from '../../../model/entities/rundown'
-import { MongoEntityConverter } from '../mongo/mongo-entity-converter'
-import { MongoRundownPlaylistRepository } from '../mongo/mongo-rundown-playlist-repository'
-import { RundownRepository } from '../interfaces/rundown-repository'
-import { MongoDatabase } from '../mongo/mongo-database'
-// eslint-disable-next-line node/no-unpublished-import
-import { MongoMemoryServer } from 'mongodb-memory-server'
-import { MongoClient, Db } from 'mongodb'
-import { BasicRundown } from '../../../model/entities/basic-rundown'
+import {instance, mock, when} from 'ts-mockito'
+import {Rundown, RundownInterface} from '../../../model/entities/rundown'
+import {MongoEntityConverter} from '../mongo/mongo-entity-converter'
+import {MongoRundownPlaylistRepository} from '../mongo/mongo-rundown-playlist-repository'
+import {RundownRepository} from '../interfaces/rundown-repository'
+import {MongoDatabase} from '../mongo/mongo-database'
+
+import {Db} from 'mongodb'
+import {BasicRundown} from '../../../model/entities/basic-rundown'
+import {MongoTestDatabase} from "./mongo-test-database";
 
 describe('MongoRundownPlaylistRepository', () => {
-	// Set a timeout beyound the default of 5 Seconds to ensure CI tests don't exceed the limit on GitHub
-	jest.setTimeout(15000)
-	let mongoServer: MongoMemoryServer
-	let client: MongoClient
-
-	beforeAll(async () => {
-		mongoServer = await MongoMemoryServer.create()
-		client = await MongoClient.connect(mongoServer.getUri())
-	})
-
-	afterAll(async () => {
-		if (client) {
-			await client.close()
-		}
-		if (mongoServer) {
-			await mongoServer.stop()
-		}
-	})
+	const testDatabase: MongoTestDatabase = new MongoTestDatabase()
+	beforeAll(async () => await testDatabase.beforeAll())
+	afterAll(async () => testDatabase.afterAll())
 
 	describe('getRundown', () => {
 		it('has an activationId, return an active rundown', async () => {
@@ -71,24 +56,24 @@ describe('MongoRundownPlaylistRepository', () => {
 		})
 	})
 
-	function createActiveRundown(): Rundown {
+	function createActiveRundown(rundownId?: string): Rundown {
 		return new Rundown({
-			id: 'id' + Math.random(),
+			id: rundownId ?? 'id' + Math.random(),
 			name: 'name' + Math.random(),
 			isRundownActive: true,
 		} as RundownInterface)
 	}
 
-	function createInactiveRundown(): Rundown {
+	function createInactiveRundown(rundownId?: string): Rundown {
 		return new Rundown({
-			id: 'id' + Math.random(),
+			id: rundownId ?? 'id' + Math.random(),
 			name: 'name' + Math.random(),
 			isRundownActive: false,
 		} as RundownInterface)
 	}
 
 	async function populateDatabase(rundowns: Rundown[]): Promise<Db> {
-		const db: Db = client.db(mongoServer.instanceInfo!.dbName)
+		const db: Db = testDatabase.getDatabase(testDatabase.getCurrentDatabaseName())
 
 		for (const rundown of rundowns) {
 			if (rundown.isActive()) {
@@ -116,6 +101,6 @@ describe('MongoRundownPlaylistRepository', () => {
 		when(rundownRepository.getBasicRundowns()).thenReturn(Promise.resolve(rundowns))
 		when(mongoDb.getCollection('rundownPlaylists')).thenReturn(db.collection('rundownPlaylists'))
 
-		return new MongoRundownPlaylistRepository(instance(mongoDb), mongoConverter, instance(rundownRepository))
+		return new MongoRundownPlaylistRepository(instance(mongoDb), instance(mongoConverter), instance(rundownRepository))
 	}
 })

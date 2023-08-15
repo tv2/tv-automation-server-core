@@ -8,7 +8,6 @@ import { AdLibPieceRepository } from '../../../data-access/repositories/interfac
 import { TimelineBuilder } from '../interfaces/timeline-builder'
 import { RundownEventBuilder } from '../interfaces/rundown-event-builder'
 import { RundownActiveException } from '../../../model/exceptions/rundown-active-exception'
-import { DeletionFailedException } from '../../../model/exceptions/deletion-failed-exception'
 import { RundownEventType } from '../../../model/enums/rundown-event-type'
 
 describe(`${RundownTimelineService.name}`, () => {
@@ -18,10 +17,9 @@ describe(`${RundownTimelineService.name}`, () => {
 			const mockRundownRepository: RundownRepository = mock<RundownRepository>()
 
 			const randomRundownId: string = 'randomRundownId'
-			const randomRundown: Rundown = new Rundown({ id: randomRundownId, isActive: false } as RundownInterface)
+			const randomRundown: Rundown = createInactiveRundown(randomRundownId)
 
 			when(mockRundownRepository.getRundown(randomRundownId)).thenReturn(Promise.resolve(randomRundown))
-			when(mockRundownRepository.deleteRundown(randomRundownId)).thenReturn(Promise.resolve(true))
 
 			const testee: RundownTimelineService = createTestee({ rundownRepository: instance(mockRundownRepository) })
 
@@ -36,10 +34,9 @@ describe(`${RundownTimelineService.name}`, () => {
 			const mockRundownEventBuilder: RundownEventBuilder = mock<RundownEventBuilder>()
 
 			const randomRundownId: string = 'randomRundownId'
-			const randomRundown: Rundown = new Rundown({ id: randomRundownId, isActive: false } as RundownInterface)
+			const randomRundown: Rundown = createInactiveRundown(randomRundownId)
 
 			when(mockRundownRepository.getRundown(randomRundownId)).thenReturn(Promise.resolve(randomRundown))
-			when(mockRundownRepository.deleteRundown(randomRundownId)).thenReturn(Promise.resolve(true))
 			when(mockRundownEventBuilder.buildDeletedEvent(anything())).thenReturn({
 				type: RundownEventType.DELETED,
 				rundownId: randomRundownId,
@@ -64,10 +61,9 @@ describe(`${RundownTimelineService.name}`, () => {
 			const mockRundownEventBuilder: RundownEventBuilder = mock<RundownEventBuilder>()
 
 			const randomRundownId: string = 'randomRundownId'
-			const randomRundown: Rundown = new Rundown({ id: randomRundownId, isActive: false } as RundownInterface)
+			const randomRundown: Rundown = createInactiveRundown(randomRundownId)
 
 			when(mockRundownRepository.getRundown(randomRundownId)).thenReturn(Promise.resolve(randomRundown))
-			when(mockRundownRepository.deleteRundown(randomRundownId)).thenReturn(Promise.resolve(true))
 
 			const testee: RundownTimelineService = createTestee({
 				rundownRepository: instance(mockRundownRepository),
@@ -84,7 +80,7 @@ describe(`${RundownTimelineService.name}`, () => {
 			const mockRundownRepository: RundownRepository = mock<RundownRepository>()
 
 			const randomRundownId: string = 'randomRundownId'
-			const randomRundown: Rundown = new Rundown({ id: randomRundownId, isActive: true } as RundownInterface)
+			const randomRundown: Rundown = createActiveRundown(randomRundownId)
 
 			when(mockRundownRepository.getRundown(randomRundownId)).thenReturn(Promise.resolve(randomRundown))
 
@@ -99,29 +95,24 @@ describe(`${RundownTimelineService.name}`, () => {
 				expect(error).toBeInstanceOf(RundownActiveException)
 			}
 		})
-
-		it('receives a RundownId but failes to delete the rundown throwing an exception', async () => {
-			const mockRundownRepository: RundownRepository = mock<RundownRepository>()
-
-			const randomRundownId: string = 'randomRundownId'
-			const randomRundown: Rundown = new Rundown({ id: randomRundownId, isActive: false } as RundownInterface)
-
-			when(mockRundownRepository.getRundown(randomRundownId)).thenReturn(Promise.resolve(randomRundown))
-			when(mockRundownRepository.deleteRundown(randomRundownId)).thenReturn(Promise.resolve(false))
-
-			const testee: RundownTimelineService = createTestee({ rundownRepository: instance(mockRundownRepository) })
-
-			expect.assertions(1)
-			try {
-				await testee.deleteRundown(randomRundownId)
-			} catch (error) {
-				// It isn't conditional, as the test will fail, if not hit, due to the 'expect.assertions(1)'
-				// eslint-disable-next-line jest/no-conditional-expect
-				expect(error).toBeInstanceOf(DeletionFailedException)
-			}
-		})
 	})
 })
+
+function createActiveRundown(rundownId?: string): Rundown {
+	return new Rundown({
+		id: rundownId ?? 'id' + Math.random(),
+		name: 'name' + Math.random(),
+		isRundownActive: true,
+	} as RundownInterface)
+}
+
+function createInactiveRundown(rundownId?: string): Rundown {
+	return new Rundown({
+		id: rundownId ?? 'id' + Math.random(),
+		name: 'name' + Math.random(),
+		isRundownActive: false,
+	} as RundownInterface)
+}
 
 interface TesteeBuilderParams {
 	rundownEventEmitter?: RundownEventEmitter
