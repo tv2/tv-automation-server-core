@@ -89,8 +89,6 @@ export interface MongoAdLibPiece {
 }
 
 export class MongoEntityConverter {
-
-
 	public convertIdentifier(mongoIdentifier: MongoIdentifier): Identifier {
 		return {
 			id: mongoIdentifier._id,
@@ -123,7 +121,7 @@ export class MongoEntityConverter {
 		}
 	}
 
-	public convertToMongoRundowns(rundowns: Rundown[]) : Partial<MongoRundown>[] {
+	public convertToMongoRundowns(rundowns: Rundown[]): Partial<MongoRundown>[] {
 		return rundowns.map(this.convertToMongoRundown)
 	}
 

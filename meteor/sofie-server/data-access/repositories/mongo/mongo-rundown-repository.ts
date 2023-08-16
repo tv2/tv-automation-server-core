@@ -5,7 +5,7 @@ import { MongoDatabase } from './mongo-database'
 import { SegmentRepository } from '../interfaces/segment-repository'
 import { BaseMongoRepository } from './base-mongo-repository'
 import { BasicRundown } from '../../../model/entities/basic-rundown'
-import {DeletionFailedException} from "../../../model/exceptions/deletion-failed-exception";
+import { DeletionFailedException } from '../../../model/exceptions/deletion-failed-exception'
 
 const RUNDOWN_COLLECTION_NAME: string = 'rundowns'
 
@@ -53,11 +53,14 @@ export class MongoRundownRepository extends BaseMongoRepository implements Rundo
 			_id: rundownId,
 		})
 
+		// TODO: Figure out how to archive a 'false' acknowledgment, and add test case using that knowledge
 		if (!rundownDeletionResult.acknowledged) {
-			throw new DeletionFailedException('Deletion of rundown was not acknowledged')
+			throw new DeletionFailedException(`Deletion of rundown was not acknowledged, for rundownId: ${rundownId}`)
 		}
 		if (rundownDeletionResult.deletedCount === 0) {
-			throw new DeletionFailedException('Expected to delete one rundown, but none was deleted')
+			throw new DeletionFailedException(
+				`Expected to delete one rundown, but none was deleted, for rundownId: ${rundownId}`
+			)
 		}
 	}
 }

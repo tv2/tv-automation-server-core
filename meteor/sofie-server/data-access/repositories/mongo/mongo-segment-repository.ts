@@ -4,7 +4,7 @@ import { MongoDatabase } from './mongo-database'
 import { MongoEntityConverter, MongoSegment } from './mongo-entity-converter'
 import { BaseMongoRepository } from './base-mongo-repository'
 import { PartRepository } from '../interfaces/part-repository'
-import {DeletionFailedException} from "../../../model/exceptions/deletion-failed-exception";
+import { DeletionFailedException } from '../../../model/exceptions/deletion-failed-exception'
 
 const SEGMENT_COLLECTION_NAME: string = 'segments'
 
@@ -40,15 +40,17 @@ export class MongoSegmentRepository extends BaseMongoRepository implements Segme
 		const segments = await this.getSegments(rundownId)
 
 		for (const segment of segments) {
-			await this.partRepository.deleteParts(segment.id);
+			await this.partRepository.deleteParts(segment.id)
 		}
-		const segmentDeleteResult = await this.getCollection().deleteMany({rundownId: rundownId})
+		const segmentDeleteResult = await this.getCollection().deleteMany({ rundownId: rundownId })
 
 		if (!segmentDeleteResult.acknowledged) {
 			throw new DeletionFailedException(`Deletion of segments was not acknowledged, for rundownId: ${rundownId}`)
 		}
 		if (segmentDeleteResult.deletedCount === 0) {
-			throw new DeletionFailedException(`Expected to delete one or more segments, but none was deleted, for rundownId: ${rundownId}`)
+			throw new DeletionFailedException(
+				`Expected to delete one or more segments, but none was deleted, for rundownId: ${rundownId}`
+			)
 		}
 	}
 }

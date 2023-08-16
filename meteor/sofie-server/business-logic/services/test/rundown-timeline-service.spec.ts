@@ -98,6 +98,7 @@ describe(`${RundownTimelineService.name}`, () => {
 	})
 })
 
+// TODO: Extract to Helper Class in Model layer
 function createActiveRundown(rundownId?: string): Rundown {
 	return new Rundown({
 		id: rundownId ?? 'id' + Math.random(),
@@ -106,6 +107,7 @@ function createActiveRundown(rundownId?: string): Rundown {
 	} as RundownInterface)
 }
 
+// TODO: Extract to Helper Class in Model layer
 function createInactiveRundown(rundownId?: string): Rundown {
 	return new Rundown({
 		id: rundownId ?? 'id' + Math.random(),

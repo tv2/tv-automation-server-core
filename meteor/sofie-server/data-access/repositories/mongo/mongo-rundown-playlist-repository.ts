@@ -1,9 +1,9 @@
-import {RundownRepository} from '../interfaces/rundown-repository'
-import {BaseMongoRepository} from './base-mongo-repository'
-import {Rundown} from '../../../model/entities/rundown'
-import {MongoDatabase} from './mongo-database'
-import {MongoEntityConverter, MongoRundownPlaylist} from './mongo-entity-converter'
-import {BasicRundown} from '../../../model/entities/basic-rundown'
+import { RundownRepository } from '../interfaces/rundown-repository'
+import { BaseMongoRepository } from './base-mongo-repository'
+import { Rundown } from '../../../model/entities/rundown'
+import { MongoDatabase } from './mongo-database'
+import { MongoEntityConverter, MongoRundownPlaylist } from './mongo-entity-converter'
+import { BasicRundown } from '../../../model/entities/basic-rundown'
 
 const RUNDOWN_PLAYLIST_COLLECTION_NAME: string = 'rundownPlaylists'
 
@@ -17,8 +17,8 @@ export class MongoRundownPlaylistRepository extends BaseMongoRepository implemen
 	}
 
 	public async deleteRundown(rundownId: string): Promise<void> {
-        return this.rundownRepository.deleteRundown(rundownId)
-    }
+		return this.rundownRepository.deleteRundown(rundownId)
+	}
 
 	protected getCollectionName(): string {
 		return RUNDOWN_PLAYLIST_COLLECTION_NAME

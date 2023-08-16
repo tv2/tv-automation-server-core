@@ -1,5 +1,6 @@
-import {MongoMemoryServer} from "mongodb-memory-server";
-import {Db, MongoClient} from "mongodb";
+// eslint-disable-next-line node/no-unpublished-import
+import { MongoMemoryServer } from 'mongodb-memory-server'
+import { Db, MongoClient } from 'mongodb'
 
 export class MongoTestDatabase {
 	private mongoServer: MongoMemoryServer
@@ -10,7 +11,7 @@ export class MongoTestDatabase {
 		jest.setTimeout(15000)
 	}
 
-	public async beforeAll(override? : () => Promise<void>) {
+	public async beforeAll(override?: () => Promise<void>) {
 		if (override) {
 			return override()
 		}

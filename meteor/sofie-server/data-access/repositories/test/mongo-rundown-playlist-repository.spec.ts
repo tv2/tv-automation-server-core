@@ -1,13 +1,13 @@
-import {instance, mock, when} from 'ts-mockito'
-import {Rundown, RundownInterface} from '../../../model/entities/rundown'
-import {MongoEntityConverter} from '../mongo/mongo-entity-converter'
-import {MongoRundownPlaylistRepository} from '../mongo/mongo-rundown-playlist-repository'
-import {RundownRepository} from '../interfaces/rundown-repository'
-import {MongoDatabase} from '../mongo/mongo-database'
+import { instance, mock, when } from 'ts-mockito'
+import { Rundown, RundownInterface } from '../../../model/entities/rundown'
+import { MongoEntityConverter } from '../mongo/mongo-entity-converter'
+import { MongoRundownPlaylistRepository } from '../mongo/mongo-rundown-playlist-repository'
+import { RundownRepository } from '../interfaces/rundown-repository'
+import { MongoDatabase } from '../mongo/mongo-database'
 
-import {Db} from 'mongodb'
-import {BasicRundown} from '../../../model/entities/basic-rundown'
-import {MongoTestDatabase} from "./mongo-test-database";
+import { Db } from 'mongodb'
+import { BasicRundown } from '../../../model/entities/basic-rundown'
+import { MongoTestDatabase } from './mongo-test-database'
 
 describe('MongoRundownPlaylistRepository', () => {
 	const testDatabase: MongoTestDatabase = new MongoTestDatabase()
@@ -56,6 +56,7 @@ describe('MongoRundownPlaylistRepository', () => {
 		})
 	})
 
+	// TODO: Extract to Helper Class in Model layer
 	function createActiveRundown(rundownId?: string): Rundown {
 		return new Rundown({
 			id: rundownId ?? 'id' + Math.random(),
@@ -64,6 +65,7 @@ describe('MongoRundownPlaylistRepository', () => {
 		} as RundownInterface)
 	}
 
+	// TODO: Extract to Helper Class in Model layer
 	function createInactiveRundown(rundownId?: string): Rundown {
 		return new Rundown({
 			id: rundownId ?? 'id' + Math.random(),
@@ -101,6 +103,10 @@ describe('MongoRundownPlaylistRepository', () => {
 		when(rundownRepository.getBasicRundowns()).thenReturn(Promise.resolve(rundowns))
 		when(mongoDb.getCollection('rundownPlaylists')).thenReturn(db.collection('rundownPlaylists'))
 
-		return new MongoRundownPlaylistRepository(instance(mongoDb), instance(mongoConverter), instance(rundownRepository))
+		return new MongoRundownPlaylistRepository(
+			instance(mongoDb),
+			instance(mongoConverter),
+			instance(rundownRepository)
+		)
 	}
 })
