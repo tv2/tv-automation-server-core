@@ -503,16 +503,7 @@ export function getPieceInstancesForPart(
 }
 
 function removeDuplicatePieceInstances(pieceInstances: PieceInstance[]): PieceInstance[] {
-	return pieceInstances.reduce((uniquePieceInstances: PieceInstance[], pieceInstance: PieceInstance) => {
-		if (!isUniquePieceInstance(pieceInstances, pieceInstance)) {
-			return uniquePieceInstances
-		}
-		return [...uniquePieceInstances, pieceInstance]
-	}, [])
-}
-
-function isUniquePieceInstance(pieceInstances: PieceInstance[], pieceInstance: PieceInstance): boolean {
-	return pieceInstances.some(({ _id }) => _id == pieceInstance._id)
+	return _.uniq(pieceInstances, (pieceInstance) => pieceInstance._id)
 }
 
 export interface PieceInstanceWithTimings extends PieceInstance {
