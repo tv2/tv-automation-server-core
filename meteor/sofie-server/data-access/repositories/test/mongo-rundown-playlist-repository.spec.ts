@@ -9,6 +9,8 @@ import { Db } from 'mongodb'
 import { BasicRundown } from '../../../model/entities/basic-rundown'
 import { MongoTestDatabase } from './mongo-test-database'
 
+const COLLECTION_NAME = 'rundownPlaylists'
+
 describe('MongoRundownPlaylistRepository', () => {
 	const testDatabase: MongoTestDatabase = new MongoTestDatabase()
 	beforeAll(async () => await testDatabase.beforeAll())
@@ -79,12 +81,12 @@ describe('MongoRundownPlaylistRepository', () => {
 
 		for (const rundown of rundowns) {
 			if (rundown.isActive()) {
-				await db.collection('rundownPlaylists').insertOne({
+				await db.collection(COLLECTION_NAME).insertOne({
 					externalId: rundown.name,
 					activationId: 'activated',
 				})
 			} else {
-				await db.collection('rundownPlaylists').insertOne({
+				await db.collection(COLLECTION_NAME).insertOne({
 					externalId: rundown.name,
 				})
 			}
@@ -101,7 +103,7 @@ describe('MongoRundownPlaylistRepository', () => {
 			when(rundownRepository.getRundown(rundown.id)).thenReturn(Promise.resolve(rundown))
 		})
 		when(rundownRepository.getBasicRundowns()).thenReturn(Promise.resolve(rundowns))
-		when(mongoDb.getCollection('rundownPlaylists')).thenReturn(db.collection('rundownPlaylists'))
+		when(mongoDb.getCollection(COLLECTION_NAME)).thenReturn(db.collection(COLLECTION_NAME))
 
 		return new MongoRundownPlaylistRepository(
 			instance(mongoDb),

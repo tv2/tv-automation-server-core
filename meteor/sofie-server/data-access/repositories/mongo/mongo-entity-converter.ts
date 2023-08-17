@@ -44,7 +44,7 @@ export interface MongoRundown {
 }
 
 export interface MongoSegment {
-	_id: string
+	_id: any
 	name: string
 	_rank: number
 	rundownId: string
@@ -53,7 +53,7 @@ export interface MongoSegment {
 }
 
 export interface MongoPart {
-	_id: string
+	_id: any
 	segmentId: string
 	title: string
 	_rank: number
@@ -61,7 +61,7 @@ export interface MongoPart {
 }
 
 export interface MongoPiece {
-	_id: string
+	_id: any
 	startPartId: string
 	name: string
 	sourceLayerId: string
@@ -74,7 +74,7 @@ export interface MongoPiece {
 }
 
 export interface MongoTimeline {
-	_id: string
+	_id: any
 	timelineHash: string
 	generated: number
 	timelineBlob: string
@@ -149,6 +149,19 @@ export class MongoEntityConverter {
 		return mongoSegments.filter((segment) => !segment.isHidden).map(this.convertSegment)
 	}
 
+	public convertToMongoSegment(segment: Segment): Partial<MongoSegment> {
+		return {
+			_id: segment.id,
+			name: segment.name,
+			rundownId: segment.rundownId,
+			_rank: segment.rank,
+		}
+	}
+
+	public convertToMongoSegments(segments: Segment[]): Partial<MongoSegment>[] {
+		return segments.map(this.convertToMongoSegment)
+	}
+
 	public convertPart(mongoPart: MongoPart): Part {
 		return new Part({
 			id: mongoPart._id,
@@ -164,6 +177,14 @@ export class MongoEntityConverter {
 
 	public convertParts(mongoParts: MongoPart[]): Part[] {
 		return mongoParts.map(this.convertPart)
+	}
+
+	public convertToMongoPart(part: Part): Partial<MongoPart> {
+		return { _id: part.id }
+	}
+
+	public convertToMongoParts(parts: Part[]): Partial<MongoPart>[] {
+		return parts.map(this.convertToMongoPart)
 	}
 
 	public convertPiece(mongoPiece: MongoPiece): Piece {

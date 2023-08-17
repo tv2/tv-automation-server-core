@@ -39,11 +39,10 @@ export class MongoSegmentRepository extends BaseMongoRepository implements Segme
 		this.assertDatabaseConnection(this.deleteSegments.name)
 		const segments = await this.getSegments(rundownId)
 
-		for (const segment of segments) {
-			await this.partRepository.deleteParts(segment.id)
-		}
+		segments.map((segment) => segment.id).forEach(async (id) => this.partRepository.deleteParts(id))
 		const segmentDeleteResult = await this.getCollection().deleteMany({ rundownId: rundownId })
 
+		// TODO: Figure out how to archive a 'false' acknowledgment, and add test case using that knowledge
 		if (!segmentDeleteResult.acknowledged) {
 			throw new DeletionFailedException(`Deletion of segments was not acknowledged, for rundownId: ${rundownId}`)
 		}

@@ -39,11 +39,10 @@ export class MongoPartRepository extends BaseMongoRepository implements PartRepo
 		this.assertDatabaseConnection(this.deleteParts.name)
 		const parts = await this.getParts(segmentId)
 
-		for (const part of parts) {
-			await this.pieceRepository.deletePieces(part.id)
-		}
+		parts.map((part) => part.id).forEach(async (id) => await this.pieceRepository.deletePieces(id))
 		const partsDeletedResult = await this.getCollection().deleteMany({ segmentId: segmentId })
 
+		// TODO: Figure out how to archive a 'false' acknowledgment, and add test case using that knowledge
 		if (!partsDeletedResult.acknowledged) {
 			throw new DeletionFailedException(`Deletion of parts was not acknowledged, for segmentId: ${segmentId}`)
 		}
