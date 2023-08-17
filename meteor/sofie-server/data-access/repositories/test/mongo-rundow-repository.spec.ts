@@ -12,16 +12,15 @@ import { DeletionFailedException } from '../../../model/exceptions/deletion-fail
 const COLLECTION_NAME = 'rundowns'
 describe(`${MongoRundownRepository.name}`, () => {
 	const testDatabase: MongoTestDatabase = new MongoTestDatabase()
-	beforeAll(async () => await testDatabase.beforeAll())
-	afterAll(async () => await testDatabase.afterAll())
+	beforeEach(async () => await testDatabase.setupDatabase())
+	afterEach(async () => await testDatabase.teardownDatabase())
 
 	describe(`${MongoRundownRepository.prototype.deleteRundown.name}`, () => {
 		it('deletes active rundown successfully', async () => {
-			const dbName: string = testDatabase.getNewDatabaseName()
 			const rundownId: string = 'someRundownId'
 			const activeRundown: Rundown = createActiveRundown(rundownId)
-			await testDatabase.populateDatabaseWithRundowns([activeRundown], dbName)
-			const db: Db = testDatabase.getDatabase(dbName)
+			await testDatabase.populateDatabaseWithRundowns([activeRundown])
+			const db: Db = testDatabase.getDatabase()
 
 			const testee = await createTestee(db, {})
 			await testee.deleteRundown(rundownId)
@@ -30,12 +29,11 @@ describe(`${MongoRundownRepository.name}`, () => {
 		})
 
 		it('deletes inactive rundown successfully', async () => {
-			const dbName: string = testDatabase.getNewDatabaseName()
 			const rundownId: string = 'someRundownId'
 			const inactiveRundown: Rundown = createInactiveRundown(rundownId)
-			await testDatabase.populateDatabaseWithRundowns([inactiveRundown], dbName)
+			await testDatabase.populateDatabaseWithRundowns([inactiveRundown])
 
-			const db: Db = testDatabase.getDatabase(dbName)
+			const db: Db = testDatabase.getDatabase()
 
 			const testee = await createTestee(db, {})
 			await testee.deleteRundown(rundownId)
@@ -45,12 +43,11 @@ describe(`${MongoRundownRepository.name}`, () => {
 
 		// eslint-disable-next-line jest/expect-expect
 		it('calls deletion of segments', async () => {
-			const dbName: string = testDatabase.getNewDatabaseName()
 			const segmentRepository: SegmentRepository = mock<SegmentRepository>()
 			const rundownId: string = 'someRundownId'
 			const rundown: Rundown = createInactiveRundown(rundownId)
-			await testDatabase.populateDatabaseWithRundowns([rundown], dbName)
-			const db: Db = testDatabase.getDatabase(dbName)
+			await testDatabase.populateDatabaseWithRundowns([rundown])
+			const db: Db = testDatabase.getDatabase()
 
 			const testee = await createTestee(db, { segmentRepository: segmentRepository })
 			await testee.deleteRundown(rundownId)
@@ -59,12 +56,11 @@ describe(`${MongoRundownRepository.name}`, () => {
 		})
 
 		it('does not delete, and throws exception, when nonexistent rundownId is given', async () => {
-			const dbName: string = testDatabase.getNewDatabaseName()
 			const expectedErrorMessageFragment: string = 'Expected to delete one rundown'
 			const nonExistingId: string = 'nonExistingId'
 			const rundown: Rundown = createInactiveRundown()
-			await testDatabase.populateDatabaseWithRundowns([rundown], dbName)
-			const db: Db = testDatabase.getDatabase(dbName)
+			await testDatabase.populateDatabaseWithRundowns([rundown])
+			const db: Db = testDatabase.getDatabase()
 
 			const testee = await createTestee(db, {})
 

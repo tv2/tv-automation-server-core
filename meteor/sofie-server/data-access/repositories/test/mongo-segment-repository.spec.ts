@@ -14,18 +14,17 @@ const COLLECTION_NAME = 'segments'
 
 describe(`${MongoSegmentRepository.name}`, () => {
 	const testDatabase: MongoTestDatabase = new MongoTestDatabase()
-	beforeAll(async () => await testDatabase.beforeAll())
-	afterAll(async () => await testDatabase.afterAll())
+	beforeEach(async () => await testDatabase.setupDatabase())
+	afterEach(async () => await testDatabase.teardownDatabase())
 
 	describe(`${MongoSegmentRepository.prototype.deleteSegments.name}`, () => {
 		it('deletes one segment successfully', async () => {
-			const dbName: string = testDatabase.getNewDatabaseName()
 			const mongoConverter: MongoEntityConverter = mock(MongoEntityConverter)
 			const partRepository: PartRepository = mock<PartRepository>()
 			const rundownId: string = 'someRundownId'
 			const segment: Segment = createSegment({ rundownId: rundownId })
-			await testDatabase.populateDatabaseWithSegments([segment], dbName)
-			const db: Db = testDatabase.getDatabase(dbName)
+			await testDatabase.populateDatabaseWithSegments([segment])
+			const db: Db = testDatabase.getDatabase()
 
 			when(mongoConverter.convertSegments(anything())).thenReturn([segment])
 			when(partRepository.getParts(anything())).thenReturn(Promise.resolve([]))
@@ -40,7 +39,6 @@ describe(`${MongoSegmentRepository.name}`, () => {
 		})
 
 		it('deletes multiple segments successfully', async () => {
-			const dbName: string = testDatabase.getNewDatabaseName()
 			const mongoConverter: MongoEntityConverter = mock(MongoEntityConverter)
 			const partRepository: PartRepository = mock<PartRepository>()
 			const rundownId: string = 'someRundownId'
@@ -49,8 +47,8 @@ describe(`${MongoSegmentRepository.name}`, () => {
 				createSegment({ rundownId: rundownId }),
 				createSegment({ rundownId: rundownId }),
 			]
-			await testDatabase.populateDatabaseWithSegments(segments, dbName)
-			const db: Db = testDatabase.getDatabase(dbName)
+			await testDatabase.populateDatabaseWithSegments(segments)
+			const db: Db = testDatabase.getDatabase()
 
 			when(mongoConverter.convertSegments(anything())).thenReturn(segments)
 			when(partRepository.getParts(anything())).thenReturn(Promise.resolve([]))
@@ -66,7 +64,6 @@ describe(`${MongoSegmentRepository.name}`, () => {
 
 		// eslint-disable-next-line jest/expect-expect
 		it('calls deletion of parts, matching amount of segments', async () => {
-			const dbName: string = testDatabase.getNewDatabaseName()
 			const mongoConverter: MongoEntityConverter = mock(MongoEntityConverter)
 			const partRepository: PartRepository = mock<PartRepository>()
 			const rundownId: string = 'someRundownId'
@@ -75,8 +72,8 @@ describe(`${MongoSegmentRepository.name}`, () => {
 				createSegment({ rundownId: rundownId }),
 			]
 			const parts = [createPart({}), createPart({}), createPart({})]
-			await testDatabase.populateDatabaseWithSegments(segments, dbName)
-			const db: Db = testDatabase.getDatabase(dbName)
+			await testDatabase.populateDatabaseWithSegments(segments)
+			const db: Db = testDatabase.getDatabase()
 
 			when(mongoConverter.convertSegments(anything())).thenReturn(segments)
 			when(partRepository.getParts(anything())).thenReturn(Promise.resolve(parts))
@@ -91,12 +88,11 @@ describe(`${MongoSegmentRepository.name}`, () => {
 		})
 
 		it('does not deletes any segments, when nonexistent rundownId is given', async () => {
-			const dbName: string = testDatabase.getNewDatabaseName()
 			const mongoConverter: MongoEntityConverter = mock(MongoEntityConverter)
 			const nonExistingId: string = 'nonExistingId'
 			const segment: Segment = createSegment({})
-			await testDatabase.populateDatabaseWithSegments([segment], dbName)
-			const db: Db = testDatabase.getDatabase(dbName)
+			await testDatabase.populateDatabaseWithSegments([segment])
+			const db: Db = testDatabase.getDatabase()
 
 			when(mongoConverter.convertSegments(anything())).thenReturn([])
 			const testee: SegmentRepository = await createTestee(db, {
@@ -116,13 +112,12 @@ describe(`${MongoSegmentRepository.name}`, () => {
 		})
 
 		it('throws exception, when nonexistent rundownId is given', async () => {
-			const dbName: string = testDatabase.getNewDatabaseName()
 			const expectedErrorMessageFragment: string = 'Expected to delete one or more segments'
 			const mongoConverter: MongoEntityConverter = mock(MongoEntityConverter)
 			const nonExistingId: string = 'nonExistingId'
 			const segment: Segment = createSegment({})
-			await testDatabase.populateDatabaseWithSegments([segment], dbName)
-			const db: Db = testDatabase.getDatabase(dbName)
+			await testDatabase.populateDatabaseWithSegments([segment])
+			const db: Db = testDatabase.getDatabase()
 
 			when(mongoConverter.convertSegments(anything())).thenReturn([])
 			const testee: SegmentRepository = await createTestee(db, {

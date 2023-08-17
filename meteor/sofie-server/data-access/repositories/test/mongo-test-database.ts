@@ -15,7 +15,7 @@ export class MongoTestDatabase {
 		jest.setTimeout(15000)
 	}
 
-	public async beforeAll(override?: () => Promise<void>) {
+	public async setupDatabase(override?: () => Promise<void>) {
 		if (override) {
 			return override()
 		}
@@ -23,7 +23,7 @@ export class MongoTestDatabase {
 		this.client = await MongoClient.connect(this.mongoServer.getUri())
 	}
 
-	public async afterAll(override?: () => Promise<void>) {
+	public async teardownDatabase(override?: () => Promise<void>) {
 		if (override) {
 			return override()
 		}
@@ -35,16 +35,12 @@ export class MongoTestDatabase {
 		}
 	}
 
-	public getDatabase(dbName: string): Db {
-		return this.client.db(dbName)
+	public getDatabase(): Db {
+		return this.client.db(this.mongoServer.instanceInfo!.dbName)
 	}
 
-	public getNewDatabaseName(): string {
-		return 'db' + Math.round(Math.random() * 1000)
-	}
-
-	public async populateDatabaseWithRundowns(rundowns: Rundown[], databaseName: string): Promise<void> {
-		const db: Db = this.getDatabase(databaseName)
+	public async populateDatabaseWithRundowns(rundowns: Rundown[]): Promise<void> {
+		const db: Db = this.getDatabase()
 		const entityConverter = new MongoEntityConverter()
 		for (const rundown of rundowns) {
 			const convertedRundown = entityConverter.convertToMongoRundown(rundown)
@@ -62,16 +58,16 @@ export class MongoTestDatabase {
 		}
 	}
 
-	public async populateDatabaseWithSegments(segments: Segment[], databaseName: string): Promise<void> {
-		const db: Db = this.getDatabase(databaseName)
+	public async populateDatabaseWithSegments(segments: Segment[]): Promise<void> {
+		const db: Db = this.getDatabase()
 		const entityConverter = new MongoEntityConverter()
 		for (const segment of entityConverter.convertToMongoSegments(segments)) {
 			await db.collection('segments').insertOne(segment)
 		}
 	}
 
-	public async populateDatabaseWithParts(parts: Part[], databaseName: string): Promise<Db> {
-		const db: Db = this.getDatabase(databaseName)
+	public async populateDatabaseWithParts(parts: Part[]): Promise<Db> {
+		const db: Db = this.getDatabase()
 		const entityConverter = new MongoEntityConverter()
 		for (const part of entityConverter.convertToMongoParts(parts)) {
 			await db.collection('parts').insertOne(part)

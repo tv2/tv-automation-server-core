@@ -14,17 +14,16 @@ const COLLECTION_NAME = 'parts'
 
 describe(`${MongoPartRepository.name}`, () => {
 	const testDatabase: MongoTestDatabase = new MongoTestDatabase()
-	beforeAll(async () => await testDatabase.beforeAll())
-	afterAll(async () => await testDatabase.afterAll())
+	beforeEach(async () => await testDatabase.setupDatabase())
+	afterEach(async () => await testDatabase.teardownDatabase())
 
 	describe(`${MongoPartRepository.prototype.deleteParts.name}`, () => {
 		it('deletes one part successfully', async () => {
-			const dbName: string = testDatabase.getNewDatabaseName()
 			const mongoConverter: MongoEntityConverter = mock(MongoEntityConverter)
 			const segmentId: string = 'someSegmentId'
 			const part: Part = createPart({ segmentId: segmentId })
-			await testDatabase.populateDatabaseWithParts([part], dbName)
-			const db: Db = testDatabase.getDatabase(dbName)
+			await testDatabase.populateDatabaseWithParts([part])
+			const db: Db = testDatabase.getDatabase()
 
 			when(mongoConverter.convertParts(anything())).thenReturn([part])
 			const testee: PartRepository = await createTestee(db, {
@@ -37,12 +36,11 @@ describe(`${MongoPartRepository.name}`, () => {
 		})
 
 		it('deletes multiple parts successfully', async () => {
-			const dbName: string = testDatabase.getNewDatabaseName()
 			const mongoConverter: MongoEntityConverter = mock(MongoEntityConverter)
 			const segmentId: string = 'someSegmentId'
 			const parts: Part[] = [createPart({ segmentId: segmentId }), createPart({ segmentId: segmentId })]
-			await testDatabase.populateDatabaseWithParts(parts, dbName)
-			const db: Db = testDatabase.getDatabase(dbName)
+			await testDatabase.populateDatabaseWithParts(parts)
+			const db: Db = testDatabase.getDatabase()
 
 			when(mongoConverter.convertParts(anything())).thenReturn(parts)
 			const testee: PartRepository = await createTestee(db, {
@@ -56,14 +54,13 @@ describe(`${MongoPartRepository.name}`, () => {
 
 		// eslint-disable-next-line jest/expect-expect
 		it('calls deletion of pieces, matching amount of parts', async () => {
-			const dbName: string = testDatabase.getNewDatabaseName()
 			const mongoConverter: MongoEntityConverter = mock(MongoEntityConverter)
 			const pieceRepository: PieceRepository = mock<PieceRepository>()
 			const segmentId: string = 'someSegmentId'
 			const parts: Part[] = [createPart({ segmentId: segmentId }), createPart({ segmentId: segmentId })]
 			const pieces: Piece[] = [createPiece({}), createPiece({}), createPiece({})]
-			await testDatabase.populateDatabaseWithParts(parts, dbName)
-			const db: Db = testDatabase.getDatabase(dbName)
+			await testDatabase.populateDatabaseWithParts(parts)
+			const db: Db = testDatabase.getDatabase()
 
 			when(mongoConverter.convertParts(anything())).thenReturn(parts)
 			when(pieceRepository.getPieces(anything())).thenReturn(Promise.resolve(pieces))
@@ -78,13 +75,12 @@ describe(`${MongoPartRepository.name}`, () => {
 		})
 
 		it('throws exception, when nonexistent segmentId is given', async () => {
-			const dbName: string = testDatabase.getNewDatabaseName()
 			const expectedErrorMessageFragment: string = 'Expected to delete one or more parts'
 			const mongoConverter: MongoEntityConverter = mock(MongoEntityConverter)
 			const nonExistingId: string = 'nonExistingId'
 			const part: Part = createPart({})
-			await testDatabase.populateDatabaseWithParts([part], dbName)
-			const db = testDatabase.getDatabase(dbName)
+			await testDatabase.populateDatabaseWithParts([part])
+			const db = testDatabase.getDatabase()
 
 			when(mongoConverter.convertParts(anything())).thenReturn([])
 			const testee: PartRepository = await createTestee(db, {
@@ -104,12 +100,11 @@ describe(`${MongoPartRepository.name}`, () => {
 		})
 
 		it('does not deletes any pieces, when nonexistent segmentId is given', async () => {
-			const dbName: string = testDatabase.getNewDatabaseName()
 			const mongoConverter: MongoEntityConverter = mock(MongoEntityConverter)
 			const nonExistingId: string = 'nonExistingId'
 			const part = createPart({})
-			await testDatabase.populateDatabaseWithParts([part], dbName)
-			const db = testDatabase.getDatabase(dbName)
+			await testDatabase.populateDatabaseWithParts([part])
+			const db = testDatabase.getDatabase()
 
 			when(mongoConverter.convertParts(anything())).thenReturn([])
 			const testee = await createTestee(db, {
