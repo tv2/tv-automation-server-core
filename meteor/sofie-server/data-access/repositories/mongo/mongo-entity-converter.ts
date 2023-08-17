@@ -180,7 +180,11 @@ export class MongoEntityConverter {
 	}
 
 	public convertToMongoPart(part: Part): Partial<MongoPart> {
-		return { _id: part.id }
+		return {
+			_id: part.id,
+			segmentId: part.segmentId,
+			_rank: part.rank,
+		}
 	}
 
 	public convertToMongoParts(parts: Part[]): Partial<MongoPart>[] {

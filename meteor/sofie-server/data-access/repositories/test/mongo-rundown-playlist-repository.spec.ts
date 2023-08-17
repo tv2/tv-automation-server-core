@@ -14,21 +14,26 @@ const COLLECTION_NAME = 'rundownPlaylists'
 describe('MongoRundownPlaylistRepository', () => {
 	const testDatabase: MongoTestDatabase = new MongoTestDatabase()
 	beforeAll(async () => await testDatabase.beforeAll())
-	afterAll(async () => testDatabase.afterAll())
+	afterAll(async () => await testDatabase.afterAll())
 
 	describe('getRundown', () => {
 		it('has an activationId, return an active rundown', async () => {
+			const dbName: string = testDatabase.getNewDatabaseName()
 			const activatedRundown: Rundown = createActiveRundown()
+			await testDatabase.populateDatabaseWithRundowns([activatedRundown], dbName)
+			const db: Db = testDatabase.getDatabase(dbName)
 
-			const db: Db = await populateDatabase([activatedRundown])
 			const testee: RundownRepository = await createTestee(db, [activatedRundown])
 			const result: Rundown = await testee.getRundown(activatedRundown.id)
 
 			expect(result.isActive()).toBe(true)
 		})
 		it('does not have an activationId, return inactive rundown', async () => {
+			const dbName: string = testDatabase.getNewDatabaseName()
 			const inactiveRundown: Rundown = createInactiveRundown()
-			const db: Db = await populateDatabase([inactiveRundown])
+			await testDatabase.populateDatabaseWithRundowns([inactiveRundown], dbName)
+			const db: Db = testDatabase.getDatabase(dbName)
+
 			const testee: RundownRepository = await createTestee(db, [inactiveRundown])
 			const result: Rundown = await testee.getRundown(inactiveRundown.id)
 
@@ -37,9 +42,12 @@ describe('MongoRundownPlaylistRepository', () => {
 	})
 	describe('getBasicRundowns', () => {
 		it('returns two rundowns, only one is active', async () => {
+			const dbName: string = testDatabase.getNewDatabaseName()
 			const activatedRundown: Rundown = createActiveRundown()
 			const inactiveRundown: Rundown = createInactiveRundown()
-			const db: Db = await populateDatabase([activatedRundown, inactiveRundown])
+			await testDatabase.populateDatabaseWithRundowns([activatedRundown, inactiveRundown], dbName)
+			const db: Db = testDatabase.getDatabase(dbName)
+
 			const testee: RundownRepository = await createTestee(db, [activatedRundown, inactiveRundown])
 			const result: BasicRundown[] = await testee.getBasicRundowns()
 
@@ -47,9 +55,12 @@ describe('MongoRundownPlaylistRepository', () => {
 			expect(result[1].isActive()).toBe(false)
 		})
 		it('returns two rundowns, none are active', async () => {
+			const dbName: string = testDatabase.getNewDatabaseName()
 			const inactiveRundown: Rundown = createInactiveRundown()
 			const secondInactiveRundown: Rundown = createInactiveRundown()
-			const db: Db = await populateDatabase([inactiveRundown, secondInactiveRundown])
+			await testDatabase.populateDatabaseWithRundowns([inactiveRundown, secondInactiveRundown], dbName)
+			const db: Db = testDatabase.getDatabase(dbName)
+
 			const testee: RundownRepository = await createTestee(db, [inactiveRundown, secondInactiveRundown])
 			const result: BasicRundown[] = await testee.getBasicRundowns()
 
@@ -74,24 +85,6 @@ describe('MongoRundownPlaylistRepository', () => {
 			name: 'name' + Math.random(),
 			isRundownActive: false,
 		} as RundownInterface)
-	}
-
-	async function populateDatabase(rundowns: Rundown[]): Promise<Db> {
-		const db: Db = testDatabase.getDatabase(testDatabase.getCurrentDatabaseName())
-
-		for (const rundown of rundowns) {
-			if (rundown.isActive()) {
-				await db.collection(COLLECTION_NAME).insertOne({
-					externalId: rundown.name,
-					activationId: 'activated',
-				})
-			} else {
-				await db.collection(COLLECTION_NAME).insertOne({
-					externalId: rundown.name,
-				})
-			}
-		}
-		return db
 	}
 
 	async function createTestee(db: Db, rundowns: Rundown[]): Promise<RundownRepository> {

@@ -4,23 +4,27 @@ import { Db } from 'mongodb'
 import { MongoEntityConverter } from '../mongo/mongo-entity-converter'
 import { PartRepository } from '../interfaces/part-repository'
 import { MongoDatabase } from '../mongo/mongo-database'
-import { anything, instance, mock, when } from 'ts-mockito'
+import { anyString, anything, instance, mock, verify, when } from 'ts-mockito'
 import { MongoTestDatabase } from './mongo-test-database'
 import { PieceRepository } from '../interfaces/piece-repository'
+import { Piece, PieceInterface } from '../../../model/entities/piece'
+import { DeletionFailedException } from '../../../model/exceptions/deletion-failed-exception'
 
 const COLLECTION_NAME = 'parts'
 
 describe(`${MongoPartRepository.name}`, () => {
 	const testDatabase: MongoTestDatabase = new MongoTestDatabase()
 	beforeAll(async () => await testDatabase.beforeAll())
-	afterAll(async () => testDatabase.afterAll())
+	afterAll(async () => await testDatabase.afterAll())
 
 	describe(`${MongoPartRepository.prototype.deleteParts.name}`, () => {
 		it('deletes one part successfully', async () => {
+			const dbName: string = testDatabase.getNewDatabaseName()
 			const mongoConverter: MongoEntityConverter = mock(MongoEntityConverter)
 			const segmentId: string = 'someSegmentId'
 			const part: Part = createPart({ segmentId: segmentId })
-			const db: Db = await populateDatabase([part])
+			await testDatabase.populateDatabaseWithParts([part], dbName)
+			const db: Db = testDatabase.getDatabase(dbName)
 
 			when(mongoConverter.convertParts(anything())).thenReturn([part])
 			const testee: PartRepository = await createTestee(db, {
@@ -33,10 +37,12 @@ describe(`${MongoPartRepository.name}`, () => {
 		})
 
 		it('deletes multiple parts successfully', async () => {
+			const dbName: string = testDatabase.getNewDatabaseName()
 			const mongoConverter: MongoEntityConverter = mock(MongoEntityConverter)
 			const segmentId: string = 'someSegmentId'
 			const parts: Part[] = [createPart({ segmentId: segmentId }), createPart({ segmentId: segmentId })]
-			const db: Db = await populateDatabase(parts)
+			await testDatabase.populateDatabaseWithParts(parts, dbName)
+			const db: Db = testDatabase.getDatabase(dbName)
 
 			when(mongoConverter.convertParts(anything())).thenReturn(parts)
 			const testee: PartRepository = await createTestee(db, {
@@ -48,12 +54,95 @@ describe(`${MongoPartRepository.name}`, () => {
 			expect(await db.collection(COLLECTION_NAME).countDocuments()).toBe(0)
 		})
 
-		it('calls deletion of pieces, matching amount of parts', async () => {})
+		// eslint-disable-next-line jest/expect-expect
+		it('calls deletion of pieces, matching amount of parts', async () => {
+			const dbName: string = testDatabase.getNewDatabaseName()
+			const mongoConverter: MongoEntityConverter = mock(MongoEntityConverter)
+			const pieceRepository: PieceRepository = mock<PieceRepository>()
+			const segmentId: string = 'someSegmentId'
+			const parts: Part[] = [createPart({ segmentId: segmentId }), createPart({ segmentId: segmentId })]
+			const pieces: Piece[] = [createPiece({}), createPiece({}), createPiece({})]
+			await testDatabase.populateDatabaseWithParts(parts, dbName)
+			const db: Db = testDatabase.getDatabase(dbName)
 
-		it('throws exception, when nonexistent segmentId is given', async () => {})
+			when(mongoConverter.convertParts(anything())).thenReturn(parts)
+			when(pieceRepository.getPieces(anything())).thenReturn(Promise.resolve(pieces))
+			const testee: PartRepository = await createTestee(db, {
+				mongoConverter: mongoConverter,
+				pieceRepository: pieceRepository,
+			})
 
-		it('does not deletes any pieces, when nonexistent segmentId is given', async () => {})
+			await testee.deleteParts(segmentId)
+
+			verify(pieceRepository.deletePieces(anyString())).times(parts.length)
+		})
+
+		it('throws exception, when nonexistent segmentId is given', async () => {
+			const dbName: string = testDatabase.getNewDatabaseName()
+			const expectedErrorMessageFragment: string = 'Expected to delete one or more parts'
+			const mongoConverter: MongoEntityConverter = mock(MongoEntityConverter)
+			const nonExistingId: string = 'nonExistingId'
+			const part: Part = createPart({})
+			await testDatabase.populateDatabaseWithParts([part], dbName)
+			const db = testDatabase.getDatabase(dbName)
+
+			when(mongoConverter.convertParts(anything())).thenReturn([])
+			const testee: PartRepository = await createTestee(db, {
+				mongoConverter: mongoConverter,
+			})
+
+			expect.assertions(2)
+			try {
+				await testee.deleteParts(nonExistingId)
+			} catch (error) {
+				// It isn't conditional, as the test will fail, if not hit, due to the 'expect.assertions(2)'
+				// eslint-disable-next-line jest/no-conditional-expect
+				expect(error).toBeInstanceOf(DeletionFailedException)
+				// eslint-disable-next-line jest/no-conditional-expect
+				expect((error as DeletionFailedException).message).toContain(expectedErrorMessageFragment)
+			}
+		})
+
+		it('does not deletes any pieces, when nonexistent segmentId is given', async () => {
+			const dbName: string = testDatabase.getNewDatabaseName()
+			const mongoConverter: MongoEntityConverter = mock(MongoEntityConverter)
+			const nonExistingId: string = 'nonExistingId'
+			const part = createPart({})
+			await testDatabase.populateDatabaseWithParts([part], dbName)
+			const db = testDatabase.getDatabase(dbName)
+
+			when(mongoConverter.convertParts(anything())).thenReturn([])
+			const testee = await createTestee(db, {
+				mongoConverter: mongoConverter,
+			})
+
+			expect.assertions(2)
+			try {
+				await testee.deleteParts(nonExistingId)
+			} catch (error) {
+				// It isn't conditional, as the test will fail, if not hit, due to the 'expect.assertions(2)'
+				// eslint-disable-next-line jest/no-conditional-expect
+				expect(error).toBeInstanceOf(DeletionFailedException)
+				// eslint-disable-next-line jest/no-conditional-expect
+				expect(await db.collection(COLLECTION_NAME).countDocuments()).toBe(1)
+			}
+		})
 	})
+	interface PieceBuilderParams {
+		id?: string
+		name?: string
+		rank?: number
+		partId?: string
+	}
+
+	// TODO: Extract to Helper Class in Model layer
+	function createPiece(params: PieceBuilderParams): Piece {
+		return new Piece({
+			id: params.id ?? 'id' + Math.random(),
+			name: params.name ?? 'name' + Math.random(),
+			partId: params.partId ?? 'segmentId' + Math.random(),
+		} as PieceInterface)
+	}
 
 	interface PartBuilderParams {
 		id?: string
@@ -62,6 +151,7 @@ describe(`${MongoPartRepository.name}`, () => {
 		segmentId?: string
 	}
 
+	// TODO: Extract to Helper Class in Model layer
 	function createPart(params: PartBuilderParams): Part {
 		return new Part({
 			id: params.id ?? 'id' + Math.random(),
@@ -69,16 +159,6 @@ describe(`${MongoPartRepository.name}`, () => {
 			rank: params.rank ?? Math.random(),
 			segmentId: params.segmentId ?? 'segmentId' + Math.random(),
 		} as PartInterface)
-	}
-
-	async function populateDatabase(parts: Part[]): Promise<Db> {
-		const db: Db = testDatabase.getDatabase(testDatabase.getCurrentDatabaseName())
-		const entityConverter = new MongoEntityConverter()
-		for (const part of entityConverter.convertToMongoParts(parts)) {
-			await db.collection(COLLECTION_NAME).insertOne(part)
-		}
-
-		return db
 	}
 
 	interface TesteeBuilderParams {
