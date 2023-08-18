@@ -5,9 +5,9 @@ import { Db } from 'mongodb'
 import { RundownRepository } from '../interfaces/rundown-repository'
 import { SegmentRepository } from '../interfaces/segment-repository'
 import { MongoDatabase } from '../mongo/mongo-database'
-import { anyString, instance, mock, verify, when } from 'ts-mockito'
+import { anyString, anything, instance, mock, verify, when } from 'ts-mockito'
 import { MongoEntityConverter } from '../mongo/mongo-entity-converter'
-import { DeletionFailedException } from '../../../model/exceptions/deletion-failed-exception'
+import { NotFoundException } from '../../../model/exceptions/not-found-exception'
 
 const COLLECTION_NAME = 'rundowns'
 describe(`${MongoRundownRepository.name}`, () => {
@@ -17,25 +17,38 @@ describe(`${MongoRundownRepository.name}`, () => {
 
 	describe(`${MongoRundownRepository.prototype.deleteRundown.name}`, () => {
 		it('deletes active rundown successfully', async () => {
+			const mongoConverter = mock(MongoEntityConverter)
+			const segmentRepository: SegmentRepository = mock<SegmentRepository>()
 			const rundownId: string = 'someRundownId'
 			const activeRundown: Rundown = createActiveRundown(rundownId)
 			await testDatabase.populateDatabaseWithRundowns([activeRundown])
 			const db: Db = testDatabase.getDatabase()
 
-			const testee = await createTestee(db, {})
+			when(mongoConverter.convertRundown(anything())).thenReturn(activeRundown)
+			when(segmentRepository.getSegments(anything())).thenReturn(Promise.resolve([]))
+			const testee = await createTestee(db, {
+				segmentRepository: segmentRepository,
+				mongoConverter: mongoConverter,
+			})
 			await testee.deleteRundown(rundownId)
 
 			expect(await db.collection(COLLECTION_NAME).countDocuments()).toBe(0)
 		})
 
 		it('deletes inactive rundown successfully', async () => {
+			const mongoConverter = mock(MongoEntityConverter)
+			const segmentRepository: SegmentRepository = mock<SegmentRepository>()
 			const rundownId: string = 'someRundownId'
 			const inactiveRundown: Rundown = createInactiveRundown(rundownId)
 			await testDatabase.populateDatabaseWithRundowns([inactiveRundown])
-
 			const db: Db = testDatabase.getDatabase()
 
-			const testee = await createTestee(db, {})
+			when(mongoConverter.convertRundown(anything())).thenReturn(inactiveRundown)
+			when(segmentRepository.getSegments(anything())).thenReturn(Promise.resolve([]))
+			const testee = await createTestee(db, {
+				segmentRepository: segmentRepository,
+				mongoConverter: mongoConverter,
+			})
 			await testee.deleteRundown(rundownId)
 
 			expect(await db.collection(COLLECTION_NAME).countDocuments()).toBe(0)
@@ -43,20 +56,25 @@ describe(`${MongoRundownRepository.name}`, () => {
 
 		// eslint-disable-next-line jest/expect-expect
 		it('calls deletion of segments', async () => {
+			const mongoConverter = mock(MongoEntityConverter)
 			const segmentRepository: SegmentRepository = mock<SegmentRepository>()
 			const rundownId: string = 'someRundownId'
 			const rundown: Rundown = createInactiveRundown(rundownId)
 			await testDatabase.populateDatabaseWithRundowns([rundown])
 			const db: Db = testDatabase.getDatabase()
 
-			const testee = await createTestee(db, { segmentRepository: segmentRepository })
+			when(mongoConverter.convertRundown(anything())).thenReturn(rundown)
+			when(segmentRepository.getSegments(anything())).thenReturn(Promise.resolve([]))
+			const testee = await createTestee(db, {
+				segmentRepository: segmentRepository,
+				mongoConverter: mongoConverter,
+			})
 			await testee.deleteRundown(rundownId)
 
 			verify(segmentRepository.deleteSegments(anyString())).once()
 		})
 
-		it('does not delete, and throws exception, when nonexistent rundownId is given', async () => {
-			const expectedErrorMessageFragment: string = 'Expected to delete one rundown'
+		it('does not delete, when nonexistent rundownId is given', async () => {
 			const nonExistingId: string = 'nonExistingId'
 			const rundown: Rundown = createInactiveRundown()
 			await testDatabase.populateDatabaseWithRundowns([rundown])
@@ -70,9 +88,30 @@ describe(`${MongoRundownRepository.name}`, () => {
 			} catch (error) {
 				// It isn't conditional, as the test will fail, if not hit, due to the 'expect.assertions(2)'
 				// eslint-disable-next-line jest/no-conditional-expect
-				expect(error).toBeInstanceOf(DeletionFailedException)
+				expect(error).toBeInstanceOf(NotFoundException)
 				// eslint-disable-next-line jest/no-conditional-expect
-				expect((error as DeletionFailedException).message).toContain(expectedErrorMessageFragment)
+				expect(await db.collection(COLLECTION_NAME).countDocuments()).toBe(1)
+			}
+		})
+
+		it('throws exception, when nonexistent rundownId is given', async () => {
+			const expectedErrorMessageFragment: string = 'Failed to find a rundown with id'
+			const nonExistingId: string = 'nonExistingId'
+			const rundown: Rundown = createInactiveRundown()
+			await testDatabase.populateDatabaseWithRundowns([rundown])
+			const db: Db = testDatabase.getDatabase()
+
+			const testee = await createTestee(db, {})
+
+			expect.assertions(2)
+			try {
+				await testee.deleteRundown(nonExistingId)
+			} catch (error) {
+				// It isn't conditional, as the test will fail, if not hit, due to the 'expect.assertions(2)'
+				// eslint-disable-next-line jest/no-conditional-expect
+				expect(error).toBeInstanceOf(NotFoundException)
+				// eslint-disable-next-line jest/no-conditional-expect
+				expect((error as NotFoundException).message).toContain(expectedErrorMessageFragment)
 			}
 		})
 	})
