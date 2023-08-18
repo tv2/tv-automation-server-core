@@ -28,7 +28,7 @@ export class MongoPieceRepository extends BaseMongoRepository implements PieceRe
 		this.assertDatabaseConnection(this.deletePieces.name)
 		const piecesDeletionResult = await this.getCollection().deleteMany({ startPartId: partId })
 
-		// TODO: Figure out how to archive a 'false' acknowledgment, and add test case using that knowledge
+		//TODO: Figure out how to archive a 'false' acknowledgment, and add test case using that knowledge
 		if (!piecesDeletionResult.acknowledged) {
 			throw new DeletionFailedException(`Deletion of pieces was not acknowledged, for partId: ${partId}`)
 		}

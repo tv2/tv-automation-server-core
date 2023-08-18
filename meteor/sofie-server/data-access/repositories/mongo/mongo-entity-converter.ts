@@ -227,6 +227,18 @@ export class MongoEntityConverter {
 		return mongoPieces.map((mongoPiece) => this.convertPiece(mongoPiece))
 	}
 
+	public convertToMongoPiece(piece: Piece): Partial<MongoPiece> {
+		return {
+			_id: piece.id,
+			startPartId: piece.partId,
+			name: piece.name,
+		}
+	}
+
+	public convertToMongoPieces(pieces: Piece[]): Partial<MongoPiece>[] {
+		return pieces.map(this.convertToMongoPiece)
+	}
+
 	public convertToMongoTimeline(timeline: Timeline): MongoTimeline {
 		return {
 			_id: 'studio0',

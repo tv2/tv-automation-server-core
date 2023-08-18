@@ -5,6 +5,7 @@ import { Rundown } from '../../../model/entities/rundown'
 import { MongoEntityConverter } from '../mongo/mongo-entity-converter'
 import { Segment } from '../../../model/entities/segment'
 import { Part } from '../../../model/entities/part'
+import { Piece } from '../../../model/entities/piece'
 
 export class MongoTestDatabase {
 	private mongoServer: MongoMemoryServer
@@ -66,13 +67,19 @@ export class MongoTestDatabase {
 		}
 	}
 
-	public async populateDatabaseWithParts(parts: Part[]): Promise<Db> {
+	public async populateDatabaseWithParts(parts: Part[]): Promise<void> {
 		const db: Db = this.getDatabase()
 		const entityConverter = new MongoEntityConverter()
 		for (const part of entityConverter.convertToMongoParts(parts)) {
 			await db.collection('parts').insertOne(part)
 		}
+	}
 
-		return db
+	public async populateDatabaseWithPieces(pieces: Piece[]) {
+		const db: Db = this.getDatabase()
+		const entityConverter = new MongoEntityConverter()
+		for (const piece of entityConverter.convertToMongoPieces(pieces)) {
+			await db.collection('pieces').insertOne(piece)
+		}
 	}
 }

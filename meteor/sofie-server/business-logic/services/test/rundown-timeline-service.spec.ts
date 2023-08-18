@@ -13,7 +13,7 @@ import { RundownEventType } from '../../../model/enums/rundown-event-type'
 describe(`${RundownTimelineService.name}`, () => {
 	describe(`${RundownTimelineService.prototype.deleteRundown.name}`, () => {
 		// eslint-disable-next-line jest/expect-expect
-		it('receives a RundownId deletes a rundown', async () => {
+		it('deletes a rundown, when it receives a valid RundownId', async () => {
 			const mockRundownRepository: RundownRepository = mock<RundownRepository>()
 
 			const randomRundownId: string = 'randomRundownId'
@@ -29,7 +29,7 @@ describe(`${RundownTimelineService.name}`, () => {
 		})
 
 		// eslint-disable-next-line jest/expect-expect
-		it('receives a RundownId builds a rundown deleted event', async () => {
+		it('builds a rundown deleted event, when it receives a valid RundownId', async () => {
 			const mockRundownRepository: RundownRepository = mock<RundownRepository>()
 			const mockRundownEventBuilder: RundownEventBuilder = mock<RundownEventBuilder>()
 
@@ -55,10 +55,9 @@ describe(`${RundownTimelineService.name}`, () => {
 		})
 
 		// eslint-disable-next-line jest/expect-expect
-		it('receives a RundownId emits a rundown deleted event', async () => {
+		it('emits a rundown deleted event, when it receives a valid RundownId', async () => {
 			const mockRundownRepository: RundownRepository = mock<RundownRepository>()
 			const mockRundownEventEmitter: RundownEventEmitter = mock<RundownEventEmitter>()
-			const mockRundownEventBuilder: RundownEventBuilder = mock<RundownEventBuilder>()
 
 			const randomRundownId: string = 'randomRundownId'
 			const randomRundown: Rundown = createInactiveRundown(randomRundownId)
@@ -68,15 +67,15 @@ describe(`${RundownTimelineService.name}`, () => {
 			const testee: RundownTimelineService = createTestee({
 				rundownRepository: instance(mockRundownRepository),
 				rundownEventEmitter: instance(mockRundownEventEmitter),
-				rundownEventBuilder: instance(mockRundownEventBuilder),
 			})
 
 			await testee.deleteRundown(randomRundownId)
 
-			verify(mockRundownRepository.deleteRundown(randomRundownId)).once()
+			//Todo: Improve verify to ensure it is of correct event type.
+			verify(mockRundownEventEmitter.emitRundownEvent(anything())).once()
 		})
 
-		it('receives a RundownId of an active rundown throwing an exception', async () => {
+		it('throws an exception, when it receives a RundownId of an active rundown', async () => {
 			const mockRundownRepository: RundownRepository = mock<RundownRepository>()
 
 			const randomRundownId: string = 'randomRundownId'
