@@ -153,7 +153,7 @@ export class MongoEntityConverter {
 			},
 			autoNext: mongoPart.autoNext,
 			autoNextOverlap: mongoPart.autoNextOverlap,
-			disableNextInTransition: mongoPart.disableNextInTransition
+			disableNextInTransition: mongoPart.disableNextInTransition,
 		})
 	}
 
@@ -202,10 +202,13 @@ export class MongoEntityConverter {
 
 	private mapMongoPieceTypeToTransitionType(type: string): TransitionType {
 		switch (type) {
-			case 'in-transition': return TransitionType.IN_TRANSITION
-			case 'out-transition': return TransitionType.OUT_TRANSITION
+			case 'in-transition':
+				return TransitionType.IN_TRANSITION
+			case 'out-transition':
+				return TransitionType.OUT_TRANSITION
 			case 'normal':
-			default: return TransitionType.NO_TRANSITION
+			default:
+				return TransitionType.NO_TRANSITION
 		}
 	}
 

@@ -1,6 +1,6 @@
 import { AutoNextTimerService } from './interfaces/auto-next-timer-service'
 
-export class TimeoutAutoNextTimerService implements AutoNextTimerService{
+export class TimeoutAutoNextTimerService implements AutoNextTimerService {
 	private static instance: AutoNextTimerService
 
 	public static getInstance(): AutoNextTimerService {
@@ -12,7 +12,9 @@ export class TimeoutAutoNextTimerService implements AutoNextTimerService{
 
 	private autoNextTimeoutIdentifier?: any
 
-	private constructor() {	}
+	// Disabling no-empty-function because we need to mark the constructor as private since it's a singleton.
+	// eslint-disable-next-line @typescript-eslint/no-empty-function
+	private constructor() {}
 
 	public start(pointInTimeToStop: number, callback: () => void): void {
 		const now: number = Date.now()
@@ -28,7 +30,7 @@ export class TimeoutAutoNextTimerService implements AutoNextTimerService{
 	}
 
 	public stop(): void {
-		if (!!this.autoNextTimeoutIdentifier) {
+		if (this.autoNextTimeoutIdentifier) {
 			clearTimeout(this.autoNextTimeoutIdentifier)
 			this.autoNextTimeoutIdentifier = undefined
 		}

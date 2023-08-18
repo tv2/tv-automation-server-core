@@ -3,5 +3,5 @@ import { TimelineEnable } from './timeline-enable'
 
 export type TimelineObject = SuperFlyTimelineObject & {
 	enable: TimelineEnable
-    inGroup?: string
+	inGroup?: string
 }

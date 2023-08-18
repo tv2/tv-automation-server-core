@@ -194,7 +194,9 @@ export class Rundown {
 
 	private updateInfinitePieces(): void {
 		let layersWithPieces: Map<string, Piece> = new Map(
-			this.getActivePart().getPieces().map((piece) => [piece.layer, piece])
+			this.getActivePart()
+				.getPieces()
+				.map((piece) => [piece.layer, piece])
 		)
 
 		const piecesToCheckIfTheyHaveBeenOutlived: Piece[] = this.findOldInfinitePiecesNotOnLayers(
@@ -246,10 +248,10 @@ export class Rundown {
 	}
 
 	private resetOutlivedInfinitePieces(piecesThatHasNotBeenOutlived: Piece[]): void {
-		const pieceIdsThatHasNotBeenOutlived: string[] = piecesThatHasNotBeenOutlived.map(piece => piece.id)
+		const pieceIdsThatHasNotBeenOutlived: string[] = piecesThatHasNotBeenOutlived.map((piece) => piece.id)
 		Array.from(this.infinitePieces.values())
-			.filter(piece => !pieceIdsThatHasNotBeenOutlived.includes(piece.id))
-			.forEach(piece => piece.resetExecutedAt())
+			.filter((piece) => !pieceIdsThatHasNotBeenOutlived.includes(piece.id))
+			.forEach((piece) => piece.resetExecutedAt())
 	}
 
 	private addPiecesToLayers(pieces: Piece[], layersWithPieces: Map<string, Piece>): Map<string, Piece> {

@@ -61,7 +61,10 @@ export class Part {
 		this.expectedDuration = part.expectedDuration
 
 		// TODO: ts-mockito.spy turns complex data types into functions which makes it necessary to do this check so it doesn't turn it into functions. This is not acceptable...
-		this.inTransition = typeof part.inTransition === 'object' ? part.inTransition : { keepPreviousPartAliveDuration: 0, delayPiecesDuration: 0 }
+		this.inTransition =
+			typeof part.inTransition === 'object'
+				? part.inTransition
+				: { keepPreviousPartAliveDuration: 0, delayPiecesDuration: 0 }
 		this.outTransition = typeof part.outTransition === 'object' ? part.outTransition : { keepAliveDuration: 0 }
 
 		this.disableNextInTransition = part.disableNextInTransition
@@ -76,7 +79,7 @@ export class Part {
 
 		const now: number = Date.now()
 		this.executedAt = now
-		this.pieces.forEach(piece => piece.setExecutedAt(now))
+		this.pieces.forEach((piece) => piece.setExecutedAt(now))
 	}
 
 	public takeOffAir(): void {
@@ -121,60 +124,71 @@ export class Part {
 
 	// TODO: This implementation currently reflects how Core implemented it. It's in dire need of a refactor.
 	public calculateTimings(previousPart?: Part): void {
-        const maxPreRollDurationFromPieces: number = this.pieces
-            // Note: Core filters for !BlueprintPieceType.Normal and piece.enable.start !== 'now' - Will does Pieces ever have a PreRollDuration?
-            .reduce((preRollDuration: number, piece: Piece) => Math.max(preRollDuration, piece.preRollDuration ?? 0), 0)
+		const maxPreRollDurationFromPieces: number = this.pieces
+			// Note: Core filters for !BlueprintPieceType.Normal and piece.enable.start !== 'now' - Will does Pieces ever have a PreRollDuration?
+			.reduce((preRollDuration: number, piece: Piece) => Math.max(preRollDuration, piece.preRollDuration ?? 0), 0)
 
-        const maxPostRollDurationForPieces: number = this.pieces
-            .filter(piece => !!piece.postRollDuration && !piece.duration)
-            .reduce((postRollDuration: number, piece: Piece) => Math.max(postRollDuration, piece.postRollDuration), 0)
+		const maxPostRollDurationForPieces: number = this.pieces
+			.filter((piece) => !!piece.postRollDuration && !piece.duration)
+			.reduce((postRollDuration: number, piece: Piece) => Math.max(postRollDuration, piece.postRollDuration), 0)
 
+		let inTransition: InTransition | undefined
+		let allowTransition: boolean = false
 
-        let inTransition: InTransition | undefined
-        let allowTransition: boolean = false
-
-        if (previousPart /* && notInHold */) {
-            if (previousPart.autoNext && previousPart.autoNextOverlap) {
+		if (previousPart /* && notInHold */) {
+			if (previousPart.autoNext && previousPart.autoNextOverlap) {
 				// Having "autoNext" & "autoNextOverLap" overrides the InTransition of the next Part.
-                allowTransition = false
-                inTransition = {
-                    keepPreviousPartAliveDuration: previousPart.autoNextOverlap ?? 0,
-                    delayPiecesDuration: 0
-                }
-            } else if (!previousPart.disableNextInTransition) {
-                allowTransition = true
-                inTransition = {
-                    keepPreviousPartAliveDuration: this.inTransition.keepPreviousPartAliveDuration ?? 0,
-                    delayPiecesDuration: this.inTransition.delayPiecesDuration ?? 0
-                }
-            }
-        }
+				allowTransition = false
+				inTransition = {
+					keepPreviousPartAliveDuration: previousPart.autoNextOverlap ?? 0,
+					delayPiecesDuration: 0,
+				}
+			} else if (!previousPart.disableNextInTransition) {
+				allowTransition = true
+				inTransition = {
+					keepPreviousPartAliveDuration: this.inTransition.keepPreviousPartAliveDuration ?? 0,
+					delayPiecesDuration: this.inTransition.delayPiecesDuration ?? 0,
+				}
+			}
+		}
 
-        if (!inTransition || !previousPart) {
-            const delayStartOfPiecesDuration: number = Math.max(0, previousPart?.outTransition.keepAliveDuration ?? 0, maxPreRollDurationFromPieces)
+		if (!inTransition || !previousPart) {
+			const delayStartOfPiecesDuration: number = Math.max(
+				0,
+				previousPart?.outTransition.keepAliveDuration ?? 0,
+				maxPreRollDurationFromPieces
+			)
 
-            this.timings = {
-                inTransitionStart: null,
-                delayStartOfPiecesDuration,
-                postRollDuration: maxPostRollDurationForPieces,
-                previousPartContinueIntoPartDuration: delayStartOfPiecesDuration + (previousPart?.getTimings().postRollDuration ?? 0),
-            }
+			this.timings = {
+				inTransitionStart: null,
+				delayStartOfPiecesDuration,
+				postRollDuration: maxPostRollDurationForPieces,
+				previousPartContinueIntoPartDuration:
+					delayStartOfPiecesDuration + (previousPart?.getTimings().postRollDuration ?? 0),
+			}
 			return
-        }
+		}
 
-        const previousPartOutTransitionDuration: number = previousPart.outTransition.keepAliveDuration
-            ? previousPart.outTransition.keepAliveDuration - inTransition.keepPreviousPartAliveDuration
-            : 0
+		const previousPartOutTransitionDuration: number = previousPart.outTransition.keepAliveDuration
+			? previousPart.outTransition.keepAliveDuration - inTransition.keepPreviousPartAliveDuration
+			: 0
 
-        const preRollDurationConsideringDelay: number = maxPreRollDurationFromPieces - inTransition.delayPiecesDuration
-        const delayStartOfPiecesDuration: number = Math.max(0, previousPartOutTransitionDuration, preRollDurationConsideringDelay)
+		const preRollDurationConsideringDelay: number = maxPreRollDurationFromPieces - inTransition.delayPiecesDuration
+		const delayStartOfPiecesDuration: number = Math.max(
+			0,
+			previousPartOutTransitionDuration,
+			preRollDurationConsideringDelay
+		)
 
-        this.timings = {
-            inTransitionStart: allowTransition ? delayStartOfPiecesDuration : null,
-            delayStartOfPiecesDuration: delayStartOfPiecesDuration + inTransition.delayPiecesDuration,
-            postRollDuration: maxPostRollDurationForPieces,
-            previousPartContinueIntoPartDuration: delayStartOfPiecesDuration + inTransition.keepPreviousPartAliveDuration + previousPart.getTimings().postRollDuration,
-        }
+		this.timings = {
+			inTransitionStart: allowTransition ? delayStartOfPiecesDuration : null,
+			delayStartOfPiecesDuration: delayStartOfPiecesDuration + inTransition.delayPiecesDuration,
+			postRollDuration: maxPostRollDurationForPieces,
+			previousPartContinueIntoPartDuration:
+				delayStartOfPiecesDuration +
+				inTransition.keepPreviousPartAliveDuration +
+				previousPart.getTimings().postRollDuration,
+		}
 	}
 
 	public getTimings(): PartTimings {

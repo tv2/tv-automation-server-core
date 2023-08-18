@@ -10,8 +10,14 @@ describe('Rundown', () => {
 		describe('it has a next Part', () => {
 			it('sets the next Part as the active Part', () => {
 				const segment: Segment = EntityDefaultFactory.createSegment({} as SegmentInterface)
-				const partOne: Part = EntityDefaultFactory.createPart({ rank: 1, segmentId: segment.id } as PartInterface)
-				const partTwo: Part = EntityDefaultFactory.createPart({ rank: 2, segmentId: segment.id } as PartInterface)
+				const partOne: Part = EntityDefaultFactory.createPart({
+					rank: 1,
+					segmentId: segment.id,
+				} as PartInterface)
+				const partTwo: Part = EntityDefaultFactory.createPart({
+					rank: 2,
+					segmentId: segment.id,
+				} as PartInterface)
 				segment.setParts([partOne, partTwo])
 
 				const testee: Rundown = EntityDefaultFactory.createActiveRundown([segment])
@@ -33,7 +39,10 @@ describe('Rundown', () => {
 		describe('active Part has no infinite Pieces', () => {
 			it('does not add any infinite Pieces', () => {
 				const segment: Segment = EntityDefaultFactory.createSegment({} as SegmentInterface)
-				const partWithoutPieces: Part = EntityDefaultFactory.createPart({ rank: 1, segmentId: segment.id } as PartInterface)
+				const partWithoutPieces: Part = EntityDefaultFactory.createPart({
+					rank: 1,
+					segmentId: segment.id,
+				} as PartInterface)
 				segment.setParts([partWithoutPieces])
 
 				const testee: Rundown = EntityDefaultFactory.createActiveRundown([segment])
@@ -92,8 +101,16 @@ describe('Rundown', () => {
 						layer: 'someOtherLayer',
 						pieceLifespan: PieceLifespan.SPANNING_UNTIL_RUNDOWN_END,
 					} as PieceInterface)
-					const partOne: Part = EntityDefaultFactory.createPart({ rank: 1, segmentId: segment.id, pieces: [pieceOne] } as PartInterface)
-					const partTwo: Part = EntityDefaultFactory.createPart({ rank: 2, segmentId: segment.id, pieces: [pieceTwo] } as PartInterface)
+					const partOne: Part = EntityDefaultFactory.createPart({
+						rank: 1,
+						segmentId: segment.id,
+						pieces: [pieceOne],
+					} as PartInterface)
+					const partTwo: Part = EntityDefaultFactory.createPart({
+						rank: 2,
+						segmentId: segment.id,
+						pieces: [pieceTwo],
+					} as PartInterface)
 					segment.setParts([partOne, partTwo])
 
 					const testee: Rundown = EntityDefaultFactory.createActiveRundown([segment])
@@ -118,14 +135,22 @@ describe('Rundown', () => {
 						layer,
 						pieceLifespan: PieceLifespan.SPANNING_UNTIL_RUNDOWN_END,
 					} as PieceInterface)
-					const partOne: Part = EntityDefaultFactory.createPart({ rank: 1, segmentId: segment.id, pieces: [pieceOne] } as PartInterface)
+					const partOne: Part = EntityDefaultFactory.createPart({
+						rank: 1,
+						segmentId: segment.id,
+						pieces: [pieceOne],
+					} as PartInterface)
 
 					const pieceTwo: Piece = EntityDefaultFactory.createPiece({
 						id: 'p2',
 						layer,
 						pieceLifespan: PieceLifespan.SPANNING_UNTIL_RUNDOWN_END,
 					} as PieceInterface)
-					const partTwo: Part = EntityDefaultFactory.createPart({ rank: 2, segmentId: segment.id, pieces: [pieceTwo] } as PartInterface)
+					const partTwo: Part = EntityDefaultFactory.createPart({
+						rank: 2,
+						segmentId: segment.id,
+						pieces: [pieceTwo],
+					} as PartInterface)
 
 					segment.setParts([partOne, partTwo])
 
@@ -147,14 +172,22 @@ describe('Rundown', () => {
 						layer,
 						pieceLifespan: PieceLifespan.SPANNING_UNTIL_RUNDOWN_END,
 					} as PieceInterface)
-					const partOne: Part = EntityDefaultFactory.createPart({ rank: 1, segmentId: segment.id, pieces: [pieceOne] } as PartInterface)
+					const partOne: Part = EntityDefaultFactory.createPart({
+						rank: 1,
+						segmentId: segment.id,
+						pieces: [pieceOne],
+					} as PartInterface)
 
 					const pieceTwo: Piece = EntityDefaultFactory.createPiece({
 						id: 'p2',
 						layer,
 						pieceLifespan: PieceLifespan.SPANNING_UNTIL_RUNDOWN_END,
 					} as PieceInterface)
-					const partTwo: Part = EntityDefaultFactory.createPart({ rank: 2, segmentId: segment.id, pieces: [pieceTwo] } as PartInterface)
+					const partTwo: Part = EntityDefaultFactory.createPart({
+						rank: 2,
+						segmentId: segment.id,
+						pieces: [pieceTwo],
+					} as PartInterface)
 
 					segment.setParts([partOne, partTwo])
 
@@ -177,14 +210,22 @@ describe('Rundown', () => {
 						layer,
 						pieceLifespan: PieceLifespan.SPANNING_UNTIL_RUNDOWN_END,
 					} as PieceInterface)
-					const partOne: Part = EntityDefaultFactory.createPart({ rank: 1, segmentId: segment.id, pieces: [pieceOne] } as PartInterface)
+					const partOne: Part = EntityDefaultFactory.createPart({
+						rank: 1,
+						segmentId: segment.id,
+						pieces: [pieceOne],
+					} as PartInterface)
 
 					const pieceTwo: Piece = EntityDefaultFactory.createPiece({
 						id: 'p2',
 						layer,
 						pieceLifespan: PieceLifespan.SPANNING_UNTIL_RUNDOWN_END,
 					} as PieceInterface)
-					const partTwo: Part = EntityDefaultFactory.createPart({ rank: 2, segmentId: segment.id, pieces: [pieceTwo] } as PartInterface)
+					const partTwo: Part = EntityDefaultFactory.createPart({
+						rank: 2,
+						segmentId: segment.id,
+						pieces: [pieceTwo],
+					} as PartInterface)
 
 					segment.setParts([partOne, partTwo])
 
@@ -206,7 +247,11 @@ describe('Rundown', () => {
 						layer: 'someLayer',
 						pieceLifespan: PieceLifespan.SPANNING_UNTIL_RUNDOWN_END,
 					} as PieceInterface)
-					const partOne: Part = EntityDefaultFactory.createPart({ rank: 1, segmentId: segmentOne.id, pieces: [pieceOne] } as PartInterface)
+					const partOne: Part = EntityDefaultFactory.createPart({
+						rank: 1,
+						segmentId: segmentOne.id,
+						pieces: [pieceOne],
+					} as PartInterface)
 					segmentOne.setParts([partOne])
 
 					const segmentTwo: Segment = EntityDefaultFactory.createSegment({ rank: 2 } as SegmentInterface)
@@ -215,7 +260,11 @@ describe('Rundown', () => {
 						layer: 'someOtherLayer',
 						pieceLifespan: PieceLifespan.SPANNING_UNTIL_RUNDOWN_END,
 					} as PieceInterface)
-					const partTwo: Part = EntityDefaultFactory.createPart({ rank: 2, segmentId: segmentTwo.id, pieces: [pieceTwo] } as PartInterface)
+					const partTwo: Part = EntityDefaultFactory.createPart({
+						rank: 2,
+						segmentId: segmentTwo.id,
+						pieces: [pieceTwo],
+					} as PartInterface)
 					segmentTwo.setParts([partTwo])
 
 					const testee: Rundown = EntityDefaultFactory.createActiveRundown([segmentOne, segmentTwo])
@@ -239,7 +288,11 @@ describe('Rundown', () => {
 						layer,
 						pieceLifespan: PieceLifespan.SPANNING_UNTIL_RUNDOWN_END,
 					} as PieceInterface)
-					const partOne: Part = EntityDefaultFactory.createPart({ rank: 1, segmentId: segmentOne.id, pieces: [pieceOne] } as PartInterface)
+					const partOne: Part = EntityDefaultFactory.createPart({
+						rank: 1,
+						segmentId: segmentOne.id,
+						pieces: [pieceOne],
+					} as PartInterface)
 					segmentOne.setParts([partOne])
 
 					const segmentTwo: Segment = EntityDefaultFactory.createSegment({ rank: 2 } as SegmentInterface)
@@ -248,7 +301,11 @@ describe('Rundown', () => {
 						layer,
 						pieceLifespan: PieceLifespan.SPANNING_UNTIL_RUNDOWN_END,
 					} as PieceInterface)
-					const partTwo: Part = EntityDefaultFactory.createPart({ rank: 2, segmentId: segmentTwo.id, pieces: [pieceTwo] } as PartInterface)
+					const partTwo: Part = EntityDefaultFactory.createPart({
+						rank: 2,
+						segmentId: segmentTwo.id,
+						pieces: [pieceTwo],
+					} as PartInterface)
 					segmentTwo.setParts([partTwo])
 
 					const testee: Rundown = EntityDefaultFactory.createActiveRundown([segmentOne, segmentTwo])
@@ -293,10 +350,17 @@ describe('Rundown', () => {
 					middleSegment.setParts([middlePart])
 
 					const lastSegment: Segment = EntityDefaultFactory.createSegment({ rank: 3 } as SegmentInterface)
-					const lastPart: Part = EntityDefaultFactory.createPart({ rank: 3, segmentId: lastSegment.id } as PartInterface)
+					const lastPart: Part = EntityDefaultFactory.createPart({
+						rank: 3,
+						segmentId: lastSegment.id,
+					} as PartInterface)
 					lastSegment.setParts([lastPart])
 
-					const testee: Rundown = EntityDefaultFactory.createActiveRundown([firstSegment, middleSegment, lastSegment])
+					const testee: Rundown = EntityDefaultFactory.createActiveRundown([
+						firstSegment,
+						middleSegment,
+						lastSegment,
+					])
 
 					testee.setNext(lastSegment.id, lastPart.id)
 					testee.takeNext()
@@ -312,7 +376,10 @@ describe('Rundown', () => {
 					const firstSegment: Segment = EntityDefaultFactory.createSegment({ rank: 1 } as SegmentInterface)
 					const layer: string = 'someLayer'
 
-					const firstPart: Part = EntityDefaultFactory.createPart({ rank: 1, segmentId: firstSegment.id } as PartInterface)
+					const firstPart: Part = EntityDefaultFactory.createPart({
+						rank: 1,
+						segmentId: firstSegment.id,
+					} as PartInterface)
 					firstSegment.setParts([firstPart])
 
 					const middleSegment: Segment = EntityDefaultFactory.createSegment({ rank: 2 } as SegmentInterface)
@@ -341,7 +408,11 @@ describe('Rundown', () => {
 					} as PartInterface)
 					lastSegment.setParts([lastPart])
 
-					const testee: Rundown = EntityDefaultFactory.createActiveRundown([firstSegment, middleSegment, lastSegment])
+					const testee: Rundown = EntityDefaultFactory.createActiveRundown([
+						firstSegment,
+						middleSegment,
+						lastSegment,
+					])
 
 					testee.setNext(lastSegment.id, lastPart.id)
 					testee.takeNext()
@@ -469,10 +540,17 @@ describe('Rundown', () => {
 					middleSegment.setParts([middlePart])
 
 					const lastSegment: Segment = EntityDefaultFactory.createSegment({ rank: 3 } as SegmentInterface)
-					const lastPart: Part = EntityDefaultFactory.createPart({ rank: 3, segmentId: lastSegment.id } as PartInterface)
+					const lastPart: Part = EntityDefaultFactory.createPart({
+						rank: 3,
+						segmentId: lastSegment.id,
+					} as PartInterface)
 					lastSegment.setParts([lastPart])
 
-					const testee: Rundown = EntityDefaultFactory.createActiveRundown([firstSegment, middleSegment, lastSegment])
+					const testee: Rundown = EntityDefaultFactory.createActiveRundown([
+						firstSegment,
+						middleSegment,
+						lastSegment,
+					])
 
 					testee.setNext(lastSegment.id, lastPart.id)
 					testee.takeNext()
@@ -490,7 +568,9 @@ describe('Rundown', () => {
 					it('selects the previous "spanning" Piece', () => {
 						const layer: string = 'someLayer'
 
-						const firstSegment: Segment = EntityDefaultFactory.createSegment({ rank: 1 } as SegmentInterface)
+						const firstSegment: Segment = EntityDefaultFactory.createSegment({
+							rank: 1,
+						} as SegmentInterface)
 						const firstPiece: Piece = EntityDefaultFactory.createPiece({
 							id: 'p1',
 							layer,
@@ -503,8 +583,13 @@ describe('Rundown', () => {
 						} as PartInterface)
 						firstSegment.setParts([firstPart])
 
-						const middleSegment: Segment = EntityDefaultFactory.createSegment({ rank: 2 } as SegmentInterface)
-						const middlePart: Part = EntityDefaultFactory.createPart({ rank: 2, segmentId: middleSegment.id } as PartInterface)
+						const middleSegment: Segment = EntityDefaultFactory.createSegment({
+							rank: 2,
+						} as SegmentInterface)
+						const middlePart: Part = EntityDefaultFactory.createPart({
+							rank: 2,
+							segmentId: middleSegment.id,
+						} as PartInterface)
 						middleSegment.setParts([middlePart])
 
 						const lastSegment: Segment = EntityDefaultFactory.createSegment({ rank: 3 } as SegmentInterface)
@@ -520,7 +605,11 @@ describe('Rundown', () => {
 						} as PartInterface)
 						lastSegment.setParts([lastPart])
 
-						const testee: Rundown = EntityDefaultFactory.createActiveRundown([firstSegment, middleSegment, lastSegment])
+						const testee: Rundown = EntityDefaultFactory.createActiveRundown([
+							firstSegment,
+							middleSegment,
+							lastSegment,
+						])
 
 						testee.setNext(lastSegment.id, lastPart.id)
 						testee.takeNext()
@@ -542,11 +631,18 @@ describe('Rundown', () => {
 					it('has no longer any infinite Pieces', () => {
 						const layer: string = 'someLayer'
 
-						const firstSegment: Segment = EntityDefaultFactory.createSegment({ rank: 1 } as SegmentInterface)
-						const firstPart: Part = EntityDefaultFactory.createPart({ rank: 1, segmentId: firstSegment.id } as PartInterface)
+						const firstSegment: Segment = EntityDefaultFactory.createSegment({
+							rank: 1,
+						} as SegmentInterface)
+						const firstPart: Part = EntityDefaultFactory.createPart({
+							rank: 1,
+							segmentId: firstSegment.id,
+						} as PartInterface)
 						firstSegment.setParts([firstPart])
 
-						const middleSegment: Segment = EntityDefaultFactory.createSegment({ rank: 2 } as SegmentInterface)
+						const middleSegment: Segment = EntityDefaultFactory.createSegment({
+							rank: 2,
+						} as SegmentInterface)
 						const middlePiece: Piece = EntityDefaultFactory.createPiece({
 							id: 'p1',
 							layer,
@@ -572,7 +668,11 @@ describe('Rundown', () => {
 						} as PartInterface)
 						lastSegment.setParts([lastPart])
 
-						const testee: Rundown = EntityDefaultFactory.createActiveRundown([firstSegment, middleSegment, lastSegment])
+						const testee: Rundown = EntityDefaultFactory.createActiveRundown([
+							firstSegment,
+							middleSegment,
+							lastSegment,
+						])
 
 						testee.setNext(lastSegment.id, lastPart.id)
 						testee.takeNext()
@@ -602,7 +702,11 @@ describe('Rundown', () => {
 						layer,
 						pieceLifespan: PieceLifespan.SPANNING_UNTIL_RUNDOWN_END,
 					} as PieceInterface)
-					const partOne: Part = EntityDefaultFactory.createPart({ rank: 1, segmentId: segmentOne.id, pieces: [pieceOne] } as PartInterface)
+					const partOne: Part = EntityDefaultFactory.createPart({
+						rank: 1,
+						segmentId: segmentOne.id,
+						pieces: [pieceOne],
+					} as PartInterface)
 					segmentOne.setParts([partOne])
 
 					const segmentTwo: Segment = EntityDefaultFactory.createSegment({ rank: 2 } as SegmentInterface)
@@ -701,7 +805,10 @@ describe('Rundown', () => {
 						pieces: [middlePiece],
 					} as PartInterface)
 
-					const lastPart: Part = EntityDefaultFactory.createPart({ rank: 3, segmentId: segment.id } as PartInterface)
+					const lastPart: Part = EntityDefaultFactory.createPart({
+						rank: 3,
+						segmentId: segment.id,
+					} as PartInterface)
 
 					segment.setParts([firstPart, middlePart, lastPart])
 
@@ -721,7 +828,10 @@ describe('Rundown', () => {
 					const layer: string = 'someLayer'
 					const segment: Segment = EntityDefaultFactory.createSegment({} as SegmentInterface)
 
-					const firstPart: Part = EntityDefaultFactory.createPart({ rank: 1, segmentId: segment.id } as PartInterface)
+					const firstPart: Part = EntityDefaultFactory.createPart({
+						rank: 1,
+						segmentId: segment.id,
+					} as PartInterface)
 
 					const middlePartId: string = 'middlePart'
 					const middlePiece: Piece = EntityDefaultFactory.createPiece({
@@ -823,7 +933,11 @@ describe('Rundown', () => {
 						partId,
 						pieceLifespan: PieceLifespan.STICKY_UNTIL_SEGMENT_CHANGE,
 					} as PieceInterface)
-					const partOne: Part = EntityDefaultFactory.createPart({ id: partId, segmentId: segmentOne.id, pieces: [piece] } as PartInterface)
+					const partOne: Part = EntityDefaultFactory.createPart({
+						id: partId,
+						segmentId: segmentOne.id,
+						pieces: [piece],
+					} as PartInterface)
 					segmentOne.setParts([partOne])
 
 					const segmentTwo: Segment = EntityDefaultFactory.createSegment({ rank: 2 } as SegmentInterface)
@@ -874,7 +988,10 @@ describe('Rundown', () => {
 						pieces: [middlePiece],
 					} as PartInterface)
 
-					const lastPart: Part = EntityDefaultFactory.createPart({ rank: 3, segmentId: segment.id } as PartInterface)
+					const lastPart: Part = EntityDefaultFactory.createPart({
+						rank: 3,
+						segmentId: segment.id,
+					} as PartInterface)
 
 					segment.setParts([firstPart, middlePart, lastPart])
 
@@ -908,7 +1025,10 @@ describe('Rundown', () => {
 							pieces: [firstPiece],
 						} as PartInterface)
 
-						const middlePart: Part = EntityDefaultFactory.createPart({ rank: 2, segmentId: segment.id } as PartInterface)
+						const middlePart: Part = EntityDefaultFactory.createPart({
+							rank: 2,
+							segmentId: segment.id,
+						} as PartInterface)
 
 						const lastPartId: string = 'lastPart'
 						const lastPiece: Piece = EntityDefaultFactory.createPiece({
@@ -948,9 +1068,15 @@ describe('Rundown', () => {
 						const layer: string = 'someLayer'
 						const segment: Segment = EntityDefaultFactory.createSegment({} as SegmentInterface)
 
-						const firstPart: Part = EntityDefaultFactory.createPart({ rank: 1, segmentId: segment.id } as PartInterface)
+						const firstPart: Part = EntityDefaultFactory.createPart({
+							rank: 1,
+							segmentId: segment.id,
+						} as PartInterface)
 
-						const middlePart: Part = EntityDefaultFactory.createPart({ rank: 2, segmentId: segment.id } as PartInterface)
+						const middlePart: Part = EntityDefaultFactory.createPart({
+							rank: 2,
+							segmentId: segment.id,
+						} as PartInterface)
 
 						const lastPartId: string = 'lastPart'
 						const lastPiece: Piece = EntityDefaultFactory.createPiece({
@@ -992,7 +1118,10 @@ describe('Rundown', () => {
 						id: 'p1',
 						pieceLifespan: PieceLifespan.SPANNING_UNTIL_SEGMENT_END,
 					} as PieceInterface)
-					const partOne: Part = EntityDefaultFactory.createPart({ segmentId: segmentOne.id, pieces: [piece] } as PartInterface)
+					const partOne: Part = EntityDefaultFactory.createPart({
+						segmentId: segmentOne.id,
+						pieces: [piece],
+					} as PartInterface)
 					segmentOne.setParts([partOne])
 
 					const segmentTwo: Segment = EntityDefaultFactory.createSegment({ rank: 2 } as SegmentInterface)

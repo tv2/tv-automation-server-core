@@ -6,7 +6,7 @@ import { PieceLifespan } from '../../enums/piece-lifespan'
 import { Rundown } from '../rundown'
 
 export class EntityDefaultFactory {
-	public static  createActiveRundown(segments: Segment[]): Rundown {
+	public static createActiveRundown(segments: Segment[]): Rundown {
 		const rundown: Rundown = new Rundown({
 			id: 'someId',
 			name: 'someName',
@@ -43,7 +43,7 @@ export class EntityDefaultFactory {
 			outTransition: partInterface.outTransition,
 			autoNext: partInterface.autoNext,
 			autoNextOverlap: partInterface.autoNextOverlap,
-			disableNextInTransition: partInterface.disableNextInTransition
+			disableNextInTransition: partInterface.disableNextInTransition,
 		}
 		return new Part(partInterfaceWithDefaultValues)
 	}
@@ -61,7 +61,7 @@ export class EntityDefaultFactory {
 			timelineObjects: pieceInterface.timelineObjects ?? [],
 			preRollDuration: pieceInterface.preRollDuration,
 			postRollDuration: pieceInterface.postRollDuration,
-			transitionType: pieceInterface.transitionType
+			transitionType: pieceInterface.transitionType,
 		})
 	}
 }

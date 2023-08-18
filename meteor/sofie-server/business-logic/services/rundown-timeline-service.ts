@@ -17,7 +17,6 @@ import { RundownEventBuilder } from './interfaces/rundown-event-builder'
 import { AutoNextTimerService } from './interfaces/auto-next-timer-service'
 
 export class RundownTimelineService implements RundownService {
-
 	constructor(
 		private rundownEventEmitter: RundownEventEmitter,
 		private rundownRepository: RundownRepository,
@@ -72,8 +71,10 @@ export class RundownTimelineService implements RundownService {
 
 		const timeline: Timeline = this.timelineBuilder.buildTimeline(rundown)
 
-		if (!!timeline.autoNext) {
-			this.autoNextTimerService.start(timeline.autoNext.pointInTimeToTakeNext, () => this.takeNext(rundownId))
+		if (timeline.autoNext) {
+			this.autoNextTimerService.start(timeline.autoNext.pointInTimeToTakeNext, async () =>
+				this.takeNext(rundownId)
+			)
 		}
 
 		this.timelineRepository.saveTimeline(timeline)

@@ -8,10 +8,11 @@ export interface Timeline {
 }
 
 export interface TimelineObjectGroup extends TimelineObject {
-	isGroup: true,
-	children: TimelineObject[],
-	content: { // TODO: Are these needed?
-		type: TimelineObjectType.GROUP,
+	isGroup: true
+	children: TimelineObject[]
+	content: {
+		// TODO: Are these needed?
+		type: TimelineObjectType.GROUP
 		deviceType: DeviceType.ABSTRACT
 	}
 }
@@ -23,7 +24,7 @@ export interface ActivePartTimelineObjectGroup extends TimelineObjectGroup {
 // TODO: Do we need separate interface for this?
 export interface TimelineObjectControl extends TimelineObject {
 	content: {
-		type: TimelineObjectType.CONTROL,
+		type: TimelineObjectType.CONTROL
 		deviceType: DeviceType.ABSTRACT
 	}
 }
@@ -54,5 +55,5 @@ export enum DeviceType {
 	VMIX = 20,
 	OBS = 21,
 	TELEMETRICS = 22,
-	TRICASTER = 24
+	TRICASTER = 24,
 }
