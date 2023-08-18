@@ -1,8 +1,8 @@
 import { Rundown } from '../../../model/entities/rundown'
-import { Identifier } from '../../../model/value-objects/identifier'
+import { BasicRundown } from '../../../model/entities/basic-rundown'
 
 export interface RundownRepository {
-	getRundownIdentifiers(): Promise<Identifier[]>
+	getBasicRundowns(): Promise<BasicRundown[]>
 	getRundown(rundownId: string): Promise<Rundown>
 	saveRundown(rundown: Rundown): void
 }

@@ -8,10 +8,18 @@ import { Identifier } from '../../../model/value-objects/identifier'
 import { AdLibPiece } from '../../../model/entities/ad-lib-piece'
 import { PieceLifespan } from '../../../model/enums/piece-lifespan'
 import { TransitionType } from '../../../model/enums/transition-type'
+import { BasicRundown } from '../../../model/entities/basic-rundown'
 
 export interface MongoIdentifier {
 	_id: string
 	name: string
+}
+
+export interface MongoRundownPlaylist {
+	_id: string
+	externalId: string
+	name: string
+	activationId: string
 }
 
 export interface MongoRundown {
@@ -33,6 +41,7 @@ export interface MongoRundown {
 	studioId: string
 	showStyleVariantId: string
 	showStyleBaseId: string
+	modified: number
 }
 
 export interface MongoSegment {
@@ -109,13 +118,22 @@ export class MongoEntityConverter {
 		return new Rundown({
 			id: mongoRundown._id,
 			name: mongoRundown.name,
-			isActive: false,
+			isRundownActive: false,
 			segments: [],
+			modifiedAt: mongoRundown.modified,
 		})
 	}
 
 	public convertRundowns(mongoRundowns: MongoRundown[]): Rundown[] {
 		return mongoRundowns.map(this.convertRundown)
+	}
+
+	public convertBasicRundown(mongoRundown: MongoRundown): BasicRundown {
+		return new BasicRundown(mongoRundown._id, mongoRundown.name, false, mongoRundown.modified)
+	}
+
+	public convertBasicRundowns(mongoRundowns: MongoRundown[]): BasicRundown[] {
+		return mongoRundowns.map(this.convertBasicRundown)
 	}
 
 	public convertSegment(mongoSegment: MongoSegment): Segment {

@@ -21,7 +21,7 @@ export class MongoPartRepository extends BaseMongoRepository implements PartRepo
 	}
 
 	public async getParts(segmentId: string): Promise<Part[]> {
-		this.assertDatabaseConnection('getParts')
+		this.assertDatabaseConnection(this.getParts.name)
 		const mongoParts: MongoPart[] = (await this.getCollection()
 			.find({ segmentId: segmentId })
 			.toArray()) as unknown as MongoPart[]

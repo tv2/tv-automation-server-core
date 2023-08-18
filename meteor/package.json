@@ -159,6 +159,7 @@
 		"meteor-babel": "^7.10.7",
 		"meteor-promise": "0.9.0",
 		"mock-http": "^1.1.0",
+		"mongodb-memory-server": "^8.14.0",
 		"open-cli": "^7.0.1",
 		"sinon": "^14.0.0",
 		"standard-version": "^9.5.0",

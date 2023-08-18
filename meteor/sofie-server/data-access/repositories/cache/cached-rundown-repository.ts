@@ -1,6 +1,6 @@
 import { RundownRepository } from '../interfaces/rundown-repository'
 import { Rundown } from '../../../model/entities/rundown'
-import { Identifier } from '../../../model/value-objects/identifier'
+import { BasicRundown } from '../../../model/entities/basic-rundown'
 
 export class CachedRundownRepository implements RundownRepository {
 	private static instance: RundownRepository
@@ -25,8 +25,8 @@ export class CachedRundownRepository implements RundownRepository {
 		return this.cachedRundowns.get(rundownId) as Rundown
 	}
 
-	public async getRundownIdentifiers(): Promise<Identifier[]> {
-		return this.rundownRepository.getRundownIdentifiers()
+	public async getBasicRundowns(): Promise<BasicRundown[]> {
+		return await this.rundownRepository.getBasicRundowns()
 	}
 
 	// Only save in memory for now

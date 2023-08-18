@@ -10,7 +10,8 @@ export class EntityDefaultFactory {
 		const rundown: Rundown = new Rundown({
 			id: 'someId',
 			name: 'someName',
-			isActive: false,
+			isRundownActive: false,
+			modifiedAt: 0,
 			segments,
 		})
 		rundown.activate()

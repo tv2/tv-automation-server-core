@@ -18,7 +18,7 @@ export class MongoAdLibPieceRepository extends BaseMongoRepository implements Ad
 	}
 
 	public async getAdLibPieceIdentifiers(rundownId: string): Promise<Identifier[]> {
-		this.assertDatabaseConnection('getAdLibIdentifiers')
+		this.assertDatabaseConnection(this.getAdLibPieceIdentifiers.name)
 		const mongoAdLibPieces: MongoAdLibPiece[] = (await this.getCollection()
 			.find({ rundownId: rundownId })
 			.toArray()) as unknown as MongoAdLibPiece[]
@@ -26,7 +26,7 @@ export class MongoAdLibPieceRepository extends BaseMongoRepository implements Ad
 	}
 
 	public async getAdLibPiece(adLibPieceId: string): Promise<AdLibPiece> {
-		this.assertDatabaseConnection('getAdLibPiece')
+		this.assertDatabaseConnection(this.getAdLibPiece.name)
 		const mongoAdLibPiece: MongoAdLibPiece = (await this.getCollection().findOne({
 			_id: adLibPieceId,
 		})) as unknown as MongoAdLibPiece

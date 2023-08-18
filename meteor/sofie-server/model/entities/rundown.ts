@@ -8,6 +8,7 @@ import { NotActivatedException } from '../exceptions/not-activated-exception'
 import { AlreadyActivatedException } from '../exceptions/already-activated-exception'
 import { AdLibPiece } from './ad-lib-piece'
 import { Piece } from './piece'
+import { BasicRundown } from './basic-rundown'
 import { PieceLifespan } from '../enums/piece-lifespan'
 import { UnsupportedOperation } from '../exceptions/unsupported-operation'
 
@@ -15,15 +16,12 @@ export interface RundownInterface {
 	id: string
 	name: string
 	segments: Segment[]
-	isActive: boolean
+	isRundownActive: boolean
+	modifiedAt: number
 }
 
-export class Rundown {
-	readonly id: string
-	readonly name: string
-
+export class Rundown extends BasicRundown {
 	private segments: Segment[]
-	private isRundownActive: boolean = false
 
 	private activeSegment: Segment
 	private activePart: Part
@@ -36,10 +34,8 @@ export class Rundown {
 	private infinitePieces: Map<string, Piece> = new Map()
 
 	constructor(rundown: RundownInterface) {
-		this.id = rundown.id
-		this.name = rundown.name
+		super(rundown.id, rundown.name, rundown.isRundownActive, rundown.modifiedAt)
 		this.segments = rundown.segments ?? []
-		this.isRundownActive = rundown.isActive
 	}
 
 	public activate(): void {
@@ -148,10 +144,6 @@ export class Rundown {
 	public getPreviousPart(): Part | undefined {
 		this.assertActive(this.getPreviousPart.name)
 		return this.previousPart
-	}
-
-	public isActive(): boolean {
-		return this.isRundownActive
 	}
 
 	public takeNext(): void {

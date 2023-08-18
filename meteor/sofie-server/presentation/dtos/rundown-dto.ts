@@ -8,6 +8,7 @@ export class RundownDto {
 	readonly isActive: boolean
 	readonly infinitePieces: PieceDto[]
 	readonly segments: SegmentDto[]
+	readonly lastTimeModified: number
 
 	constructor(rundown: Rundown) {
 		this.id = rundown.id
@@ -15,5 +16,6 @@ export class RundownDto {
 		this.isActive = rundown.isActive()
 		this.infinitePieces = rundown.getInfinitePieces().map((piece) => new PieceDto(piece))
 		this.segments = rundown.getSegments().map((segment) => new SegmentDto(segment))
+		this.lastTimeModified = rundown.getLastTimeModified()
 	}
 }
