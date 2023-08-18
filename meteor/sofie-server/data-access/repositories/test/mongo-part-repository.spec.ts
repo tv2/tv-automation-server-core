@@ -63,7 +63,7 @@ describe(`${MongoPartRepository.name}`, () => {
 			const db: Db = testDatabase.getDatabase()
 
 			when(mongoConverter.convertParts(anything())).thenReturn(parts)
-			when(pieceRepository.getPieces(anything())).thenReturn(Promise.resolve(pieces))
+			when(pieceRepository.getPieces(anything())).thenResolve(pieces)
 			const testee: PartRepository = await createTestee(db, {
 				mongoConverter: mongoConverter,
 				pieceRepository: pieceRepository,

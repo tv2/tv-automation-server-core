@@ -25,7 +25,7 @@ describe(`${MongoRundownRepository.name}`, () => {
 			const db: Db = testDatabase.getDatabase()
 
 			when(mongoConverter.convertRundown(anything())).thenReturn(activeRundown)
-			when(segmentRepository.getSegments(anything())).thenReturn(Promise.resolve([]))
+			when(segmentRepository.getSegments(anything())).thenResolve([])
 			const testee = await createTestee(db, {
 				segmentRepository: segmentRepository,
 				mongoConverter: mongoConverter,
@@ -44,7 +44,7 @@ describe(`${MongoRundownRepository.name}`, () => {
 			const db: Db = testDatabase.getDatabase()
 
 			when(mongoConverter.convertRundown(anything())).thenReturn(inactiveRundown)
-			when(segmentRepository.getSegments(anything())).thenReturn(Promise.resolve([]))
+			when(segmentRepository.getSegments(anything())).thenResolve([])
 			const testee = await createTestee(db, {
 				segmentRepository: segmentRepository,
 				mongoConverter: mongoConverter,
@@ -64,7 +64,7 @@ describe(`${MongoRundownRepository.name}`, () => {
 			const db: Db = testDatabase.getDatabase()
 
 			when(mongoConverter.convertRundown(anything())).thenReturn(rundown)
-			when(segmentRepository.getSegments(anything())).thenReturn(Promise.resolve([]))
+			when(segmentRepository.getSegments(anything())).thenResolve([])
 			const testee = await createTestee(db, {
 				segmentRepository: segmentRepository,
 				mongoConverter: mongoConverter,

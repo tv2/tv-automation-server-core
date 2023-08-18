@@ -27,7 +27,7 @@ describe(`${MongoSegmentRepository.name}`, () => {
 			const db: Db = testDatabase.getDatabase()
 
 			when(mongoConverter.convertSegments(anything())).thenReturn([segment])
-			when(partRepository.getParts(anything())).thenReturn(Promise.resolve([]))
+			when(partRepository.getParts(anything())).thenResolve([])
 			const testee: SegmentRepository = await createTestee(db, {
 				mongoConverter: mongoConverter,
 				partRepository: partRepository,
@@ -51,7 +51,7 @@ describe(`${MongoSegmentRepository.name}`, () => {
 			const db: Db = testDatabase.getDatabase()
 
 			when(mongoConverter.convertSegments(anything())).thenReturn(segments)
-			when(partRepository.getParts(anything())).thenReturn(Promise.resolve([]))
+			when(partRepository.getParts(anything())).thenResolve([])
 			const testee: SegmentRepository = await createTestee(db, {
 				mongoConverter: mongoConverter,
 				partRepository: partRepository,
@@ -76,7 +76,7 @@ describe(`${MongoSegmentRepository.name}`, () => {
 			const db: Db = testDatabase.getDatabase()
 
 			when(mongoConverter.convertSegments(anything())).thenReturn(segments)
-			when(partRepository.getParts(anything())).thenReturn(Promise.resolve(parts))
+			when(partRepository.getParts(anything())).thenResolve(parts)
 			const testee: SegmentRepository = await createTestee(db, {
 				mongoConverter: mongoConverter,
 				partRepository: partRepository,

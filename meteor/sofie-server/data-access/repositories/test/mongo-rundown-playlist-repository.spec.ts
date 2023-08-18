@@ -89,9 +89,9 @@ describe('MongoRundownPlaylistRepository', () => {
 		const mongoConverter: MongoEntityConverter = mock(MongoEntityConverter)
 
 		rundowns.forEach((rundown) => {
-			when(rundownRepository.getRundown(rundown.id)).thenReturn(Promise.resolve(rundown))
+			when(rundownRepository.getRundown(rundown.id)).thenResolve(rundown)
 		})
-		when(rundownRepository.getBasicRundowns()).thenReturn(Promise.resolve(rundowns))
+		when(rundownRepository.getBasicRundowns()).thenResolve(rundowns)
 		when(mongoDb.getCollection(COLLECTION_NAME)).thenReturn(db.collection(COLLECTION_NAME))
 
 		return new MongoRundownPlaylistRepository(

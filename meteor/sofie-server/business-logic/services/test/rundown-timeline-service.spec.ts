@@ -19,7 +19,7 @@ describe(`${RundownTimelineService.name}`, () => {
 			const randomRundownId: string = 'randomRundownId'
 			const randomRundown: Rundown = createInactiveRundown(randomRundownId)
 
-			when(mockRundownRepository.getRundown(randomRundownId)).thenReturn(Promise.resolve(randomRundown))
+			when(mockRundownRepository.getRundown(randomRundownId)).thenResolve(randomRundown)
 
 			const testee: RundownTimelineService = createTestee({ rundownRepository: instance(mockRundownRepository) })
 
@@ -36,7 +36,7 @@ describe(`${RundownTimelineService.name}`, () => {
 			const randomRundownId: string = 'randomRundownId'
 			const randomRundown: Rundown = createInactiveRundown(randomRundownId)
 
-			when(mockRundownRepository.getRundown(randomRundownId)).thenReturn(Promise.resolve(randomRundown))
+			when(mockRundownRepository.getRundown(randomRundownId)).thenResolve(randomRundown)
 			when(mockRundownEventBuilder.buildDeletedEvent(anything())).thenReturn({
 				type: RundownEventType.DELETED,
 				rundownId: randomRundownId,
@@ -62,7 +62,7 @@ describe(`${RundownTimelineService.name}`, () => {
 			const randomRundownId: string = 'randomRundownId'
 			const randomRundown: Rundown = createInactiveRundown(randomRundownId)
 
-			when(mockRundownRepository.getRundown(randomRundownId)).thenReturn(Promise.resolve(randomRundown))
+			when(mockRundownRepository.getRundown(randomRundownId)).thenResolve(randomRundown)
 
 			const testee: RundownTimelineService = createTestee({
 				rundownRepository: instance(mockRundownRepository),
@@ -81,7 +81,7 @@ describe(`${RundownTimelineService.name}`, () => {
 			const randomRundownId: string = 'randomRundownId'
 			const randomRundown: Rundown = createActiveRundown(randomRundownId)
 
-			when(mockRundownRepository.getRundown(randomRundownId)).thenReturn(Promise.resolve(randomRundown))
+			when(mockRundownRepository.getRundown(randomRundownId)).thenResolve(randomRundown)
 
 			const testee: RundownTimelineService = createTestee({ rundownRepository: instance(mockRundownRepository) })
 
