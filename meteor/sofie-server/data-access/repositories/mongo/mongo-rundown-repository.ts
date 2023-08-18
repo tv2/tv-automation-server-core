@@ -4,7 +4,7 @@ import { MongoEntityConverter, MongoIdentifier, MongoRundown } from './mongo-ent
 import { MongoDatabase } from './mongo-database'
 import { SegmentRepository } from '../interfaces/segment-repository'
 import { BaseMongoRepository } from './base-mongo-repository'
-import { Identifier } from '../../../model/interfaces/identifier'
+import { Identifier } from '../../../model/value-objects/identifier'
 
 const RUNDOWN_COLLECTION_NAME: string = 'rundowns'
 

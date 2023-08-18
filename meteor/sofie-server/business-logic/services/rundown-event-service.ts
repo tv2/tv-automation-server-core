@@ -1,5 +1,5 @@
 import { RundownEventListener } from './interfaces/rundown-event-listener'
-import { RundownEvent } from '../../model/interfaces/rundown-event'
+import { RundownEvent } from '../../model/value-objects/rundown-event'
 import { RundownEventEmitter } from './interfaces/rundown-event-emitter'
 
 export class RundownEventService implements RundownEventEmitter, RundownEventListener {

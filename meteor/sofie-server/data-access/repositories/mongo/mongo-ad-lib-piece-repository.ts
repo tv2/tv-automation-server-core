@@ -1,6 +1,6 @@
 import { BaseMongoRepository } from './base-mongo-repository'
 import { AdLibPieceRepository } from '../interfaces/ad-lib-piece-repository'
-import { Identifier } from '../../../model/interfaces/identifier'
+import { Identifier } from '../../../model/value-objects/identifier'
 import { MongoAdLibPiece, MongoEntityConverter } from './mongo-entity-converter'
 import { MongoDatabase } from './mongo-database'
 import { AdLibPiece } from '../../../model/entities/ad-lib-piece'

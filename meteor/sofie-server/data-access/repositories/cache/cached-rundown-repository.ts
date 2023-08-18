@@ -1,6 +1,6 @@
 import { RundownRepository } from '../interfaces/rundown-repository'
 import { Rundown } from '../../../model/entities/rundown'
-import { Identifier } from '../../../model/interfaces/identifier'
+import { Identifier } from '../../../model/value-objects/identifier'
 
 export class CachedRundownRepository implements RundownRepository {
 	private static instance: RundownRepository

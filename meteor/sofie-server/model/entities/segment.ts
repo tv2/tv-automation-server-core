@@ -106,7 +106,7 @@ export class Segment {
 		const pieces: Piece[] = []
 
 		for (let i = startIndex; i >= 0; i--) {
-			const piecesSpanningSegment: Piece[] = this.parts[i].getPieces(lifespanFilters)
+			const piecesSpanningSegment: Piece[] = this.parts[i].getPiecesWithLifespan(lifespanFilters)
 			for (let j = piecesSpanningSegment.length - 1; j >= 0; j--) {
 				const piece: Piece = piecesSpanningSegment[j]
 				if (layersToIgnore.has(piece.layer)) {

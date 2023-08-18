@@ -5,7 +5,7 @@ import { RundownRepository } from '../../data-access/repositories/interfaces/run
 import { Rundown } from '../../model/entities/rundown'
 import { RundownDto } from '../dtos/rundown-dto'
 import { Exception } from '../../model/exceptions/exception'
-import { Identifier } from '../../model/interfaces/identifier'
+import { Identifier } from '../../model/value-objects/identifier'
 import { HttpErrorHandler } from '../interfaces/http-error-handler'
 
 @RestController('/rundowns')

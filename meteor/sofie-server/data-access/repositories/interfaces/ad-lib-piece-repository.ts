@@ -1,4 +1,4 @@
-import { Identifier } from '../../../model/interfaces/identifier'
+import { Identifier } from '../../../model/value-objects/identifier'
 import { AdLibPiece } from '../../../model/entities/ad-lib-piece'
 
 export interface AdLibPieceRepository {

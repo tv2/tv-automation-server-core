@@ -1,5 +1,5 @@
 import { Rundown } from '../../../model/entities/rundown'
-import { Identifier } from '../../../model/interfaces/identifier'
+import { Identifier } from '../../../model/value-objects/identifier'
 
 export interface RundownRepository {
 	getRundownIdentifiers(): Promise<Identifier[]>
