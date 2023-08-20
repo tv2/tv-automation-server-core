@@ -11,6 +11,7 @@ import { Piece } from './piece'
 import { BasicRundown } from './basic-rundown'
 import { PieceLifespan } from '../enums/piece-lifespan'
 import { UnsupportedOperation } from '../exceptions/unsupported-operation'
+import { MisconfigurationException } from '../exceptions/misconfiguration-exception'
 
 export interface RundownInterface {
 	id: string
@@ -18,6 +19,14 @@ export interface RundownInterface {
 	segments: Segment[]
 	isRundownActive: boolean
 	modifiedAt: number
+
+	alreadyActiveProperties?: {
+		activePart: Part
+		activeSegment: Segment
+		nextPart: Part
+		nextSegment: Segment
+		infinitePieces: Map<string, Piece>
+	}
 }
 
 export class Rundown extends BasicRundown {
@@ -36,6 +45,22 @@ export class Rundown extends BasicRundown {
 	constructor(rundown: RundownInterface) {
 		super(rundown.id, rundown.name, rundown.isRundownActive, rundown.modifiedAt)
 		this.segments = rundown.segments ?? []
+
+		if (rundown.alreadyActiveProperties) {
+			if (!rundown.isRundownActive
+				// TODO: Should it be possible to instantiate the Rundown without active Part and active Segment?
+				|| !rundown.alreadyActiveProperties.activePart
+				|| !rundown.alreadyActiveProperties.nextPart
+				|| !rundown.alreadyActiveProperties.activeSegment
+				|| !rundown.alreadyActiveProperties.nextSegment) {
+				throw new MisconfigurationException('Rundown is missing required values in order to be instantiated as an active Rundown')
+			}
+			this.activePart = rundown.alreadyActiveProperties.activePart
+			this.activeSegment = rundown.alreadyActiveProperties.activeSegment
+			this.nextPart = rundown.alreadyActiveProperties.nextPart
+			this.nextSegment = rundown.alreadyActiveProperties.nextSegment
+			this.infinitePieces = rundown.alreadyActiveProperties.infinitePieces ?? new Map()
+		}
 	}
 
 	public activate(): void {
