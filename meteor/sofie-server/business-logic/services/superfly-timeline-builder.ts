@@ -357,14 +357,6 @@ export class SuperflyTimelineBuilder implements TimelineBuilder {
 					)
 				}
 
-				if (
-					piece.pieceLifespan === PieceLifespan.SPANNING_UNTIL_SEGMENT_END ||
-					piece.pieceLifespan === PieceLifespan.SPANNING_UNTIL_RUNDOWN_END
-				) {
-					console.log(`### Found spanning Piece`)
-					console.log(piece)
-				}
-
 				const infiniteGroup: TimelineObjectGroup = {
 					id: `${INFINITE_GROUP_PREFIX}${activePart.id}_${piece.id}`,
 					priority: MEDIUM_PRIORITY,

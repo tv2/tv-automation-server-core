@@ -54,18 +54,13 @@ export class Part {
 		this.segmentId = part.segmentId
 		this.name = part.name
 		this.rank = part.rank
-		// TODO: isArray is required for ts-mockito.spy()... This is not acceptable
-		this.pieces = Array.isArray(part.pieces) ? part.pieces : []
+		this.pieces = part.pieces ?? []
 		this.isPartOnAir = part.isOnAir
 		this.isPartNext = part.isNext
 		this.expectedDuration = part.expectedDuration
 
-		// TODO: ts-mockito.spy turns complex data types into functions which makes it necessary to do this check so it doesn't turn it into functions. This is not acceptable...
-		this.inTransition =
-			typeof part.inTransition === 'object'
-				? part.inTransition
-				: { keepPreviousPartAliveDuration: 0, delayPiecesDuration: 0 }
-		this.outTransition = typeof part.outTransition === 'object' ? part.outTransition : { keepAliveDuration: 0 }
+		this.inTransition = part.inTransition ?? { keepPreviousPartAliveDuration: 0, delayPiecesDuration: 0 }
+		this.outTransition = part.outTransition ?? { keepAliveDuration: 0 }
 
 		this.disableNextInTransition = part.disableNextInTransition
 		this.autoNext = part.autoNext
