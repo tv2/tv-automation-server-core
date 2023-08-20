@@ -47,13 +47,17 @@ export class Rundown extends BasicRundown {
 		this.segments = rundown.segments ?? []
 
 		if (rundown.alreadyActiveProperties) {
-			if (!rundown.isRundownActive
+			if (
+				!rundown.isRundownActive ||
 				// TODO: Should it be possible to instantiate the Rundown without active Part and active Segment?
-				|| !rundown.alreadyActiveProperties.activePart
-				|| !rundown.alreadyActiveProperties.nextPart
-				|| !rundown.alreadyActiveProperties.activeSegment
-				|| !rundown.alreadyActiveProperties.nextSegment) {
-				throw new MisconfigurationException('Rundown is missing required values in order to be instantiated as an active Rundown')
+				!rundown.alreadyActiveProperties.activePart ||
+				!rundown.alreadyActiveProperties.nextPart ||
+				!rundown.alreadyActiveProperties.activeSegment ||
+				!rundown.alreadyActiveProperties.nextSegment
+			) {
+				throw new MisconfigurationException(
+					'Rundown is missing required values in order to be instantiated as an active Rundown'
+				)
 			}
 			this.activePart = rundown.alreadyActiveProperties.activePart
 			this.activeSegment = rundown.alreadyActiveProperties.activeSegment

@@ -15,14 +15,18 @@ describe('Segment', () => {
 							pieceLifespan: PieceLifespan.SPANNING_UNTIL_SEGMENT_END,
 							layer: 'someLayer',
 						} as PieceInterface)
-						const partOne: Part = EntityMockFactory.createPart({
-							id: '1',
-							rank: 1,
-							pieces: [EntityMockFactory.createPiece({ id: '1' } as PieceInterface), pieceTwo],
-						} as PartInterface, { pieceLifespanFilters: [
-								PieceLifespan.SPANNING_UNTIL_RUNDOWN_END,
-								PieceLifespan.SPANNING_UNTIL_SEGMENT_END,
-							] }
+						const partOne: Part = EntityMockFactory.createPart(
+							{
+								id: '1',
+								rank: 1,
+								pieces: [EntityMockFactory.createPiece({ id: '1' } as PieceInterface), pieceTwo],
+							} as PartInterface,
+							{
+								pieceLifespanFilters: [
+									PieceLifespan.SPANNING_UNTIL_RUNDOWN_END,
+									PieceLifespan.SPANNING_UNTIL_SEGMENT_END,
+								],
+							}
 						)
 
 						const pieceFour: Piece = EntityMockFactory.createPiece({
@@ -30,22 +34,32 @@ describe('Segment', () => {
 							pieceLifespan: PieceLifespan.SPANNING_UNTIL_SEGMENT_END,
 							layer: 'someOtherLayer',
 						} as PieceInterface)
-						const partTwo: Part = EntityMockFactory.createPart({
-							id: '2',
-							rank: 2,
-							pieces: [EntityMockFactory.createPiece({ id: '3' } as PieceInterface), pieceFour],
-						} as PartInterface, { pieceLifespanFilters: [
-								PieceLifespan.SPANNING_UNTIL_RUNDOWN_END,
-								PieceLifespan.SPANNING_UNTIL_SEGMENT_END,
-							] }
+						const partTwo: Part = EntityMockFactory.createPart(
+							{
+								id: '2',
+								rank: 2,
+								pieces: [EntityMockFactory.createPiece({ id: '3' } as PieceInterface), pieceFour],
+							} as PartInterface,
+							{
+								pieceLifespanFilters: [
+									PieceLifespan.SPANNING_UNTIL_RUNDOWN_END,
+									PieceLifespan.SPANNING_UNTIL_SEGMENT_END,
+								],
+							}
 						)
 
-						const partToSearchBefore: Part = EntityMockFactory.createPart({ id: '3', rank: 3 } as PartInterface)
+						const partToSearchBefore: Part = EntityMockFactory.createPart({
+							id: '3',
+							rank: 3,
+						} as PartInterface)
 
 						const testee: Segment = new Segment({
 							parts: [partOne, partTwo, partToSearchBefore],
 						} as SegmentInterface)
-						const result: Piece[] = testee.getFirstSpanningPieceForEachLayerBeforePart(partToSearchBefore, new Set())
+						const result: Piece[] = testee.getFirstSpanningPieceForEachLayerBeforePart(
+							partToSearchBefore,
+							new Set()
+						)
 
 						expect(result).toHaveLength(2)
 						expect(result).toContain(pieceTwo)
@@ -59,29 +73,37 @@ describe('Segment', () => {
 							id: '2',
 							pieceLifespan: PieceLifespan.SPANNING_UNTIL_SEGMENT_END,
 						} as PieceInterface)
-						const partOne: Part = EntityMockFactory.createPart({
-							id: '1',
-							rank: 1,
-							pieces: [EntityMockFactory.createPiece({ id: '1' } as PieceInterface), piece],
-						} as PartInterface, { pieceLifespanFilters: [
-								PieceLifespan.SPANNING_UNTIL_RUNDOWN_END,
-								PieceLifespan.SPANNING_UNTIL_SEGMENT_END,
-							] }
+						const partOne: Part = EntityMockFactory.createPart(
+							{
+								id: '1',
+								rank: 1,
+								pieces: [EntityMockFactory.createPiece({ id: '1' } as PieceInterface), piece],
+							} as PartInterface,
+							{
+								pieceLifespanFilters: [
+									PieceLifespan.SPANNING_UNTIL_RUNDOWN_END,
+									PieceLifespan.SPANNING_UNTIL_SEGMENT_END,
+								],
+							}
 						)
-						const partTwo: Part = EntityMockFactory.createPart({
-							id: '2',
-							rank: 2,
-							pieces: [
-								EntityMockFactory.createPiece({ id: '3' } as PieceInterface),
-								EntityMockFactory.createPiece({
-									id: '4',
-									pieceLifespan: PieceLifespan.SPANNING_UNTIL_SEGMENT_END,
-								} as PieceInterface),
-							],
-						} as PartInterface, { pieceLifespanFilters: [
-								PieceLifespan.SPANNING_UNTIL_RUNDOWN_END,
-								PieceLifespan.SPANNING_UNTIL_SEGMENT_END,
-							] }
+						const partTwo: Part = EntityMockFactory.createPart(
+							{
+								id: '2',
+								rank: 2,
+								pieces: [
+									EntityMockFactory.createPiece({ id: '3' } as PieceInterface),
+									EntityMockFactory.createPiece({
+										id: '4',
+										pieceLifespan: PieceLifespan.SPANNING_UNTIL_SEGMENT_END,
+									} as PieceInterface),
+								],
+							} as PartInterface,
+							{
+								pieceLifespanFilters: [
+									PieceLifespan.SPANNING_UNTIL_RUNDOWN_END,
+									PieceLifespan.SPANNING_UNTIL_SEGMENT_END,
+								],
+							}
 						)
 						const testee: Segment = new Segment({
 							parts: [partOne, partTwo],
@@ -109,14 +131,18 @@ describe('Segment', () => {
 						layer: specificLayer,
 					} as PieceInterface)
 
-					const part: Part = EntityMockFactory.createPart({
-						id: '1',
-						rank: 1,
-						pieces: [pieceOne, pieceTwo],
-					} as PartInterface, { pieceLifespanFilters: [
-							PieceLifespan.SPANNING_UNTIL_RUNDOWN_END,
-							PieceLifespan.SPANNING_UNTIL_SEGMENT_END,
-						] }
+					const part: Part = EntityMockFactory.createPart(
+						{
+							id: '1',
+							rank: 1,
+							pieces: [pieceOne, pieceTwo],
+						} as PartInterface,
+						{
+							pieceLifespanFilters: [
+								PieceLifespan.SPANNING_UNTIL_RUNDOWN_END,
+								PieceLifespan.SPANNING_UNTIL_SEGMENT_END,
+							],
+						}
 					)
 					const partToSearchBefore: Part = EntityMockFactory.createPart({ id: '3', rank: 3 } as PartInterface)
 
@@ -124,7 +150,10 @@ describe('Segment', () => {
 						parts: [part, partToSearchBefore],
 					} as SegmentInterface)
 
-					const result: Piece[] = testee.getFirstSpanningPieceForEachLayerBeforePart(partToSearchBefore, new Set())
+					const result: Piece[] = testee.getFirstSpanningPieceForEachLayerBeforePart(
+						partToSearchBefore,
+						new Set()
+					)
 
 					expect(result).toHaveLength(1)
 					expect(result).toContain(pieceTwo)
@@ -147,16 +176,23 @@ describe('Segment', () => {
 							layer: layerToBeIgnored,
 						} as PieceInterface)
 
-						const part: Part = EntityMockFactory.createPart({
-							id: '1',
-							rank: 1,
-							pieces: [pieceOne, pieceTwo],
-						} as PartInterface, { pieceLifespanFilters: [
-								PieceLifespan.SPANNING_UNTIL_RUNDOWN_END,
-								PieceLifespan.SPANNING_UNTIL_SEGMENT_END,
-							] }
+						const part: Part = EntityMockFactory.createPart(
+							{
+								id: '1',
+								rank: 1,
+								pieces: [pieceOne, pieceTwo],
+							} as PartInterface,
+							{
+								pieceLifespanFilters: [
+									PieceLifespan.SPANNING_UNTIL_RUNDOWN_END,
+									PieceLifespan.SPANNING_UNTIL_SEGMENT_END,
+								],
+							}
 						)
-						const partToSearchBefore: Part = EntityMockFactory.createPart({ id: '3', rank: 3 } as PartInterface)
+						const partToSearchBefore: Part = EntityMockFactory.createPart({
+							id: '3',
+							rank: 3,
+						} as PartInterface)
 
 						const testee: Segment = new Segment({
 							parts: [part, partToSearchBefore],

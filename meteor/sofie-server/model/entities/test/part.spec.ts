@@ -304,11 +304,14 @@ describe('Part', () => {
 									const autoNextOverlap: number = 10
 									const keepAliveDuration: number = 50
 									const postRollDuration: number = 100
-									const previousPart: Part = EntityMockFactory.createPart({
-										autoNext: true,
-										autoNextOverlap,
-										outTransition: { keepAliveDuration },
-									} as PartInterface, { partTimings: { postRollDuration } as PartTimings })
+									const previousPart: Part = EntityMockFactory.createPart(
+										{
+											autoNext: true,
+											autoNextOverlap,
+											outTransition: { keepAliveDuration },
+										} as PartInterface,
+										{ partTimings: { postRollDuration } as PartTimings }
+									)
 
 									const testee: Part = new Part({} as PartInterface)
 
@@ -373,11 +376,14 @@ describe('Part', () => {
 										const autoNextOverlap: number = 10
 										const keepAliveDuration: number = 50
 										const postRollDuration: number = 100
-										const previousPart: Part = EntityMockFactory.createPart({
-											autoNext: true,
-											autoNextOverlap,
-											outTransition: { keepAliveDuration },
-										} as PartInterface, { partTimings: { postRollDuration } as PartTimings })
+										const previousPart: Part = EntityMockFactory.createPart(
+											{
+												autoNext: true,
+												autoNextOverlap,
+												outTransition: { keepAliveDuration },
+											} as PartInterface,
+											{ partTimings: { postRollDuration } as PartTimings }
+										)
 
 										const lowerPreRollDurationThanAutoNextOverlapPlusKeepAliveDuration: number = 20
 										const piece: Piece = EntityMockFactory.createPiece({
@@ -455,11 +461,14 @@ describe('Part', () => {
 										const autoNextOverlap: number = 10
 										const keepAliveDuration: number = 50
 										const postRollDuration: number = 100
-										const previousPart: Part = EntityMockFactory.createPart({
-											autoNext: true,
-											autoNextOverlap,
-											outTransition: { keepAliveDuration },
-										} as PartInterface, { partTimings: { postRollDuration } as PartTimings })
+										const previousPart: Part = EntityMockFactory.createPart(
+											{
+												autoNext: true,
+												autoNextOverlap,
+												outTransition: { keepAliveDuration },
+											} as PartInterface,
+											{ partTimings: { postRollDuration } as PartTimings }
+										)
 
 										const higherPreRollDurationThanAutoNextOverlapPlusKeepAliveDuration: number = 200
 										const preRollPiece: Piece = EntityMockFactory.createPiece({
@@ -486,11 +495,14 @@ describe('Part', () => {
 										const autoNextOverlap: number = 10
 										const keepAliveDuration: number = 50
 										const postRollDuration: number = 100
-										const previousPart: Part = EntityMockFactory.createPart({
-											autoNext: true,
-											autoNextOverlap,
-											outTransition: { keepAliveDuration },
-										} as PartInterface, { partTimings: { postRollDuration } as PartTimings })
+										const previousPart: Part = EntityMockFactory.createPart(
+											{
+												autoNext: true,
+												autoNextOverlap,
+												outTransition: { keepAliveDuration },
+											} as PartInterface,
+											{ partTimings: { postRollDuration } as PartTimings }
+										)
 
 										const higherPreRollDurationThanAutoNextOverlapPlusKeepAliveDuration: number = 200
 										const preRollPiece: Piece = EntityMockFactory.createPiece({
@@ -542,10 +554,13 @@ describe('Part', () => {
 								it('returns the Part.preRoll + the Part.autoNextOverlapDuration + previous Part.postRoll for "previousPartContinueIntoPartDuration"', () => {
 									const autoNextOverlap: number = 10
 									const postRollDuration: number = 100
-									const previousPart: Part = EntityMockFactory.createPart({
-										autoNext: true,
-										autoNextOverlap,
-									} as PartInterface, { partTimings: { postRollDuration } as PartTimings })
+									const previousPart: Part = EntityMockFactory.createPart(
+										{
+											autoNext: true,
+											autoNextOverlap,
+										} as PartInterface,
+										{ partTimings: { postRollDuration } as PartTimings }
+									)
 
 									const preRollDuration: number = 200
 									const preRollPiece: Piece = EntityMockFactory.createPiece({
@@ -610,10 +625,13 @@ describe('Part', () => {
 								it('returns the Part.autoNextOverlapDuration + previous Part.postRoll for "previousPartContinueIntoPartDuration"', () => {
 									const autoNextOverlap: number = 10
 									const postRollDuration: number = 100
-									const previousPart: Part = EntityMockFactory.createPart({
-										autoNext: true,
-										autoNextOverlap,
-									} as PartInterface, { partTimings: { postRollDuration } as PartTimings })
+									const previousPart: Part = EntityMockFactory.createPart(
+										{
+											autoNext: true,
+											autoNextOverlap,
+										} as PartInterface,
+										{ partTimings: { postRollDuration } as PartTimings }
+									)
 
 									const testee: Part = new Part({} as PartInterface)
 
@@ -742,9 +760,12 @@ describe('Part', () => {
 										it('returns previous Part.keepAliveDuration + previous Part.postRollDuration as "previousPartContinueIntoPartDuration', () => {
 											const keepAliveDuration: number = 200
 											const postRollDuration: number = 70
-											const previousPart: Part = EntityMockFactory.createPart({
-												outTransition: { keepAliveDuration },
-											} as PartInterface, { partTimings: { postRollDuration } as PartTimings })
+											const previousPart: Part = EntityMockFactory.createPart(
+												{
+													outTransition: { keepAliveDuration },
+												} as PartInterface,
+												{ partTimings: { postRollDuration } as PartTimings }
+											)
 
 											const keepPreviousPartAliveDuration: number = 100
 											const preRollDurationLowerThanKeepAliveDurationMinusKeepPreviousPartAliveDuration: number = 50
@@ -877,9 +898,12 @@ describe('Part', () => {
 										it("returns this Part's PreRoll + this Part.keepPreviousPartAliveDuration + previous Part's PostRollDuration as \"previousPartContinueIntoPartDuration", () => {
 											const keepAliveDuration: number = 210
 											const postRollDuration: number = 70
-											const previousPart: Part = EntityMockFactory.createPart({
-												outTransition: { keepAliveDuration },
-											} as PartInterface, { partTimings: { postRollDuration } as PartTimings })
+											const previousPart: Part = EntityMockFactory.createPart(
+												{
+													outTransition: { keepAliveDuration },
+												} as PartInterface,
+												{ partTimings: { postRollDuration } as PartTimings }
+											)
 
 											const keepPreviousPartAliveDuration: number = 50
 											const preRollDurationHigherThanKeepAliveDurationMinusKeepPreviousPartAliveDuration: number = 200
@@ -997,8 +1021,10 @@ describe('Part', () => {
 									describe('previous Part has PostRoll', () => {
 										it('return this Part.keepPreviousPartAliveDuration + previous Part PostRoll for "previousPartContinueIntoPartDuration"', () => {
 											const postRollDuration: number = 70
-											const previousPart: Part = EntityMockFactory.createPart({
-											} as PartInterface, { partTimings: { postRollDuration } as PartTimings })
+											const previousPart: Part = EntityMockFactory.createPart(
+												{} as PartInterface,
+												{ partTimings: { postRollDuration } as PartTimings }
+											)
 
 											const keepPreviousPartAliveDuration: number = 50
 											const delayPiecesDuration: number = 100
@@ -1017,9 +1043,7 @@ describe('Part', () => {
 
 									describe('previous Part does not have PostRoll', () => {
 										it('returns this Part.keepPreviousPartAliveDuration for "previousPartContinueIntoPartDuration"', () => {
-											const previousPart: Part = EntityMockFactory.createPart(
-												{} as PartInterface
-											)
+											const previousPart: Part = EntityMockFactory.createPart({} as PartInterface)
 
 											const keepPreviousPartAliveDuration: number = 50
 											const delayPiecesDuration: number = 100
@@ -1097,8 +1121,10 @@ describe('Part', () => {
 									describe('previous Part has PostRoll', () => {
 										it('returns the Part\'s PreRoll - the Part.delayPiecesDuration + this Part.keepPreviousPartAliveDuration + previous Part.postRoll as "previousPartContinueIntoPartDuration"', () => {
 											const postRollDuration: number = 70
-											const previousPart: Part = EntityMockFactory.createPart({
-											} as PartInterface, { partTimings: { postRollDuration } as PartTimings })
+											const previousPart: Part = EntityMockFactory.createPart(
+												{} as PartInterface,
+												{ partTimings: { postRollDuration } as PartTimings }
+											)
 
 											const keepPreviousPartAliveDuration: number = 50
 											const delayPiecesDuration: number = 80
@@ -1125,9 +1151,7 @@ describe('Part', () => {
 
 									describe('previous Part does not have PostRoll', () => {
 										it('returns the Part\'s PreRoll - the Part.delayPiecesDuration + this Part.keepPreviousPartAliveDuration as "previousPartContinueIntoPartDuration"', () => {
-											const previousPart: Part = EntityMockFactory.createPart(
-												{} as PartInterface
-											)
+											const previousPart: Part = EntityMockFactory.createPart({} as PartInterface)
 
 											const keepPreviousPartAliveDuration: number = 50
 											const delayPiecesDuration: number = 80
@@ -1154,8 +1178,10 @@ describe('Part', () => {
 									describe('previous Part has PostRoll', () => {
 										it('returns the Part\'s PreRoll + the Part.keepPreviousPartAliveDuration + previous Part.postRoll as "previousPartContinueIntoPartDuration', () => {
 											const postRollDuration: number = 70
-											const previousPart: Part = EntityMockFactory.createPart({
-											} as PartInterface, { partTimings: { postRollDuration } as PartTimings })
+											const previousPart: Part = EntityMockFactory.createPart(
+												{} as PartInterface,
+												{ partTimings: { postRollDuration } as PartTimings }
+											)
 
 											const keepPreviousPartAliveDuration: number = 50
 											const preRollDuration: number = 90
@@ -1178,9 +1204,7 @@ describe('Part', () => {
 
 									describe('previous Part does not have PostRoll', () => {
 										it('returns the Part\'s PreRoll + the Part.keepPreviousPartAliveDuration as "previousPartContinueIntoPartDuration"', () => {
-											const previousPart: Part = EntityMockFactory.createPart(
-												{} as PartInterface
-											)
+											const previousPart: Part = EntityMockFactory.createPart({} as PartInterface)
 
 											const keepPreviousPartAliveDuration: number = 50
 											const preRollDuration: number = 90
@@ -1246,9 +1270,12 @@ describe('Part', () => {
 										it('returns previous Part.keepAliveDuration + previous Part.postRoll for "previousPartContinueIntoPartDuration"', () => {
 											const keepAliveDuration: number = 200
 											const postRollDuration: number = 70
-											const previousPart: Part = EntityMockFactory.createPart({
-												outTransition: { keepAliveDuration },
-											} as PartInterface, { partTimings: { postRollDuration } as PartTimings })
+											const previousPart: Part = EntityMockFactory.createPart(
+												{
+													outTransition: { keepAliveDuration },
+												} as PartInterface,
+												{ partTimings: { postRollDuration } as PartTimings }
+											)
 
 											const delayPiecesDuration: number = 40
 											const testee: Part = new Part({
@@ -1303,9 +1330,12 @@ describe('Part', () => {
 										it('returns previous Part.keepAliveDuration + previous Part.postRoll for "previousPartContinueIntoPartDuration"', () => {
 											const keepAliveDuration: number = 200
 											const postRollDuration: number = 70
-											const previousPart: Part = EntityMockFactory.createPart({
-												outTransition: { keepAliveDuration },
-											} as PartInterface, { partTimings: { postRollDuration } as PartTimings })
+											const previousPart: Part = EntityMockFactory.createPart(
+												{
+													outTransition: { keepAliveDuration },
+												} as PartInterface,
+												{ partTimings: { postRollDuration } as PartTimings }
+											)
 
 											const testee: Part = new Part({} as PartInterface)
 
@@ -1395,12 +1425,15 @@ describe('Part', () => {
 											it('returns previous Part.keepAlive + previous Part.postRoll for "previousPartContinueIntoPartDuration"', () => {
 												const keepAliveDurationHigherThanPreRollDurationMinusDelayPiecesDuration: number = 200
 												const postRollDuration: number = 70
-												const previousPart: Part = EntityMockFactory.createPart({
-													outTransition: {
-														keepAliveDuration:
-															keepAliveDurationHigherThanPreRollDurationMinusDelayPiecesDuration,
-													},
-												} as PartInterface, { partTimings: { postRollDuration } as PartTimings })
+												const previousPart: Part = EntityMockFactory.createPart(
+													{
+														outTransition: {
+															keepAliveDuration:
+																keepAliveDurationHigherThanPreRollDurationMinusDelayPiecesDuration,
+														},
+													} as PartInterface,
+													{ partTimings: { postRollDuration } as PartTimings }
+												)
 
 												const delayPiecesDuration: number = 40
 												const preRollDuration: number = 210
@@ -1481,11 +1514,15 @@ describe('Part', () => {
 											it('returns previous Part.keepAlive + previous Part.postRoll for "previousPartContinueIntoPartDuration"', () => {
 												const keepAliveDurationHigherThanPreRollDuration: number = 200
 												const postRollDuration: number = 70
-												const previousPart: Part = EntityMockFactory.createPart({
-													outTransition: {
-														keepAliveDuration: keepAliveDurationHigherThanPreRollDuration,
-													},
-												} as PartInterface, { partTimings: { postRollDuration } as PartTimings })
+												const previousPart: Part = EntityMockFactory.createPart(
+													{
+														outTransition: {
+															keepAliveDuration:
+																keepAliveDurationHigherThanPreRollDuration,
+														},
+													} as PartInterface,
+													{ partTimings: { postRollDuration } as PartTimings }
+												)
 
 												const preRollDuration: number = 90
 												const pieceWithPreRoll: Piece = EntityMockFactory.createPiece({
@@ -1585,12 +1622,15 @@ describe('Part', () => {
 											it('returns this Part.preRollDuration - this Part.delayPiecesDuration + previous Part.postRoll for "previousPartContinueIntoPartDuration"', () => {
 												const keepAliveDurationLowerThanPreRollDurationMinusDelayPiecesDuration: number = 100
 												const postRollDuration: number = 70
-												const previousPart: Part = EntityMockFactory.createPart({
-													outTransition: {
-														keepAliveDuration:
-															keepAliveDurationLowerThanPreRollDurationMinusDelayPiecesDuration,
-													},
-												} as PartInterface, { partTimings: { postRollDuration } as PartTimings })
+												const previousPart: Part = EntityMockFactory.createPart(
+													{
+														outTransition: {
+															keepAliveDuration:
+																keepAliveDurationLowerThanPreRollDurationMinusDelayPiecesDuration,
+														},
+													} as PartInterface,
+													{ partTimings: { postRollDuration } as PartTimings }
+												)
 
 												const delayPiecesDuration: number = 40
 												const preRollDuration: number = 200
@@ -1668,11 +1708,15 @@ describe('Part', () => {
 											it('returns this Part.preRollDuration + previous Part.postRoll for "previousPartContinueIntoPartDuration"', () => {
 												const keepAliveDurationLowerThanPreRollDuration: number = 100
 												const postRollDuration: number = 70
-												const previousPart: Part = EntityMockFactory.createPart({
-													outTransition: {
-														keepAliveDuration: keepAliveDurationLowerThanPreRollDuration,
-													},
-												} as PartInterface, { partTimings: { postRollDuration } as PartTimings })
+												const previousPart: Part = EntityMockFactory.createPart(
+													{
+														outTransition: {
+															keepAliveDuration:
+																keepAliveDurationLowerThanPreRollDuration,
+														},
+													} as PartInterface,
+													{ partTimings: { postRollDuration } as PartTimings }
+												)
 
 												const preRollDuration: number = 200
 												const pieceWithPreRoll: Piece = EntityMockFactory.createPiece({
@@ -1763,8 +1807,10 @@ describe('Part', () => {
 									describe('previous Part has PostRoll', () => {
 										it('returns this Part.preRollDuration - this Part.delayPiecesDuration + previous Part.postRoll for "previousPartContinueIntoPartDuration"', () => {
 											const postRollDuration: number = 70
-											const previousPart: Part = EntityMockFactory.createPart({
-											} as PartInterface, { partTimings: { postRollDuration } as PartTimings })
+											const previousPart: Part = EntityMockFactory.createPart(
+												{} as PartInterface,
+												{ partTimings: { postRollDuration } as PartTimings }
+											)
 
 											const delayPiecesDuration: number = 40
 											const preRollDuration: number = 200
@@ -1787,9 +1833,7 @@ describe('Part', () => {
 
 									describe('previous Part does not have PostRoll', () => {
 										it('returns this Part.preRollDuration - this Part.delayPiecesDuration for "previousPartContinueIntoPartDuration"', () => {
-											const previousPart: Part = EntityMockFactory.createPart(
-												{} as PartInterface
-											)
+											const previousPart: Part = EntityMockFactory.createPart({} as PartInterface)
 
 											const delayPiecesDuration: number = 40
 											const preRollDuration: number = 200
@@ -1832,8 +1876,10 @@ describe('Part', () => {
 									describe('previous Part has PostRoll', () => {
 										it('returns this Part.preRollDuration + previous Part.postRoll for "previousPartContinueIntoPartDuration"', () => {
 											const postRollDuration: number = 70
-											const previousPart: Part = EntityMockFactory.createPart({
-											} as PartInterface, { partTimings: { postRollDuration } as PartTimings })
+											const previousPart: Part = EntityMockFactory.createPart(
+												{} as PartInterface,
+												{ partTimings: { postRollDuration } as PartTimings }
+											)
 
 											const preRollDuration: number = 200
 											const pieceWithPreRoll: Piece = EntityMockFactory.createPiece({
@@ -1854,9 +1900,7 @@ describe('Part', () => {
 
 									describe('previous Part does not have PostRoll', () => {
 										it('returns this Part.preRollDuration for "previousPartContinueIntoPartDuration"', () => {
-											const previousPart: Part = EntityMockFactory.createPart(
-												{} as PartInterface
-											)
+											const previousPart: Part = EntityMockFactory.createPart({} as PartInterface)
 
 											const preRollDuration: number = 200
 											const pieceWithPreRoll: Piece = EntityMockFactory.createPiece({
@@ -1905,8 +1949,10 @@ describe('Part', () => {
 									describe('previous Part has PostRoll', () => {
 										it('return previous Part.postRoll for "previousPartContinueIntoPartDuration"', () => {
 											const postRollDuration: number = 70
-											const previousPart: Part = EntityMockFactory.createPart({
-											} as PartInterface, { partTimings: { postRollDuration } as PartTimings })
+											const previousPart: Part = EntityMockFactory.createPart(
+												{} as PartInterface,
+												{ partTimings: { postRollDuration } as PartTimings }
+											)
 
 											const delayPiecesDuration: number = 40
 											const testee: Part = new Part({
@@ -1922,9 +1968,7 @@ describe('Part', () => {
 
 									describe('previous Part does not have PostRoll', () => {
 										it('returns zero for "previousPartContinueIntoPartDuration"', () => {
-											const previousPart: Part = EntityMockFactory.createPart(
-												{} as PartInterface
-											)
+											const previousPart: Part = EntityMockFactory.createPart({} as PartInterface)
 
 											const delayPiecesDuration: number = 40
 											const testee: Part = new Part({
@@ -1957,9 +2001,12 @@ describe('Part', () => {
 											const pieceWithPostRoll: Piece = EntityMockFactory.createPiece({
 												postRollDuration,
 											} as PieceInterface)
-											const previousPart: Part = EntityMockFactory.createPart({
-												pieces: [pieceWithPostRoll],
-											} as PartInterface, { partTimings: { postRollDuration } as PartTimings })
+											const previousPart: Part = EntityMockFactory.createPart(
+												{
+													pieces: [pieceWithPostRoll],
+												} as PartInterface,
+												{ partTimings: { postRollDuration } as PartTimings }
+											)
 
 											const testee: Part = new Part({} as PartInterface)
 
@@ -1972,9 +2019,7 @@ describe('Part', () => {
 
 									describe('previous Part does not have PostRoll', () => {
 										it('returns zero for "previousPartContinueIntoPartDuration"', () => {
-											const previousPart: Part = EntityMockFactory.createPart(
-												{} as PartInterface
-											)
+											const previousPart: Part = EntityMockFactory.createPart({} as PartInterface)
 
 											const testee: Part = new Part({} as PartInterface)
 

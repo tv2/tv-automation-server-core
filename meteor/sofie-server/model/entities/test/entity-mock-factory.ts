@@ -9,14 +9,16 @@ import { TransitionType } from '../../enums/transition-type'
 import { PartTimings } from '../../value-objects/part-timings'
 
 export class EntityMockFactory {
-	public static createActiveRundown(activeRundownProperties: {
-		activePart?: Part,
-		nextPart?: Part,
-		previousPart?: Part,
-		activeSegment?: Segment,
-		nextSegment?: Segment,
-		infinitePieces?: Piece[]
-	} = { }): Rundown {
+	public static createActiveRundown(
+		activeRundownProperties: {
+			activePart?: Part
+			nextPart?: Part
+			previousPart?: Part
+			activeSegment?: Segment
+			nextSegment?: Segment
+			infinitePieces?: Piece[]
+		} = {}
+	): Rundown {
 		const mockedRundown: Rundown = mock(Rundown)
 
 		when(mockedRundown.id).thenReturn('rundownId')
@@ -33,22 +35,28 @@ export class EntityMockFactory {
 		return instance(mockedRundown)
 	}
 
-	public static createSegment(segmentInterface?: SegmentInterface, misc?: {
-		firstPart?: Part,
-		nextPart?: Part,
-		firstSpanningPieceForEachLayerBeforePart?: Piece[],
-		firstSpanningRundownPieceForeachLayerForAllParts?: Piece[]
-	}): Segment {
+	public static createSegment(
+		segmentInterface?: SegmentInterface,
+		misc?: {
+			firstPart?: Part
+			nextPart?: Part
+			firstSpanningPieceForEachLayerBeforePart?: Piece[]
+			firstSpanningRundownPieceForeachLayerForAllParts?: Piece[]
+		}
+	): Segment {
 		const mockedSegment: Segment = this.createSegmentMockInstance(segmentInterface, misc)
 		return instance(mockedSegment)
 	}
 
-	public static createSegmentMockInstance(segmentInterface?: SegmentInterface, misc?: {
-		firstPart?: Part;
-		nextPart?: Part;
-		firstSpanningPieceForEachLayerBeforePart?: Piece[],
-		firstSpanningRundownPieceForeachLayerForAllParts?: Piece[]
-	}): Segment {
+	public static createSegmentMockInstance(
+		segmentInterface?: SegmentInterface,
+		misc?: {
+			firstPart?: Part
+			nextPart?: Part
+			firstSpanningPieceForEachLayerBeforePart?: Piece[]
+			firstSpanningRundownPieceForeachLayerForAllParts?: Piece[]
+		}
+	): Segment {
 		const mockedSegment: Segment = mock(Segment)
 
 		if (!segmentInterface) {
@@ -67,46 +75,64 @@ export class EntityMockFactory {
 		when(mockedSegment.rundownId).thenReturn(segmentInterface.rundownId ?? 'rundownId')
 		when(mockedSegment.getParts()).thenReturn(segmentInterface.parts ?? [])
 
-		when(mockedSegment.findFirstPart()).thenReturn(misc.firstPart ?? this.createPart({id: 'firstPartId'} as PartInterface))
-		when(mockedSegment.findNextPart(anything())).thenReturn(misc.nextPart ?? this.createPart({id: 'nextPartId'} as PartInterface))
-		when(mockedSegment.getFirstSpanningPieceForEachLayerBeforePart(anything(), anything())).thenReturn(misc.firstSpanningPieceForEachLayerBeforePart ?? [])
-		when(mockedSegment.getFirstSpanningRundownPieceForEachLayerForAllParts(anything())).thenReturn(misc.firstSpanningRundownPieceForeachLayerForAllParts ?? [])
+		when(mockedSegment.findFirstPart()).thenReturn(
+			misc.firstPart ?? this.createPart({ id: 'firstPartId' } as PartInterface)
+		)
+		when(mockedSegment.findNextPart(anything())).thenReturn(
+			misc.nextPart ?? this.createPart({ id: 'nextPartId' } as PartInterface)
+		)
+		when(mockedSegment.getFirstSpanningPieceForEachLayerBeforePart(anything(), anything())).thenReturn(
+			misc.firstSpanningPieceForEachLayerBeforePart ?? []
+		)
+		when(mockedSegment.getFirstSpanningRundownPieceForEachLayerForAllParts(anything())).thenReturn(
+			misc.firstSpanningRundownPieceForeachLayerForAllParts ?? []
+		)
 
 		return mockedSegment
 	}
 
-	public static createPart(partInterface?: PartInterface, misc?: {
-		partTimings?: PartTimings,
-		executedAt?: number
-		pieceLifespanFilters?: PieceLifespan[]
-	}): Part {
+	public static createPart(
+		partInterface?: PartInterface,
+		misc?: {
+			partTimings?: PartTimings
+			executedAt?: number
+			pieceLifespanFilters?: PieceLifespan[]
+		}
+	): Part {
 		const mockedPart: Part = this.createPartMockInstance(partInterface, misc)
 		return instance(mockedPart)
 	}
 
-	public static createPartMockInstance(partInterface?: PartInterface, misc?: {
-		partTimings?: PartTimings,
-		executedAt?: number
-		pieceLifespanFilters?: PieceLifespan[]
-	}): Part {
+	public static createPartMockInstance(
+		partInterface?: PartInterface,
+		misc?: {
+			partTimings?: PartTimings
+			executedAt?: number
+			pieceLifespanFilters?: PieceLifespan[]
+		}
+	): Part {
 		const mockedPart: Part = mock(Part)
 
 		if (!partInterface) {
-			partInterface = { } as PartInterface
+			partInterface = {} as PartInterface
 		}
 
 		if (!misc) {
-			misc = { }
+			misc = {}
 		}
 
-		when(mockedPart.id).thenReturn(partInterface.id ?? (partInterface.rank ? `part${partInterface.rank}` : 'partId'))
+		when(mockedPart.id).thenReturn(
+			partInterface.id ?? (partInterface.rank ? `part${partInterface.rank}` : 'partId')
+		)
 		when(mockedPart.segmentId).thenReturn(partInterface.segmentId ?? 'segmentId')
 		when(mockedPart.rank).thenReturn(partInterface.rank ?? 1)
 		when(mockedPart.name).thenReturn(partInterface.name ?? 'partName')
 		when(mockedPart.isNext()).thenReturn(partInterface.isNext ?? false)
 		when(mockedPart.isOnAir()).thenReturn(partInterface.isOnAir ?? false)
 		when(mockedPart.expectedDuration).thenReturn(partInterface.expectedDuration ?? 0)
-		when(mockedPart.inTransition).thenReturn(partInterface.inTransition ?? { keepPreviousPartAliveDuration: 0, delayPiecesDuration: 0 })
+		when(mockedPart.inTransition).thenReturn(
+			partInterface.inTransition ?? { keepPreviousPartAliveDuration: 0, delayPiecesDuration: 0 }
+		)
 		when(mockedPart.outTransition).thenReturn(partInterface.outTransition ?? { keepAliveDuration: 0 })
 		when(mockedPart.autoNext).thenReturn(partInterface.autoNext ?? false)
 		when(mockedPart.autoNextOverlap).thenReturn(partInterface.autoNextOverlap ?? 0)
@@ -116,32 +142,36 @@ export class EntityMockFactory {
 
 		const pieces: Piece[] = partInterface.pieces ?? []
 		when(mockedPart.getPieces()).thenReturn(pieces)
-		when(mockedPart.getPiecesWithLifespan(deepEqual(misc.pieceLifespanFilters ?? []))).thenReturn(pieces.filter(piece => misc?.pieceLifespanFilters?.includes(piece.pieceLifespan)))
+		when(mockedPart.getPiecesWithLifespan(deepEqual(misc.pieceLifespanFilters ?? []))).thenReturn(
+			pieces.filter((piece) => misc?.pieceLifespanFilters?.includes(piece.pieceLifespan))
+		)
 
-		when(mockedPart.getTimings()).thenReturn(misc.partTimings ?? {
-			inTransitionStart: null,
-			delayStartOfPiecesDuration: 0,
-			postRollDuration: 0,
-			previousPartContinueIntoPartDuration: 0
-		})
+		when(mockedPart.getTimings()).thenReturn(
+			misc.partTimings ?? {
+				inTransitionStart: null,
+				delayStartOfPiecesDuration: 0,
+				postRollDuration: 0,
+				previousPartContinueIntoPartDuration: 0,
+			}
+		)
 
 		return mockedPart
 	}
 
-	public static createPiece(pieceInterface?: PieceInterface, misc?: { executedAt?: number}): Piece {
+	public static createPiece(pieceInterface?: PieceInterface, misc?: { executedAt?: number }): Piece {
 		const mockedPiece: Piece = this.createPieceMockInstance(pieceInterface, misc)
 		return instance(mockedPiece)
 	}
 
-	public static createPieceMockInstance(pieceInterface?: PieceInterface, misc?: { executedAt?: number}): Piece {
+	public static createPieceMockInstance(pieceInterface?: PieceInterface, misc?: { executedAt?: number }): Piece {
 		const mockedPiece: Piece = mock(Piece)
 
 		if (!pieceInterface) {
-			pieceInterface = { } as PieceInterface
+			pieceInterface = {} as PieceInterface
 		}
 
 		if (!misc) {
-			misc = { }
+			misc = {}
 		}
 
 		when(mockedPiece.id).thenReturn(pieceInterface.id ?? 'pieceId')
