@@ -91,7 +91,6 @@ describe(`${MongoPartRepository.name}`, () => {
 			try {
 				await testee.deleteParts(nonExistingId)
 			} catch (error) {
-				// It isn't conditional, as the test will fail, if not hit, due to the 'expect.assertions(2)'
 				// eslint-disable-next-line jest/no-conditional-expect
 				expect(error).toBeInstanceOf(DeletionFailedException)
 				// eslint-disable-next-line jest/no-conditional-expect
@@ -115,7 +114,6 @@ describe(`${MongoPartRepository.name}`, () => {
 			try {
 				await testee.deleteParts(nonExistingId)
 			} catch (error) {
-				// It isn't conditional, as the test will fail, if not hit, due to the 'expect.assertions(2)'
 				// eslint-disable-next-line jest/no-conditional-expect
 				expect(error).toBeInstanceOf(DeletionFailedException)
 				// eslint-disable-next-line jest/no-conditional-expect
@@ -123,15 +121,9 @@ describe(`${MongoPartRepository.name}`, () => {
 			}
 		})
 	})
-	interface PieceBuilderParams {
-		id?: string
-		name?: string
-		rank?: number
-		partId?: string
-	}
 
 	// TODO: Extract to Helper Class in Model layer
-	function createPiece(params: PieceBuilderParams): Piece {
+	function createPiece(params: { id?: string; name?: string; partId?: string }): Piece {
 		return new Piece({
 			id: params.id ?? 'id' + Math.random(),
 			name: params.name ?? 'name' + Math.random(),
@@ -139,15 +131,8 @@ describe(`${MongoPartRepository.name}`, () => {
 		} as PieceInterface)
 	}
 
-	interface PartBuilderParams {
-		id?: string
-		name?: string
-		rank?: number
-		segmentId?: string
-	}
-
 	// TODO: Extract to Helper Class in Model layer
-	function createPart(params: PartBuilderParams): Part {
+	function createPart(params: { id?: string; name?: string; rank?: number; segmentId?: string }): Part {
 		return new Part({
 			id: params.id ?? 'id' + Math.random(),
 			name: params.name ?? 'name' + Math.random(),
@@ -156,13 +141,14 @@ describe(`${MongoPartRepository.name}`, () => {
 		} as PartInterface)
 	}
 
-	interface TesteeBuilderParams {
-		pieceRepository?: PieceRepository
-		mongoDb?: MongoDatabase
-		mongoConverter?: MongoEntityConverter
-	}
-
-	async function createTestee(db: Db, params: TesteeBuilderParams): Promise<PartRepository> {
+	async function createTestee(
+		db: Db,
+		params: {
+			pieceRepository?: PieceRepository
+			mongoDb?: MongoDatabase
+			mongoConverter?: MongoEntityConverter
+		}
+	): Promise<PartRepository> {
 		const pieceRepository: PieceRepository = params.pieceRepository ?? mock<PieceRepository>()
 		const mongoDb: MongoDatabase = params.mongoDb ?? mock(MongoDatabase)
 		const mongoConverter: MongoEntityConverter = params.mongoConverter ?? mock(MongoEntityConverter)

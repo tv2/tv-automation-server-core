@@ -38,8 +38,8 @@ export class CachedRundownRepository implements RundownRepository {
 	}
 
 	public async deleteRundown(rundownId: string): Promise<void> {
-		const cacheDeletionResult: boolean = this.cachedRundowns.delete(rundownId)
-		if (!cacheDeletionResult) {
+		const wasDeleted: boolean = this.cachedRundowns.delete(rundownId)
+		if (!wasDeleted) {
 			throw new DeletionFailedException(`Failed to delete rundown from cache, with rundownId: ${rundownId}`)
 		}
 		await this.rundownRepository.deleteRundown(rundownId)

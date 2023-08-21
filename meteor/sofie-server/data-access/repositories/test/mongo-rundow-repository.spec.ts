@@ -86,7 +86,6 @@ describe(`${MongoRundownRepository.name}`, () => {
 			try {
 				await testee.deleteRundown(nonExistingId)
 			} catch (error) {
-				// It isn't conditional, as the test will fail, if not hit, due to the 'expect.assertions(2)'
 				// eslint-disable-next-line jest/no-conditional-expect
 				expect(error).toBeInstanceOf(NotFoundException)
 				// eslint-disable-next-line jest/no-conditional-expect
@@ -134,13 +133,14 @@ describe(`${MongoRundownRepository.name}`, () => {
 		} as RundownInterface)
 	}
 
-	interface TesteeBuilderParams {
-		segmentRepository?: SegmentRepository
-		mongoDb?: MongoDatabase
-		mongoConverter?: MongoEntityConverter
-	}
-
-	async function createTestee(db: Db, params: TesteeBuilderParams): Promise<RundownRepository> {
+	async function createTestee(
+		db: Db,
+		params: {
+			segmentRepository?: SegmentRepository
+			mongoDb?: MongoDatabase
+			mongoConverter?: MongoEntityConverter
+		}
+	): Promise<RundownRepository> {
 		const segmentRepository: SegmentRepository = params.segmentRepository ?? mock<SegmentRepository>()
 		const mongoDb: MongoDatabase = params.mongoDb ?? mock(MongoDatabase)
 		const mongoConverter: MongoEntityConverter = params.mongoConverter ?? mock(MongoEntityConverter)

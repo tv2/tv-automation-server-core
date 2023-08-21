@@ -68,7 +68,6 @@ describe(`${MongoPieceRepository.name}`, () => {
 			try {
 				await testee.deletePieces(nonExistingId)
 			} catch (error) {
-				// It isn't conditional, as the test will fail, if not hit, due to the 'expect.assertions(2)'
 				// eslint-disable-next-line jest/no-conditional-expect
 				expect(error).toBeInstanceOf(DeletionFailedException)
 				// eslint-disable-next-line jest/no-conditional-expect
@@ -93,7 +92,6 @@ describe(`${MongoPieceRepository.name}`, () => {
 			try {
 				await testee.deletePieces(nonExistingId)
 			} catch (error) {
-				// It isn't conditional, as the test will fail, if not hit, due to the 'expect.assertions(2)'
 				// eslint-disable-next-line jest/no-conditional-expect
 				expect(error).toBeInstanceOf(DeletionFailedException)
 				// eslint-disable-next-line jest/no-conditional-expect
@@ -102,15 +100,8 @@ describe(`${MongoPieceRepository.name}`, () => {
 		})
 	})
 
-	interface PieceBuilderParams {
-		id?: string
-		name?: string
-		rank?: number
-		partId?: string
-	}
-
 	// TODO: Extract to Helper Class in Model layer
-	function createPiece(params: PieceBuilderParams): Piece {
+	function createPiece(params: { id?: string; name?: string; rank?: number; partId?: string }): Piece {
 		return new Piece({
 			id: params.id ?? 'id' + Math.random(),
 			name: params.name ?? 'name' + Math.random(),
@@ -118,12 +109,13 @@ describe(`${MongoPieceRepository.name}`, () => {
 		} as PieceInterface)
 	}
 
-	interface TesteeBuilderParams {
-		mongoDb?: MongoDatabase
-		mongoConverter?: MongoEntityConverter
-	}
-
-	async function createTestee(db: Db, params: TesteeBuilderParams): Promise<PieceRepository> {
+	async function createTestee(
+		db: Db,
+		params: {
+			mongoDb?: MongoDatabase
+			mongoConverter?: MongoEntityConverter
+		}
+	): Promise<PieceRepository> {
 		const mongoDb: MongoDatabase = params.mongoDb ?? mock(MongoDatabase)
 		const mongoConverter: MongoEntityConverter = params.mongoConverter ?? mock(MongoEntityConverter)
 

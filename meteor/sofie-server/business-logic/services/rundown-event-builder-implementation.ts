@@ -18,6 +18,7 @@ export class RundownEventBuilderImplementation implements RundownEventBuilder {
 			partId: '',
 		}
 	}
+
 	public buildActivateEvent(rundown: Rundown): RundownEvent {
 		return {
 			type: RundownEventType.ACTIVATE,
