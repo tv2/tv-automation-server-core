@@ -17,21 +17,18 @@ describe(`${MongoRundownRepository.name}`, () => {
 
 	describe(`${MongoRundownRepository.prototype.deleteRundown.name}`, () => {
 		it('deletes active rundown successfully', async () => {
-			const mongoDb: MongoDatabase = mock(MongoDatabase)
 			const mongoConverter = mock(MongoEntityConverter)
 			const segmentRepository: SegmentRepository = mock<SegmentRepository>()
 			const rundownId: string = 'someRundownId'
-			const activeRundown: Rundown = createActiveRundown(rundownId)
+			const activeRundown: Rundown = createRundown({ rundownId: rundownId, isRundownActive: true })
 			await testDatabase.populateDatabaseWithRundowns([activeRundown])
 			const db: Db = testDatabase.getDatabase()
 
 			when(mongoConverter.convertRundown(anything())).thenReturn(activeRundown)
 			when(segmentRepository.getSegments(anything())).thenResolve([])
-			testDatabase.applyCommonMockingActions(db, mongoDb, COLLECTION_NAME)
-			const testee = await createTestee({
+			const testee = await createCommonTestee({
 				segmentRepository: segmentRepository,
 				mongoConverter: mongoConverter,
-				mongoDb: mongoDb,
 			})
 			await testee.deleteRundown(rundownId)
 
@@ -39,21 +36,18 @@ describe(`${MongoRundownRepository.name}`, () => {
 		})
 
 		it('deletes inactive rundown successfully', async () => {
-			const mongoDb: MongoDatabase = mock(MongoDatabase)
 			const mongoConverter = mock(MongoEntityConverter)
 			const segmentRepository: SegmentRepository = mock<SegmentRepository>()
 			const rundownId: string = 'someRundownId'
-			const inactiveRundown: Rundown = createInactiveRundown(rundownId)
+			const inactiveRundown: Rundown = createRundown({ rundownId: rundownId, isRundownActive: false })
 			await testDatabase.populateDatabaseWithRundowns([inactiveRundown])
 			const db: Db = testDatabase.getDatabase()
 
 			when(mongoConverter.convertRundown(anything())).thenReturn(inactiveRundown)
 			when(segmentRepository.getSegments(anything())).thenResolve([])
-			testDatabase.applyCommonMockingActions(db, mongoDb, COLLECTION_NAME)
-			const testee = await createTestee({
+			const testee = await createCommonTestee({
 				segmentRepository: segmentRepository,
 				mongoConverter: mongoConverter,
-				mongoDb: mongoDb,
 			})
 			await testee.deleteRundown(rundownId)
 
@@ -62,21 +56,17 @@ describe(`${MongoRundownRepository.name}`, () => {
 
 		// eslint-disable-next-line jest/expect-expect
 		it('calls deletion of segments', async () => {
-			const mongoDb: MongoDatabase = mock(MongoDatabase)
 			const mongoConverter = mock(MongoEntityConverter)
 			const segmentRepository: SegmentRepository = mock<SegmentRepository>()
 			const rundownId: string = 'someRundownId'
-			const rundown: Rundown = createInactiveRundown(rundownId)
+			const rundown: Rundown = createRundown({ rundownId: rundownId })
 			await testDatabase.populateDatabaseWithRundowns([rundown])
-			const db: Db = testDatabase.getDatabase()
 
 			when(mongoConverter.convertRundown(anything())).thenReturn(rundown)
 			when(segmentRepository.getSegments(anything())).thenResolve([])
-			testDatabase.applyCommonMockingActions(db, mongoDb, COLLECTION_NAME)
-			const testee = await createTestee({
+			const testee = await createCommonTestee({
 				segmentRepository: segmentRepository,
 				mongoConverter: mongoConverter,
-				mongoDb: mongoDb,
 			})
 			await testee.deleteRundown(rundownId)
 
@@ -84,14 +74,12 @@ describe(`${MongoRundownRepository.name}`, () => {
 		})
 
 		it('does not delete, when nonexistent rundownId is given', async () => {
-			const mongoDb: MongoDatabase = mock(MongoDatabase)
 			const nonExistingId: string = 'nonExistingId'
-			const rundown: Rundown = createInactiveRundown()
+			const rundown: Rundown = createRundown({})
 			await testDatabase.populateDatabaseWithRundowns([rundown])
 			const db: Db = testDatabase.getDatabase()
 
-			testDatabase.applyCommonMockingActions(db, mongoDb, COLLECTION_NAME)
-			const testee = await createTestee({ mongoDb: mongoDb })
+			const testee = await createCommonTestee({})
 
 			expect.assertions(2)
 			try {
@@ -105,15 +93,12 @@ describe(`${MongoRundownRepository.name}`, () => {
 		})
 
 		it('throws exception, when nonexistent rundownId is given', async () => {
-			const mongoDb: MongoDatabase = mock(MongoDatabase)
 			const expectedErrorMessageFragment: string = 'Failed to find a rundown with id'
 			const nonExistingId: string = 'nonExistingId'
-			const rundown: Rundown = createInactiveRundown()
+			const rundown: Rundown = createRundown({})
 			await testDatabase.populateDatabaseWithRundowns([rundown])
-			const db: Db = testDatabase.getDatabase()
 
-			testDatabase.applyCommonMockingActions(db, mongoDb, COLLECTION_NAME)
-			const testee = await createTestee({ mongoDb: mongoDb })
+			const testee = await createCommonTestee({})
 
 			expect.assertions(2)
 			try {
@@ -133,7 +118,7 @@ describe(`${MongoRundownRepository.name}`, () => {
 			const mongoConverter = mock(MongoEntityConverter)
 			const segmentRepository: SegmentRepository = mock<SegmentRepository>()
 			const rundownId: string = 'someRundownId'
-			const rundown: Rundown = createActiveRundown(rundownId)
+			const rundown: Rundown = createRundown({ rundownId: rundownId })
 			await testDatabase.populateDatabaseWithRundowns([rundown])
 			const db: Db = testDatabase.getDatabase()
 			const collection = db.collection(COLLECTION_NAME)
@@ -155,28 +140,34 @@ describe(`${MongoRundownRepository.name}`, () => {
 	})
 
 	// TODO: Extract to Helper Class in Model layer
-	function createActiveRundown(rundownId?: string): Rundown {
+	function createRundown(params: { rundownId?: string; name?: string; isRundownActive?: boolean }): Rundown {
 		return new Rundown({
-			id: rundownId ?? 'id' + Math.random(),
-			name: 'name' + Math.random(),
-			isRundownActive: true,
+			id: params.rundownId ?? 'id' + Math.random(),
+			name: params.name ?? 'name' + Math.random(),
+			isRundownActive: params.isRundownActive ?? false,
 		} as RundownInterface)
 	}
 
-	// TODO: Extract to Helper Class in Model layer
-	function createInactiveRundown(rundownId?: string): Rundown {
-		return new Rundown({
-			id: rundownId ?? 'id' + Math.random(),
-			name: 'name' + Math.random(),
-			isRundownActive: false,
-		} as RundownInterface)
-	}
-
-	async function createTestee(params: {
+	interface TesteeBuilderParams {
 		segmentRepository?: SegmentRepository
 		mongoDb?: MongoDatabase
 		mongoConverter?: MongoEntityConverter
-	}): Promise<RundownRepository> {
+	}
+
+	async function createCommonTestee(params: TesteeBuilderParams): Promise<RundownRepository> {
+		const mongoDb: MongoDatabase = params.mongoDb ?? mock(MongoDatabase)
+
+		testDatabase.applyCommonMocking(testDatabase.getDatabase(), mongoDb, COLLECTION_NAME)
+
+		// Todo: figure out the syntax for unpacking the existing and only changing one. I know Anders knows it.
+		return createTestee({
+			segmentRepository: params.segmentRepository,
+			mongoConverter: params.mongoConverter,
+			mongoDb: mongoDb,
+		})
+	}
+
+	async function createTestee(params: TesteeBuilderParams): Promise<RundownRepository> {
 		const segmentRepository: SegmentRepository = params.segmentRepository ?? mock<SegmentRepository>()
 		const mongoDb: MongoDatabase = params.mongoDb ?? mock(MongoDatabase)
 		const mongoConverter: MongoEntityConverter = params.mongoConverter ?? mock(MongoEntityConverter)

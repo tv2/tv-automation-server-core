@@ -42,7 +42,7 @@ export class MongoTestDatabase {
 		return this.client.db(this.mongoServer.instanceInfo!.dbName)
 	}
 
-	public applyCommonMockingActions(db: Db, mongoDb: MongoDatabase, collectionName: string) {
+	public applyCommonMocking(db: Db, mongoDb: MongoDatabase, collectionName: string) {
 		when(mongoDb.getCollection(collectionName)).thenReturn(db.collection(collectionName))
 	}
 
