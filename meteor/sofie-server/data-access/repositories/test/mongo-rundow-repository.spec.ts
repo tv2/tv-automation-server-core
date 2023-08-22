@@ -1,13 +1,13 @@
 import { MongoRundownRepository } from '../mongo/mongo-rundown-repository'
 import { MongoTestDatabase } from './mongo-test-database'
 import { Rundown, RundownInterface } from '../../../model/entities/rundown'
-import { Db } from 'mongodb'
 import { RundownRepository } from '../interfaces/rundown-repository'
 import { SegmentRepository } from '../interfaces/segment-repository'
 import { MongoDatabase } from '../mongo/mongo-database'
-import { anyString, anything, instance, mock, verify, when } from 'ts-mockito'
+import { anyString, anything, instance, mock, spy, verify, when } from 'ts-mockito'
 import { MongoEntityConverter } from '../mongo/mongo-entity-converter'
 import { NotFoundException } from '../../../model/exceptions/not-found-exception'
+import { Db } from 'mongodb'
 
 const COLLECTION_NAME = 'rundowns'
 describe(`${MongoRundownRepository.name}`, () => {
@@ -17,6 +17,7 @@ describe(`${MongoRundownRepository.name}`, () => {
 
 	describe(`${MongoRundownRepository.prototype.deleteRundown.name}`, () => {
 		it('deletes active rundown successfully', async () => {
+			const mongoDb: MongoDatabase = mock(MongoDatabase)
 			const mongoConverter = mock(MongoEntityConverter)
 			const segmentRepository: SegmentRepository = mock<SegmentRepository>()
 			const rundownId: string = 'someRundownId'
@@ -26,9 +27,11 @@ describe(`${MongoRundownRepository.name}`, () => {
 
 			when(mongoConverter.convertRundown(anything())).thenReturn(activeRundown)
 			when(segmentRepository.getSegments(anything())).thenResolve([])
-			const testee = await createTestee(db, {
+			applyCommonMockingActions(db, mongoDb)
+			const testee = await createTestee({
 				segmentRepository: segmentRepository,
 				mongoConverter: mongoConverter,
+				mongoDb: mongoDb,
 			})
 			await testee.deleteRundown(rundownId)
 
@@ -36,6 +39,7 @@ describe(`${MongoRundownRepository.name}`, () => {
 		})
 
 		it('deletes inactive rundown successfully', async () => {
+			const mongoDb: MongoDatabase = mock(MongoDatabase)
 			const mongoConverter = mock(MongoEntityConverter)
 			const segmentRepository: SegmentRepository = mock<SegmentRepository>()
 			const rundownId: string = 'someRundownId'
@@ -45,9 +49,11 @@ describe(`${MongoRundownRepository.name}`, () => {
 
 			when(mongoConverter.convertRundown(anything())).thenReturn(inactiveRundown)
 			when(segmentRepository.getSegments(anything())).thenResolve([])
-			const testee = await createTestee(db, {
+			applyCommonMockingActions(db, mongoDb)
+			const testee = await createTestee({
 				segmentRepository: segmentRepository,
 				mongoConverter: mongoConverter,
+				mongoDb: mongoDb,
 			})
 			await testee.deleteRundown(rundownId)
 
@@ -56,6 +62,7 @@ describe(`${MongoRundownRepository.name}`, () => {
 
 		// eslint-disable-next-line jest/expect-expect
 		it('calls deletion of segments', async () => {
+			const mongoDb: MongoDatabase = mock(MongoDatabase)
 			const mongoConverter = mock(MongoEntityConverter)
 			const segmentRepository: SegmentRepository = mock<SegmentRepository>()
 			const rundownId: string = 'someRundownId'
@@ -65,9 +72,11 @@ describe(`${MongoRundownRepository.name}`, () => {
 
 			when(mongoConverter.convertRundown(anything())).thenReturn(rundown)
 			when(segmentRepository.getSegments(anything())).thenResolve([])
-			const testee = await createTestee(db, {
+			applyCommonMockingActions(db, mongoDb)
+			const testee = await createTestee({
 				segmentRepository: segmentRepository,
 				mongoConverter: mongoConverter,
+				mongoDb: mongoDb,
 			})
 			await testee.deleteRundown(rundownId)
 
@@ -75,12 +84,14 @@ describe(`${MongoRundownRepository.name}`, () => {
 		})
 
 		it('does not delete, when nonexistent rundownId is given', async () => {
+			const mongoDb: MongoDatabase = mock(MongoDatabase)
 			const nonExistingId: string = 'nonExistingId'
 			const rundown: Rundown = createInactiveRundown()
 			await testDatabase.populateDatabaseWithRundowns([rundown])
 			const db: Db = testDatabase.getDatabase()
 
-			const testee = await createTestee(db, {})
+			applyCommonMockingActions(db, mongoDb)
+			const testee = await createTestee({ mongoDb: mongoDb })
 
 			expect.assertions(2)
 			try {
@@ -94,13 +105,15 @@ describe(`${MongoRundownRepository.name}`, () => {
 		})
 
 		it('throws exception, when nonexistent rundownId is given', async () => {
+			const mongoDb: MongoDatabase = mock(MongoDatabase)
 			const expectedErrorMessageFragment: string = 'Failed to find a rundown with id'
 			const nonExistingId: string = 'nonExistingId'
 			const rundown: Rundown = createInactiveRundown()
 			await testDatabase.populateDatabaseWithRundowns([rundown])
 			const db: Db = testDatabase.getDatabase()
 
-			const testee = await createTestee(db, {})
+			applyCommonMockingActions(db, mongoDb)
+			const testee = await createTestee({ mongoDb: mongoDb })
 
 			expect.assertions(2)
 			try {
@@ -112,6 +125,32 @@ describe(`${MongoRundownRepository.name}`, () => {
 				// eslint-disable-next-line jest/no-conditional-expect
 				expect((error as NotFoundException).message).toContain(expectedErrorMessageFragment)
 			}
+		})
+
+		// eslint-disable-next-line jest/expect-expect
+		it('deletes segments before rundown', async () => {
+			const mongoDb: MongoDatabase = mock(MongoDatabase)
+			const mongoConverter = mock(MongoEntityConverter)
+			const segmentRepository: SegmentRepository = mock<SegmentRepository>()
+			const rundownId: string = 'someRundownId'
+			const rundown: Rundown = createActiveRundown(rundownId)
+			await testDatabase.populateDatabaseWithRundowns([rundown])
+			const db: Db = testDatabase.getDatabase()
+			const collection = db.collection(COLLECTION_NAME)
+			const spied = spy(collection)
+
+			when(mongoConverter.convertRundown(anything())).thenReturn(rundown)
+			when(segmentRepository.getSegments(anything())).thenResolve([])
+			when(mongoDb.getCollection(anything())).thenReturn(collection)
+			const testee = await createTestee({
+				segmentRepository: segmentRepository,
+				mongoConverter: mongoConverter,
+				mongoDb: mongoDb,
+			})
+
+			await testee.deleteRundown(rundownId)
+
+			verify(segmentRepository.deleteSegments(anyString())).calledBefore(spied.deleteOne(anything()))
 		})
 	})
 
@@ -133,20 +172,19 @@ describe(`${MongoRundownRepository.name}`, () => {
 		} as RundownInterface)
 	}
 
-	async function createTestee(
-		db: Db,
-		params: {
-			segmentRepository?: SegmentRepository
-			mongoDb?: MongoDatabase
-			mongoConverter?: MongoEntityConverter
-		}
-	): Promise<RundownRepository> {
+	async function createTestee(params: {
+		segmentRepository?: SegmentRepository
+		mongoDb?: MongoDatabase
+		mongoConverter?: MongoEntityConverter
+	}): Promise<RundownRepository> {
 		const segmentRepository: SegmentRepository = params.segmentRepository ?? mock<SegmentRepository>()
 		const mongoDb: MongoDatabase = params.mongoDb ?? mock(MongoDatabase)
 		const mongoConverter: MongoEntityConverter = params.mongoConverter ?? mock(MongoEntityConverter)
 
-		when(mongoDb.getCollection(COLLECTION_NAME)).thenReturn(db.collection(COLLECTION_NAME))
-
 		return new MongoRundownRepository(instance(mongoDb), instance(mongoConverter), instance(segmentRepository))
+	}
+
+	function applyCommonMockingActions(db: Db, mongoDb: MongoDatabase) {
+		when(mongoDb.getCollection(COLLECTION_NAME)).thenReturn(db.collection(COLLECTION_NAME))
 	}
 })
