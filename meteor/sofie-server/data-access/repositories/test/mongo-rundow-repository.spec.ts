@@ -27,7 +27,7 @@ describe(`${MongoRundownRepository.name}`, () => {
 
 			when(mongoConverter.convertRundown(anything())).thenReturn(activeRundown)
 			when(segmentRepository.getSegments(anything())).thenResolve([])
-			applyCommonMockingActions(db, mongoDb)
+			testDatabase.applyCommonMockingActions(db, mongoDb, COLLECTION_NAME)
 			const testee = await createTestee({
 				segmentRepository: segmentRepository,
 				mongoConverter: mongoConverter,
@@ -49,7 +49,7 @@ describe(`${MongoRundownRepository.name}`, () => {
 
 			when(mongoConverter.convertRundown(anything())).thenReturn(inactiveRundown)
 			when(segmentRepository.getSegments(anything())).thenResolve([])
-			applyCommonMockingActions(db, mongoDb)
+			testDatabase.applyCommonMockingActions(db, mongoDb, COLLECTION_NAME)
 			const testee = await createTestee({
 				segmentRepository: segmentRepository,
 				mongoConverter: mongoConverter,
@@ -72,7 +72,7 @@ describe(`${MongoRundownRepository.name}`, () => {
 
 			when(mongoConverter.convertRundown(anything())).thenReturn(rundown)
 			when(segmentRepository.getSegments(anything())).thenResolve([])
-			applyCommonMockingActions(db, mongoDb)
+			testDatabase.applyCommonMockingActions(db, mongoDb, COLLECTION_NAME)
 			const testee = await createTestee({
 				segmentRepository: segmentRepository,
 				mongoConverter: mongoConverter,
@@ -90,7 +90,7 @@ describe(`${MongoRundownRepository.name}`, () => {
 			await testDatabase.populateDatabaseWithRundowns([rundown])
 			const db: Db = testDatabase.getDatabase()
 
-			applyCommonMockingActions(db, mongoDb)
+			testDatabase.applyCommonMockingActions(db, mongoDb, COLLECTION_NAME)
 			const testee = await createTestee({ mongoDb: mongoDb })
 
 			expect.assertions(2)
@@ -112,7 +112,7 @@ describe(`${MongoRundownRepository.name}`, () => {
 			await testDatabase.populateDatabaseWithRundowns([rundown])
 			const db: Db = testDatabase.getDatabase()
 
-			applyCommonMockingActions(db, mongoDb)
+			testDatabase.applyCommonMockingActions(db, mongoDb, COLLECTION_NAME)
 			const testee = await createTestee({ mongoDb: mongoDb })
 
 			expect.assertions(2)
@@ -150,7 +150,7 @@ describe(`${MongoRundownRepository.name}`, () => {
 
 			await testee.deleteRundown(rundownId)
 
-			verify(segmentRepository.deleteSegments(anyString())).calledBefore(spied.deleteOne(anything()))
+			verify(segmentRepository.deleteSegments(anything())).calledBefore(spied.deleteOne(anything()))
 		})
 	})
 
@@ -182,9 +182,5 @@ describe(`${MongoRundownRepository.name}`, () => {
 		const mongoConverter: MongoEntityConverter = params.mongoConverter ?? mock(MongoEntityConverter)
 
 		return new MongoRundownRepository(instance(mongoDb), instance(mongoConverter), instance(segmentRepository))
-	}
-
-	function applyCommonMockingActions(db: Db, mongoDb: MongoDatabase) {
-		when(mongoDb.getCollection(COLLECTION_NAME)).thenReturn(db.collection(COLLECTION_NAME))
 	}
 })

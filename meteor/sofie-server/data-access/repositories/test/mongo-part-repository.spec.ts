@@ -4,7 +4,7 @@ import { Db } from 'mongodb'
 import { MongoEntityConverter } from '../mongo/mongo-entity-converter'
 import { PartRepository } from '../interfaces/part-repository'
 import { MongoDatabase } from '../mongo/mongo-database'
-import { anyString, anything, instance, mock, verify, when } from 'ts-mockito'
+import { anyString, anything, instance, mock, spy, verify, when } from 'ts-mockito'
 import { MongoTestDatabase } from './mongo-test-database'
 import { PieceRepository } from '../interfaces/piece-repository'
 import { Piece, PieceInterface } from '../../../model/entities/piece'
@@ -19,6 +19,7 @@ describe(`${MongoPartRepository.name}`, () => {
 
 	describe(`${MongoPartRepository.prototype.deleteParts.name}`, () => {
 		it('deletes one part successfully', async () => {
+			const mongoDb: MongoDatabase = mock(MongoDatabase)
 			const mongoConverter: MongoEntityConverter = mock(MongoEntityConverter)
 			const segmentId: string = 'someSegmentId'
 			const part: Part = createPart({ segmentId: segmentId })
@@ -26,7 +27,9 @@ describe(`${MongoPartRepository.name}`, () => {
 			const db: Db = testDatabase.getDatabase()
 
 			when(mongoConverter.convertParts(anything())).thenReturn([part])
-			const testee: PartRepository = await createTestee(db, {
+			testDatabase.applyCommonMockingActions(db, mongoDb, COLLECTION_NAME)
+			const testee: PartRepository = await createTestee({
+				mongoDb: mongoDb,
 				mongoConverter: mongoConverter,
 			})
 
@@ -36,6 +39,7 @@ describe(`${MongoPartRepository.name}`, () => {
 		})
 
 		it('deletes multiple parts successfully', async () => {
+			const mongoDb: MongoDatabase = mock(MongoDatabase)
 			const mongoConverter: MongoEntityConverter = mock(MongoEntityConverter)
 			const segmentId: string = 'someSegmentId'
 			const parts: Part[] = [createPart({ segmentId: segmentId }), createPart({ segmentId: segmentId })]
@@ -43,7 +47,9 @@ describe(`${MongoPartRepository.name}`, () => {
 			const db: Db = testDatabase.getDatabase()
 
 			when(mongoConverter.convertParts(anything())).thenReturn(parts)
-			const testee: PartRepository = await createTestee(db, {
+			testDatabase.applyCommonMockingActions(db, mongoDb, COLLECTION_NAME)
+			const testee: PartRepository = await createTestee({
+				mongoDb: mongoDb,
 				mongoConverter: mongoConverter,
 			})
 
@@ -54,6 +60,7 @@ describe(`${MongoPartRepository.name}`, () => {
 
 		// eslint-disable-next-line jest/expect-expect
 		it('calls deletion of pieces, matching amount of parts', async () => {
+			const mongoDb: MongoDatabase = mock(MongoDatabase)
 			const mongoConverter: MongoEntityConverter = mock(MongoEntityConverter)
 			const pieceRepository: PieceRepository = mock<PieceRepository>()
 			const segmentId: string = 'someSegmentId'
@@ -64,8 +71,10 @@ describe(`${MongoPartRepository.name}`, () => {
 
 			when(mongoConverter.convertParts(anything())).thenReturn(parts)
 			when(pieceRepository.getPieces(anything())).thenResolve(pieces)
-			const testee: PartRepository = await createTestee(db, {
+			testDatabase.applyCommonMockingActions(db, mongoDb, COLLECTION_NAME)
+			const testee: PartRepository = await createTestee({
 				mongoConverter: mongoConverter,
+				mongoDb: mongoDb,
 				pieceRepository: pieceRepository,
 			})
 
@@ -75,6 +84,7 @@ describe(`${MongoPartRepository.name}`, () => {
 		})
 
 		it('throws exception, when nonexistent segmentId is given', async () => {
+			const mongoDb: MongoDatabase = mock(MongoDatabase)
 			const expectedErrorMessageFragment: string = 'Expected to delete one or more parts'
 			const mongoConverter: MongoEntityConverter = mock(MongoEntityConverter)
 			const nonExistingId: string = 'nonExistingId'
@@ -83,7 +93,9 @@ describe(`${MongoPartRepository.name}`, () => {
 			const db = testDatabase.getDatabase()
 
 			when(mongoConverter.convertParts(anything())).thenReturn([])
-			const testee: PartRepository = await createTestee(db, {
+			testDatabase.applyCommonMockingActions(db, mongoDb, COLLECTION_NAME)
+			const testee: PartRepository = await createTestee({
+				mongoDb: mongoDb,
 				mongoConverter: mongoConverter,
 			})
 
@@ -99,6 +111,7 @@ describe(`${MongoPartRepository.name}`, () => {
 		})
 
 		it('does not deletes any pieces, when nonexistent segmentId is given', async () => {
+			const mongoDb: MongoDatabase = mock(MongoDatabase)
 			const mongoConverter: MongoEntityConverter = mock(MongoEntityConverter)
 			const nonExistingId: string = 'nonExistingId'
 			const part = createPart({})
@@ -106,7 +119,9 @@ describe(`${MongoPartRepository.name}`, () => {
 			const db = testDatabase.getDatabase()
 
 			when(mongoConverter.convertParts(anything())).thenReturn([])
-			const testee = await createTestee(db, {
+			testDatabase.applyCommonMockingActions(db, mongoDb, COLLECTION_NAME)
+			const testee = await createTestee({
+				mongoDb: mongoDb,
 				mongoConverter: mongoConverter,
 			})
 
@@ -119,6 +134,32 @@ describe(`${MongoPartRepository.name}`, () => {
 				// eslint-disable-next-line jest/no-conditional-expect
 				expect(await db.collection(COLLECTION_NAME).countDocuments()).toBe(1)
 			}
+		})
+
+		// eslint-disable-next-line jest/expect-expect
+		it('deletes pieces before parts', async () => {
+			const mongoDb: MongoDatabase = mock(MongoDatabase)
+			const pieceRepository: PieceRepository = mock<PieceRepository>()
+			const mongoConverter = mock(MongoEntityConverter)
+			const segmentId: string = 'someSegmentId'
+			const part: Part = createPart({ segmentId: segmentId })
+			await testDatabase.populateDatabaseWithParts([part])
+			const db: Db = testDatabase.getDatabase()
+			const collection = db.collection(COLLECTION_NAME)
+			const spied = spy(collection)
+
+			when(mongoConverter.convertParts(anything())).thenReturn([part])
+			when(pieceRepository.getPieces(anything())).thenResolve([])
+			when(mongoDb.getCollection(anything())).thenReturn(collection)
+			const testee: PartRepository = await createTestee({
+				mongoConverter: mongoConverter,
+				mongoDb: mongoDb,
+				pieceRepository: pieceRepository,
+			})
+
+			await testee.deleteParts(segmentId)
+
+			verify(pieceRepository.deletePieces(anything())).calledBefore(spied.deleteMany(anything()))
 		})
 	})
 
@@ -141,19 +182,14 @@ describe(`${MongoPartRepository.name}`, () => {
 		} as PartInterface)
 	}
 
-	async function createTestee(
-		db: Db,
-		params: {
-			pieceRepository?: PieceRepository
-			mongoDb?: MongoDatabase
-			mongoConverter?: MongoEntityConverter
-		}
-	): Promise<PartRepository> {
+	async function createTestee(params: {
+		pieceRepository?: PieceRepository
+		mongoDb?: MongoDatabase
+		mongoConverter?: MongoEntityConverter
+	}): Promise<PartRepository> {
 		const pieceRepository: PieceRepository = params.pieceRepository ?? mock<PieceRepository>()
 		const mongoDb: MongoDatabase = params.mongoDb ?? mock(MongoDatabase)
 		const mongoConverter: MongoEntityConverter = params.mongoConverter ?? mock(MongoEntityConverter)
-
-		when(mongoDb.getCollection(COLLECTION_NAME)).thenReturn(db.collection(COLLECTION_NAME))
 
 		return new MongoPartRepository(instance(mongoDb), instance(mongoConverter), instance(pieceRepository))
 	}
