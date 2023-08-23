@@ -82,7 +82,7 @@ export class Segment {
 		}
 		return part
 	}
-	// TODO: Verify if a check to return early should be added, in case array is empty/only contains 1 element
+
 	public setParts(parts: Part[]): void {
 		this.parts = parts.sort((partOne: Part, partTwo: Part) => partOne.rank - partTwo.rank)
 	}
