@@ -5,6 +5,7 @@ import { MongoEntityConverter, MongoSegment } from './mongo-entity-converter'
 import { BaseMongoRepository } from './base-mongo-repository'
 import { PartRepository } from '../interfaces/part-repository'
 import { DeletionFailedException } from '../../../model/exceptions/deletion-failed-exception'
+import { DeleteResult } from 'mongodb'
 
 const SEGMENT_COLLECTION_NAME: string = 'segments'
 
@@ -37,10 +38,12 @@ export class MongoSegmentRepository extends BaseMongoRepository implements Segme
 
 	public async deleteRundownSegments(rundownId: string): Promise<void> {
 		this.assertDatabaseConnection(this.deleteRundownSegments.name)
-		const segments = await this.getSegments(rundownId)
+		const segments: Segment[] = await this.getSegments(rundownId)
 
-		segments.map((segment) => segment.id).forEach(async (id) => this.partRepository.deleteSegmentParts(id))
-		const segmentDeleteResult = await this.getCollection().deleteMany({ rundownId: rundownId })
+		segments
+			.map((segment: Segment) => segment.id)
+			.forEach(async (id: string) => this.partRepository.deleteSegmentParts(id))
+		const segmentDeleteResult: DeleteResult = await this.getCollection().deleteMany({ rundownId: rundownId })
 
 		// TODO: Figure out how to archive a 'false' acknowledgment, and add test case using that knowledge
 		if (!segmentDeleteResult.acknowledged) {

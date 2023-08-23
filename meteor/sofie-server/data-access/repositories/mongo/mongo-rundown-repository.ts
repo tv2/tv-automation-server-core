@@ -7,6 +7,7 @@ import { BaseMongoRepository } from './base-mongo-repository'
 import { BasicRundown } from '../../../model/entities/basic-rundown'
 import { DeletionFailedException } from '../../../model/exceptions/deletion-failed-exception'
 import { NotFoundException } from '../../../model/exceptions/not-found-exception'
+import { DeleteResult } from 'mongodb'
 
 const RUNDOWN_COLLECTION_NAME: string = 'rundowns'
 
@@ -51,10 +52,10 @@ export class MongoRundownRepository extends BaseMongoRepository implements Rundo
 
 	public async deleteRundown(rundownId: string): Promise<void> {
 		this.assertDatabaseConnection(this.deleteRundown.name)
-		const rundown = await this.getRundown(rundownId)
+		const rundown: Rundown = await this.getRundown(rundownId)
 		await this.segmentRepository.deleteRundownSegments(rundownId)
 
-		const rundownDeletionResult = await this.getCollection().deleteOne({
+		const rundownDeletionResult: DeleteResult = await this.getCollection().deleteOne({
 			_id: rundown.id,
 		})
 

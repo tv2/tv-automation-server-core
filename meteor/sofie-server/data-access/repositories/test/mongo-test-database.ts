@@ -2,7 +2,7 @@
 import { MongoMemoryServer } from 'mongodb-memory-server'
 import { Db, MongoClient } from 'mongodb'
 import { Rundown } from '../../../model/entities/rundown'
-import { MongoEntityConverter } from '../mongo/mongo-entity-converter'
+import { MongoEntityConverter, MongoRundown } from '../mongo/mongo-entity-converter'
 import { Segment } from '../../../model/entities/segment'
 import { Part } from '../../../model/entities/part'
 import { Piece } from '../../../model/entities/piece'
@@ -18,7 +18,7 @@ export class MongoTestDatabase {
 		jest.setTimeout(15000)
 	}
 
-	public async setupDatabase(override?: () => Promise<void>) {
+	public async setupDatabase(override?: () => Promise<void>): Promise<void> {
 		if (override) {
 			return override()
 		}
@@ -26,7 +26,7 @@ export class MongoTestDatabase {
 		this.client = await MongoClient.connect(this.mongoServer.getUri())
 	}
 
-	public async teardownDatabase(override?: () => Promise<void>) {
+	public async teardownDatabase(override?: () => Promise<void>): Promise<void> {
 		if (override) {
 			return override()
 		}
@@ -42,15 +42,15 @@ export class MongoTestDatabase {
 		return this.client.db(this.mongoServer.instanceInfo!.dbName)
 	}
 
-	public applyCommonMocking(db: Db, mongoDb: MongoDatabase, collectionName: string) {
+	public applyCommonMocking(db: Db, mongoDb: MongoDatabase, collectionName: string): void {
 		when(mongoDb.getCollection(collectionName)).thenReturn(db.collection(collectionName))
 	}
 
 	public async populateDatabaseWithRundowns(rundowns: Rundown[]): Promise<void> {
 		const db: Db = this.getDatabase()
-		const entityConverter = new MongoEntityConverter()
+		const entityConverter: MongoEntityConverter = new MongoEntityConverter()
 		for (const rundown of rundowns) {
-			const convertedRundown = entityConverter.convertToMongoRundown(rundown)
+			const convertedRundown: MongoRundown = entityConverter.convertToMongoRundown(rundown)
 			await db.collection('rundowns').insertOne(convertedRundown)
 			if (rundown.isActive()) {
 				await db.collection('rundownPlaylists').insertOne({
@@ -67,7 +67,7 @@ export class MongoTestDatabase {
 
 	public async populateDatabaseWithSegments(segments: Segment[]): Promise<void> {
 		const db: Db = this.getDatabase()
-		const entityConverter = new MongoEntityConverter()
+		const entityConverter: MongoEntityConverter = new MongoEntityConverter()
 		for (const segment of entityConverter.convertToMongoSegments(segments)) {
 			await db.collection('segments').insertOne(segment)
 		}
@@ -75,15 +75,15 @@ export class MongoTestDatabase {
 
 	public async populateDatabaseWithParts(parts: Part[]): Promise<void> {
 		const db: Db = this.getDatabase()
-		const entityConverter = new MongoEntityConverter()
+		const entityConverter: MongoEntityConverter = new MongoEntityConverter()
 		for (const part of entityConverter.convertToMongoParts(parts)) {
 			await db.collection('parts').insertOne(part)
 		}
 	}
 
-	public async populateDatabaseWithPieces(pieces: Piece[]) {
+	public async populateDatabaseWithPieces(pieces: Piece[]): Promise<void> {
 		const db: Db = this.getDatabase()
-		const entityConverter = new MongoEntityConverter()
+		const entityConverter: MongoEntityConverter = new MongoEntityConverter()
 		for (const piece of entityConverter.convertToMongoPieces(pieces)) {
 			await db.collection('pieces').insertOne(piece)
 		}

@@ -4,6 +4,7 @@ import { Piece } from '../../../model/entities/piece'
 import { MongoEntityConverter, MongoPiece } from './mongo-entity-converter'
 import { MongoDatabase } from './mongo-database'
 import { DeletionFailedException } from '../../../model/exceptions/deletion-failed-exception'
+import { DeleteResult } from 'mongodb'
 
 const PIECE_COLLECTION_NAME: string = 'pieces'
 
@@ -26,7 +27,7 @@ export class MongoPieceRepository extends BaseMongoRepository implements PieceRe
 
 	public async deletePartPieces(partId: string): Promise<void> {
 		this.assertDatabaseConnection(this.deletePartPieces.name)
-		const piecesDeletionResult = await this.getCollection().deleteMany({ startPartId: partId })
+		const piecesDeletionResult: DeleteResult = await this.getCollection().deleteMany({ startPartId: partId })
 
 		//TODO: Figure out how to archive a 'false' acknowledgment, and add test case using that knowledge
 		if (!piecesDeletionResult.acknowledged) {
