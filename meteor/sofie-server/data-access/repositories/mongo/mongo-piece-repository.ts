@@ -24,8 +24,8 @@ export class MongoPieceRepository extends BaseMongoRepository implements PieceRe
 		return this.mongoEntityConverter.convertPieces(mongoPieces)
 	}
 
-	public async deletePieces(partId: string): Promise<void> {
-		this.assertDatabaseConnection(this.deletePieces.name)
+	public async deletePartPieces(partId: string): Promise<void> {
+		this.assertDatabaseConnection(this.deletePartPieces.name)
 		const piecesDeletionResult = await this.getCollection().deleteMany({ startPartId: partId })
 
 		//TODO: Figure out how to archive a 'false' acknowledgment, and add test case using that knowledge

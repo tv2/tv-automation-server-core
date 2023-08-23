@@ -52,7 +52,7 @@ export class MongoRundownRepository extends BaseMongoRepository implements Rundo
 	public async deleteRundown(rundownId: string): Promise<void> {
 		this.assertDatabaseConnection(this.deleteRundown.name)
 		const rundown = await this.getRundown(rundownId)
-		await this.segmentRepository.deleteSegments(rundownId)
+		await this.segmentRepository.deleteRundownSegments(rundownId)
 
 		const rundownDeletionResult = await this.getCollection().deleteOne({
 			_id: rundown.id,

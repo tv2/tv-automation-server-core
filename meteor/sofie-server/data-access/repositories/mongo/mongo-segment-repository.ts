@@ -35,11 +35,11 @@ export class MongoSegmentRepository extends BaseMongoRepository implements Segme
 		)
 	}
 
-	public async deleteSegments(rundownId: string): Promise<void> {
-		this.assertDatabaseConnection(this.deleteSegments.name)
+	public async deleteRundownSegments(rundownId: string): Promise<void> {
+		this.assertDatabaseConnection(this.deleteRundownSegments.name)
 		const segments = await this.getSegments(rundownId)
 
-		segments.map((segment) => segment.id).forEach(async (id) => this.partRepository.deleteParts(id))
+		segments.map((segment) => segment.id).forEach(async (id) => this.partRepository.deleteSegmentParts(id))
 		const segmentDeleteResult = await this.getCollection().deleteMany({ rundownId: rundownId })
 
 		// TODO: Figure out how to archive a 'false' acknowledgment, and add test case using that knowledge

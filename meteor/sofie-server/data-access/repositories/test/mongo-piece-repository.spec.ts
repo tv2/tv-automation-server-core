@@ -15,7 +15,7 @@ describe(`${MongoPieceRepository.name}`, () => {
 	beforeEach(async () => await testDatabase.setupDatabase())
 	afterEach(async () => testDatabase.teardownDatabase())
 
-	describe(`${MongoPieceRepository.prototype.deletePieces.name}`, () => {
+	describe(`${MongoPieceRepository.prototype.deletePartPieces.name}`, () => {
 		it('deletes one pieces successfully', async () => {
 			const mongoConverter: MongoEntityConverter = mock(MongoEntityConverter)
 			const partId: string = 'somePartId'
@@ -28,7 +28,7 @@ describe(`${MongoPieceRepository.name}`, () => {
 				mongoConverter: mongoConverter,
 			})
 
-			await testee.deletePieces(partId)
+			await testee.deletePartPieces(partId)
 
 			expect(await db.collection(COLLECTION_NAME).countDocuments()).toBe(0)
 		})
@@ -45,7 +45,7 @@ describe(`${MongoPieceRepository.name}`, () => {
 				mongoConverter: mongoConverter,
 			})
 
-			await testee.deletePieces(partId)
+			await testee.deletePartPieces(partId)
 
 			expect(await db.collection(COLLECTION_NAME).countDocuments()).toBe(0)
 		})
@@ -66,7 +66,7 @@ describe(`${MongoPieceRepository.name}`, () => {
 
 			expect.assertions(2)
 			try {
-				await testee.deletePieces(nonExistingId)
+				await testee.deletePartPieces(nonExistingId)
 			} catch (error) {
 				// eslint-disable-next-line jest/no-conditional-expect
 				expect(error).toBeInstanceOf(DeletionFailedException)
@@ -90,7 +90,7 @@ describe(`${MongoPieceRepository.name}`, () => {
 
 			expect.assertions(2)
 			try {
-				await testee.deletePieces(nonExistingId)
+				await testee.deletePartPieces(nonExistingId)
 			} catch (error) {
 				// eslint-disable-next-line jest/no-conditional-expect
 				expect(error).toBeInstanceOf(DeletionFailedException)

@@ -17,7 +17,7 @@ describe(`${MongoPartRepository.name}`, () => {
 	beforeEach(async () => await testDatabase.setupDatabase())
 	afterEach(async () => await testDatabase.teardownDatabase())
 
-	describe(`${MongoPartRepository.prototype.deleteParts.name}`, () => {
+	describe(`${MongoPartRepository.prototype.deleteSegmentParts.name}`, () => {
 		it('deletes one part successfully', async () => {
 			const mongoConverter: MongoEntityConverter = mock(MongoEntityConverter)
 			const segmentId: string = 'someSegmentId'
@@ -30,7 +30,7 @@ describe(`${MongoPartRepository.name}`, () => {
 				mongoConverter: mongoConverter,
 			})
 
-			await testee.deleteParts(segmentId)
+			await testee.deleteSegmentParts(segmentId)
 
 			expect(await db.collection(COLLECTION_NAME).countDocuments()).toBe(0)
 		})
@@ -47,7 +47,7 @@ describe(`${MongoPartRepository.name}`, () => {
 				mongoConverter: mongoConverter,
 			})
 
-			await testee.deleteParts(segmentId)
+			await testee.deleteSegmentParts(segmentId)
 
 			expect(await db.collection(COLLECTION_NAME).countDocuments()).toBe(0)
 		})
@@ -68,9 +68,9 @@ describe(`${MongoPartRepository.name}`, () => {
 				pieceRepository: pieceRepository,
 			})
 
-			await testee.deleteParts(segmentId)
+			await testee.deleteSegmentParts(segmentId)
 
-			verify(pieceRepository.deletePieces(anyString())).times(parts.length)
+			verify(pieceRepository.deletePartPieces(anyString())).times(parts.length)
 		})
 
 		it('throws exception, when nonexistent segmentId is given', async () => {
@@ -87,7 +87,7 @@ describe(`${MongoPartRepository.name}`, () => {
 
 			expect.assertions(2)
 			try {
-				await testee.deleteParts(nonExistingId)
+				await testee.deleteSegmentParts(nonExistingId)
 			} catch (error) {
 				// eslint-disable-next-line jest/no-conditional-expect
 				expect(error).toBeInstanceOf(DeletionFailedException)
@@ -110,7 +110,7 @@ describe(`${MongoPartRepository.name}`, () => {
 
 			expect.assertions(2)
 			try {
-				await testee.deleteParts(nonExistingId)
+				await testee.deleteSegmentParts(nonExistingId)
 			} catch (error) {
 				// eslint-disable-next-line jest/no-conditional-expect
 				expect(error).toBeInstanceOf(DeletionFailedException)
@@ -140,9 +140,9 @@ describe(`${MongoPartRepository.name}`, () => {
 				pieceRepository: pieceRepository,
 			})
 
-			await testee.deleteParts(segmentId)
+			await testee.deleteSegmentParts(segmentId)
 
-			verify(pieceRepository.deletePieces(anything())).calledBefore(spied.deleteMany(anything()))
+			verify(pieceRepository.deletePartPieces(anything())).calledBefore(spied.deleteMany(anything()))
 		})
 	})
 
