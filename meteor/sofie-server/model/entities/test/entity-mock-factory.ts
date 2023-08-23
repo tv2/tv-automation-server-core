@@ -147,7 +147,7 @@ export class EntityMockFactory {
 
 		when(mockedPart.getTimings()).thenReturn(
 			misc.partTimings ?? {
-				inTransitionStart: null,
+				inTransitionStart: undefined,
 				delayStartOfPiecesDuration: 0,
 				postRollDuration: 0,
 				previousPartContinueIntoPartDuration: 0,

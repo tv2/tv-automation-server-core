@@ -26,7 +26,7 @@ describe('Part', () => {
 				testee.calculateTimings()
 
 				const result: PartTimings = testee.getTimings()
-				expect(result.inTransitionStart).toBeNull()
+				expect(result.inTransitionStart).toBeUndefined()
 			})
 
 			describe('it have no Pieces', () => {
@@ -260,7 +260,7 @@ describe('Part', () => {
 					testee.calculateTimings(previousPart)
 
 					const result: PartTimings = testee.getTimings()
-					expect(result.inTransitionStart).toBeNull()
+					expect(result.inTransitionStart).toBeUndefined()
 				})
 
 				describe('"keepPreviousPartAliveDuration" is equal to the Part.autoNext.overlap and the Part has no "delayPiecesDuration"', () => {
@@ -694,12 +694,11 @@ describe('Part', () => {
 						testee.calculateTimings(previousPart)
 
 						const result: PartTimings = testee.getTimings()
-						expect(result.inTransitionStart).toBeNull()
+						expect(result.inTransitionStart).toBeUndefined()
 					})
 				})
 
 				describe('previous Part should not disableNextTransition', () => {
-					// TODO: Write more testcases for the test case below. We have done it for the rest...
 					it('should have same inTransitionStart as pieces should be delayed', () => {
 						const previousPart: Part = EntityMockFactory.createPart({
 							disableNextInTransition: false,

@@ -153,7 +153,7 @@ export class Part {
 			)
 
 			this.timings = {
-				inTransitionStart: null,
+				inTransitionStart: undefined,
 				delayStartOfPiecesDuration,
 				postRollDuration: maxPostRollDurationForPieces,
 				previousPartContinueIntoPartDuration:
@@ -174,7 +174,7 @@ export class Part {
 		)
 
 		this.timings = {
-			inTransitionStart: allowTransition ? delayStartOfPiecesDuration : null,
+			inTransitionStart: allowTransition ? delayStartOfPiecesDuration : undefined,
 			delayStartOfPiecesDuration: delayStartOfPiecesDuration + inTransition.delayPiecesDuration,
 			postRollDuration: maxPostRollDurationForPieces,
 			previousPartContinueIntoPartDuration:
