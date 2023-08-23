@@ -68,18 +68,12 @@ module.exports = {
 	extends: [...commonExtends, 'plugin:react/recommended'],
 	plugins: [...commonPlugins, 'react'],
 	rules: {
-		'prettier/prettier': [
-			'error',
-			{
-				endOfLine: 'auto',
-			},
-		],
+		'prettier/prettier': ['error'],
 	},
 	env: { es2017: true },
 	parserOptions: {
 		sourceType: 'module',
 		ecmaVersion: 2018,
-		tsconfigRootDir: __dirname,
 	},
 	settings: {
 		react: {
