@@ -2242,7 +2242,7 @@ describe('superfly-timeline-builder', () => {
 					})
 				})
 
-				it('sets Timeline.autoNext.timeUntilAutoNextInMs to be now + active Part.expected duration + active Part.delayStartOffPiecesDuration - next Part.previousPartContinueIntoPartDuration', () => {
+				it('sets Timeline.autoNext.epochTimeToTakeNext to be now + active Part.expected duration + active Part.delayStartOffPiecesDuration - next Part.previousPartContinueIntoPartDuration', () => {
 					const now: number = Date.now()
 					jest.useFakeTimers('modern').setSystemTime(now)
 
@@ -2263,9 +2263,9 @@ describe('superfly-timeline-builder', () => {
 					const timeline: Timeline = testee.buildTimeline(rundown)
 
 					expect(timeline.autoNext).not.toBeUndefined()
-					const expectedPointInTimeToTakeNext: number =
+					const expectedEpochTimeToTakeNext: number =
 						now + activePart.expectedDuration + delayStartOfPiecesDuration - continueIntoPartDuration
-					expect(timeline.autoNext?.pointInTimeToTakeNext).toBe(expectedPointInTimeToTakeNext)
+					expect(timeline.autoNext?.epochTimeToTakeNext).toBe(expectedEpochTimeToTakeNext)
 				})
 
 				describe('it creates a group for next Part', () => {

@@ -6,7 +6,7 @@ import { TimelineBuilder } from '../services/interfaces/timeline-builder'
 import { SuperflyTimelineBuilder } from '../services/superfly-timeline-builder'
 import { RundownEventBuilderImplementation } from '../services/rundown-event-builder-implementation'
 import { RundownEventBuilder } from '../services/interfaces/rundown-event-builder'
-import { TimeoutAutoNextTimerService } from '../services/timeout-auto-next-timer-service'
+import { TimeoutCallbackScheduler } from '../services/timeout-callback-scheduler'
 
 export class ServiceFacade {
 	public static createRundownService(): RundownService {
@@ -17,7 +17,7 @@ export class ServiceFacade {
 			RepositoryFacade.createAdLibRepository(),
 			ServiceFacade.createTimelineBuilder(),
 			ServiceFacade.createRundownEventBuilder(),
-			TimeoutAutoNextTimerService.getInstance()
+			TimeoutCallbackScheduler.getInstance()
 		)
 	}
 

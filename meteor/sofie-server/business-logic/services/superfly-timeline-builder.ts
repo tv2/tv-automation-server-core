@@ -75,7 +75,7 @@ export class SuperflyTimelineBuilder implements TimelineBuilder {
 				)
 			}
 			timeline.autoNext = {
-				pointInTimeToTakeNext:
+				epochTimeToTakeNext:
 					activePartTimelineGroup.shouldAutoNextAtPointInTime -
 					rundown.getNextPart().getTimings().previousPartContinueIntoPartDuration,
 			}

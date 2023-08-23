@@ -14,7 +14,7 @@ import { AdLibPieceRepository } from '../../data-access/repositories/interfaces/
 import { AdLibPiece } from '../../model/entities/ad-lib-piece'
 import { Piece } from '../../model/entities/piece'
 import { RundownEventBuilder } from './interfaces/rundown-event-builder'
-import { AutoNextTimerService } from './interfaces/auto-next-timer-service'
+import { CallbackScheduler } from './interfaces/callback-scheduler'
 
 export class RundownTimelineService implements RundownService {
 	constructor(
@@ -24,7 +24,7 @@ export class RundownTimelineService implements RundownService {
 		private adLibPieceRepository: AdLibPieceRepository,
 		private timelineBuilder: TimelineBuilder,
 		private rundownEventBuilder: RundownEventBuilder,
-		private autoNextTimerService: AutoNextTimerService
+		private callbackScheduler: CallbackScheduler
 	) {}
 
 	public async activateRundown(rundownId: string): Promise<void> {
@@ -47,7 +47,7 @@ export class RundownTimelineService implements RundownService {
 	}
 
 	public async deactivateRundown(rundownId: string): Promise<void> {
-		this.autoNextTimerService.stop()
+		this.callbackScheduler.stop()
 
 		const rundown: Rundown = await this.rundownRepository.getRundown(rundownId)
 
@@ -62,7 +62,7 @@ export class RundownTimelineService implements RundownService {
 	}
 
 	public async takeNext(rundownId: string): Promise<void> {
-		this.autoNextTimerService.stop()
+		this.callbackScheduler.stop()
 
 		const rundown: Rundown = await this.rundownRepository.getRundown(rundownId)
 		const infinitePiecesBefore: Piece[] = rundown.getInfinitePieces()
@@ -72,7 +72,7 @@ export class RundownTimelineService implements RundownService {
 		const timeline: Timeline = this.timelineBuilder.buildTimeline(rundown)
 
 		if (timeline.autoNext) {
-			this.autoNextTimerService.start(timeline.autoNext.pointInTimeToTakeNext, async () =>
+			this.callbackScheduler.start(timeline.autoNext.epochTimeToTakeNext, async () =>
 				this.takeNext(rundownId)
 			)
 		}
@@ -113,7 +113,7 @@ export class RundownTimelineService implements RundownService {
 	}
 
 	public async resetRundown(rundownId: string): Promise<void> {
-		this.autoNextTimerService.stop()
+		this.callbackScheduler.stop()
 
 		const rundown: Rundown = await this.rundownRepository.getRundown(rundownId)
 		rundown.reset()

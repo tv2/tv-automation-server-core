@@ -3,7 +3,7 @@ import { TimelineObject } from './timeline-object'
 export interface Timeline {
 	timelineGroups: TimelineObjectGroup[]
 	autoNext?: {
-		pointInTimeToTakeNext: number
+		epochTimeToTakeNext: number
 	}
 }
 
