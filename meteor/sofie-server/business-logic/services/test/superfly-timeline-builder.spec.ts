@@ -1,14 +1,12 @@
 import { TimelineBuilder } from '../interfaces/timeline-builder'
 import { SuperflyTimelineBuilder } from '../superfly-timeline-builder'
 import { EntityMockFactory } from '../../../model/entities/test/entity-mock-factory'
-import { Part, PartInterface } from '../../../model/entities/part'
-import { Segment, SegmentInterface } from '../../../model/entities/segment'
+import { Part } from '../../../model/entities/part'
 import { Rundown } from '../../../model/entities/rundown'
 import { Timeline, TimelineObjectGroup } from '../../../model/entities/timeline'
-import { Piece, PieceInterface } from '../../../model/entities/piece'
+import { Piece } from '../../../model/entities/piece'
 import { TimelineObject } from '../../../model/entities/timeline-object'
 import { TransitionType } from '../../../model/enums/transition-type'
-import { PartTimings } from '../../../model/value-objects/part-timings'
 import { PieceLifespan } from '../../../model/enums/piece-lifespan'
 
 const ACTIVE_GROUP_PREFIX: string = 'active_group_'
@@ -106,8 +104,8 @@ describe('superfly-timeline-builder', () => {
 					it('sets correct control group id for Piece on active group', () => {
 						const piece: Piece = EntityMockFactory.createPiece({
 							transitionType: TransitionType.NO_TRANSITION,
-						} as PieceInterface)
-						const activePart: Part = EntityMockFactory.createPart({ pieces: [piece] } as PartInterface)
+						})
+						const activePart: Part = EntityMockFactory.createPart({ pieces: [piece] })
 						const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
 
 						const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -127,8 +125,8 @@ describe('superfly-timeline-builder', () => {
 					it('sets correct parentGroup id', () => {
 						const piece: Piece = EntityMockFactory.createPiece({
 							transitionType: TransitionType.NO_TRANSITION,
-						} as PieceInterface)
-						const activePart: Part = EntityMockFactory.createPart({ pieces: [piece] } as PartInterface)
+						})
+						const activePart: Part = EntityMockFactory.createPart({ pieces: [piece] })
 						const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
 
 						const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -149,8 +147,8 @@ describe('superfly-timeline-builder', () => {
 						const piece: Piece = EntityMockFactory.createPiece({
 							layer,
 							transitionType: TransitionType.NO_TRANSITION,
-						} as PieceInterface)
-						const activePart: Part = EntityMockFactory.createPart({ pieces: [piece] } as PartInterface)
+						})
+						const activePart: Part = EntityMockFactory.createPart({ pieces: [piece] })
 						const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
 
 						const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -169,8 +167,8 @@ describe('superfly-timeline-builder', () => {
 					it('sets priority to MEDIUM', () => {
 						const piece: Piece = EntityMockFactory.createPiece({
 							transitionType: TransitionType.NO_TRANSITION,
-						} as PieceInterface)
-						const activePart: Part = EntityMockFactory.createPart({ pieces: [piece] } as PartInterface)
+						})
+						const activePart: Part = EntityMockFactory.createPart({ pieces: [piece] })
 						const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
 
 						const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -193,11 +191,11 @@ describe('superfly-timeline-builder', () => {
 								const piece: Piece = EntityMockFactory.createPiece({
 									start: 10,
 									transitionType: TransitionType.IN_TRANSITION,
-								} as PieceInterface)
+								})
 
 								const activePart: Part = EntityMockFactory.createPart(
-									{ pieces: [piece] } as PartInterface,
-									{ partTimings: { inTransitionStart } as PartTimings }
+									{ pieces: [piece] },
+									{ partTimings: { inTransitionStart } }
 								)
 								const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
 
@@ -218,10 +216,10 @@ describe('superfly-timeline-builder', () => {
 								const piece: Piece = EntityMockFactory.createPiece({
 									duration: 15,
 									transitionType: TransitionType.IN_TRANSITION,
-								} as PieceInterface)
+								})
 								const activePart: Part = EntityMockFactory.createPart(
-									{ pieces: [piece] } as PartInterface,
-									{ partTimings: { inTransitionStart: 20 } as PartTimings }
+									{ pieces: [piece] },
+									{ partTimings: { inTransitionStart: 20 } }
 								)
 								const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
 
@@ -243,10 +241,10 @@ describe('superfly-timeline-builder', () => {
 							it('does not create any groups for Piece', () => {
 								const piece: Piece = EntityMockFactory.createPiece({
 									transitionType: TransitionType.IN_TRANSITION,
-								} as PieceInterface)
+								})
 								const activePart: Part = EntityMockFactory.createPart({
 									pieces: [piece],
-								} as PartInterface)
+								})
 								const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
 
 								const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -271,7 +269,7 @@ describe('superfly-timeline-builder', () => {
 								it('sets TimelineEnable.start to activeGroup.end - Part.keepAliveDuration - Part.postRollDuration', () => {
 									const piece: Piece = EntityMockFactory.createPiece({
 										transitionType: TransitionType.OUT_TRANSITION,
-									} as PieceInterface)
+									})
 
 									const postRollDuration: number = 20
 									const keepAliveDuration: number = 30
@@ -280,8 +278,8 @@ describe('superfly-timeline-builder', () => {
 										{
 											outTransition: { keepAliveDuration },
 											pieces: [piece],
-										} as PartInterface,
-										{ partTimings: { postRollDuration } as PartTimings }
+										},
+										{ partTimings: { postRollDuration } }
 									)
 									const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
 
@@ -305,14 +303,14 @@ describe('superfly-timeline-builder', () => {
 								it('sets TimelineEnable.start to activeGroup.end - Part.keepAliveDuration', () => {
 									const piece: Piece = EntityMockFactory.createPiece({
 										transitionType: TransitionType.OUT_TRANSITION,
-									} as PieceInterface)
+									})
 
 									const keepAliveDuration: number = 30
 
 									const activePart: Part = EntityMockFactory.createPart({
 										outTransition: { keepAliveDuration },
 										pieces: [piece],
-									} as PartInterface)
+									})
 									const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
 
 									const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -336,10 +334,10 @@ describe('superfly-timeline-builder', () => {
 							it('does not create any groups for Piece', () => {
 								const piece: Piece = EntityMockFactory.createPiece({
 									transitionType: TransitionType.OUT_TRANSITION,
-								} as PieceInterface)
+								})
 								const activePart: Part = EntityMockFactory.createPart({
 									pieces: [piece],
-								} as PartInterface)
+								})
 								const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
 
 								const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -362,8 +360,8 @@ describe('superfly-timeline-builder', () => {
 							const piece: Piece = EntityMockFactory.createPiece({
 								start: 5,
 								transitionType: TransitionType.NO_TRANSITION,
-							} as PieceInterface)
-							const activePart: Part = EntityMockFactory.createPart({ pieces: [piece] } as PartInterface)
+							})
+							const activePart: Part = EntityMockFactory.createPart({ pieces: [piece] })
 							const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
 
 							const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -384,10 +382,10 @@ describe('superfly-timeline-builder', () => {
 								const piece: Piece = EntityMockFactory.createPiece({
 									duration: 50,
 									transitionType: TransitionType.NO_TRANSITION,
-								} as PieceInterface)
+								})
 								const activePart: Part = EntityMockFactory.createPart({
 									pieces: [piece],
-								} as PartInterface)
+								})
 								const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
 
 								const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -409,13 +407,13 @@ describe('superfly-timeline-builder', () => {
 								it('sets TimelineEnable.duration activeGroup.end - Part.timings.postRollDuration', () => {
 									const piece: Piece = EntityMockFactory.createPiece({
 										transitionType: TransitionType.NO_TRANSITION,
-									} as PieceInterface)
+									})
 
 									const postRollDuration: number = 20
 
 									const activePart: Part = EntityMockFactory.createPart(
-										{ pieces: [piece] } as PartInterface,
-										{ partTimings: { postRollDuration } as PartTimings }
+										{ pieces: [piece] },
+										{ partTimings: { postRollDuration } }
 									)
 									const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
 
@@ -439,10 +437,10 @@ describe('superfly-timeline-builder', () => {
 								it('sets TimelineEnable.duration to be zero', () => {
 									const piece: Piece = EntityMockFactory.createPiece({
 										transitionType: TransitionType.NO_TRANSITION,
-									} as PieceInterface)
+									})
 									const activePart: Part = EntityMockFactory.createPart({
 										pieces: [piece],
-									} as PartInterface)
+									})
 									const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
 
 									const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -468,10 +466,10 @@ describe('superfly-timeline-builder', () => {
 									start: 0,
 									preRollDuration: 10,
 									transitionType: TransitionType.NO_TRANSITION,
-								} as PieceInterface)
+								})
 								const activePart: Part = EntityMockFactory.createPart({
 									pieces: [piece],
-								} as PartInterface)
+								})
 								const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
 
 								const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -496,10 +494,10 @@ describe('superfly-timeline-builder', () => {
 									start: 0,
 									preRollDuration: 10,
 									transitionType: TransitionType.NO_TRANSITION,
-								} as PieceInterface)
+								})
 								const activePart: Part = EntityMockFactory.createPart({
 									pieces: [piece],
-								} as PartInterface)
+								})
 								const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
 
 								const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -520,10 +518,10 @@ describe('superfly-timeline-builder', () => {
 									start: 0,
 									preRollDuration: 10,
 									transitionType: TransitionType.NO_TRANSITION,
-								} as PieceInterface)
+								})
 								const activePart: Part = EntityMockFactory.createPart({
 									pieces: [piece],
-								} as PartInterface)
+								})
 								const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
 
 								const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -544,10 +542,10 @@ describe('superfly-timeline-builder', () => {
 									start: 0,
 									preRollDuration: 10,
 									transitionType: TransitionType.NO_TRANSITION,
-								} as PieceInterface)
+								})
 								const activePart: Part = EntityMockFactory.createPart({
 									pieces: [piece],
-								} as PartInterface)
+								})
 								const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
 
 								const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -575,8 +573,8 @@ describe('superfly-timeline-builder', () => {
 					it('sets correct Piece group id for Piece on active group', () => {
 						const piece: Piece = EntityMockFactory.createPiece({
 							transitionType: TransitionType.NO_TRANSITION,
-						} as PieceInterface)
-						const activePart: Part = EntityMockFactory.createPart({ pieces: [piece] } as PartInterface)
+						})
+						const activePart: Part = EntityMockFactory.createPart({ pieces: [piece] })
 						const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
 
 						const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -596,8 +594,8 @@ describe('superfly-timeline-builder', () => {
 					it('sets correct parentGroup id', () => {
 						const piece: Piece = EntityMockFactory.createPiece({
 							transitionType: TransitionType.NO_TRANSITION,
-						} as PieceInterface)
-						const activePart: Part = EntityMockFactory.createPart({ pieces: [piece] } as PartInterface)
+						})
+						const activePart: Part = EntityMockFactory.createPart({ pieces: [piece] })
 						const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
 
 						const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -616,8 +614,8 @@ describe('superfly-timeline-builder', () => {
 					it('sets an empty layer', () => {
 						const piece: Piece = EntityMockFactory.createPiece({
 							transitionType: TransitionType.NO_TRANSITION,
-						} as PieceInterface)
-						const activePart: Part = EntityMockFactory.createPart({ pieces: [piece] } as PartInterface)
+						})
+						const activePart: Part = EntityMockFactory.createPart({ pieces: [piece] })
 						const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
 
 						const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -638,8 +636,8 @@ describe('superfly-timeline-builder', () => {
 							const piece: Piece = EntityMockFactory.createPiece({
 								preRollDuration: 20,
 								transitionType: TransitionType.NO_TRANSITION,
-							} as PieceInterface)
-							const activePart: Part = EntityMockFactory.createPart({ pieces: [piece] } as PartInterface)
+							})
+							const activePart: Part = EntityMockFactory.createPart({ pieces: [piece] })
 							const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
 
 							const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -665,8 +663,8 @@ describe('superfly-timeline-builder', () => {
 						it('sets TimelineEnable.start to PieceControlGroup.start', () => {
 							const piece: Piece = EntityMockFactory.createPiece({
 								transitionType: TransitionType.NO_TRANSITION,
-							} as PieceInterface)
-							const activePart: Part = EntityMockFactory.createPart({ pieces: [piece] } as PartInterface)
+							})
+							const activePart: Part = EntityMockFactory.createPart({ pieces: [piece] })
 							const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
 
 							const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -691,8 +689,8 @@ describe('superfly-timeline-builder', () => {
 							const piece: Piece = EntityMockFactory.createPiece({
 								postRollDuration: 30,
 								transitionType: TransitionType.NO_TRANSITION,
-							} as PieceInterface)
-							const activePart: Part = EntityMockFactory.createPart({ pieces: [piece] } as PartInterface)
+							})
+							const activePart: Part = EntityMockFactory.createPart({ pieces: [piece] })
 							const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
 
 							const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -716,8 +714,8 @@ describe('superfly-timeline-builder', () => {
 						it('sets TimelineEnable.end to PieceControlGroup.end', () => {
 							const piece: Piece = EntityMockFactory.createPiece({
 								transitionType: TransitionType.NO_TRANSITION,
-							} as PieceInterface)
-							const activePart: Part = EntityMockFactory.createPart({ pieces: [piece] } as PartInterface)
+							})
+							const activePart: Part = EntityMockFactory.createPart({ pieces: [piece] })
 							const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
 
 							const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -743,8 +741,8 @@ describe('superfly-timeline-builder', () => {
 							const piece: Piece = EntityMockFactory.createPiece({
 								timelineObjects: [timelineObject],
 								transitionType: TransitionType.NO_TRANSITION,
-							} as PieceInterface)
-							const activePart: Part = EntityMockFactory.createPart({ pieces: [piece] } as PartInterface)
+							})
+							const activePart: Part = EntityMockFactory.createPart({ pieces: [piece] })
 							const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
 
 							const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -766,8 +764,8 @@ describe('superfly-timeline-builder', () => {
 							const piece: Piece = EntityMockFactory.createPiece({
 								timelineObjects: [timelineObject],
 								transitionType: TransitionType.NO_TRANSITION,
-							} as PieceInterface)
-							const activePart: Part = EntityMockFactory.createPart({ pieces: [piece] } as PartInterface)
+							})
+							const activePart: Part = EntityMockFactory.createPart({ pieces: [piece] })
 							const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
 
 							const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -790,8 +788,8 @@ describe('superfly-timeline-builder', () => {
 							const piece: Piece = EntityMockFactory.createPiece({
 								timelineObjects: [timelineObject],
 								transitionType: TransitionType.NO_TRANSITION,
-							} as PieceInterface)
-							const activePart: Part = EntityMockFactory.createPart({ pieces: [piece] } as PartInterface)
+							})
+							const activePart: Part = EntityMockFactory.createPart({ pieces: [piece] })
 							const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
 
 							const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -821,8 +819,8 @@ describe('superfly-timeline-builder', () => {
 							const piece: Piece = EntityMockFactory.createPiece({
 								timelineObjects,
 								transitionType: TransitionType.NO_TRANSITION,
-							} as PieceInterface)
-							const activePart: Part = EntityMockFactory.createPart({ pieces: [piece] } as PartInterface)
+							})
+							const activePart: Part = EntityMockFactory.createPart({ pieces: [piece] })
 							const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
 
 							const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -847,25 +845,25 @@ describe('superfly-timeline-builder', () => {
 						EntityMockFactory.createPiece({
 							id: '1',
 							transitionType: TransitionType.NO_TRANSITION,
-						} as PieceInterface),
+						}),
 						EntityMockFactory.createPiece({
 							id: '2',
 							transitionType: TransitionType.NO_TRANSITION,
-						} as PieceInterface),
+						}),
 						EntityMockFactory.createPiece({
 							id: '3',
 							transitionType: TransitionType.NO_TRANSITION,
-						} as PieceInterface),
+						}),
 						EntityMockFactory.createPiece({
 							id: '4',
 							transitionType: TransitionType.NO_TRANSITION,
-						} as PieceInterface),
+						}),
 						EntityMockFactory.createPiece({
 							id: '5',
 							transitionType: TransitionType.NO_TRANSITION,
-						} as PieceInterface),
+						}),
 					]
-					const activePart: Part = EntityMockFactory.createPart({ pieces } as PartInterface)
+					const activePart: Part = EntityMockFactory.createPart({ pieces })
 					const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
 
 					const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -885,25 +883,25 @@ describe('superfly-timeline-builder', () => {
 						EntityMockFactory.createPiece({
 							id: '1',
 							transitionType: TransitionType.NO_TRANSITION,
-						} as PieceInterface),
+						}),
 						EntityMockFactory.createPiece({
 							id: '2',
 							transitionType: TransitionType.NO_TRANSITION,
-						} as PieceInterface),
+						}),
 						EntityMockFactory.createPiece({
 							id: '3',
 							transitionType: TransitionType.NO_TRANSITION,
-						} as PieceInterface),
+						}),
 						EntityMockFactory.createPiece({
 							id: '4',
 							transitionType: TransitionType.NO_TRANSITION,
-						} as PieceInterface),
+						}),
 						EntityMockFactory.createPiece({
 							id: '5',
 							transitionType: TransitionType.NO_TRANSITION,
-						} as PieceInterface),
+						}),
 					]
-					const activePart: Part = EntityMockFactory.createPart({ pieces } as PartInterface)
+					const activePart: Part = EntityMockFactory.createPart({ pieces })
 					const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
 
 					const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -925,29 +923,29 @@ describe('superfly-timeline-builder', () => {
 								id: '1',
 								pieceLifespan: PieceLifespan.WITHIN_PART,
 								transitionType: TransitionType.NO_TRANSITION,
-							} as PieceInterface),
+							}),
 							EntityMockFactory.createPiece({
 								id: '2',
 								pieceLifespan: PieceLifespan.STICKY_UNTIL_RUNDOWN_CHANGE,
 								transitionType: TransitionType.NO_TRANSITION,
-							} as PieceInterface),
+							}),
 							EntityMockFactory.createPiece({
 								id: '3',
 								pieceLifespan: PieceLifespan.SPANNING_UNTIL_RUNDOWN_END,
 								transitionType: TransitionType.NO_TRANSITION,
-							} as PieceInterface),
+							}),
 							EntityMockFactory.createPiece({
 								id: '4',
 								pieceLifespan: PieceLifespan.STICKY_UNTIL_SEGMENT_CHANGE,
 								transitionType: TransitionType.NO_TRANSITION,
-							} as PieceInterface),
+							}),
 							EntityMockFactory.createPiece({
 								id: '5',
 								pieceLifespan: PieceLifespan.SPANNING_UNTIL_SEGMENT_END,
 								transitionType: TransitionType.NO_TRANSITION,
-							} as PieceInterface),
+							}),
 						]
-						const activePart: Part = EntityMockFactory.createPart({ pieces } as PartInterface)
+						const activePart: Part = EntityMockFactory.createPart({ pieces })
 						const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
 
 						const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -969,8 +967,8 @@ describe('superfly-timeline-builder', () => {
 		describe('Rundown has a previous Part', () => {
 			describe('previous Part does not have an executedAt', () => {
 				it('throws an error', () => {
-					const previousPart: Part = EntityMockFactory.createPart({ id: 'previousId' } as PartInterface)
-					const activePart: Part = EntityMockFactory.createPart({ id: 'activeId' } as PartInterface)
+					const previousPart: Part = EntityMockFactory.createPart({ id: 'previousId' })
+					const activePart: Part = EntityMockFactory.createPart({ id: 'activeId' })
 					const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, previousPart })
 
 					const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -981,11 +979,14 @@ describe('superfly-timeline-builder', () => {
 
 			describe('it creates a group for previous Part', () => {
 				it('sets correct previous group id for the previous Part', () => {
-					const previousPart: Part = EntityMockFactory.createPart({ id: 'previousId' } as PartInterface, {
-						executedAt: 10,
-						pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
-					})
-					const activePart: Part = EntityMockFactory.createPart({ id: 'activeId' } as PartInterface)
+					const previousPart: Part = EntityMockFactory.createPart(
+						{ id: 'previousId' },
+						{
+							executedAt: 10,
+							pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
+						}
+					)
+					const activePart: Part = EntityMockFactory.createPart({ id: 'activeId' })
 					const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, previousPart })
 
 					const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -1000,11 +1001,14 @@ describe('superfly-timeline-builder', () => {
 				})
 
 				it('sets priority of the group to low', () => {
-					const previousPart: Part = EntityMockFactory.createPart({ id: 'previousId' } as PartInterface, {
-						executedAt: 10,
-						pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
-					})
-					const activePart: Part = EntityMockFactory.createPart({ id: 'activeId' } as PartInterface)
+					const previousPart: Part = EntityMockFactory.createPart(
+						{ id: 'previousId' },
+						{
+							executedAt: 10,
+							pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
+						}
+					)
+					const activePart: Part = EntityMockFactory.createPart({ id: 'activeId' })
 					const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, previousPart })
 
 					const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -1018,11 +1022,14 @@ describe('superfly-timeline-builder', () => {
 				})
 
 				it('sets an empty layer', () => {
-					const previousPart: Part = EntityMockFactory.createPart({ id: 'previousId' } as PartInterface, {
-						executedAt: 10,
-						pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
-					})
-					const activePart: Part = EntityMockFactory.createPart({ id: 'activeId' } as PartInterface)
+					const previousPart: Part = EntityMockFactory.createPart(
+						{ id: 'previousId' },
+						{
+							executedAt: 10,
+							pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
+						}
+					)
+					const activePart: Part = EntityMockFactory.createPart({ id: 'activeId' })
 					const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, previousPart })
 
 					const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -1036,11 +1043,14 @@ describe('superfly-timeline-builder', () => {
 				})
 
 				it('sets the TimelineEnable.start to be when the previous Part was executed', () => {
-					const previousPart: Part = EntityMockFactory.createPart({ id: 'previousId' } as PartInterface, {
-						executedAt: 10,
-						pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
-					})
-					const activePart: Part = EntityMockFactory.createPart({ id: 'activeId' } as PartInterface)
+					const previousPart: Part = EntityMockFactory.createPart(
+						{ id: 'previousId' },
+						{
+							executedAt: 10,
+							pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
+						}
+					)
+					const activePart: Part = EntityMockFactory.createPart({ id: 'activeId' })
 					const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, previousPart })
 
 					const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -1057,13 +1067,19 @@ describe('superfly-timeline-builder', () => {
 					it('sets the TimelineEnable.end to activeGroup.start + active Part.previousPartContinueIntoPartDuration', () => {
 						const previousPartContinueIntoPartDuration: number = 50
 
-						const previousPart: Part = EntityMockFactory.createPart({ id: 'previousId' } as PartInterface, {
-							executedAt: 10,
-							pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
-						})
-						const activePart: Part = EntityMockFactory.createPart({ id: 'activeId' } as PartInterface, {
-							partTimings: { previousPartContinueIntoPartDuration } as PartTimings,
-						})
+						const previousPart: Part = EntityMockFactory.createPart(
+							{ id: 'previousId' },
+							{
+								executedAt: 10,
+								pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
+							}
+						)
+						const activePart: Part = EntityMockFactory.createPart(
+							{ id: 'activeId' },
+							{
+								partTimings: { previousPartContinueIntoPartDuration },
+							}
+						)
 						const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, previousPart })
 
 						const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -1082,11 +1098,14 @@ describe('superfly-timeline-builder', () => {
 
 				describe('active Part does not have a "previousPartContinueIntoPartDuration"', () => {
 					it('sets the TimelineEnable.end to activeGroup.start + 0', () => {
-						const previousPart: Part = EntityMockFactory.createPart({ id: 'previousId' } as PartInterface, {
-							executedAt: 10,
-							pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
-						})
-						const activePart: Part = EntityMockFactory.createPart({ id: 'activeId' } as PartInterface)
+						const previousPart: Part = EntityMockFactory.createPart(
+							{ id: 'previousId' },
+							{
+								executedAt: 10,
+								pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
+							}
+						)
+						const activePart: Part = EntityMockFactory.createPart({ id: 'activeId' })
 						const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, previousPart })
 
 						const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -1106,12 +1125,12 @@ describe('superfly-timeline-builder', () => {
 						it('sets correct control group id for Piece on previous group', () => {
 							const piece: Piece = EntityMockFactory.createPiece({
 								transitionType: TransitionType.NO_TRANSITION,
-							} as PieceInterface)
+							})
 							const previousPart: Part = EntityMockFactory.createPart(
-								{ id: 'previousId', pieces: [piece] } as PartInterface,
+								{ id: 'previousId', pieces: [piece] },
 								{ executedAt: 10, pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
 							)
-							const activePart: Part = EntityMockFactory.createPart({ id: 'activeId' } as PartInterface)
+							const activePart: Part = EntityMockFactory.createPart({ id: 'activeId' })
 							const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, previousPart })
 
 							const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -1131,12 +1150,12 @@ describe('superfly-timeline-builder', () => {
 						it('sets correct parentGroup id', () => {
 							const piece: Piece = EntityMockFactory.createPiece({
 								transitionType: TransitionType.NO_TRANSITION,
-							} as PieceInterface)
+							})
 							const previousPart: Part = EntityMockFactory.createPart(
-								{ id: 'previousId', pieces: [piece] } as PartInterface,
+								{ id: 'previousId', pieces: [piece] },
 								{ executedAt: 10, pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
 							)
-							const activePart: Part = EntityMockFactory.createPart({ id: 'activeId' } as PartInterface)
+							const activePart: Part = EntityMockFactory.createPart({ id: 'activeId' })
 							const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, previousPart })
 
 							const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -1157,12 +1176,12 @@ describe('superfly-timeline-builder', () => {
 							const piece: Piece = EntityMockFactory.createPiece({
 								layer,
 								transitionType: TransitionType.NO_TRANSITION,
-							} as PieceInterface)
+							})
 							const previousPart: Part = EntityMockFactory.createPart(
-								{ id: 'previousId', pieces: [piece] } as PartInterface,
+								{ id: 'previousId', pieces: [piece] },
 								{ executedAt: 10, pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
 							)
-							const activePart: Part = EntityMockFactory.createPart({ id: 'activeId' } as PartInterface)
+							const activePart: Part = EntityMockFactory.createPart({ id: 'activeId' })
 							const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, previousPart })
 
 							const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -1181,12 +1200,12 @@ describe('superfly-timeline-builder', () => {
 						it('sets priority to MEDIUM', () => {
 							const piece: Piece = EntityMockFactory.createPiece({
 								transitionType: TransitionType.NO_TRANSITION,
-							} as PieceInterface)
+							})
 							const previousPart: Part = EntityMockFactory.createPart(
-								{ id: 'previousId', pieces: [piece] } as PartInterface,
+								{ id: 'previousId', pieces: [piece] },
 								{ executedAt: 10, pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
 							)
-							const activePart: Part = EntityMockFactory.createPart({ id: 'activeId' } as PartInterface)
+							const activePart: Part = EntityMockFactory.createPart({ id: 'activeId' })
 							const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, previousPart })
 
 							const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -1208,19 +1227,19 @@ describe('superfly-timeline-builder', () => {
 									const piece: Piece = EntityMockFactory.createPiece({
 										start: 10,
 										transitionType: TransitionType.IN_TRANSITION,
-									} as PieceInterface)
+									})
 									const inTransitionStart: number = 20
 									const previousPart: Part = EntityMockFactory.createPart(
-										{ id: 'previousId', pieces: [piece] } as PartInterface,
+										{ id: 'previousId', pieces: [piece] },
 										{
-											partTimings: { inTransitionStart } as PartTimings,
+											partTimings: { inTransitionStart },
 											executedAt: 10,
 											pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
 										}
 									)
 									const activePart: Part = EntityMockFactory.createPart({
 										id: 'activeId',
-									} as PartInterface)
+									})
 									const rundown: Rundown = EntityMockFactory.createActiveRundown({
 										activePart,
 										previousPart,
@@ -1243,19 +1262,19 @@ describe('superfly-timeline-builder', () => {
 									const piece: Piece = EntityMockFactory.createPiece({
 										duration: 15,
 										transitionType: TransitionType.IN_TRANSITION,
-									} as PieceInterface)
+									})
 									const inTransitionStart: number = 20
 									const previousPart: Part = EntityMockFactory.createPart(
-										{ id: 'previousId', pieces: [piece] } as PartInterface,
+										{ id: 'previousId', pieces: [piece] },
 										{
-											partTimings: { inTransitionStart } as PartTimings,
+											partTimings: { inTransitionStart },
 											executedAt: 10,
 											pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
 										}
 									)
 									const activePart: Part = EntityMockFactory.createPart({
 										id: 'activeId',
-									} as PartInterface)
+									})
 									const rundown: Rundown = EntityMockFactory.createActiveRundown({
 										activePart,
 										previousPart,
@@ -1279,14 +1298,14 @@ describe('superfly-timeline-builder', () => {
 								it('does not create any groups for Piece', () => {
 									const piece: Piece = EntityMockFactory.createPiece({
 										transitionType: TransitionType.IN_TRANSITION,
-									} as PieceInterface)
+									})
 									const previousPart: Part = EntityMockFactory.createPart(
-										{ id: 'previousId', pieces: [piece] } as PartInterface,
+										{ id: 'previousId', pieces: [piece] },
 										{ executedAt: 10, pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
 									)
 									const activePart: Part = EntityMockFactory.createPart({
 										id: 'activeId',
-									} as PartInterface)
+									})
 									const rundown: Rundown = EntityMockFactory.createActiveRundown({
 										activePart,
 										previousPart,
@@ -1316,22 +1335,22 @@ describe('superfly-timeline-builder', () => {
 
 										const piece: Piece = EntityMockFactory.createPiece({
 											transitionType: TransitionType.OUT_TRANSITION,
-										} as PieceInterface)
+										})
 										const previousPart: Part = EntityMockFactory.createPart(
 											{
 												id: 'previousId',
 												outTransition: { keepAliveDuration },
 												pieces: [piece],
-											} as PartInterface,
+											},
 											{
-												partTimings: { postRollDuration } as PartTimings,
+												partTimings: { postRollDuration },
 												executedAt: 10,
 												pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
 											}
 										)
 										const activePart: Part = EntityMockFactory.createPart({
 											id: 'activeId',
-										} as PartInterface)
+										})
 										const rundown: Rundown = EntityMockFactory.createActiveRundown({
 											activePart,
 											previousPart,
@@ -1359,18 +1378,18 @@ describe('superfly-timeline-builder', () => {
 
 										const piece: Piece = EntityMockFactory.createPiece({
 											transitionType: TransitionType.OUT_TRANSITION,
-										} as PieceInterface)
+										})
 										const previousPart: Part = EntityMockFactory.createPart(
 											{
 												id: 'previousId',
 												outTransition: { keepAliveDuration },
 												pieces: [piece],
-											} as PartInterface,
+											},
 											{ executedAt: 10, pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
 										)
 										const activePart: Part = EntityMockFactory.createPart({
 											id: 'activeId',
-										} as PartInterface)
+										})
 										const rundown: Rundown = EntityMockFactory.createActiveRundown({
 											activePart,
 											previousPart,
@@ -1397,14 +1416,14 @@ describe('superfly-timeline-builder', () => {
 								it('does not create any groups for Piece', () => {
 									const piece: Piece = EntityMockFactory.createPiece({
 										transitionType: TransitionType.OUT_TRANSITION,
-									} as PieceInterface)
+									})
 									const previousPart: Part = EntityMockFactory.createPart(
-										{ id: 'previousId', pieces: [piece] } as PartInterface,
+										{ id: 'previousId', pieces: [piece] },
 										{ executedAt: 10, pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
 									)
 									const activePart: Part = EntityMockFactory.createPart({
 										id: 'activeId',
-									} as PartInterface)
+									})
 									const rundown: Rundown = EntityMockFactory.createActiveRundown({
 										activePart,
 										previousPart,
@@ -1430,14 +1449,14 @@ describe('superfly-timeline-builder', () => {
 								const piece: Piece = EntityMockFactory.createPiece({
 									start: 10,
 									transitionType: TransitionType.NO_TRANSITION,
-								} as PieceInterface)
+								})
 								const previousPart: Part = EntityMockFactory.createPart(
-									{ id: 'previousId', pieces: [piece] } as PartInterface,
+									{ id: 'previousId', pieces: [piece] },
 									{ executedAt: 10, pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
 								)
 								const activePart: Part = EntityMockFactory.createPart({
 									id: 'activeId',
-								} as PartInterface)
+								})
 								const rundown: Rundown = EntityMockFactory.createActiveRundown({
 									activePart,
 									previousPart,
@@ -1461,14 +1480,14 @@ describe('superfly-timeline-builder', () => {
 									const piece: Piece = EntityMockFactory.createPiece({
 										duration: 15,
 										transitionType: TransitionType.NO_TRANSITION,
-									} as PieceInterface)
+									})
 									const previousPart: Part = EntityMockFactory.createPart(
-										{ id: 'previousId', pieces: [piece] } as PartInterface,
+										{ id: 'previousId', pieces: [piece] },
 										{ executedAt: 10, pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
 									)
 									const activePart: Part = EntityMockFactory.createPart({
 										id: 'activeId',
-									} as PartInterface)
+									})
 									const rundown: Rundown = EntityMockFactory.createActiveRundown({
 										activePart,
 										previousPart,
@@ -1495,18 +1514,18 @@ describe('superfly-timeline-builder', () => {
 
 										const piece: Piece = EntityMockFactory.createPiece({
 											transitionType: TransitionType.NO_TRANSITION,
-										} as PieceInterface)
+										})
 										const previousPart: Part = EntityMockFactory.createPart(
-											{ id: 'previousId', pieces: [piece] } as PartInterface,
+											{ id: 'previousId', pieces: [piece] },
 											{
-												partTimings: { postRollDuration } as PartTimings,
+												partTimings: { postRollDuration },
 												executedAt: 10,
 												pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
 											}
 										)
 										const activePart: Part = EntityMockFactory.createPart({
 											id: 'activeId',
-										} as PartInterface)
+										})
 										const rundown: Rundown = EntityMockFactory.createActiveRundown({
 											activePart,
 											previousPart,
@@ -1532,14 +1551,14 @@ describe('superfly-timeline-builder', () => {
 									it('sets TimelineEnable.duration to zero', () => {
 										const piece: Piece = EntityMockFactory.createPiece({
 											transitionType: TransitionType.NO_TRANSITION,
-										} as PieceInterface)
+										})
 										const previousPart: Part = EntityMockFactory.createPart(
-											{ id: 'previousId', pieces: [piece] } as PartInterface,
+											{ id: 'previousId', pieces: [piece] },
 											{ executedAt: 10, pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
 										)
 										const activePart: Part = EntityMockFactory.createPart({
 											id: 'activeId',
-										} as PartInterface)
+										})
 										const rundown: Rundown = EntityMockFactory.createActiveRundown({
 											activePart,
 											previousPart,
@@ -1568,14 +1587,14 @@ describe('superfly-timeline-builder', () => {
 										start: 0,
 										preRollDuration: 10,
 										transitionType: TransitionType.NO_TRANSITION,
-									} as PieceInterface)
+									})
 									const previousPart: Part = EntityMockFactory.createPart(
-										{ id: 'previousId', pieces: [piece] } as PartInterface,
+										{ id: 'previousId', pieces: [piece] },
 										{ executedAt: 10, pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
 									)
 									const activePart: Part = EntityMockFactory.createPart({
 										id: 'activeId',
-									} as PartInterface)
+									})
 									const rundown: Rundown = EntityMockFactory.createActiveRundown({
 										activePart,
 										previousPart,
@@ -1603,14 +1622,14 @@ describe('superfly-timeline-builder', () => {
 										start: 0,
 										preRollDuration: 10,
 										transitionType: TransitionType.NO_TRANSITION,
-									} as PieceInterface)
+									})
 									const previousPart: Part = EntityMockFactory.createPart(
-										{ id: 'previousId', pieces: [piece] } as PartInterface,
+										{ id: 'previousId', pieces: [piece] },
 										{ executedAt: 10, pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
 									)
 									const activePart: Part = EntityMockFactory.createPart({
 										id: 'activeId',
-									} as PartInterface)
+									})
 									const rundown: Rundown = EntityMockFactory.createActiveRundown({
 										activePart,
 										previousPart,
@@ -1634,14 +1653,14 @@ describe('superfly-timeline-builder', () => {
 										start: 0,
 										preRollDuration: 10,
 										transitionType: TransitionType.NO_TRANSITION,
-									} as PieceInterface)
+									})
 									const previousPart: Part = EntityMockFactory.createPart(
-										{ id: 'previousId', pieces: [piece] } as PartInterface,
+										{ id: 'previousId', pieces: [piece] },
 										{ executedAt: 10, pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
 									)
 									const activePart: Part = EntityMockFactory.createPart({
 										id: 'activeId',
-									} as PartInterface)
+									})
 									const rundown: Rundown = EntityMockFactory.createActiveRundown({
 										activePart,
 										previousPart,
@@ -1665,14 +1684,14 @@ describe('superfly-timeline-builder', () => {
 										start: 0,
 										preRollDuration: 10,
 										transitionType: TransitionType.NO_TRANSITION,
-									} as PieceInterface)
+									})
 									const previousPart: Part = EntityMockFactory.createPart(
-										{ id: 'previousId', pieces: [piece] } as PartInterface,
+										{ id: 'previousId', pieces: [piece] },
 										{ executedAt: 10, pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
 									)
 									const activePart: Part = EntityMockFactory.createPart({
 										id: 'activeId',
-									} as PartInterface)
+									})
 									const rundown: Rundown = EntityMockFactory.createActiveRundown({
 										activePart,
 										previousPart,
@@ -1703,12 +1722,12 @@ describe('superfly-timeline-builder', () => {
 						it('sets correct Piece group id for Piece on previous group', () => {
 							const piece: Piece = EntityMockFactory.createPiece({
 								transitionType: TransitionType.NO_TRANSITION,
-							} as PieceInterface)
+							})
 							const previousPart: Part = EntityMockFactory.createPart(
-								{ id: 'previousId', pieces: [piece] } as PartInterface,
+								{ id: 'previousId', pieces: [piece] },
 								{ executedAt: 10, pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
 							)
-							const activePart: Part = EntityMockFactory.createPart({ id: 'activeId' } as PartInterface)
+							const activePart: Part = EntityMockFactory.createPart({ id: 'activeId' })
 							const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, previousPart })
 
 							const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -1728,12 +1747,12 @@ describe('superfly-timeline-builder', () => {
 						it('sets correct parentGroup id', () => {
 							const piece: Piece = EntityMockFactory.createPiece({
 								transitionType: TransitionType.NO_TRANSITION,
-							} as PieceInterface)
+							})
 							const previousPart: Part = EntityMockFactory.createPart(
-								{ id: 'previousId', pieces: [piece] } as PartInterface,
+								{ id: 'previousId', pieces: [piece] },
 								{ executedAt: 10, pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
 							)
-							const activePart: Part = EntityMockFactory.createPart({ id: 'activeId' } as PartInterface)
+							const activePart: Part = EntityMockFactory.createPart({ id: 'activeId' })
 							const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, previousPart })
 
 							const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -1752,12 +1771,12 @@ describe('superfly-timeline-builder', () => {
 						it('sets an empty layer', () => {
 							const piece: Piece = EntityMockFactory.createPiece({
 								transitionType: TransitionType.NO_TRANSITION,
-							} as PieceInterface)
+							})
 							const previousPart: Part = EntityMockFactory.createPart(
-								{ id: 'previousId', pieces: [piece] } as PartInterface,
+								{ id: 'previousId', pieces: [piece] },
 								{ executedAt: 10, pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
 							)
-							const activePart: Part = EntityMockFactory.createPart({ id: 'activeId' } as PartInterface)
+							const activePart: Part = EntityMockFactory.createPart({ id: 'activeId' })
 							const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, previousPart })
 
 							const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -1778,14 +1797,14 @@ describe('superfly-timeline-builder', () => {
 								const piece: Piece = EntityMockFactory.createPiece({
 									preRollDuration: 10,
 									transitionType: TransitionType.NO_TRANSITION,
-								} as PieceInterface)
+								})
 								const previousPart: Part = EntityMockFactory.createPart(
-									{ id: 'previousId', pieces: [piece] } as PartInterface,
+									{ id: 'previousId', pieces: [piece] },
 									{ executedAt: 10, pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
 								)
 								const activePart: Part = EntityMockFactory.createPart({
 									id: 'activeId',
-								} as PartInterface)
+								})
 								const rundown: Rundown = EntityMockFactory.createActiveRundown({
 									activePart,
 									previousPart,
@@ -1814,14 +1833,14 @@ describe('superfly-timeline-builder', () => {
 							it('sets TimelineEnable.start to PieceControlGroup.start - 0', () => {
 								const piece: Piece = EntityMockFactory.createPiece({
 									transitionType: TransitionType.NO_TRANSITION,
-								} as PieceInterface)
+								})
 								const previousPart: Part = EntityMockFactory.createPart(
-									{ id: 'previousId', pieces: [piece] } as PartInterface,
+									{ id: 'previousId', pieces: [piece] },
 									{ executedAt: 10, pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
 								)
 								const activePart: Part = EntityMockFactory.createPart({
 									id: 'activeId',
-								} as PartInterface)
+								})
 								const rundown: Rundown = EntityMockFactory.createActiveRundown({
 									activePart,
 									previousPart,
@@ -1849,14 +1868,14 @@ describe('superfly-timeline-builder', () => {
 								const piece: Piece = EntityMockFactory.createPiece({
 									postRollDuration: 30,
 									transitionType: TransitionType.NO_TRANSITION,
-								} as PieceInterface)
+								})
 								const previousPart: Part = EntityMockFactory.createPart(
-									{ id: 'previousId', pieces: [piece] } as PartInterface,
+									{ id: 'previousId', pieces: [piece] },
 									{ executedAt: 10, pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
 								)
 								const activePart: Part = EntityMockFactory.createPart({
 									id: 'activeId',
-								} as PartInterface)
+								})
 								const rundown: Rundown = EntityMockFactory.createActiveRundown({
 									activePart,
 									previousPart,
@@ -1885,14 +1904,14 @@ describe('superfly-timeline-builder', () => {
 							it('sets TimelineEnable.end to PieceControlGroup.end - 0', () => {
 								const piece: Piece = EntityMockFactory.createPiece({
 									transitionType: TransitionType.NO_TRANSITION,
-								} as PieceInterface)
+								})
 								const previousPart: Part = EntityMockFactory.createPart(
-									{ id: 'previousId', pieces: [piece] } as PartInterface,
+									{ id: 'previousId', pieces: [piece] },
 									{ executedAt: 10, pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
 								)
 								const activePart: Part = EntityMockFactory.createPart({
 									id: 'activeId',
-								} as PartInterface)
+								})
 								const rundown: Rundown = EntityMockFactory.createActiveRundown({
 									activePart,
 									previousPart,
@@ -1921,14 +1940,14 @@ describe('superfly-timeline-builder', () => {
 								const piece: Piece = EntityMockFactory.createPiece({
 									timelineObjects: [timelineObject],
 									transitionType: TransitionType.NO_TRANSITION,
-								} as PieceInterface)
+								})
 								const previousPart: Part = EntityMockFactory.createPart(
-									{ id: 'previousId', pieces: [piece] } as PartInterface,
+									{ id: 'previousId', pieces: [piece] },
 									{ executedAt: 10, pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
 								)
 								const activePart: Part = EntityMockFactory.createPart({
 									id: 'activeId',
-								} as PartInterface)
+								})
 								const rundown: Rundown = EntityMockFactory.createActiveRundown({
 									activePart,
 									previousPart,
@@ -1953,14 +1972,14 @@ describe('superfly-timeline-builder', () => {
 								const piece: Piece = EntityMockFactory.createPiece({
 									timelineObjects: [timelineObject],
 									transitionType: TransitionType.NO_TRANSITION,
-								} as PieceInterface)
+								})
 								const previousPart: Part = EntityMockFactory.createPart(
-									{ id: 'previousId', pieces: [piece] } as PartInterface,
+									{ id: 'previousId', pieces: [piece] },
 									{ executedAt: 10, pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
 								)
 								const activePart: Part = EntityMockFactory.createPart({
 									id: 'activeId',
-								} as PartInterface)
+								})
 								const rundown: Rundown = EntityMockFactory.createActiveRundown({
 									activePart,
 									previousPart,
@@ -1989,14 +2008,14 @@ describe('superfly-timeline-builder', () => {
 								const piece: Piece = EntityMockFactory.createPiece({
 									timelineObjects: [timelineObject],
 									transitionType: TransitionType.NO_TRANSITION,
-								} as PieceInterface)
+								})
 								const previousPart: Part = EntityMockFactory.createPart(
-									{ id: 'previousId', pieces: [piece] } as PartInterface,
+									{ id: 'previousId', pieces: [piece] },
 									{ executedAt: 10, pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
 								)
 								const activePart: Part = EntityMockFactory.createPart({
 									id: 'activeId',
-								} as PartInterface)
+								})
 								const rundown: Rundown = EntityMockFactory.createActiveRundown({
 									activePart,
 									previousPart,
@@ -2029,14 +2048,14 @@ describe('superfly-timeline-builder', () => {
 								const piece: Piece = EntityMockFactory.createPiece({
 									timelineObjects,
 									transitionType: TransitionType.NO_TRANSITION,
-								} as PieceInterface)
+								})
 								const previousPart: Part = EntityMockFactory.createPart(
-									{ id: 'previousId', pieces: [piece] } as PartInterface,
+									{ id: 'previousId', pieces: [piece] },
 									{ executedAt: 10, pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
 								)
 								const activePart: Part = EntityMockFactory.createPart({
 									id: 'activeId',
-								} as PartInterface)
+								})
 								const rundown: Rundown = EntityMockFactory.createActiveRundown({
 									activePart,
 									previousPart,
@@ -2061,11 +2080,14 @@ describe('superfly-timeline-builder', () => {
 
 			describe('previous Part does not have any Pieces', () => {
 				it('does not create any groups for the Pieces', () => {
-					const previousPart: Part = EntityMockFactory.createPart({ id: 'previousId' } as PartInterface, {
-						executedAt: 10,
-						pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
-					})
-					const activePart: Part = EntityMockFactory.createPart({ id: 'activeId' } as PartInterface)
+					const previousPart: Part = EntityMockFactory.createPart(
+						{ id: 'previousId' },
+						{
+							executedAt: 10,
+							pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
+						}
+					)
+					const activePart: Part = EntityMockFactory.createPart({ id: 'activeId' })
 					const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, previousPart })
 
 					const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -2089,29 +2111,29 @@ describe('superfly-timeline-builder', () => {
 							EntityMockFactory.createPiece({
 								pieceLifespan: PieceLifespan.STICKY_UNTIL_RUNDOWN_CHANGE,
 								transitionType: TransitionType.NO_TRANSITION,
-							} as PieceInterface),
+							}),
 							EntityMockFactory.createPiece({
 								pieceLifespan: PieceLifespan.WITHIN_PART,
 								transitionType: TransitionType.NO_TRANSITION,
-							} as PieceInterface),
+							}),
 							EntityMockFactory.createPiece({
 								pieceLifespan: PieceLifespan.WITHIN_PART,
 								transitionType: TransitionType.NO_TRANSITION,
-							} as PieceInterface),
+							}),
 							EntityMockFactory.createPiece({
 								pieceLifespan: PieceLifespan.WITHIN_PART,
 								transitionType: TransitionType.NO_TRANSITION,
-							} as PieceInterface),
+							}),
 							EntityMockFactory.createPiece({
 								pieceLifespan: PieceLifespan.WITHIN_PART,
 								transitionType: TransitionType.NO_TRANSITION,
-							} as PieceInterface),
+							}),
 						]
 						const previousPart: Part = EntityMockFactory.createPart(
-							{ id: 'previousId', pieces } as PartInterface,
+							{ id: 'previousId', pieces },
 							{ executedAt: 10, pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
 						)
-						const activePart: Part = EntityMockFactory.createPart({ id: 'activeId' } as PartInterface)
+						const activePart: Part = EntityMockFactory.createPart({ id: 'activeId' })
 						const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, previousPart })
 
 						const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -2134,29 +2156,29 @@ describe('superfly-timeline-builder', () => {
 							EntityMockFactory.createPiece({
 								pieceLifespan: PieceLifespan.STICKY_UNTIL_RUNDOWN_CHANGE,
 								transitionType: TransitionType.NO_TRANSITION,
-							} as PieceInterface),
+							}),
 							EntityMockFactory.createPiece({
 								pieceLifespan: PieceLifespan.STICKY_UNTIL_SEGMENT_CHANGE,
 								transitionType: TransitionType.NO_TRANSITION,
-							} as PieceInterface),
+							}),
 							EntityMockFactory.createPiece({
 								pieceLifespan: PieceLifespan.SPANNING_UNTIL_RUNDOWN_END,
 								transitionType: TransitionType.NO_TRANSITION,
-							} as PieceInterface),
+							}),
 							EntityMockFactory.createPiece({
 								pieceLifespan: PieceLifespan.SPANNING_UNTIL_SEGMENT_END,
 								transitionType: TransitionType.NO_TRANSITION,
-							} as PieceInterface),
+							}),
 							EntityMockFactory.createPiece({
 								pieceLifespan: PieceLifespan.STICKY_UNTIL_RUNDOWN_CHANGE,
 								transitionType: TransitionType.NO_TRANSITION,
-							} as PieceInterface),
+							}),
 						]
 						const previousPart: Part = EntityMockFactory.createPart(
-							{ id: 'previousId', pieces } as PartInterface,
+							{ id: 'previousId', pieces },
 							{ executedAt: 10, pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
 						)
-						const activePart: Part = EntityMockFactory.createPart({ id: 'activeId' } as PartInterface)
+						const activePart: Part = EntityMockFactory.createPart({ id: 'activeId' })
 						const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, previousPart })
 
 						const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -2177,7 +2199,7 @@ describe('superfly-timeline-builder', () => {
 
 		describe('Rundown does not have a previous Part', () => {
 			it('does not create a group for previous Part', () => {
-				const activePart: Part = EntityMockFactory.createPart({ id: 'activeId' } as PartInterface)
+				const activePart: Part = EntityMockFactory.createPart({ id: 'activeId' })
 				const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, previousPart: undefined })
 
 				const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -2197,12 +2219,15 @@ describe('superfly-timeline-builder', () => {
 					it('sets TimelineEnable.duration of the active group to active Part.expectedDuration + active Part.timings.delayStartOfPiecesDuration', () => {
 						const delayStartOfPiecesDuration: number = 5
 
-						const nextPart: Part = EntityMockFactory.createPart({ id: 'nextId' } as PartInterface, {
-							pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
-						})
+						const nextPart: Part = EntityMockFactory.createPart(
+							{ id: 'nextId' },
+							{
+								pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
+							}
+						)
 						const activePart: Part = EntityMockFactory.createPart(
-							{ id: 'activeId', expectedDuration: 15, autoNext: { overlap: 0 } } as PartInterface,
-							{ partTimings: { delayStartOfPiecesDuration } as PartTimings }
+							{ id: 'activeId', expectedDuration: 15, autoNext: { overlap: 0 } },
+							{ partTimings: { delayStartOfPiecesDuration } }
 						)
 						const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
 
@@ -2221,14 +2246,17 @@ describe('superfly-timeline-builder', () => {
 
 				describe('active Part does not have "delayStartOfPiecesDuration', () => {
 					it('sets TimelineEnable.duration of the active group to active Part.expectedDuration', () => {
-						const nextPart: Part = EntityMockFactory.createPart({ id: 'nextId' } as PartInterface, {
-							pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
-						})
+						const nextPart: Part = EntityMockFactory.createPart(
+							{ id: 'nextId' },
+							{
+								pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
+							}
+						)
 						const activePart: Part = EntityMockFactory.createPart({
 							id: 'activeId',
 							expectedDuration: 15,
 							autoNext: { overlap: 0 },
-						} as PartInterface)
+						})
 						const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
 
 						const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -2249,13 +2277,16 @@ describe('superfly-timeline-builder', () => {
 					const delayStartOfPiecesDuration: number = 30
 					const continueIntoPartDuration: number = 50
 
-					const nextPart: Part = EntityMockFactory.createPart({ id: 'nextId' } as PartInterface, {
-						partTimings: { previousPartContinueIntoPartDuration: continueIntoPartDuration } as PartTimings,
-						pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
-					})
+					const nextPart: Part = EntityMockFactory.createPart(
+						{ id: 'nextId' },
+						{
+							partTimings: { previousPartContinueIntoPartDuration: continueIntoPartDuration },
+							pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
+						}
+					)
 					const activePart: Part = EntityMockFactory.createPart(
-						{ id: 'activeId', expectedDuration: 15, autoNext: { overlap: 0 } } as PartInterface,
-						{ partTimings: { delayStartOfPiecesDuration } as PartTimings }
+						{ id: 'activeId', expectedDuration: 15, autoNext: { overlap: 0 } },
+						{ partTimings: { delayStartOfPiecesDuration } }
 					)
 					const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
 
@@ -2270,14 +2301,17 @@ describe('superfly-timeline-builder', () => {
 
 				describe('it creates a group for next Part', () => {
 					it('sets correct next group id for the next Part', () => {
-						const nextPart: Part = EntityMockFactory.createPart({ id: 'nextId' } as PartInterface, {
-							pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
-						})
+						const nextPart: Part = EntityMockFactory.createPart(
+							{ id: 'nextId' },
+							{
+								pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
+							}
+						)
 						const activePart: Part = EntityMockFactory.createPart({
 							id: 'activeId',
 							expectedDuration: 15,
 							autoNext: { overlap: 0 },
-						} as PartInterface)
+						})
 						const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
 
 						const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -2292,14 +2326,17 @@ describe('superfly-timeline-builder', () => {
 					})
 
 					it('sets priority of the group to high', () => {
-						const nextPart: Part = EntityMockFactory.createPart({ id: 'nextId' } as PartInterface, {
-							pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
-						})
+						const nextPart: Part = EntityMockFactory.createPart(
+							{ id: 'nextId' },
+							{
+								pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
+							}
+						)
 						const activePart: Part = EntityMockFactory.createPart({
 							id: 'activeId',
 							expectedDuration: 15,
 							autoNext: { overlap: 0 },
-						} as PartInterface)
+						})
 						const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
 
 						const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -2313,14 +2350,17 @@ describe('superfly-timeline-builder', () => {
 					})
 
 					it('sets an empty layer', () => {
-						const nextPart: Part = EntityMockFactory.createPart({ id: 'nextId' } as PartInterface, {
-							pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
-						})
+						const nextPart: Part = EntityMockFactory.createPart(
+							{ id: 'nextId' },
+							{
+								pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
+							}
+						)
 						const activePart: Part = EntityMockFactory.createPart({
 							id: 'activeId',
 							expectedDuration: 15,
 							autoNext: { overlap: 0 },
-						} as PartInterface)
+						})
 						const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
 
 						const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -2337,15 +2377,18 @@ describe('superfly-timeline-builder', () => {
 						it('sets the TimelineEnable.start to be activeGroup.end - next Part.previousPartContinueIntoPartDuration', () => {
 							const previousPartContinueIntoPartDuration: number = 50
 
-							const nextPart: Part = EntityMockFactory.createPart({ id: 'nextId' } as PartInterface, {
-								partTimings: { previousPartContinueIntoPartDuration } as PartTimings,
-								pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
-							})
+							const nextPart: Part = EntityMockFactory.createPart(
+								{ id: 'nextId' },
+								{
+									partTimings: { previousPartContinueIntoPartDuration },
+									pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
+								}
+							)
 							const activePart: Part = EntityMockFactory.createPart({
 								id: 'activeId',
 								expectedDuration: 15,
 								autoNext: { overlap: 0 },
-							} as PartInterface)
+							})
 							const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
 
 							const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -2366,14 +2409,17 @@ describe('superfly-timeline-builder', () => {
 
 					describe('next Part does not have "previousPartContinueIntoPartDuration', () => {
 						it('sets the TimelineEnable.start to be activeGroup.end - 0', () => {
-							const nextPart: Part = EntityMockFactory.createPart({ id: 'nextId' } as PartInterface, {
-								pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
-							})
+							const nextPart: Part = EntityMockFactory.createPart(
+								{ id: 'nextId' },
+								{
+									pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
+								}
+							)
 							const activePart: Part = EntityMockFactory.createPart({
 								id: 'activeId',
 								expectedDuration: 15,
 								autoNext: { overlap: 0 },
-							} as PartInterface)
+							})
 							const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
 
 							const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -2395,16 +2441,16 @@ describe('superfly-timeline-builder', () => {
 							it('sets correct control group id for Piece on next group', () => {
 								const piece: Piece = EntityMockFactory.createPiece({
 									transitionType: TransitionType.NO_TRANSITION,
-								} as PieceInterface)
+								})
 								const nextPart: Part = EntityMockFactory.createPart(
-									{ id: 'nextId', pieces: [piece] } as PartInterface,
+									{ id: 'nextId', pieces: [piece] },
 									{ pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
 								)
 								const activePart: Part = EntityMockFactory.createPart({
 									id: 'activeId',
 									expectedDuration: 15,
 									autoNext: { overlap: 0 },
-								} as PartInterface)
+								})
 								const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
 
 								const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -2424,16 +2470,16 @@ describe('superfly-timeline-builder', () => {
 							it('sets correct parentGroup id', () => {
 								const piece: Piece = EntityMockFactory.createPiece({
 									transitionType: TransitionType.NO_TRANSITION,
-								} as PieceInterface)
+								})
 								const nextPart: Part = EntityMockFactory.createPart(
-									{ id: 'nextId', pieces: [piece] } as PartInterface,
+									{ id: 'nextId', pieces: [piece] },
 									{ pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
 								)
 								const activePart: Part = EntityMockFactory.createPart({
 									id: 'activeId',
 									expectedDuration: 15,
 									autoNext: { overlap: 0 },
-								} as PartInterface)
+								})
 								const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
 
 								const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -2454,16 +2500,16 @@ describe('superfly-timeline-builder', () => {
 								const piece: Piece = EntityMockFactory.createPiece({
 									layer,
 									transitionType: TransitionType.NO_TRANSITION,
-								} as PieceInterface)
+								})
 								const nextPart: Part = EntityMockFactory.createPart(
-									{ id: 'nextId', pieces: [piece] } as PartInterface,
+									{ id: 'nextId', pieces: [piece] },
 									{ pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
 								)
 								const activePart: Part = EntityMockFactory.createPart({
 									id: 'activeId',
 									expectedDuration: 15,
 									autoNext: { overlap: 0 },
-								} as PartInterface)
+								})
 								const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
 
 								const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -2482,16 +2528,16 @@ describe('superfly-timeline-builder', () => {
 							it('sets priority to MEDIUM', () => {
 								const piece: Piece = EntityMockFactory.createPiece({
 									transitionType: TransitionType.NO_TRANSITION,
-								} as PieceInterface)
+								})
 								const nextPart: Part = EntityMockFactory.createPart(
-									{ id: 'nextId', pieces: [piece] } as PartInterface,
+									{ id: 'nextId', pieces: [piece] },
 									{ pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
 								)
 								const activePart: Part = EntityMockFactory.createPart({
 									id: 'activeId',
 									expectedDuration: 15,
 									autoNext: { overlap: 0 },
-								} as PartInterface)
+								})
 								const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
 
 								const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -2515,11 +2561,11 @@ describe('superfly-timeline-builder', () => {
 										const piece: Piece = EntityMockFactory.createPiece({
 											start: 10,
 											transitionType: TransitionType.IN_TRANSITION,
-										} as PieceInterface)
+										})
 										const nextPart: Part = EntityMockFactory.createPart(
-											{ id: 'nextId', pieces: [piece] } as PartInterface,
+											{ id: 'nextId', pieces: [piece] },
 											{
-												partTimings: { inTransitionStart } as PartTimings,
+												partTimings: { inTransitionStart },
 												pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
 											}
 										)
@@ -2527,7 +2573,7 @@ describe('superfly-timeline-builder', () => {
 											id: 'activeId',
 											expectedDuration: 15,
 											autoNext: { overlap: 0 },
-										} as PartInterface)
+										})
 										const rundown: Rundown = EntityMockFactory.createActiveRundown({
 											activePart,
 											nextPart,
@@ -2551,11 +2597,11 @@ describe('superfly-timeline-builder', () => {
 										const piece: Piece = EntityMockFactory.createPiece({
 											duration: 30,
 											transitionType: TransitionType.IN_TRANSITION,
-										} as PieceInterface)
+										})
 										const nextPart: Part = EntityMockFactory.createPart(
-											{ id: 'nextId', pieces: [piece] } as PartInterface,
+											{ id: 'nextId', pieces: [piece] },
 											{
-												partTimings: { inTransitionStart } as PartTimings,
+												partTimings: { inTransitionStart },
 												pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
 											}
 										)
@@ -2563,7 +2609,7 @@ describe('superfly-timeline-builder', () => {
 											id: 'activeId',
 											expectedDuration: 15,
 											autoNext: { overlap: 0 },
-										} as PartInterface)
+										})
 										const rundown: Rundown = EntityMockFactory.createActiveRundown({
 											activePart,
 											nextPart,
@@ -2587,16 +2633,16 @@ describe('superfly-timeline-builder', () => {
 									it('does not create any groups for Piece', () => {
 										const piece: Piece = EntityMockFactory.createPiece({
 											transitionType: TransitionType.IN_TRANSITION,
-										} as PieceInterface)
+										})
 										const nextPart: Part = EntityMockFactory.createPart(
-											{ id: 'nextId', pieces: [piece] } as PartInterface,
+											{ id: 'nextId', pieces: [piece] },
 											{ pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
 										)
 										const activePart: Part = EntityMockFactory.createPart({
 											id: 'activeId',
 											expectedDuration: 15,
 											autoNext: { overlap: 0 },
-										} as PartInterface)
+										})
 										const rundown: Rundown = EntityMockFactory.createActiveRundown({
 											activePart,
 											nextPart,
@@ -2626,16 +2672,16 @@ describe('superfly-timeline-builder', () => {
 
 											const piece: Piece = EntityMockFactory.createPiece({
 												transitionType: TransitionType.OUT_TRANSITION,
-											} as PieceInterface)
+											})
 
 											const nextPart: Part = EntityMockFactory.createPart(
 												{
 													id: 'nextId',
 													outTransition: { keepAliveDuration },
 													pieces: [piece],
-												} as PartInterface,
+												},
 												{
-													partTimings: { postRollDuration } as PartTimings,
+													partTimings: { postRollDuration },
 													pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
 												}
 											)
@@ -2643,7 +2689,7 @@ describe('superfly-timeline-builder', () => {
 												id: 'activeId',
 												expectedDuration: 15,
 												autoNext: { overlap: 0 },
-											} as PartInterface)
+											})
 											const rundown: Rundown = EntityMockFactory.createActiveRundown({
 												activePart,
 												nextPart,
@@ -2671,21 +2717,21 @@ describe('superfly-timeline-builder', () => {
 
 											const piece: Piece = EntityMockFactory.createPiece({
 												transitionType: TransitionType.OUT_TRANSITION,
-											} as PieceInterface)
+											})
 
 											const nextPart: Part = EntityMockFactory.createPart(
 												{
 													id: 'nextId',
 													outTransition: { keepAliveDuration },
 													pieces: [piece],
-												} as PartInterface,
+												},
 												{ pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
 											)
 											const activePart: Part = EntityMockFactory.createPart({
 												id: 'activeId',
 												expectedDuration: 15,
 												autoNext: { overlap: 0 },
-											} as PartInterface)
+											})
 											const rundown: Rundown = EntityMockFactory.createActiveRundown({
 												activePart,
 												nextPart,
@@ -2712,17 +2758,17 @@ describe('superfly-timeline-builder', () => {
 									it('does not create any groups for Piece', () => {
 										const piece: Piece = EntityMockFactory.createPiece({
 											transitionType: TransitionType.OUT_TRANSITION,
-										} as PieceInterface)
+										})
 
 										const nextPart: Part = EntityMockFactory.createPart(
-											{ id: 'nextId', pieces: [piece] } as PartInterface,
+											{ id: 'nextId', pieces: [piece] },
 											{ pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
 										)
 										const activePart: Part = EntityMockFactory.createPart({
 											id: 'activeId',
 											expectedDuration: 15,
 											autoNext: { overlap: 0 },
-										} as PartInterface)
+										})
 										const rundown: Rundown = EntityMockFactory.createActiveRundown({
 											activePart,
 											nextPart,
@@ -2748,16 +2794,16 @@ describe('superfly-timeline-builder', () => {
 									const piece: Piece = EntityMockFactory.createPiece({
 										start: 10,
 										transitionType: TransitionType.NO_TRANSITION,
-									} as PieceInterface)
+									})
 									const nextPart: Part = EntityMockFactory.createPart(
-										{ id: 'nextId', pieces: [piece] } as PartInterface,
+										{ id: 'nextId', pieces: [piece] },
 										{ pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
 									)
 									const activePart: Part = EntityMockFactory.createPart({
 										id: 'activeId',
 										expectedDuration: 15,
 										autoNext: { overlap: 0 },
-									} as PartInterface)
+									})
 									const rundown: Rundown = EntityMockFactory.createActiveRundown({
 										activePart,
 										nextPart,
@@ -2781,16 +2827,16 @@ describe('superfly-timeline-builder', () => {
 										const piece: Piece = EntityMockFactory.createPiece({
 											duration: 30,
 											transitionType: TransitionType.NO_TRANSITION,
-										} as PieceInterface)
+										})
 										const nextPart: Part = EntityMockFactory.createPart(
-											{ id: 'nextId', pieces: [piece] } as PartInterface,
+											{ id: 'nextId', pieces: [piece] },
 											{ pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
 										)
 										const activePart: Part = EntityMockFactory.createPart({
 											id: 'activeId',
 											expectedDuration: 15,
 											autoNext: { overlap: 0 },
-										} as PartInterface)
+										})
 										const rundown: Rundown = EntityMockFactory.createActiveRundown({
 											activePart,
 											nextPart,
@@ -2817,11 +2863,11 @@ describe('superfly-timeline-builder', () => {
 
 											const piece: Piece = EntityMockFactory.createPiece({
 												transitionType: TransitionType.NO_TRANSITION,
-											} as PieceInterface)
+											})
 											const nextPart: Part = EntityMockFactory.createPart(
-												{ id: 'nextId', pieces: [piece] } as PartInterface,
+												{ id: 'nextId', pieces: [piece] },
 												{
-													partTimings: { postRollDuration } as PartTimings,
+													partTimings: { postRollDuration },
 													pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
 												}
 											)
@@ -2829,7 +2875,7 @@ describe('superfly-timeline-builder', () => {
 												id: 'activeId',
 												expectedDuration: 15,
 												autoNext: { overlap: 0 },
-											} as PartInterface)
+											})
 											const rundown: Rundown = EntityMockFactory.createActiveRundown({
 												activePart,
 												nextPart,
@@ -2855,16 +2901,16 @@ describe('superfly-timeline-builder', () => {
 										it('sets TimelineEnable.duration to zero', () => {
 											const piece: Piece = EntityMockFactory.createPiece({
 												transitionType: TransitionType.NO_TRANSITION,
-											} as PieceInterface)
+											})
 											const nextPart: Part = EntityMockFactory.createPart(
-												{ id: 'nextId', pieces: [piece] } as PartInterface,
+												{ id: 'nextId', pieces: [piece] },
 												{ pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
 											)
 											const activePart: Part = EntityMockFactory.createPart({
 												id: 'activeId',
 												expectedDuration: 15,
 												autoNext: { overlap: 0 },
-											} as PartInterface)
+											})
 											const rundown: Rundown = EntityMockFactory.createActiveRundown({
 												activePart,
 												nextPart,
@@ -2893,16 +2939,16 @@ describe('superfly-timeline-builder', () => {
 											start: 0,
 											preRollDuration: 10,
 											transitionType: TransitionType.NO_TRANSITION,
-										} as PieceInterface)
+										})
 										const nextPart: Part = EntityMockFactory.createPart(
-											{ id: 'nextId', pieces: [piece] } as PartInterface,
+											{ id: 'nextId', pieces: [piece] },
 											{ pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
 										)
 										const activePart: Part = EntityMockFactory.createPart({
 											id: 'activeId',
 											expectedDuration: 15,
 											autoNext: { overlap: 0 },
-										} as PartInterface)
+										})
 										const rundown: Rundown = EntityMockFactory.createActiveRundown({
 											activePart,
 											nextPart,
@@ -2930,16 +2976,16 @@ describe('superfly-timeline-builder', () => {
 											start: 0,
 											preRollDuration: 10,
 											transitionType: TransitionType.NO_TRANSITION,
-										} as PieceInterface)
+										})
 										const nextPart: Part = EntityMockFactory.createPart(
-											{ id: 'nextId', pieces: [piece] } as PartInterface,
+											{ id: 'nextId', pieces: [piece] },
 											{ pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
 										)
 										const activePart: Part = EntityMockFactory.createPart({
 											id: 'activeId',
 											expectedDuration: 15,
 											autoNext: { overlap: 0 },
-										} as PartInterface)
+										})
 										const rundown: Rundown = EntityMockFactory.createActiveRundown({
 											activePart,
 											nextPart,
@@ -2963,16 +3009,16 @@ describe('superfly-timeline-builder', () => {
 											start: 0,
 											preRollDuration: 10,
 											transitionType: TransitionType.NO_TRANSITION,
-										} as PieceInterface)
+										})
 										const nextPart: Part = EntityMockFactory.createPart(
-											{ id: 'nextId', pieces: [piece] } as PartInterface,
+											{ id: 'nextId', pieces: [piece] },
 											{ pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
 										)
 										const activePart: Part = EntityMockFactory.createPart({
 											id: 'activeId',
 											expectedDuration: 15,
 											autoNext: { overlap: 0 },
-										} as PartInterface)
+										})
 										const rundown: Rundown = EntityMockFactory.createActiveRundown({
 											activePart,
 											nextPart,
@@ -2996,16 +3042,16 @@ describe('superfly-timeline-builder', () => {
 											start: 0,
 											preRollDuration: 10,
 											transitionType: TransitionType.NO_TRANSITION,
-										} as PieceInterface)
+										})
 										const nextPart: Part = EntityMockFactory.createPart(
-											{ id: 'nextId', pieces: [piece] } as PartInterface,
+											{ id: 'nextId', pieces: [piece] },
 											{ pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
 										)
 										const activePart: Part = EntityMockFactory.createPart({
 											id: 'activeId',
 											expectedDuration: 15,
 											autoNext: { overlap: 0 },
-										} as PartInterface)
+										})
 										const rundown: Rundown = EntityMockFactory.createActiveRundown({
 											activePart,
 											nextPart,
@@ -3036,16 +3082,16 @@ describe('superfly-timeline-builder', () => {
 							it('sets correct Piece group id for Piece on next group', () => {
 								const piece: Piece = EntityMockFactory.createPiece({
 									transitionType: TransitionType.NO_TRANSITION,
-								} as PieceInterface)
+								})
 								const nextPart: Part = EntityMockFactory.createPart(
-									{ id: 'nextId', pieces: [piece] } as PartInterface,
+									{ id: 'nextId', pieces: [piece] },
 									{ pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
 								)
 								const activePart: Part = EntityMockFactory.createPart({
 									id: 'activeId',
 									expectedDuration: 15,
 									autoNext: { overlap: 0 },
-								} as PartInterface)
+								})
 								const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
 
 								const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -3065,16 +3111,16 @@ describe('superfly-timeline-builder', () => {
 							it('sets correct parentGroup id', () => {
 								const piece: Piece = EntityMockFactory.createPiece({
 									transitionType: TransitionType.NO_TRANSITION,
-								} as PieceInterface)
+								})
 								const nextPart: Part = EntityMockFactory.createPart(
-									{ id: 'nextId', pieces: [piece] } as PartInterface,
+									{ id: 'nextId', pieces: [piece] },
 									{ pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
 								)
 								const activePart: Part = EntityMockFactory.createPart({
 									id: 'activeId',
 									expectedDuration: 15,
 									autoNext: { overlap: 0 },
-								} as PartInterface)
+								})
 								const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
 
 								const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -3093,16 +3139,16 @@ describe('superfly-timeline-builder', () => {
 							it('sets an empty layer', () => {
 								const piece: Piece = EntityMockFactory.createPiece({
 									transitionType: TransitionType.NO_TRANSITION,
-								} as PieceInterface)
+								})
 								const nextPart: Part = EntityMockFactory.createPart(
-									{ id: 'nextId', pieces: [piece] } as PartInterface,
+									{ id: 'nextId', pieces: [piece] },
 									{ pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
 								)
 								const activePart: Part = EntityMockFactory.createPart({
 									id: 'activeId',
 									expectedDuration: 15,
 									autoNext: { overlap: 0 },
-								} as PartInterface)
+								})
 								const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
 
 								const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -3123,16 +3169,16 @@ describe('superfly-timeline-builder', () => {
 									const piece: Piece = EntityMockFactory.createPiece({
 										preRollDuration: 15,
 										transitionType: TransitionType.NO_TRANSITION,
-									} as PieceInterface)
+									})
 									const nextPart: Part = EntityMockFactory.createPart(
-										{ id: 'nextId', pieces: [piece] } as PartInterface,
+										{ id: 'nextId', pieces: [piece] },
 										{ pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
 									)
 									const activePart: Part = EntityMockFactory.createPart({
 										id: 'activeId',
 										expectedDuration: 15,
 										autoNext: { overlap: 0 },
-									} as PartInterface)
+									})
 									const rundown: Rundown = EntityMockFactory.createActiveRundown({
 										activePart,
 										nextPart,
@@ -3161,16 +3207,16 @@ describe('superfly-timeline-builder', () => {
 								it('sets TimelineEnable.start to PieceControlGroup.start - 0', () => {
 									const piece: Piece = EntityMockFactory.createPiece({
 										transitionType: TransitionType.NO_TRANSITION,
-									} as PieceInterface)
+									})
 									const nextPart: Part = EntityMockFactory.createPart(
-										{ id: 'nextId', pieces: [piece] } as PartInterface,
+										{ id: 'nextId', pieces: [piece] },
 										{ pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
 									)
 									const activePart: Part = EntityMockFactory.createPart({
 										id: 'activeId',
 										expectedDuration: 15,
 										autoNext: { overlap: 0 },
-									} as PartInterface)
+									})
 									const rundown: Rundown = EntityMockFactory.createActiveRundown({
 										activePart,
 										nextPart,
@@ -3198,16 +3244,16 @@ describe('superfly-timeline-builder', () => {
 									const piece: Piece = EntityMockFactory.createPiece({
 										postRollDuration: 40,
 										transitionType: TransitionType.NO_TRANSITION,
-									} as PieceInterface)
+									})
 									const nextPart: Part = EntityMockFactory.createPart(
-										{ id: 'nextId', pieces: [piece] } as PartInterface,
+										{ id: 'nextId', pieces: [piece] },
 										{ pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
 									)
 									const activePart: Part = EntityMockFactory.createPart({
 										id: 'activeId',
 										expectedDuration: 15,
 										autoNext: { overlap: 0 },
-									} as PartInterface)
+									})
 									const rundown: Rundown = EntityMockFactory.createActiveRundown({
 										activePart,
 										nextPart,
@@ -3236,16 +3282,16 @@ describe('superfly-timeline-builder', () => {
 								it('sets TimelineEnable.end to PieceControlGroup.end - 0', () => {
 									const piece: Piece = EntityMockFactory.createPiece({
 										transitionType: TransitionType.NO_TRANSITION,
-									} as PieceInterface)
+									})
 									const nextPart: Part = EntityMockFactory.createPart(
-										{ id: 'nextId', pieces: [piece] } as PartInterface,
+										{ id: 'nextId', pieces: [piece] },
 										{ pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
 									)
 									const activePart: Part = EntityMockFactory.createPart({
 										id: 'activeId',
 										expectedDuration: 15,
 										autoNext: { overlap: 0 },
-									} as PartInterface)
+									})
 									const rundown: Rundown = EntityMockFactory.createActiveRundown({
 										activePart,
 										nextPart,
@@ -3274,16 +3320,16 @@ describe('superfly-timeline-builder', () => {
 									const piece: Piece = EntityMockFactory.createPiece({
 										timelineObjects: [timelineObject],
 										transitionType: TransitionType.NO_TRANSITION,
-									} as PieceInterface)
+									})
 									const nextPart: Part = EntityMockFactory.createPart(
-										{ id: 'nextId', pieces: [piece] } as PartInterface,
+										{ id: 'nextId', pieces: [piece] },
 										{ pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
 									)
 									const activePart: Part = EntityMockFactory.createPart({
 										id: 'activeId',
 										expectedDuration: 15,
 										autoNext: { overlap: 0 },
-									} as PartInterface)
+									})
 									const rundown: Rundown = EntityMockFactory.createActiveRundown({
 										activePart,
 										nextPart,
@@ -3308,16 +3354,16 @@ describe('superfly-timeline-builder', () => {
 									const piece: Piece = EntityMockFactory.createPiece({
 										timelineObjects: [timelineObject],
 										transitionType: TransitionType.NO_TRANSITION,
-									} as PieceInterface)
+									})
 									const nextPart: Part = EntityMockFactory.createPart(
-										{ id: 'nextId', pieces: [piece] } as PartInterface,
+										{ id: 'nextId', pieces: [piece] },
 										{ pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
 									)
 									const activePart: Part = EntityMockFactory.createPart({
 										id: 'activeId',
 										expectedDuration: 15,
 										autoNext: { overlap: 0 },
-									} as PartInterface)
+									})
 									const rundown: Rundown = EntityMockFactory.createActiveRundown({
 										activePart,
 										nextPart,
@@ -3346,16 +3392,16 @@ describe('superfly-timeline-builder', () => {
 									const piece: Piece = EntityMockFactory.createPiece({
 										timelineObjects: [timelineObject],
 										transitionType: TransitionType.NO_TRANSITION,
-									} as PieceInterface)
+									})
 									const nextPart: Part = EntityMockFactory.createPart(
-										{ id: 'nextId', pieces: [piece] } as PartInterface,
+										{ id: 'nextId', pieces: [piece] },
 										{ pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
 									)
 									const activePart: Part = EntityMockFactory.createPart({
 										id: 'activeId',
 										expectedDuration: 15,
 										autoNext: { overlap: 0 },
-									} as PartInterface)
+									})
 									const rundown: Rundown = EntityMockFactory.createActiveRundown({
 										activePart,
 										nextPart,
@@ -3388,16 +3434,16 @@ describe('superfly-timeline-builder', () => {
 									const piece: Piece = EntityMockFactory.createPiece({
 										timelineObjects,
 										transitionType: TransitionType.NO_TRANSITION,
-									} as PieceInterface)
+									})
 									const nextPart: Part = EntityMockFactory.createPart(
-										{ id: 'nextId', pieces: [piece] } as PartInterface,
+										{ id: 'nextId', pieces: [piece] },
 										{ pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
 									)
 									const activePart: Part = EntityMockFactory.createPart({
 										id: 'activeId',
 										expectedDuration: 15,
 										autoNext: { overlap: 0 },
-									} as PartInterface)
+									})
 									const rundown: Rundown = EntityMockFactory.createActiveRundown({
 										activePart,
 										nextPart,
@@ -3421,14 +3467,17 @@ describe('superfly-timeline-builder', () => {
 
 					describe('next Part does not have any Pieces', () => {
 						it('does not create any groups for the Pieces', () => {
-							const nextPart: Part = EntityMockFactory.createPart({ id: 'nextId' } as PartInterface, {
-								pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
-							})
+							const nextPart: Part = EntityMockFactory.createPart(
+								{ id: 'nextId' },
+								{
+									pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
+								}
+							)
 							const activePart: Part = EntityMockFactory.createPart({
 								id: 'activeId',
 								expectedDuration: 15,
 								autoNext: { overlap: 0 },
-							} as PartInterface)
+							})
 							const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
 
 							const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -3452,33 +3501,33 @@ describe('superfly-timeline-builder', () => {
 									EntityMockFactory.createPiece({
 										pieceLifespan: PieceLifespan.STICKY_UNTIL_RUNDOWN_CHANGE,
 										transitionType: TransitionType.NO_TRANSITION,
-									} as PieceInterface),
+									}),
 									EntityMockFactory.createPiece({
 										pieceLifespan: PieceLifespan.WITHIN_PART,
 										transitionType: TransitionType.NO_TRANSITION,
-									} as PieceInterface),
+									}),
 									EntityMockFactory.createPiece({
 										pieceLifespan: PieceLifespan.WITHIN_PART,
 										transitionType: TransitionType.NO_TRANSITION,
-									} as PieceInterface),
+									}),
 									EntityMockFactory.createPiece({
 										pieceLifespan: PieceLifespan.WITHIN_PART,
 										transitionType: TransitionType.NO_TRANSITION,
-									} as PieceInterface),
+									}),
 									EntityMockFactory.createPiece({
 										pieceLifespan: PieceLifespan.WITHIN_PART,
 										transitionType: TransitionType.NO_TRANSITION,
-									} as PieceInterface),
+									}),
 								]
 								const nextPart: Part = EntityMockFactory.createPart(
-									{ id: 'nextId', pieces } as PartInterface,
+									{ id: 'nextId', pieces },
 									{ pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
 								)
 								const activePart: Part = EntityMockFactory.createPart({
 									id: 'activeId',
 									expectedDuration: 15,
 									autoNext: { overlap: 0 },
-								} as PartInterface)
+								})
 								const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
 
 								const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -3501,33 +3550,33 @@ describe('superfly-timeline-builder', () => {
 									EntityMockFactory.createPiece({
 										pieceLifespan: PieceLifespan.STICKY_UNTIL_RUNDOWN_CHANGE,
 										transitionType: TransitionType.NO_TRANSITION,
-									} as PieceInterface),
+									}),
 									EntityMockFactory.createPiece({
 										pieceLifespan: PieceLifespan.STICKY_UNTIL_SEGMENT_CHANGE,
 										transitionType: TransitionType.NO_TRANSITION,
-									} as PieceInterface),
+									}),
 									EntityMockFactory.createPiece({
 										pieceLifespan: PieceLifespan.SPANNING_UNTIL_RUNDOWN_END,
 										transitionType: TransitionType.NO_TRANSITION,
-									} as PieceInterface),
+									}),
 									EntityMockFactory.createPiece({
 										pieceLifespan: PieceLifespan.SPANNING_UNTIL_SEGMENT_END,
 										transitionType: TransitionType.NO_TRANSITION,
-									} as PieceInterface),
+									}),
 									EntityMockFactory.createPiece({
 										pieceLifespan: PieceLifespan.STICKY_UNTIL_RUNDOWN_CHANGE,
 										transitionType: TransitionType.NO_TRANSITION,
-									} as PieceInterface),
+									}),
 								]
 								const nextPart: Part = EntityMockFactory.createPart(
-									{ id: 'nextId', pieces } as PartInterface,
+									{ id: 'nextId', pieces },
 									{ pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
 								)
 								const activePart: Part = EntityMockFactory.createPart({
 									id: 'activeId',
 									expectedDuration: 15,
 									autoNext: { overlap: 0 },
-								} as PartInterface)
+								})
 								const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
 
 								const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -3549,13 +3598,16 @@ describe('superfly-timeline-builder', () => {
 
 			describe('active Part does not have an expected duration longer than zero', () => {
 				it('does not create a group for next Part', () => {
-					const nextPart: Part = EntityMockFactory.createPart({ id: 'nextId' } as PartInterface, {
-						pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
-					})
+					const nextPart: Part = EntityMockFactory.createPart(
+						{ id: 'nextId' },
+						{
+							pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
+						}
+					)
 					const activePart: Part = EntityMockFactory.createPart({
 						id: 'activeId',
 						autoNext: { overlap: 0 },
-					} as PartInterface)
+					})
 					const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
 
 					const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -3569,13 +3621,16 @@ describe('superfly-timeline-builder', () => {
 				})
 
 				it('does not set Timeline.autoNext', () => {
-					const nextPart: Part = EntityMockFactory.createPart({ id: 'nextId' } as PartInterface, {
-						pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
-					})
+					const nextPart: Part = EntityMockFactory.createPart(
+						{ id: 'nextId' },
+						{
+							pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
+						}
+					)
 					const activePart: Part = EntityMockFactory.createPart({
 						id: 'activeId',
 						autoNext: { overlap: 0 },
-					} as PartInterface)
+					})
 					const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
 
 					const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -3588,10 +3643,13 @@ describe('superfly-timeline-builder', () => {
 
 		describe('active Part does not have autoNext', () => {
 			it('does not create a group for next Part', () => {
-				const nextPart: Part = EntityMockFactory.createPart({ id: 'nextId' } as PartInterface, {
-					pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
-				})
-				const activePart: Part = EntityMockFactory.createPart({ id: 'activeId' } as PartInterface)
+				const nextPart: Part = EntityMockFactory.createPart(
+					{ id: 'nextId' },
+					{
+						pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
+					}
+				)
+				const activePart: Part = EntityMockFactory.createPart({ id: 'activeId' })
 				const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
 
 				const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -3605,10 +3663,13 @@ describe('superfly-timeline-builder', () => {
 			})
 
 			it('does not set Timeline.autoNext', () => {
-				const nextPart: Part = EntityMockFactory.createPart({ id: 'nextId' } as PartInterface, {
-					pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
-				})
-				const activePart: Part = EntityMockFactory.createPart({ id: 'activeId' } as PartInterface)
+				const nextPart: Part = EntityMockFactory.createPart(
+					{ id: 'nextId' },
+					{
+						pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
+					}
+				)
+				const activePart: Part = EntityMockFactory.createPart({ id: 'activeId' })
 				const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
 
 				const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -3624,7 +3685,7 @@ describe('superfly-timeline-builder', () => {
 					const infinitePiece: Piece = EntityMockFactory.createPiece({
 						transitionType: TransitionType.IN_TRANSITION,
 						pieceLifespan: PieceLifespan.STICKY_UNTIL_RUNDOWN_CHANGE,
-					} as PieceInterface)
+					})
 					const rundown: Rundown = EntityMockFactory.createActiveRundown({ infinitePieces: [infinitePiece] })
 
 					const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -3643,7 +3704,7 @@ describe('superfly-timeline-builder', () => {
 					const infinitePiece: Piece = EntityMockFactory.createPiece({
 						transitionType: TransitionType.OUT_TRANSITION,
 						pieceLifespan: PieceLifespan.STICKY_UNTIL_RUNDOWN_CHANGE,
-					} as PieceInterface)
+					})
 					const rundown: Rundown = EntityMockFactory.createActiveRundown({ infinitePieces: [infinitePiece] })
 
 					const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -3665,8 +3726,8 @@ describe('superfly-timeline-builder', () => {
 							partId: activePartId,
 							transitionType: TransitionType.NO_TRANSITION,
 							pieceLifespan: PieceLifespan.STICKY_UNTIL_RUNDOWN_CHANGE,
-						} as PieceInterface)
-						const activePart: Part = EntityMockFactory.createPart({ id: activePartId } as PartInterface)
+						})
+						const activePart: Part = EntityMockFactory.createPart({ id: activePartId })
 						const rundown: Rundown = EntityMockFactory.createActiveRundown({
 							activePart,
 							infinitePieces: [infinitePiece],
@@ -3690,8 +3751,8 @@ describe('superfly-timeline-builder', () => {
 								partId: 'randomPartId',
 								transitionType: TransitionType.NO_TRANSITION,
 								pieceLifespan: PieceLifespan.STICKY_UNTIL_RUNDOWN_CHANGE,
-							} as PieceInterface)
-							const activePart: Part = EntityMockFactory.createPart({ id: 'activeId' } as PartInterface)
+							})
+							const activePart: Part = EntityMockFactory.createPart({ id: 'activeId' })
 							const rundown: Rundown = EntityMockFactory.createActiveRundown({
 								activePart,
 								infinitePieces: [infinitePiece],
@@ -3711,12 +3772,12 @@ describe('superfly-timeline-builder', () => {
 										partId: 'randomPartId',
 										transitionType: TransitionType.NO_TRANSITION,
 										pieceLifespan: PieceLifespan.STICKY_UNTIL_RUNDOWN_CHANGE,
-									} as PieceInterface,
+									},
 									{ executedAt: 100 }
 								)
 								const activePart: Part = EntityMockFactory.createPart({
 									id: 'activeId',
-								} as PartInterface)
+								})
 								const rundown: Rundown = EntityMockFactory.createActiveRundown({
 									activePart,
 									infinitePieces: [infinitePiece],
@@ -3739,12 +3800,12 @@ describe('superfly-timeline-builder', () => {
 										partId: 'randomPartId',
 										transitionType: TransitionType.NO_TRANSITION,
 										pieceLifespan: PieceLifespan.STICKY_UNTIL_RUNDOWN_CHANGE,
-									} as PieceInterface,
+									},
 									{ executedAt: 100 }
 								)
 								const activePart: Part = EntityMockFactory.createPart({
 									id: 'activeId',
-								} as PartInterface)
+								})
 								const rundown: Rundown = EntityMockFactory.createActiveRundown({
 									activePart,
 									infinitePieces: [infinitePiece],
@@ -3767,12 +3828,12 @@ describe('superfly-timeline-builder', () => {
 										partId: 'randomPartId',
 										transitionType: TransitionType.NO_TRANSITION,
 										pieceLifespan: PieceLifespan.STICKY_UNTIL_RUNDOWN_CHANGE,
-									} as PieceInterface,
+									},
 									{ executedAt }
 								)
 								const activePart: Part = EntityMockFactory.createPart({
 									id: 'activeId',
-								} as PartInterface)
+								})
 								const rundown: Rundown = EntityMockFactory.createActiveRundown({
 									activePart,
 									infinitePieces: [infinitePiece],
@@ -3796,12 +3857,12 @@ describe('superfly-timeline-builder', () => {
 										partId: 'randomPartId',
 										transitionType: TransitionType.NO_TRANSITION,
 										pieceLifespan: PieceLifespan.STICKY_UNTIL_RUNDOWN_CHANGE,
-									} as PieceInterface,
+									},
 									{ executedAt: 100 }
 								)
 								const activePart: Part = EntityMockFactory.createPart({
 									id: 'activeId',
-								} as PartInterface)
+								})
 								const rundown: Rundown = EntityMockFactory.createActiveRundown({
 									activePart,
 									infinitePieces: [infinitePiece],
@@ -3821,7 +3882,7 @@ describe('superfly-timeline-builder', () => {
 							// describe('infinite Piece has PreRoll', () => {
 							// 	describe('it creates a preRoll infinite group for Piece', () => {
 							// 		it('sets correct preRoll infinite group id', () => {
-							//             const infinitePiece: Piece = EntityDefaultFactory.createPiece({ preRollDuration: 10, partId: 'randomPartId', transitionType: TransitionType.NO_TRANSITION, pieceLifespan: PieceLifespan.STICKY_UNTIL_RUNDOWN_CHANGE } as PieceInterface)
+							//             const infinitePiece: Piece = EntityDefaultFactory.createPiece({ preRollDuration: 10, partId: 'randomPartId', transitionType: TransitionType.NO_TRANSITION, pieceLifespan: PieceLifespan.STICKY_UNTIL_RUNDOWN_CHANGE } )
 							//
 							//             const segment: Segment = createSegmentWithPieces([infinitePiece])
 							//             const rundown: Rundown = EntityDefaultFactory.createActiveRundown([segment])
@@ -3837,7 +3898,7 @@ describe('superfly-timeline-builder', () => {
 							// 		})
 							//
 							// 		it('sets TimelineEnable.start to Piece.executedAt - Piece.preRollDuration', () => {
-							//             const infinitePiece: Piece = EntityDefaultFactory.createPiece({ preRollDuration: 10, partId: 'randomPartId', transitionType: TransitionType.NO_TRANSITION, pieceLifespan: PieceLifespan.STICKY_UNTIL_RUNDOWN_CHANGE } as PieceInterface)
+							//             const infinitePiece: Piece = EntityDefaultFactory.createPiece({ preRollDuration: 10, partId: 'randomPartId', transitionType: TransitionType.NO_TRANSITION, pieceLifespan: PieceLifespan.STICKY_UNTIL_RUNDOWN_CHANGE } )
 							//
 							//             const segment: Segment = createSegmentWithPieces([infinitePiece])
 							//             const rundown: Rundown = EntityDefaultFactory.createActiveRundown([segment])
@@ -3851,7 +3912,7 @@ describe('superfly-timeline-builder', () => {
 							// 		})
 							//
 							// 		it('sets empty layer', () => {
-							//             const infinitePiece: Piece = EntityDefaultFactory.createPiece({ preRollDuration: 10, partId: 'randomPartId', transitionType: TransitionType.NO_TRANSITION, pieceLifespan: PieceLifespan.STICKY_UNTIL_RUNDOWN_CHANGE } as PieceInterface)
+							//             const infinitePiece: Piece = EntityDefaultFactory.createPiece({ preRollDuration: 10, partId: 'randomPartId', transitionType: TransitionType.NO_TRANSITION, pieceLifespan: PieceLifespan.STICKY_UNTIL_RUNDOWN_CHANGE } )
 							//
 							//             const segment: Segment = createSegmentWithPieces([infinitePiece])
 							//             const rundown: Rundown = EntityDefaultFactory.createActiveRundown([segment])
@@ -3865,7 +3926,7 @@ describe('superfly-timeline-builder', () => {
 							// 		})
 							//
 							// 		it('sets the TimelineEnable.start of the infinite group for Piece to preRollInfiniteGroup + Piece.preRollDuration', () => {
-							//             const infinitePiece: Piece = EntityDefaultFactory.createPiece({ preRollDuration: 10, partId: 'randomPartId', transitionType: TransitionType.NO_TRANSITION, pieceLifespan: PieceLifespan.STICKY_UNTIL_RUNDOWN_CHANGE } as PieceInterface)
+							//             const infinitePiece: Piece = EntityDefaultFactory.createPiece({ preRollDuration: 10, partId: 'randomPartId', transitionType: TransitionType.NO_TRANSITION, pieceLifespan: PieceLifespan.STICKY_UNTIL_RUNDOWN_CHANGE } )
 							//
 							//             const segment: Segment = createSegmentWithPieces([infinitePiece])
 							//             const rundown: Rundown = EntityDefaultFactory.createActiveRundown([segment])
@@ -3890,12 +3951,12 @@ describe('superfly-timeline-builder', () => {
 											partId: 'randomPartId',
 											transitionType: TransitionType.NO_TRANSITION,
 											pieceLifespan: PieceLifespan.STICKY_UNTIL_RUNDOWN_CHANGE,
-										} as PieceInterface,
+										},
 										{ executedAt: 100 }
 									)
 									const activePart: Part = EntityMockFactory.createPart({
 										id: 'activeId',
-									} as PartInterface)
+									})
 									const rundown: Rundown = EntityMockFactory.createActiveRundown({
 										activePart,
 										infinitePieces: [infinitePiece],
@@ -3923,12 +3984,12 @@ describe('superfly-timeline-builder', () => {
 											partId: 'randomPartId',
 											transitionType: TransitionType.NO_TRANSITION,
 											pieceLifespan: PieceLifespan.STICKY_UNTIL_RUNDOWN_CHANGE,
-										} as PieceInterface,
+										},
 										{ executedAt: 100 }
 									)
 									const activePart: Part = EntityMockFactory.createPart({
 										id: 'activeId',
-									} as PartInterface)
+									})
 									const rundown: Rundown = EntityMockFactory.createActiveRundown({
 										activePart,
 										infinitePieces: [infinitePiece],
@@ -3960,12 +4021,12 @@ describe('superfly-timeline-builder', () => {
 											partId: 'randomPartId',
 											transitionType: TransitionType.NO_TRANSITION,
 											pieceLifespan: PieceLifespan.STICKY_UNTIL_RUNDOWN_CHANGE,
-										} as PieceInterface,
+										},
 										{ executedAt: 100 }
 									)
 									const activePart: Part = EntityMockFactory.createPart({
 										id: 'activeId',
-									} as PartInterface)
+									})
 									const rundown: Rundown = EntityMockFactory.createActiveRundown({
 										activePart,
 										infinitePieces: [infinitePiece],
@@ -4001,12 +4062,12 @@ describe('superfly-timeline-builder', () => {
 											partId: 'randomPartId',
 											transitionType: TransitionType.NO_TRANSITION,
 											pieceLifespan: PieceLifespan.STICKY_UNTIL_RUNDOWN_CHANGE,
-										} as PieceInterface,
+										},
 										{ executedAt: 100 }
 									)
 									const activePart: Part = EntityMockFactory.createPart({
 										id: 'activeId',
-									} as PartInterface)
+									})
 									const rundown: Rundown = EntityMockFactory.createActiveRundown({
 										activePart,
 										infinitePieces: [infinitePiece],
@@ -4038,7 +4099,7 @@ describe('superfly-timeline-builder', () => {
 							partId: 'randomPartId',
 							transitionType: TransitionType.NO_TRANSITION,
 							pieceLifespan: PieceLifespan.STICKY_UNTIL_RUNDOWN_CHANGE,
-						} as PieceInterface,
+						},
 						{
 							executedAt: 100,
 						}
@@ -4050,7 +4111,7 @@ describe('superfly-timeline-builder', () => {
 							partId: 'randomPartId',
 							transitionType: TransitionType.NO_TRANSITION,
 							pieceLifespan: PieceLifespan.STICKY_UNTIL_RUNDOWN_CHANGE,
-						} as PieceInterface,
+						},
 						{
 							executedAt: 100,
 						}
@@ -4062,13 +4123,13 @@ describe('superfly-timeline-builder', () => {
 							partId: 'randomPartId',
 							transitionType: TransitionType.NO_TRANSITION,
 							pieceLifespan: PieceLifespan.STICKY_UNTIL_RUNDOWN_CHANGE,
-						} as PieceInterface,
+						},
 						{
 							executedAt: 100,
 						}
 					),
 				]
-				const activePart: Part = EntityMockFactory.createPart({ id: 'activeId' } as PartInterface)
+				const activePart: Part = EntityMockFactory.createPart({ id: 'activeId' })
 				const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, infinitePieces })
 
 				const testee: TimelineBuilder = new SuperflyTimelineBuilder()
@@ -4084,8 +4145,7 @@ describe('superfly-timeline-builder', () => {
 
 		describe('Rundown does not have any infinite Pieces', () => {
 			it('does not create any infinite Piece groups', () => {
-				const segment: Segment = createSegmentWithPieces([])
-				const rundown: Rundown = EntityMockFactory.createActiveRundown({ activeSegment: segment })
+				const rundown: Rundown = EntityMockFactory.createActiveRundown()
 
 				const testee: TimelineBuilder = new SuperflyTimelineBuilder()
 				const timeline: Timeline = testee.buildTimeline(rundown)
@@ -4099,8 +4159,3 @@ describe('superfly-timeline-builder', () => {
 		})
 	})
 })
-
-function createSegmentWithPieces(pieces: Piece[]): Segment {
-	const part: Part = EntityMockFactory.createPart({ pieces } as PartInterface)
-	return EntityMockFactory.createSegment({ parts: [part] } as SegmentInterface)
-}

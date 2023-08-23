@@ -72,9 +72,7 @@ export class RundownTimelineService implements RundownService {
 		const timeline: Timeline = this.timelineBuilder.buildTimeline(rundown)
 
 		if (timeline.autoNext) {
-			this.callbackScheduler.start(timeline.autoNext.epochTimeToTakeNext, async () =>
-				this.takeNext(rundownId)
-			)
+			this.callbackScheduler.start(timeline.autoNext.epochTimeToTakeNext, async () => this.takeNext(rundownId))
 		}
 
 		this.timelineRepository.saveTimeline(timeline)

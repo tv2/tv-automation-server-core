@@ -10,14 +10,14 @@ import { PartTimings } from '../../value-objects/part-timings'
 
 export class EntityMockFactory {
 	public static createActiveRundown(
-		activeRundownProperties: {
+		activeRundownProperties: Partial<{
 			activePart?: Part
 			nextPart?: Part
 			previousPart?: Part
 			activeSegment?: Segment
 			nextSegment?: Segment
 			infinitePieces?: Piece[]
-		} = {}
+		}> = {}
 	): Rundown {
 		const mockedRundown: Rundown = mock(Rundown)
 
@@ -36,26 +36,26 @@ export class EntityMockFactory {
 	}
 
 	public static createSegment(
-		segmentInterface?: SegmentInterface,
-		misc?: {
+		segmentInterface?: Partial<SegmentInterface>,
+		misc?: Partial<{
 			firstPart?: Part
 			nextPart?: Part
 			firstSpanningPieceForEachLayerBeforePart?: Piece[]
 			firstSpanningRundownPieceForeachLayerForAllParts?: Piece[]
-		}
+		}>
 	): Segment {
 		const mockedSegment: Segment = this.createSegmentMockInstance(segmentInterface, misc)
 		return instance(mockedSegment)
 	}
 
 	public static createSegmentMockInstance(
-		segmentInterface?: SegmentInterface,
-		misc?: {
+		segmentInterface?: Partial<SegmentInterface>,
+		misc?: Partial<{
 			firstPart?: Part
 			nextPart?: Part
 			firstSpanningPieceForEachLayerBeforePart?: Piece[]
 			firstSpanningRundownPieceForeachLayerForAllParts?: Piece[]
-		}
+		}>
 	): Segment {
 		const mockedSegment: Segment = mock(Segment)
 
@@ -92,24 +92,24 @@ export class EntityMockFactory {
 	}
 
 	public static createPart(
-		partInterface?: PartInterface,
-		misc?: {
-			partTimings?: PartTimings
+		partInterface?: Partial<PartInterface>,
+		misc?: Partial<{
+			partTimings?: Partial<PartTimings>
 			executedAt?: number
 			pieceLifespanFilters?: PieceLifespan[]
-		}
+		}>
 	): Part {
 		const mockedPart: Part = this.createPartMockInstance(partInterface, misc)
 		return instance(mockedPart)
 	}
 
 	public static createPartMockInstance(
-		partInterface?: PartInterface,
-		misc?: {
-			partTimings?: PartTimings
+		partInterface?: Partial<PartInterface>,
+		misc?: Partial<{
+			partTimings?: Partial<PartTimings>
 			executedAt?: number
 			pieceLifespanFilters?: PieceLifespan[]
-		}
+		}>
 	): Part {
 		const mockedPart: Part = mock(Part)
 
@@ -145,24 +145,28 @@ export class EntityMockFactory {
 			pieces.filter((piece) => misc?.pieceLifespanFilters?.includes(piece.pieceLifespan))
 		)
 
-		when(mockedPart.getTimings()).thenReturn(
-			misc.partTimings ?? {
-				inTransitionStart: undefined,
-				delayStartOfPiecesDuration: 0,
-				postRollDuration: 0,
-				previousPartContinueIntoPartDuration: 0,
-			}
-		)
+		when(mockedPart.getTimings()).thenReturn({
+			inTransitionStart: misc.partTimings?.inTransitionStart ?? undefined,
+			delayStartOfPiecesDuration: misc.partTimings?.delayStartOfPiecesDuration ?? 0,
+			postRollDuration: misc.partTimings?.postRollDuration ?? 0,
+			previousPartContinueIntoPartDuration: misc.partTimings?.previousPartContinueIntoPartDuration ?? 0,
+		})
 
 		return mockedPart
 	}
 
-	public static createPiece(pieceInterface?: PieceInterface, misc?: { executedAt?: number }): Piece {
+	public static createPiece(
+		pieceInterface?: Partial<PieceInterface>,
+		misc?: Partial<{ executedAt?: number }>
+	): Piece {
 		const mockedPiece: Piece = this.createPieceMockInstance(pieceInterface, misc)
 		return instance(mockedPiece)
 	}
 
-	public static createPieceMockInstance(pieceInterface?: PieceInterface, misc?: { executedAt?: number }): Piece {
+	public static createPieceMockInstance(
+		pieceInterface?: Partial<PieceInterface>,
+		misc?: Partial<{ executedAt?: number }>
+	): Piece {
 		const mockedPiece: Piece = mock(Piece)
 
 		if (!pieceInterface) {
