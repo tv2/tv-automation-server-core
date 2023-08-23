@@ -49,9 +49,10 @@ export class MongoTestDatabase {
 	public async populateDatabaseWithRundowns(rundowns: Rundown[]): Promise<void> {
 		const db: Db = this.getDatabase()
 		const entityConverter: MongoEntityConverter = new MongoEntityConverter()
+		const rundownsCollection = db.collection('rundowns')
 		for (const rundown of rundowns) {
 			const convertedRundown: MongoRundown = entityConverter.convertToMongoRundown(rundown)
-			await db.collection('rundowns').insertOne(convertedRundown)
+			await rundownsCollection.insertOne(convertedRundown)
 			if (rundown.isActive()) {
 				await db.collection('rundownPlaylists').insertOne({
 					externalId: rundown.name,
@@ -68,24 +69,29 @@ export class MongoTestDatabase {
 	public async populateDatabaseWithSegments(segments: Segment[]): Promise<void> {
 		const db: Db = this.getDatabase()
 		const entityConverter: MongoEntityConverter = new MongoEntityConverter()
-		for (const segment of entityConverter.convertToMongoSegments(segments)) {
-			await db.collection('segments').insertOne(segment)
-		}
+		const segmentsCollection = db.collection('segments')
+		await Promise.all(
+			entityConverter
+				.convertToMongoSegments(segments)
+				.map(async (segment) => segmentsCollection.insertOne(segment))
+		)
 	}
 
 	public async populateDatabaseWithParts(parts: Part[]): Promise<void> {
 		const db: Db = this.getDatabase()
 		const entityConverter: MongoEntityConverter = new MongoEntityConverter()
-		for (const part of entityConverter.convertToMongoParts(parts)) {
-			await db.collection('parts').insertOne(part)
-		}
+		const partsCollection = db.collection('parts')
+		await Promise.all(
+			entityConverter.convertToMongoParts(parts).map(async (part) => partsCollection.insertOne(part))
+		)
 	}
 
 	public async populateDatabaseWithPieces(pieces: Piece[]): Promise<void> {
 		const db: Db = this.getDatabase()
 		const entityConverter: MongoEntityConverter = new MongoEntityConverter()
-		for (const piece of entityConverter.convertToMongoPieces(pieces)) {
-			await db.collection('pieces').insertOne(piece)
-		}
+		const piecesCollection = db.collection('pieces')
+		await Promise.all(
+			entityConverter.convertToMongoPieces(pieces).map(async (piece) => piecesCollection.insertOne(piece))
+		)
 	}
 }
