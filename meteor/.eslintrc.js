@@ -68,13 +68,10 @@ module.exports = {
 	extends: [...commonExtends, 'plugin:react/recommended'],
 	plugins: [...commonPlugins, 'react'],
 	rules: {
-		'prettier/prettier': ['error'],
+		'prettier/prettier': 'error',
 	},
 	env: { es2017: true },
-	parserOptions: {
-		sourceType: 'module',
-		ecmaVersion: 2018,
-	},
+	parserOptions: { sourceType: 'module', ecmaVersion: 2018 },
 	settings: {
 		react: {
 			version: 'detect', // Tells eslint-plugin-react to automatically detect the version of React to use
