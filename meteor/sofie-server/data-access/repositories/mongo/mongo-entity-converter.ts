@@ -114,14 +114,24 @@ export class MongoEntityConverter {
 		return mongoRundowns.map(this.convertRundown)
 	}
 
-	public convertToMongoRundown(rundown: Rundown): Partial<MongoRundown> {
+	public convertToMongoRundown(rundown: Rundown): MongoRundown {
 		return {
+			externalId: '', // Todo: figure out where the value for this attribute is
+			metaData: { rank: 0 }, // Todo: figure out where the value for this attribute is
+			modified: rundown.getLastTimeModified(),
+			notes: [], // Todo: figure out where the value for this attribute is
+			organizationId: '', // Todo: figure out where the value for this attribute is
+			playlistExternalId: '', // Todo: figure out where the value for this attribute is
+			showStyleBaseId: '', // Todo: figure out where the value for this attribute is
+			showStyleVariantId: '', // Todo: figure out where the value for this attribute is
+			studioId: '', // Todo: figure out where the value for this attribute is
+			timing: { expectedDuration: 0, expectedEnd: 0, expectedStart: 0, type: '' }, // Todo: figure out where the value for this attribute is
 			_id: rundown.id,
 			name: rundown.name,
 		}
 	}
 
-	public convertToMongoRundowns(rundowns: Rundown[]): Partial<MongoRundown>[] {
+	public convertToMongoRundowns(rundowns: Rundown[]): MongoRundown[] {
 		return rundowns.map(this.convertToMongoRundown)
 	}
 
@@ -149,8 +159,10 @@ export class MongoEntityConverter {
 		return mongoSegments.filter((segment) => !segment.isHidden).map(this.convertSegment)
 	}
 
-	public convertToMongoSegment(segment: Segment): Partial<MongoSegment> {
+	public convertToMongoSegment(segment: Segment): MongoSegment {
 		return {
+			externalId: '', // Todo: figure out where the value for this attribute is
+			isHidden: false, // Todo: figure out where the value for this attribute is
 			_id: segment.id,
 			name: segment.name,
 			rundownId: segment.rundownId,
@@ -158,7 +170,7 @@ export class MongoEntityConverter {
 		}
 	}
 
-	public convertToMongoSegments(segments: Segment[]): Partial<MongoSegment>[] {
+	public convertToMongoSegments(segments: Segment[]): MongoSegment[] {
 		return segments.map(this.convertToMongoSegment)
 	}
 
@@ -179,15 +191,17 @@ export class MongoEntityConverter {
 		return mongoParts.map(this.convertPart)
 	}
 
-	public convertToMongoPart(part: Part): Partial<MongoPart> {
+	public convertToMongoPart(part: Part): MongoPart {
 		return {
+			expectedDuration: part.expectedDuration,
+			title: part.name,
 			_id: part.id,
 			segmentId: part.segmentId,
 			_rank: part.rank,
 		}
 	}
 
-	public convertToMongoParts(parts: Part[]): Partial<MongoPart>[] {
+	public convertToMongoParts(parts: Part[]): MongoPart[] {
 		return parts.map(this.convertToMongoPart)
 	}
 
@@ -227,15 +241,19 @@ export class MongoEntityConverter {
 		return mongoPieces.map((mongoPiece) => this.convertPiece(mongoPiece))
 	}
 
-	public convertToMongoPiece(piece: Piece): Partial<MongoPiece> {
+	public convertToMongoPiece(piece: Piece): MongoPiece {
 		return {
+			enable: { duration: piece.duration, start: piece.start },
+			lifespan: piece.pieceLifeSpan,
+			sourceLayerId: piece.layer,
+			timelineObjectsString: '',
 			_id: piece.id,
 			startPartId: piece.partId,
 			name: piece.name,
 		}
 	}
 
-	public convertToMongoPieces(pieces: Piece[]): Partial<MongoPiece>[] {
+	public convertToMongoPieces(pieces: Piece[]): MongoPiece[] {
 		return pieces.map(this.convertToMongoPiece)
 	}
 
