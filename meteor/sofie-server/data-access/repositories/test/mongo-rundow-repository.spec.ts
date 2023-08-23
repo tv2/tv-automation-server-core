@@ -8,7 +8,6 @@ import { anyString, anything, instance, mock, spy, verify, when } from 'ts-mocki
 import { MongoEntityConverter } from '../mongo/mongo-entity-converter'
 import { NotFoundException } from '../../../model/exceptions/not-found-exception'
 import { Db } from 'mongodb'
-import { DeletionFailedException } from '../../../model/exceptions/deletion-failed-exception'
 
 const COLLECTION_NAME = 'rundowns'
 describe(`${MongoRundownRepository.name}`, () => {
