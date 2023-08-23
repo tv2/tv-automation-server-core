@@ -97,7 +97,7 @@ export class MongoEntityConverter {
 	}
 
 	public convertIdentifiers(mongoIdentifiers: MongoIdentifier[]): Identifier[] {
-		return mongoIdentifiers.map(this.convertIdentifier)
+		return mongoIdentifiers.map(this.convertIdentifier.bind(this))
 	}
 
 	public convertRundown(mongoRundown: MongoRundown): Rundown {
@@ -111,7 +111,7 @@ export class MongoEntityConverter {
 	}
 
 	public convertRundowns(mongoRundowns: MongoRundown[]): Rundown[] {
-		return mongoRundowns.map(this.convertRundown)
+		return mongoRundowns.map(this.convertRundown.bind(this))
 	}
 
 	public convertToMongoRundown(rundown: Rundown): MongoRundown {
@@ -132,7 +132,7 @@ export class MongoEntityConverter {
 	}
 
 	public convertToMongoRundowns(rundowns: Rundown[]): MongoRundown[] {
-		return rundowns.map(this.convertToMongoRundown)
+		return rundowns.map(this.convertToMongoRundown.bind(this))
 	}
 
 	public convertBasicRundown(mongoRundown: MongoRundown): BasicRundown {
@@ -140,7 +140,7 @@ export class MongoEntityConverter {
 	}
 
 	public convertBasicRundowns(mongoRundowns: MongoRundown[]): BasicRundown[] {
-		return mongoRundowns.map(this.convertBasicRundown)
+		return mongoRundowns.map(this.convertBasicRundown.bind(this))
 	}
 
 	public convertSegment(mongoSegment: MongoSegment): Segment {
@@ -156,7 +156,7 @@ export class MongoEntityConverter {
 	}
 
 	public convertSegments(mongoSegments: MongoSegment[]): Segment[] {
-		return mongoSegments.filter((segment) => !segment.isHidden).map(this.convertSegment)
+		return mongoSegments.filter((segment) => !segment.isHidden).map(this.convertSegment.bind(this))
 	}
 
 	public convertToMongoSegment(segment: Segment): MongoSegment {
@@ -171,7 +171,7 @@ export class MongoEntityConverter {
 	}
 
 	public convertToMongoSegments(segments: Segment[]): MongoSegment[] {
-		return segments.map(this.convertToMongoSegment)
+		return segments.map(this.convertToMongoSegment.bind(this))
 	}
 
 	public convertPart(mongoPart: MongoPart): Part {
@@ -188,7 +188,7 @@ export class MongoEntityConverter {
 	}
 
 	public convertParts(mongoParts: MongoPart[]): Part[] {
-		return mongoParts.map(this.convertPart)
+		return mongoParts.map(this.convertPart.bind(this))
 	}
 
 	public convertToMongoPart(part: Part): MongoPart {
@@ -202,7 +202,7 @@ export class MongoEntityConverter {
 	}
 
 	public convertToMongoParts(parts: Part[]): MongoPart[] {
-		return parts.map(this.convertToMongoPart)
+		return parts.map(this.convertToMongoPart.bind(this))
 	}
 
 	public convertPiece(mongoPiece: MongoPiece): Piece {
@@ -254,7 +254,7 @@ export class MongoEntityConverter {
 	}
 
 	public convertToMongoPieces(pieces: Piece[]): MongoPiece[] {
-		return pieces.map(this.convertToMongoPiece)
+		return pieces.map(this.convertToMongoPiece.bind(this))
 	}
 
 	public convertToMongoTimeline(timeline: Timeline): MongoTimeline {
