@@ -7,7 +7,7 @@ import { TimelineRepository } from '../../../data-access/repositories/interfaces
 import { AdLibPieceRepository } from '../../../data-access/repositories/interfaces/ad-lib-piece-repository'
 import { TimelineBuilder } from '../interfaces/timeline-builder'
 import { RundownEventBuilder } from '../interfaces/rundown-event-builder'
-import { RundownActiveException } from '../../../model/exceptions/rundown-active-exception'
+import { ActiveRundownException } from '../../../model/exceptions/active-rundown-exception'
 import { RundownEventType } from '../../../model/enums/rundown-event-type'
 
 describe(`${RundownTimelineService.name}`, () => {
@@ -91,7 +91,7 @@ describe(`${RundownTimelineService.name}`, () => {
 			} catch (error) {
 				// It isn't conditional, as the test will fail, if not hit, due to the 'expect.assertions(1)'
 				// eslint-disable-next-line jest/no-conditional-expect
-				expect(error).toBeInstanceOf(RundownActiveException)
+				expect(error).toBeInstanceOf(ActiveRundownException)
 			}
 		})
 	})

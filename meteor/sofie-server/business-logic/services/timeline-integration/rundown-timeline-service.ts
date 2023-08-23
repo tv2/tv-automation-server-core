@@ -14,7 +14,7 @@ import { AdLibPieceRepository } from '../../../data-access/repositories/interfac
 import { AdLibPiece } from '../../../model/entities/ad-lib-piece'
 import { Piece } from '../../../model/entities/piece'
 import { RundownEventBuilder } from '../interfaces/rundown-event-builder'
-import { RundownActiveException } from '../../../model/exceptions/rundown-active-exception'
+import { ActiveRundownException } from '../../../model/exceptions/active-rundown-exception'
 
 export class RundownTimelineService implements RundownService {
 	constructor(
@@ -133,7 +133,7 @@ export class RundownTimelineService implements RundownService {
 		const rundown: Rundown = await this.rundownRepository.getRundown(rundownId)
 
 		if (rundown.isActive()) {
-			throw new RundownActiveException('Attempted to delete an active rundown')
+			throw new ActiveRundownException('Attempted to delete an active rundown')
 		}
 
 		await this.rundownRepository.deleteRundown(rundownId)
