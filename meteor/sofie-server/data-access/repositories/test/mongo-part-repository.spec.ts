@@ -85,7 +85,6 @@ describe(`${MongoPartRepository.name}`, () => {
 				mongoConverter: mongoConverter,
 			})
 
-			expect.assertions(2)
 			try {
 				await testee.deleteSegmentParts(nonExistingId)
 			} catch (error) {
@@ -93,7 +92,9 @@ describe(`${MongoPartRepository.name}`, () => {
 				expect(error).toBeInstanceOf(DeletionFailedException)
 				// eslint-disable-next-line jest/no-conditional-expect
 				expect((error as DeletionFailedException).message).toContain(expectedErrorMessageFragment)
+				return
 			}
+			throw new Error(`Expected an exception of type ${DeletionFailedException.name} to be thrown, but it wasn't`)
 		})
 
 		it('does not deletes any pieces, when nonexistent segmentId is given', async () => {
@@ -108,7 +109,6 @@ describe(`${MongoPartRepository.name}`, () => {
 				mongoConverter: mongoConverter,
 			})
 
-			expect.assertions(2)
 			try {
 				await testee.deleteSegmentParts(nonExistingId)
 			} catch (error) {
@@ -116,7 +116,9 @@ describe(`${MongoPartRepository.name}`, () => {
 				expect(error).toBeInstanceOf(DeletionFailedException)
 				// eslint-disable-next-line jest/no-conditional-expect
 				expect(await db.collection(COLLECTION_NAME).countDocuments()).toBe(1)
+				return
 			}
+			throw new Error(`Expected an exception of type ${DeletionFailedException.name} to be thrown, but it wasn't`)
 		})
 
 		// eslint-disable-next-line jest/expect-expect

@@ -98,7 +98,6 @@ describe(`${MongoSegmentRepository.name}`, () => {
 				mongoConverter: mongoConverter,
 			})
 
-			expect.assertions(2)
 			try {
 				await testee.deleteRundownSegments(nonExistingId)
 			} catch (error) {
@@ -106,7 +105,9 @@ describe(`${MongoSegmentRepository.name}`, () => {
 				expect(error).toBeInstanceOf(DeletionFailedException)
 				// eslint-disable-next-line jest/no-conditional-expect
 				expect(await db.collection(COLLECTION_NAME).countDocuments()).toBe(1)
+				return
 			}
+			throw new Error(`Expected an exception of type ${DeletionFailedException.name} to be thrown, but it wasn't`)
 		})
 
 		it('throws exception, when nonexistent rundownId is given', async () => {
@@ -121,7 +122,6 @@ describe(`${MongoSegmentRepository.name}`, () => {
 				mongoConverter: mongoConverter,
 			})
 
-			expect.assertions(2)
 			try {
 				await testee.deleteRundownSegments(nonExistingId)
 			} catch (error) {
@@ -129,7 +129,9 @@ describe(`${MongoSegmentRepository.name}`, () => {
 				expect(error).toBeInstanceOf(DeletionFailedException)
 				// eslint-disable-next-line jest/no-conditional-expect
 				expect((error as DeletionFailedException).message).toContain(expectedErrorMessageFragment)
+				return
 			}
+			throw new Error(`Expected an exception of type ${DeletionFailedException.name} to be thrown, but it wasn't`)
 		})
 
 		// eslint-disable-next-line jest/expect-expect
