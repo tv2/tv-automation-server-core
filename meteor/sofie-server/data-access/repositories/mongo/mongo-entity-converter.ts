@@ -169,8 +169,7 @@ export class MongoEntityConverter {
 			outTransition: {
 				keepAliveDuration: mongoPart.outTransition?.duration ?? 0,
 			},
-			autoNext: mongoPart.autoNext,
-			autoNextOverlap: mongoPart.autoNextOverlap,
+			autoNext: mongoPart.autoNext ? { overlap: mongoPart.autoNextOverlap } : undefined,
 			disableNextInTransition: mongoPart.disableNextInTransition,
 		})
 	}

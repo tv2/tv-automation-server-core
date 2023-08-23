@@ -5,6 +5,7 @@ import { PartTimings } from '../value-objects/part-timings'
 import { UnsupportedOperation } from '../exceptions/unsupported-operation'
 import { InTransition } from '../value-objects/in-transition'
 import { OutTransition } from '../value-objects/out-transition'
+import { AutoNext } from '../value-objects/auto-next'
 
 export interface PartInterface {
 	id: string
@@ -19,8 +20,7 @@ export interface PartInterface {
 	inTransition: InTransition
 	outTransition: OutTransition
 
-	autoNext: boolean
-	autoNextOverlap: number
+	autoNext?: AutoNext
 	disableNextInTransition: boolean
 }
 
@@ -35,8 +35,7 @@ export class Part {
 	readonly inTransition: InTransition
 	readonly outTransition: OutTransition
 
-	readonly autoNext: boolean
-	readonly autoNextOverlap: number
+	readonly autoNext?: AutoNext
 	readonly disableNextInTransition: boolean
 
 	private pieces: Piece[]
@@ -64,7 +63,6 @@ export class Part {
 
 		this.disableNextInTransition = part.disableNextInTransition
 		this.autoNext = part.autoNext
-		this.autoNextOverlap = part.autoNextOverlap
 
 		this.executedAt = 0
 	}
@@ -131,11 +129,11 @@ export class Part {
 		let allowTransition: boolean = false
 
 		if (previousPart /* && notInHold */) {
-			if (previousPart.autoNext && previousPart.autoNextOverlap) {
+			if (previousPart.autoNext && previousPart.autoNext.overlap) {
 				// Having "autoNext" & "autoNextOverLap" overrides the InTransition of the next Part.
 				allowTransition = false
 				inTransition = {
-					keepPreviousPartAliveDuration: previousPart.autoNextOverlap ?? 0,
+					keepPreviousPartAliveDuration: previousPart.autoNext.overlap,
 					delayPiecesDuration: 0,
 				}
 			} else if (!previousPart.disableNextInTransition) {

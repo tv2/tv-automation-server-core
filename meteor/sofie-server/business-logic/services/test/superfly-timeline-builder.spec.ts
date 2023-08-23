@@ -2201,7 +2201,7 @@ describe('superfly-timeline-builder', () => {
 							pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
 						})
 						const activePart: Part = EntityMockFactory.createPart(
-							{ id: 'activeId', expectedDuration: 15, autoNext: true } as PartInterface,
+							{ id: 'activeId', expectedDuration: 15, autoNext: { overlap: 0 } } as PartInterface,
 							{ partTimings: { delayStartOfPiecesDuration } as PartTimings }
 						)
 						const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
@@ -2227,7 +2227,7 @@ describe('superfly-timeline-builder', () => {
 						const activePart: Part = EntityMockFactory.createPart({
 							id: 'activeId',
 							expectedDuration: 15,
-							autoNext: true,
+							autoNext: { overlap: 0 },
 						} as PartInterface)
 						const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
 
@@ -2254,7 +2254,7 @@ describe('superfly-timeline-builder', () => {
 						pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
 					})
 					const activePart: Part = EntityMockFactory.createPart(
-						{ id: 'activeId', expectedDuration: 15, autoNext: true } as PartInterface,
+						{ id: 'activeId', expectedDuration: 15, autoNext: { overlap: 0 } } as PartInterface,
 						{ partTimings: { delayStartOfPiecesDuration } as PartTimings }
 					)
 					const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
@@ -2276,7 +2276,7 @@ describe('superfly-timeline-builder', () => {
 						const activePart: Part = EntityMockFactory.createPart({
 							id: 'activeId',
 							expectedDuration: 15,
-							autoNext: true,
+							autoNext: { overlap: 0 },
 						} as PartInterface)
 						const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
 
@@ -2298,7 +2298,7 @@ describe('superfly-timeline-builder', () => {
 						const activePart: Part = EntityMockFactory.createPart({
 							id: 'activeId',
 							expectedDuration: 15,
-							autoNext: true,
+							autoNext: { overlap: 0 },
 						} as PartInterface)
 						const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
 
@@ -2319,7 +2319,7 @@ describe('superfly-timeline-builder', () => {
 						const activePart: Part = EntityMockFactory.createPart({
 							id: 'activeId',
 							expectedDuration: 15,
-							autoNext: true,
+							autoNext: { overlap: 0 },
 						} as PartInterface)
 						const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
 
@@ -2344,7 +2344,7 @@ describe('superfly-timeline-builder', () => {
 							const activePart: Part = EntityMockFactory.createPart({
 								id: 'activeId',
 								expectedDuration: 15,
-								autoNext: true,
+								autoNext: { overlap: 0 },
 							} as PartInterface)
 							const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
 
@@ -2372,7 +2372,7 @@ describe('superfly-timeline-builder', () => {
 							const activePart: Part = EntityMockFactory.createPart({
 								id: 'activeId',
 								expectedDuration: 15,
-								autoNext: true,
+								autoNext: { overlap: 0 },
 							} as PartInterface)
 							const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
 
@@ -2403,7 +2403,7 @@ describe('superfly-timeline-builder', () => {
 								const activePart: Part = EntityMockFactory.createPart({
 									id: 'activeId',
 									expectedDuration: 15,
-									autoNext: true,
+									autoNext: { overlap: 0 },
 								} as PartInterface)
 								const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
 
@@ -2432,7 +2432,7 @@ describe('superfly-timeline-builder', () => {
 								const activePart: Part = EntityMockFactory.createPart({
 									id: 'activeId',
 									expectedDuration: 15,
-									autoNext: true,
+									autoNext: { overlap: 0 },
 								} as PartInterface)
 								const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
 
@@ -2462,7 +2462,7 @@ describe('superfly-timeline-builder', () => {
 								const activePart: Part = EntityMockFactory.createPart({
 									id: 'activeId',
 									expectedDuration: 15,
-									autoNext: true,
+									autoNext: { overlap: 0 },
 								} as PartInterface)
 								const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
 
@@ -2490,7 +2490,7 @@ describe('superfly-timeline-builder', () => {
 								const activePart: Part = EntityMockFactory.createPart({
 									id: 'activeId',
 									expectedDuration: 15,
-									autoNext: true,
+									autoNext: { overlap: 0 },
 								} as PartInterface)
 								const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
 
@@ -2526,7 +2526,7 @@ describe('superfly-timeline-builder', () => {
 										const activePart: Part = EntityMockFactory.createPart({
 											id: 'activeId',
 											expectedDuration: 15,
-											autoNext: true,
+											autoNext: { overlap: 0 },
 										} as PartInterface)
 										const rundown: Rundown = EntityMockFactory.createActiveRundown({
 											activePart,
@@ -2562,7 +2562,7 @@ describe('superfly-timeline-builder', () => {
 										const activePart: Part = EntityMockFactory.createPart({
 											id: 'activeId',
 											expectedDuration: 15,
-											autoNext: true,
+											autoNext: { overlap: 0 },
 										} as PartInterface)
 										const rundown: Rundown = EntityMockFactory.createActiveRundown({
 											activePart,
@@ -2595,7 +2595,7 @@ describe('superfly-timeline-builder', () => {
 										const activePart: Part = EntityMockFactory.createPart({
 											id: 'activeId',
 											expectedDuration: 15,
-											autoNext: true,
+											autoNext: { overlap: 0 },
 										} as PartInterface)
 										const rundown: Rundown = EntityMockFactory.createActiveRundown({
 											activePart,
@@ -2642,7 +2642,7 @@ describe('superfly-timeline-builder', () => {
 											const activePart: Part = EntityMockFactory.createPart({
 												id: 'activeId',
 												expectedDuration: 15,
-												autoNext: true,
+												autoNext: { overlap: 0 },
 											} as PartInterface)
 											const rundown: Rundown = EntityMockFactory.createActiveRundown({
 												activePart,
@@ -2684,7 +2684,7 @@ describe('superfly-timeline-builder', () => {
 											const activePart: Part = EntityMockFactory.createPart({
 												id: 'activeId',
 												expectedDuration: 15,
-												autoNext: true,
+												autoNext: { overlap: 0 },
 											} as PartInterface)
 											const rundown: Rundown = EntityMockFactory.createActiveRundown({
 												activePart,
@@ -2721,7 +2721,7 @@ describe('superfly-timeline-builder', () => {
 										const activePart: Part = EntityMockFactory.createPart({
 											id: 'activeId',
 											expectedDuration: 15,
-											autoNext: true,
+											autoNext: { overlap: 0 },
 										} as PartInterface)
 										const rundown: Rundown = EntityMockFactory.createActiveRundown({
 											activePart,
@@ -2756,7 +2756,7 @@ describe('superfly-timeline-builder', () => {
 									const activePart: Part = EntityMockFactory.createPart({
 										id: 'activeId',
 										expectedDuration: 15,
-										autoNext: true,
+										autoNext: { overlap: 0 },
 									} as PartInterface)
 									const rundown: Rundown = EntityMockFactory.createActiveRundown({
 										activePart,
@@ -2789,7 +2789,7 @@ describe('superfly-timeline-builder', () => {
 										const activePart: Part = EntityMockFactory.createPart({
 											id: 'activeId',
 											expectedDuration: 15,
-											autoNext: true,
+											autoNext: { overlap: 0 },
 										} as PartInterface)
 										const rundown: Rundown = EntityMockFactory.createActiveRundown({
 											activePart,
@@ -2828,7 +2828,7 @@ describe('superfly-timeline-builder', () => {
 											const activePart: Part = EntityMockFactory.createPart({
 												id: 'activeId',
 												expectedDuration: 15,
-												autoNext: true,
+												autoNext: { overlap: 0 },
 											} as PartInterface)
 											const rundown: Rundown = EntityMockFactory.createActiveRundown({
 												activePart,
@@ -2863,7 +2863,7 @@ describe('superfly-timeline-builder', () => {
 											const activePart: Part = EntityMockFactory.createPart({
 												id: 'activeId',
 												expectedDuration: 15,
-												autoNext: true,
+												autoNext: { overlap: 0 },
 											} as PartInterface)
 											const rundown: Rundown = EntityMockFactory.createActiveRundown({
 												activePart,
@@ -2901,7 +2901,7 @@ describe('superfly-timeline-builder', () => {
 										const activePart: Part = EntityMockFactory.createPart({
 											id: 'activeId',
 											expectedDuration: 15,
-											autoNext: true,
+											autoNext: { overlap: 0 },
 										} as PartInterface)
 										const rundown: Rundown = EntityMockFactory.createActiveRundown({
 											activePart,
@@ -2938,7 +2938,7 @@ describe('superfly-timeline-builder', () => {
 										const activePart: Part = EntityMockFactory.createPart({
 											id: 'activeId',
 											expectedDuration: 15,
-											autoNext: true,
+											autoNext: { overlap: 0 },
 										} as PartInterface)
 										const rundown: Rundown = EntityMockFactory.createActiveRundown({
 											activePart,
@@ -2971,7 +2971,7 @@ describe('superfly-timeline-builder', () => {
 										const activePart: Part = EntityMockFactory.createPart({
 											id: 'activeId',
 											expectedDuration: 15,
-											autoNext: true,
+											autoNext: { overlap: 0 },
 										} as PartInterface)
 										const rundown: Rundown = EntityMockFactory.createActiveRundown({
 											activePart,
@@ -3004,7 +3004,7 @@ describe('superfly-timeline-builder', () => {
 										const activePart: Part = EntityMockFactory.createPart({
 											id: 'activeId',
 											expectedDuration: 15,
-											autoNext: true,
+											autoNext: { overlap: 0 },
 										} as PartInterface)
 										const rundown: Rundown = EntityMockFactory.createActiveRundown({
 											activePart,
@@ -3044,7 +3044,7 @@ describe('superfly-timeline-builder', () => {
 								const activePart: Part = EntityMockFactory.createPart({
 									id: 'activeId',
 									expectedDuration: 15,
-									autoNext: true,
+									autoNext: { overlap: 0 },
 								} as PartInterface)
 								const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
 
@@ -3073,7 +3073,7 @@ describe('superfly-timeline-builder', () => {
 								const activePart: Part = EntityMockFactory.createPart({
 									id: 'activeId',
 									expectedDuration: 15,
-									autoNext: true,
+									autoNext: { overlap: 0 },
 								} as PartInterface)
 								const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
 
@@ -3101,7 +3101,7 @@ describe('superfly-timeline-builder', () => {
 								const activePart: Part = EntityMockFactory.createPart({
 									id: 'activeId',
 									expectedDuration: 15,
-									autoNext: true,
+									autoNext: { overlap: 0 },
 								} as PartInterface)
 								const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
 
@@ -3131,7 +3131,7 @@ describe('superfly-timeline-builder', () => {
 									const activePart: Part = EntityMockFactory.createPart({
 										id: 'activeId',
 										expectedDuration: 15,
-										autoNext: true,
+										autoNext: { overlap: 0 },
 									} as PartInterface)
 									const rundown: Rundown = EntityMockFactory.createActiveRundown({
 										activePart,
@@ -3169,7 +3169,7 @@ describe('superfly-timeline-builder', () => {
 									const activePart: Part = EntityMockFactory.createPart({
 										id: 'activeId',
 										expectedDuration: 15,
-										autoNext: true,
+										autoNext: { overlap: 0 },
 									} as PartInterface)
 									const rundown: Rundown = EntityMockFactory.createActiveRundown({
 										activePart,
@@ -3206,7 +3206,7 @@ describe('superfly-timeline-builder', () => {
 									const activePart: Part = EntityMockFactory.createPart({
 										id: 'activeId',
 										expectedDuration: 15,
-										autoNext: true,
+										autoNext: { overlap: 0 },
 									} as PartInterface)
 									const rundown: Rundown = EntityMockFactory.createActiveRundown({
 										activePart,
@@ -3244,7 +3244,7 @@ describe('superfly-timeline-builder', () => {
 									const activePart: Part = EntityMockFactory.createPart({
 										id: 'activeId',
 										expectedDuration: 15,
-										autoNext: true,
+										autoNext: { overlap: 0 },
 									} as PartInterface)
 									const rundown: Rundown = EntityMockFactory.createActiveRundown({
 										activePart,
@@ -3282,7 +3282,7 @@ describe('superfly-timeline-builder', () => {
 									const activePart: Part = EntityMockFactory.createPart({
 										id: 'activeId',
 										expectedDuration: 15,
-										autoNext: true,
+										autoNext: { overlap: 0 },
 									} as PartInterface)
 									const rundown: Rundown = EntityMockFactory.createActiveRundown({
 										activePart,
@@ -3316,7 +3316,7 @@ describe('superfly-timeline-builder', () => {
 									const activePart: Part = EntityMockFactory.createPart({
 										id: 'activeId',
 										expectedDuration: 15,
-										autoNext: true,
+										autoNext: { overlap: 0 },
 									} as PartInterface)
 									const rundown: Rundown = EntityMockFactory.createActiveRundown({
 										activePart,
@@ -3354,7 +3354,7 @@ describe('superfly-timeline-builder', () => {
 									const activePart: Part = EntityMockFactory.createPart({
 										id: 'activeId',
 										expectedDuration: 15,
-										autoNext: true,
+										autoNext: { overlap: 0 },
 									} as PartInterface)
 									const rundown: Rundown = EntityMockFactory.createActiveRundown({
 										activePart,
@@ -3396,7 +3396,7 @@ describe('superfly-timeline-builder', () => {
 									const activePart: Part = EntityMockFactory.createPart({
 										id: 'activeId',
 										expectedDuration: 15,
-										autoNext: true,
+										autoNext: { overlap: 0 },
 									} as PartInterface)
 									const rundown: Rundown = EntityMockFactory.createActiveRundown({
 										activePart,
@@ -3427,7 +3427,7 @@ describe('superfly-timeline-builder', () => {
 							const activePart: Part = EntityMockFactory.createPart({
 								id: 'activeId',
 								expectedDuration: 15,
-								autoNext: true,
+								autoNext: { overlap: 0 },
 							} as PartInterface)
 							const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
 
@@ -3477,7 +3477,7 @@ describe('superfly-timeline-builder', () => {
 								const activePart: Part = EntityMockFactory.createPart({
 									id: 'activeId',
 									expectedDuration: 15,
-									autoNext: true,
+									autoNext: { overlap: 0 },
 								} as PartInterface)
 								const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
 
@@ -3526,7 +3526,7 @@ describe('superfly-timeline-builder', () => {
 								const activePart: Part = EntityMockFactory.createPart({
 									id: 'activeId',
 									expectedDuration: 15,
-									autoNext: true,
+									autoNext: { overlap: 0 },
 								} as PartInterface)
 								const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
 
@@ -3554,7 +3554,7 @@ describe('superfly-timeline-builder', () => {
 					})
 					const activePart: Part = EntityMockFactory.createPart({
 						id: 'activeId',
-						autoNext: true,
+						autoNext: { overlap: 0 },
 					} as PartInterface)
 					const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
 
@@ -3574,7 +3574,7 @@ describe('superfly-timeline-builder', () => {
 					})
 					const activePart: Part = EntityMockFactory.createPart({
 						id: 'activeId',
-						autoNext: true,
+						autoNext: { overlap: 0 },
 					} as PartInterface)
 					const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
 

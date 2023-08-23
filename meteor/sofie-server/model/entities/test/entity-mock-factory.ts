@@ -134,8 +134,7 @@ export class EntityMockFactory {
 			partInterface.inTransition ?? { keepPreviousPartAliveDuration: 0, delayPiecesDuration: 0 }
 		)
 		when(mockedPart.outTransition).thenReturn(partInterface.outTransition ?? { keepAliveDuration: 0 })
-		when(mockedPart.autoNext).thenReturn(partInterface.autoNext ?? false)
-		when(mockedPart.autoNextOverlap).thenReturn(partInterface.autoNextOverlap ?? 0)
+		when(mockedPart.autoNext).thenReturn(partInterface.autoNext ?? undefined)
 		when(mockedPart.disableNextInTransition).thenReturn(partInterface.disableNextInTransition ?? false)
 
 		when(mockedPart.getExecutedAt()).thenReturn(misc.executedAt ?? 0)
