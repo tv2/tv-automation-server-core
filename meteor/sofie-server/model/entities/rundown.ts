@@ -236,9 +236,7 @@ export class Rundown extends BasicRundown {
 	}
 
 	private findOldInfinitePiecesNotOnLayers(layers: Set<string>): Piece[] {
-		return Array.from(this.infinitePieces.values()).filter((oldPiece) => {
-			return !layers.has(oldPiece.layer)
-		})
+		return Array.from(this.infinitePieces.values()).filter((oldPiece) => !layers.has(oldPiece.layer))
 	}
 
 	private isPieceOutlived(piece: Piece): boolean {
