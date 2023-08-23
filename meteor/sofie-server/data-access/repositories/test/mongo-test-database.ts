@@ -18,18 +18,12 @@ export class MongoTestDatabase {
 		jest.setTimeout(15000)
 	}
 
-	public async setupDatabase(override?: () => Promise<void>): Promise<void> {
-		if (override) {
-			return override()
-		}
+	public async setupDatabase(): Promise<void> {
 		this.mongoServer = await MongoMemoryServer.create()
 		this.client = await MongoClient.connect(this.mongoServer.getUri())
 	}
 
-	public async teardownDatabase(override?: () => Promise<void>): Promise<void> {
-		if (override) {
-			return override()
-		}
+	public async teardownDatabase(): Promise<void> {
 		if (this.client) {
 			await this.client.close()
 		}
