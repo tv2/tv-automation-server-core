@@ -377,7 +377,7 @@ export class SuperflyTimelineBuilder implements TimelineBuilder {
 			)
 			.filter((piece) => piece.partId !== activePart.id)
 			.forEach((piece) => {
-				if (piece.getExecutedAt() === 0) {
+				if (!piece.getExecutedAt()) {
 					throw new UnsupportedOperation(
 						`Found infinite Piece: ${piece.id} without an "executedAt". Infinite Pieces must have an "executedAt"! ${piece.pieceLifespan}`
 					)

@@ -155,10 +155,7 @@ export class EntityMockFactory {
 		return mockedPart
 	}
 
-	public static createPiece(
-		pieceInterface?: Partial<PieceInterface>,
-		misc?: { executedAt?: number }
-	): Piece {
+	public static createPiece(pieceInterface?: Partial<PieceInterface>, misc?: { executedAt?: number }): Piece {
 		const mockedPiece: Piece = this.createPieceMockInstance(pieceInterface, misc)
 		return instance(mockedPiece)
 	}

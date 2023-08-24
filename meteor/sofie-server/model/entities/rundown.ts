@@ -286,19 +286,25 @@ export class Rundown extends BasicRundown {
 	}
 
 	private addSpanningPiecesNotOnLayersFromActiveSegment(layersWithPieces: Map<string, Piece>): Map<string, Piece> {
-		const piecesToAdd: Piece[] = this.activeSegment.getFirstSpanningPieceForEachLayerBeforePart(
-			this.activePart,
-			new Set(layersWithPieces.keys())
-		)
+		const piecesToAdd: Piece[] = this.activeSegment
+			.getFirstSpanningPieceForEachLayerBeforePart(this.activePart, new Set(layersWithPieces.keys()))
+			.map(this.setExecutedAtIfMissing)
 		return this.addPiecesToLayers(piecesToAdd, layersWithPieces)
 	}
 
+	private setExecutedAtIfMissing(piece: Piece): Piece {
+		if (!piece.getExecutedAt()) {
+			piece.setExecutedAt(Date.now())
+		}
+		return piece
+	}
+
 	private addSpanningPiecesNotOnLayersFromPreviousSegments(layersWithPieces: Map<string, Piece>): Map<string, Piece> {
-		const indexOfActiveSegment = this.segments.findIndex((segment) => segment.id === this.activeSegment.id)
+		const indexOfActiveSegment: number = this.segments.findIndex((segment) => segment.id === this.activeSegment.id)
 		for (let i = indexOfActiveSegment - 1; i >= 0; i--) {
-			const piecesSpanningSegment: Piece[] = this.segments[i].getFirstSpanningRundownPieceForEachLayerForAllParts(
-				new Set(layersWithPieces.keys())
-			)
+			const piecesSpanningSegment: Piece[] = this.segments[i]
+				.getFirstSpanningRundownPieceForEachLayerForAllParts(new Set(layersWithPieces.keys()))
+				.map(this.setExecutedAtIfMissing)
 			layersWithPieces = this.addPiecesToLayers(piecesSpanningSegment, layersWithPieces)
 		}
 		return layersWithPieces

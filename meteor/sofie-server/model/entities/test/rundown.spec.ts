@@ -883,6 +883,63 @@ describe('Rundown', () => {
 					expect(result).toHaveLength(1)
 					expect(result).toContainEqual(middlePiece)
 				})
+
+				it('sets executedAt on the taken infinite Piece', () => {
+					const now: number = Date.now()
+					jest.useFakeTimers('modern').setSystemTime(now)
+
+					const layer: string = 'someLayer'
+					const firstPiece: Piece = EntityMockFactory.createPiece({
+						id: 'firstPiece',
+						layer,
+						pieceLifespan: PieceLifespan.SPANNING_UNTIL_RUNDOWN_END,
+					})
+					const firstPart: Part = EntityMockFactory.createPart({
+						id: 'firstPart',
+						pieces: [firstPiece],
+					})
+					const firstSegment: Segment = EntityMockFactory.createSegment({
+						id: 'firstSegment',
+						parts: [firstPart],
+					})
+
+					const mockMiddlePiece: Piece = EntityMockFactory.createPieceMockInstance({
+						id: 'middlePiece',
+						layer,
+						pieceLifespan: PieceLifespan.SPANNING_UNTIL_RUNDOWN_END,
+					})
+					const middlePiece: Piece = instance(mockMiddlePiece)
+					const middlePart: Part = EntityMockFactory.createPart({
+						id: 'middlePart',
+						pieces: [middlePiece],
+					})
+					const middleSegment: Segment = EntityMockFactory.createSegment(
+						{ id: 'middleSegment', parts: [middlePart] },
+						{ firstSpanningRundownPieceForeachLayerForAllParts: [middlePiece] }
+					)
+
+					const lastPart: Part = EntityMockFactory.createPart({ id: 'lastPart' })
+					const lastSegment: Segment = EntityMockFactory.createSegment({
+						id: 'lastSegment',
+						parts: [lastPart],
+					})
+
+					const testee: Rundown = new Rundown({
+						segments: [firstSegment, middleSegment, lastSegment],
+						isRundownActive: true,
+						alreadyActiveProperties: {
+							activePart: firstPart,
+							nextPart: lastPart,
+							activeSegment: firstSegment,
+							nextSegment: lastSegment,
+							infinitePieces: new Map(),
+						},
+					} as RundownInterface)
+
+					testee.takeNext()
+
+					verify(mockMiddlePiece.setExecutedAt(now)).once()
+				})
 			})
 
 			describe('it jumps "back" up the Rundown before the "spanning" infinite Piece', () => {
@@ -1341,6 +1398,56 @@ describe('Rundown', () => {
 					const result: Piece[] = testee.getInfinitePieces()
 					expect(result).toHaveLength(1)
 					expect(result).toContainEqual(middlePiece)
+				})
+
+				it('sets executedAt on taken infinite Piece', () => {
+					const now: number = Date.now()
+					jest.useFakeTimers('modern').setSystemTime(now)
+
+					const layer: string = 'someLayer'
+					const firstPiece: Piece = EntityMockFactory.createPiece({
+						id: 'firstPiece',
+						layer,
+						pieceLifespan: PieceLifespan.SPANNING_UNTIL_SEGMENT_END,
+					})
+					const firstPart: Part = EntityMockFactory.createPart({
+						id: 'firstPart',
+						pieces: [firstPiece],
+					})
+
+					const mockMiddlePiece: Piece = EntityMockFactory.createPieceMockInstance({
+						id: 'middlePiece',
+						layer,
+						pieceLifespan: PieceLifespan.SPANNING_UNTIL_SEGMENT_END,
+					})
+					const middlePiece: Piece = instance(mockMiddlePiece)
+					const middlePart: Part = EntityMockFactory.createPart({
+						id: 'middlePart',
+						pieces: [middlePiece],
+					})
+
+					const lastPart: Part = EntityMockFactory.createPart({ id: 'lastPart' })
+
+					const segment: Segment = EntityMockFactory.createSegment(
+						{ id: 'segment', parts: [firstPart, middlePart, lastPart] },
+						{ firstSpanningPieceForEachLayerBeforePart: [middlePiece] }
+					)
+
+					const testee: Rundown = new Rundown({
+						segments: [segment],
+						isRundownActive: true,
+						alreadyActiveProperties: {
+							activePart: firstPart,
+							nextPart: lastPart,
+							activeSegment: segment,
+							nextSegment: segment,
+							infinitePieces: new Map([[firstPiece.layer, firstPiece]]),
+						},
+					} as RundownInterface)
+
+					testee.takeNext()
+
+					verify(mockMiddlePiece.setExecutedAt(now)).once()
 				})
 			})
 
