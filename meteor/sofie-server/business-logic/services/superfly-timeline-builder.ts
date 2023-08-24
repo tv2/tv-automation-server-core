@@ -17,6 +17,7 @@ import { PartTimings } from '../../model/value-objects/part-timings'
 import { PieceLifespan } from '../../model/enums/piece-lifespan'
 import { UnsupportedOperation } from '../../model/exceptions/unsupported-operation'
 import { ExhaustiveCaseChecker } from '../exhaustive-case-checker'
+import { ObjectCloner } from './interfaces/object-cloner'
 
 const ACTIVE_GROUP_PREFIX: string = 'active_group_'
 const PREVIOUS_GROUP_PREFIX: string = 'previous_group_'
@@ -33,6 +34,9 @@ const MEDIUM_PRIORITY: number = 1
 const LOW_PRIORITY: number = -1
 
 export class SuperflyTimelineBuilder implements TimelineBuilder {
+
+	constructor(private objectCloner: ObjectCloner) { }
+
 	public getBaseTimeline(): Timeline {
 		return { timelineGroups: [] }
 	}
@@ -309,7 +313,7 @@ export class SuperflyTimelineBuilder implements TimelineBuilder {
 		piece: Piece
 	): TimelineObject {
 		// TODO: Core checks "HoldMode" on the timelineObject - ignore for now
-		const timelineObjectCopy: TimelineObject = JSON.parse(JSON.stringify(timelineObject))
+		const timelineObjectCopy: TimelineObject = this.objectCloner.clone(timelineObject)
 		timelineObjectCopy.id = `${childGroupForPiece.id}_${piece.id}_${timelineObject.id}`
 		timelineObjectCopy.inGroup = childGroupForPiece.id
 		return timelineObjectCopy
@@ -365,7 +369,7 @@ export class SuperflyTimelineBuilder implements TimelineBuilder {
 			.forEach((piece) => {
 				if (piece.getExecutedAt() === 0) {
 					throw new UnsupportedOperation(
-						`Found infinite Piece: ${piece.id} without an "executedAt". Infinite Pieces must have an "executedAt"!`
+						`Found infinite Piece: ${piece.id} without an "executedAt". Infinite Pieces must have an "executedAt"! ${piece.pieceLifespan}`
 					)
 				}
 

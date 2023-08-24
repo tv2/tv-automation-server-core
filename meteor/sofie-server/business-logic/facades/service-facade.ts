@@ -7,6 +7,7 @@ import { SuperflyTimelineBuilder } from '../services/superfly-timeline-builder'
 import { RundownEventBuilderImplementation } from '../services/rundown-event-builder-implementation'
 import { RundownEventBuilder } from '../services/interfaces/rundown-event-builder'
 import { TimeoutCallbackScheduler } from '../services/timeout-callback-scheduler'
+import { JsonObjectCloner } from '../services/json-object-cloner'
 
 export class ServiceFacade {
 	public static createRundownService(): RundownService {
@@ -22,7 +23,7 @@ export class ServiceFacade {
 	}
 
 	public static createTimelineBuilder(): TimelineBuilder {
-		return new SuperflyTimelineBuilder()
+		return new SuperflyTimelineBuilder(new JsonObjectCloner())
 	}
 
 	public static createRundownEventBuilder(): RundownEventBuilder {
