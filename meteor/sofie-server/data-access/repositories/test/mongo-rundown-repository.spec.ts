@@ -70,7 +70,7 @@ describe(`${MongoRundownRepository.name}`, () => {
 			})
 			await testee.deleteRundown(rundownId)
 
-			verify(segmentRepository.deleteRundownSegments(anyString())).once()
+			verify(segmentRepository.deleteSegmentsForRundown(anyString())).once()
 		})
 
 		it('does not delete, when nonexistent rundownId is given', async () => {
@@ -122,7 +122,7 @@ describe(`${MongoRundownRepository.name}`, () => {
 
 			await testee.deleteRundown(rundownId)
 
-			verify(segmentRepository.deleteRundownSegments(anything())).calledBefore(spied.deleteOne(anything()))
+			verify(segmentRepository.deleteSegmentsForRundown(anything())).calledBefore(spied.deleteOne(anything()))
 		})
 	})
 

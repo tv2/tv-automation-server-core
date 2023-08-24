@@ -17,7 +17,7 @@ describe(`${MongoPartRepository.name}`, () => {
 	beforeEach(async () => await testDatabase.setupDatabase())
 	afterEach(async () => await testDatabase.teardownDatabase())
 
-	describe(`${MongoPartRepository.prototype.deleteSegmentParts.name}`, () => {
+	describe(`${MongoPartRepository.prototype.deletePartsForSegment.name}`, () => {
 		it('deletes one part successfully', async () => {
 			const mongoConverter: MongoEntityConverter = mock(MongoEntityConverter)
 			const segmentId: string = 'someSegmentId'
@@ -30,7 +30,7 @@ describe(`${MongoPartRepository.name}`, () => {
 				mongoConverter: mongoConverter,
 			})
 
-			await testee.deleteSegmentParts(segmentId)
+			await testee.deletePartsForSegment(segmentId)
 
 			await expect(db.collection(COLLECTION_NAME).countDocuments()).resolves.toBe(0)
 		})
@@ -47,7 +47,7 @@ describe(`${MongoPartRepository.name}`, () => {
 				mongoConverter: mongoConverter,
 			})
 
-			await testee.deleteSegmentParts(segmentId)
+			await testee.deletePartsForSegment(segmentId)
 
 			await expect(db.collection(COLLECTION_NAME).countDocuments()).resolves.toBe(0)
 		})
@@ -68,9 +68,9 @@ describe(`${MongoPartRepository.name}`, () => {
 				pieceRepository: pieceRepository,
 			})
 
-			await testee.deleteSegmentParts(segmentId)
+			await testee.deletePartsForSegment(segmentId)
 
-			verify(pieceRepository.deletePartPieces(anyString())).times(parts.length)
+			verify(pieceRepository.deletePiecesForPart(anyString())).times(parts.length)
 		})
 
 		it('throws exception, when nonexistent segmentId is given', async () => {
@@ -85,7 +85,7 @@ describe(`${MongoPartRepository.name}`, () => {
 				mongoConverter: mongoConverter,
 			})
 
-			const action = async () => testee.deleteSegmentParts(nonExistingId)
+			const action = async () => testee.deletePartsForSegment(nonExistingId)
 
 			await expect(action).rejects.toThrow(DeletionFailedException)
 			await expect(action).rejects.toThrow(expectedErrorMessageFragment)
@@ -102,7 +102,7 @@ describe(`${MongoPartRepository.name}`, () => {
 			const testee = await createCommonTestee({
 				mongoConverter: mongoConverter,
 			})
-			const action = async () => testee.deleteSegmentParts(nonExistingId)
+			const action = async () => testee.deletePartsForSegment(nonExistingId)
 
 			await expect(action).rejects.toThrow(DeletionFailedException)
 			await expect(db.collection(COLLECTION_NAME).countDocuments()).resolves.toBe(1)
@@ -129,9 +129,9 @@ describe(`${MongoPartRepository.name}`, () => {
 				pieceRepository: pieceRepository,
 			})
 
-			await testee.deleteSegmentParts(segmentId)
+			await testee.deletePartsForSegment(segmentId)
 
-			verify(pieceRepository.deletePartPieces(anything())).calledBefore(spied.deleteMany(anything()))
+			verify(pieceRepository.deletePiecesForPart(anything())).calledBefore(spied.deleteMany(anything()))
 		})
 	})
 

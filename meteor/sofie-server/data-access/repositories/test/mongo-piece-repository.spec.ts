@@ -15,7 +15,7 @@ describe(`${MongoPieceRepository.name}`, () => {
 	beforeEach(async () => await testDatabase.setupDatabase())
 	afterEach(async () => testDatabase.teardownDatabase())
 
-	describe(`${MongoPieceRepository.prototype.deletePartPieces.name}`, () => {
+	describe(`${MongoPieceRepository.prototype.deletePiecesForPart.name}`, () => {
 		it('deletes one pieces successfully', async () => {
 			const mongoConverter: MongoEntityConverter = mock(MongoEntityConverter)
 			const partId: string = 'somePartId'
@@ -28,7 +28,7 @@ describe(`${MongoPieceRepository.name}`, () => {
 				mongoConverter: mongoConverter,
 			})
 
-			await testee.deletePartPieces(partId)
+			await testee.deletePiecesForPart(partId)
 
 			await expect(db.collection(COLLECTION_NAME).countDocuments()).resolves.toBe(0)
 		})
@@ -45,7 +45,7 @@ describe(`${MongoPieceRepository.name}`, () => {
 				mongoConverter: mongoConverter,
 			})
 
-			await testee.deletePartPieces(partId)
+			await testee.deletePiecesForPart(partId)
 
 			await expect(db.collection(COLLECTION_NAME).countDocuments()).resolves.toBe(0)
 		})
@@ -63,7 +63,7 @@ describe(`${MongoPieceRepository.name}`, () => {
 			const testee: PieceRepository = await createTestee(db, {
 				mongoConverter: mongoConverter,
 			})
-			const action = async () => testee.deletePartPieces(nonExistingId)
+			const action = async () => testee.deletePiecesForPart(nonExistingId)
 
 			await expect(action).rejects.toThrow(DeletionFailedException)
 			await expect(action).rejects.toThrow(expectedErrorMessageFragment)
@@ -81,7 +81,7 @@ describe(`${MongoPieceRepository.name}`, () => {
 			const testee: PieceRepository = await createTestee(db, {
 				mongoConverter: mongoConverter,
 			})
-			const action = async () => testee.deletePartPieces(nonExistingId)
+			const action = async () => testee.deletePiecesForPart(nonExistingId)
 
 			await expect(action).rejects.toThrow(DeletionFailedException)
 			await expect(db.collection(COLLECTION_NAME).countDocuments()).resolves.toBe(1)

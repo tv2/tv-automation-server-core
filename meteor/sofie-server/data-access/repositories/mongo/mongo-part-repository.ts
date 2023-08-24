@@ -36,11 +36,11 @@ export class MongoPartRepository extends BaseMongoRepository implements PartRepo
 		)
 	}
 
-	public async deleteSegmentParts(segmentId: string): Promise<void> {
-		this.assertDatabaseConnection(this.deleteSegmentParts.name)
+	public async deletePartsForSegment(segmentId: string): Promise<void> {
+		this.assertDatabaseConnection(this.deletePartsForSegment.name)
 		const parts: Part[] = await this.getParts(segmentId)
 
-		parts.map((part: Part) => part.id).forEach(async (id: string) => this.pieceRepository.deletePartPieces(id))
+		parts.map((part: Part) => part.id).forEach(async (id: string) => this.pieceRepository.deletePiecesForPart(id))
 		const partsDeletedResult: DeleteResult = await this.getCollection().deleteMany({ segmentId: segmentId })
 
 		// TODO: Figure out how to archive a 'false' acknowledgment, and add test case using that knowledge
