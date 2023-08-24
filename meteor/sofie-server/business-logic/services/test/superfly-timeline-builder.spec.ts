@@ -795,7 +795,9 @@ describe('superfly-timeline-builder', () => {
 							const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
 
 							const objectCloner: ObjectCloner = mock<ObjectCloner>()
-							when(objectCloner.clone(timelineObject)).thenReturn(JSON.parse(JSON.stringify(timelineObject)))
+							when(objectCloner.clone(timelineObject)).thenReturn(
+								JSON.parse(JSON.stringify(timelineObject))
+							)
 
 							const testee: TimelineBuilder = createTestee(instance(objectCloner))
 							const timeline: Timeline = testee.buildTimeline(rundown)
@@ -829,7 +831,11 @@ describe('superfly-timeline-builder', () => {
 							const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
 
 							const objectCloner: ObjectCloner = mock<ObjectCloner>()
-							timelineObjects.forEach(timelineObject => when(objectCloner.clone(timelineObject)).thenReturn(JSON.parse(JSON.stringify(timelineObject))))
+							timelineObjects.forEach((timelineObject) =>
+								when(objectCloner.clone(timelineObject)).thenReturn(
+									JSON.parse(JSON.stringify(timelineObject))
+								)
+							)
 
 							const testee: TimelineBuilder = createTestee(instance(objectCloner))
 							const timeline: Timeline = testee.buildTimeline(rundown)
@@ -841,8 +847,14 @@ describe('superfly-timeline-builder', () => {
 								child.id.includes(PIECE_GROUP_INFIX)
 							)! as TimelineObjectGroup
 
-							const timelineObjectIds: string[] = childGroup.children.map(timelineObject => timelineObject.id)
-							timelineObjects.forEach(timelineObject => expect(timelineObjectIds).toContainEqual(`${childGroup.id}_${piece.id}_${timelineObject.id}`))
+							const timelineObjectIds: string[] = childGroup.children.map(
+								(timelineObject) => timelineObject.id
+							)
+							timelineObjects.forEach((timelineObject) =>
+								expect(timelineObjectIds).toContainEqual(
+									`${childGroup.id}_${piece.id}_${timelineObject.id}`
+								)
+							)
 						})
 					})
 				})
@@ -884,8 +896,10 @@ describe('superfly-timeline-builder', () => {
 					const controlGroups: TimelineObject[] = activeGroup.children.filter((child) =>
 						child.id.includes(PIECE_CONTROL_INFIX)
 					)
-					const controlGroupIds: string[] = controlGroups.map(controlGroup => controlGroup.id)
-					pieces.forEach(piece => expect(controlGroupIds).toContainEqual(`${activeGroup.id}${PIECE_CONTROL_INFIX}${piece.id}`))
+					const controlGroupIds: string[] = controlGroups.map((controlGroup) => controlGroup.id)
+					pieces.forEach((piece) =>
+						expect(controlGroupIds).toContainEqual(`${activeGroup.id}${PIECE_CONTROL_INFIX}${piece.id}`)
+					)
 				})
 
 				it('creates five Piece child groups on the active group', () => {
@@ -923,8 +937,10 @@ describe('superfly-timeline-builder', () => {
 					const childGroups: TimelineObject[] = activeGroup.children.filter((child) =>
 						child.id.includes(PIECE_GROUP_INFIX)
 					)
-					const childGroupIds: string[] = childGroups.map(controlGroup => controlGroup.id)
-					pieces.forEach(piece => expect(childGroupIds).toContainEqual(`${activeGroup.id}${PIECE_GROUP_INFIX}${piece.id}`))
+					const childGroupIds: string[] = childGroups.map((controlGroup) => controlGroup.id)
+					pieces.forEach((piece) =>
+						expect(childGroupIds).toContainEqual(`${activeGroup.id}${PIECE_GROUP_INFIX}${piece.id}`)
+					)
 				})
 
 				describe('four of the Pieces are infinite Pieces', () => {
@@ -968,8 +984,10 @@ describe('superfly-timeline-builder', () => {
 						const controlGroups: TimelineObject[] = activeGroup.children.filter((child) =>
 							child.id.includes(PIECE_CONTROL_INFIX)
 						)
-						const controlGroupIds: string[] = controlGroups.map(controlGroup => controlGroup.id)
-						pieces.forEach(piece => expect(controlGroupIds).toContainEqual(`${activeGroup.id}${PIECE_CONTROL_INFIX}${piece.id}`))
+						const controlGroupIds: string[] = controlGroups.map((controlGroup) => controlGroup.id)
+						pieces.forEach((piece) =>
+							expect(controlGroupIds).toContainEqual(`${activeGroup.id}${PIECE_CONTROL_INFIX}${piece.id}`)
+						)
 					})
 				})
 			})
@@ -2033,7 +2051,9 @@ describe('superfly-timeline-builder', () => {
 								})
 
 								const objectCloner: ObjectCloner = mock<ObjectCloner>()
-								when(objectCloner.clone(timelineObject)).thenReturn(JSON.parse(JSON.stringify(timelineObject)))
+								when(objectCloner.clone(timelineObject)).thenReturn(
+									JSON.parse(JSON.stringify(timelineObject))
+								)
 
 								const testee: TimelineBuilder = createTestee(instance(objectCloner))
 								const timeline: Timeline = testee.buildTimeline(rundown)
@@ -2076,7 +2096,11 @@ describe('superfly-timeline-builder', () => {
 								})
 
 								const objectCloner: ObjectCloner = mock<ObjectCloner>()
-								timelineObjects.forEach(timelineObject => when(objectCloner.clone(timelineObject)).thenReturn(JSON.parse(JSON.stringify(timelineObject))))
+								timelineObjects.forEach((timelineObject) =>
+									when(objectCloner.clone(timelineObject)).thenReturn(
+										JSON.parse(JSON.stringify(timelineObject))
+									)
+								)
 
 								const testee: TimelineBuilder = createTestee(instance(objectCloner))
 								const timeline: Timeline = testee.buildTimeline(rundown)
@@ -2088,8 +2112,14 @@ describe('superfly-timeline-builder', () => {
 									child.id.includes(PIECE_GROUP_INFIX)
 								)! as TimelineObjectGroup
 
-								const timelineObjectIds: string[] = childGroup.children.map(timelineObject => timelineObject.id)
-								timelineObjects.forEach(timelineObject => expect(timelineObjectIds).toContainEqual(`${childGroup.id}_${piece.id}_${timelineObject.id}`))
+								const timelineObjectIds: string[] = childGroup.children.map(
+									(timelineObject) => timelineObject.id
+								)
+								timelineObjects.forEach((timelineObject) =>
+									expect(timelineObjectIds).toContainEqual(
+										`${childGroup.id}_${piece.id}_${timelineObject.id}`
+									)
+								)
 							})
 						})
 					})
@@ -3426,7 +3456,9 @@ describe('superfly-timeline-builder', () => {
 									})
 
 									const objectCloner: ObjectCloner = mock<ObjectCloner>()
-									when(objectCloner.clone(timelineObject)).thenReturn(JSON.parse(JSON.stringify(timelineObject)))
+									when(objectCloner.clone(timelineObject)).thenReturn(
+										JSON.parse(JSON.stringify(timelineObject))
+									)
 
 									const testee: TimelineBuilder = createTestee(instance(objectCloner))
 									const timeline: Timeline = testee.buildTimeline(rundown)
@@ -3471,7 +3503,11 @@ describe('superfly-timeline-builder', () => {
 									})
 
 									const objectCloner: ObjectCloner = mock<ObjectCloner>()
-									timelineObjects.forEach(timelineObject => when(objectCloner.clone(timelineObject)).thenReturn(JSON.parse(JSON.stringify(timelineObject))))
+									timelineObjects.forEach((timelineObject) =>
+										when(objectCloner.clone(timelineObject)).thenReturn(
+											JSON.parse(JSON.stringify(timelineObject))
+										)
+									)
 
 									const testee: TimelineBuilder = createTestee(instance(objectCloner))
 									const timeline: Timeline = testee.buildTimeline(rundown)
@@ -3483,8 +3519,14 @@ describe('superfly-timeline-builder', () => {
 										child.id.includes(PIECE_GROUP_INFIX)
 									)! as TimelineObjectGroup
 
-									const timelineObjectIds: string[] = childGroup.children.map(timelineObject => timelineObject.id)
-									timelineObjects.forEach(timelineObject => expect(timelineObjectIds).toContainEqual(`${childGroup.id}_${piece.id}_${timelineObject.id}`))
+									const timelineObjectIds: string[] = childGroup.children.map(
+										(timelineObject) => timelineObject.id
+									)
+									timelineObjects.forEach((timelineObject) =>
+										expect(timelineObjectIds).toContainEqual(
+											`${childGroup.id}_${piece.id}_${timelineObject.id}`
+										)
+									)
 								})
 							})
 						})
@@ -4058,7 +4100,9 @@ describe('superfly-timeline-builder', () => {
 									})
 
 									const objectCloner: ObjectCloner = mock<ObjectCloner>()
-									when(objectCloner.clone(timelineObject)).thenReturn(JSON.parse(JSON.stringify(timelineObject)))
+									when(objectCloner.clone(timelineObject)).thenReturn(
+										JSON.parse(JSON.stringify(timelineObject))
+									)
 
 									const testee: TimelineBuilder = createTestee(instance(objectCloner))
 									const timeline: Timeline = testee.buildTimeline(rundown)
@@ -4102,7 +4146,11 @@ describe('superfly-timeline-builder', () => {
 									})
 
 									const objectCloner: ObjectCloner = mock<ObjectCloner>()
-									timelineObjects.forEach(timelineObject => when(objectCloner.clone(timelineObject)).thenReturn(JSON.parse(JSON.stringify(timelineObject))))
+									timelineObjects.forEach((timelineObject) =>
+										when(objectCloner.clone(timelineObject)).thenReturn(
+											JSON.parse(JSON.stringify(timelineObject))
+										)
+									)
 
 									const testee: TimelineBuilder = createTestee(instance(objectCloner))
 									const timeline: Timeline = testee.buildTimeline(rundown)
@@ -4111,8 +4159,14 @@ describe('superfly-timeline-builder', () => {
 										group.id.includes(INFINITE_GROUP_PREFIX)
 									)!
 
-									const timelineObjectIds: string[] = infiniteGroup.children.map(timelineObject => timelineObject.id)
-									timelineObjects.forEach(timelineObject => expect(timelineObjectIds).toContainEqual(`${infiniteGroup.id}_${infinitePiece.id}_${timelineObject.id}`))
+									const timelineObjectIds: string[] = infiniteGroup.children.map(
+										(timelineObject) => timelineObject.id
+									)
+									timelineObjects.forEach((timelineObject) =>
+										expect(timelineObjectIds).toContainEqual(
+											`${infiniteGroup.id}_${infinitePiece.id}_${timelineObject.id}`
+										)
+									)
 								})
 							})
 						})

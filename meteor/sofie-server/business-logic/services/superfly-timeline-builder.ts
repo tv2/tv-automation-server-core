@@ -34,8 +34,7 @@ const MEDIUM_PRIORITY: number = 1
 const LOW_PRIORITY: number = -1
 
 export class SuperflyTimelineBuilder implements TimelineBuilder {
-
-	constructor(private objectCloner: ObjectCloner) { }
+	constructor(private objectCloner: ObjectCloner) {}
 
 	public getBaseTimeline(): Timeline {
 		return { timelineGroups: [] }
@@ -202,7 +201,10 @@ export class SuperflyTimelineBuilder implements TimelineBuilder {
 	}
 
 	// TODO: Find a way to remove undefined from the 'createXTimelineEnable' methods
-	private createInTransitionTimelineEnable(partCalculatedTimings: PartTimings, piece: Piece): TimelineEnable | undefined {
+	private createInTransitionTimelineEnable(
+		partCalculatedTimings: PartTimings,
+		piece: Piece
+	): TimelineEnable | undefined {
 		if (!partCalculatedTimings.inTransitionStart || partCalculatedTimings.inTransitionStart <= 0) {
 			return
 		}
@@ -214,7 +216,11 @@ export class SuperflyTimelineBuilder implements TimelineBuilder {
 		}
 	}
 
-	private createOutTransitionTimelineEnable(part: Part, partCalculatedTimings: PartTimings, parentGroup: TimelineObjectGroup): TimelineEnable | undefined {
+	private createOutTransitionTimelineEnable(
+		part: Part,
+		partCalculatedTimings: PartTimings,
+		parentGroup: TimelineObjectGroup
+	): TimelineEnable | undefined {
 		if (!part.outTransition.keepAliveDuration) {
 			return
 		}
@@ -227,7 +233,11 @@ export class SuperflyTimelineBuilder implements TimelineBuilder {
 		}
 	}
 
-	private createNoTransitionTimelineEnable(partCalculatedTimings: PartTimings, piece: Piece, parentGroup: TimelineObjectGroup): TimelineEnable | undefined {
+	private createNoTransitionTimelineEnable(
+		partCalculatedTimings: PartTimings,
+		piece: Piece,
+		parentGroup: TimelineObjectGroup
+	): TimelineEnable | undefined {
 		// TODO: Check for dynamically inserted and if the Piece.duration is a number (which it should be).
 		// TODO: If it is, set enable.start += partCalculatedTimings.toPartDelay-
 		// TODO: This is something Core does. Might just be used for AdLibs, if used at all?
