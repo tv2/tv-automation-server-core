@@ -10,14 +10,14 @@ import { PartTimings } from '../../value-objects/part-timings'
 
 export class EntityMockFactory {
 	public static createActiveRundown(
-		activeRundownProperties: Partial<{
+		activeRundownProperties: {
 			activePart?: Part
 			nextPart?: Part
 			previousPart?: Part
 			activeSegment?: Segment
 			nextSegment?: Segment
 			infinitePieces?: Piece[]
-		}> = {}
+		} = {}
 	): Rundown {
 		const mockedRundown: Rundown = mock(Rundown)
 
@@ -37,12 +37,12 @@ export class EntityMockFactory {
 
 	public static createSegment(
 		segmentInterface?: Partial<SegmentInterface>,
-		misc?: Partial<{
+		misc?: {
 			firstPart?: Part
 			nextPart?: Part
 			firstSpanningPieceForEachLayerBeforePart?: Piece[]
 			firstSpanningRundownPieceForeachLayerForAllParts?: Piece[]
-		}>
+		}
 	): Segment {
 		const mockedSegment: Segment = this.createSegmentMockInstance(segmentInterface, misc)
 		return instance(mockedSegment)
@@ -93,11 +93,11 @@ export class EntityMockFactory {
 
 	public static createPart(
 		partInterface?: Partial<PartInterface>,
-		misc?: Partial<{
+		misc?: {
 			partTimings?: Partial<PartTimings>
 			executedAt?: number
 			pieceLifespanFilters?: PieceLifespan[]
-		}>
+		}
 	): Part {
 		const mockedPart: Part = this.createPartMockInstance(partInterface, misc)
 		return instance(mockedPart)
@@ -105,11 +105,11 @@ export class EntityMockFactory {
 
 	public static createPartMockInstance(
 		partInterface?: Partial<PartInterface>,
-		misc?: Partial<{
+		misc?: {
 			partTimings?: Partial<PartTimings>
 			executedAt?: number
 			pieceLifespanFilters?: PieceLifespan[]
-		}>
+		}
 	): Part {
 		const mockedPart: Part = mock(Part)
 
@@ -157,7 +157,7 @@ export class EntityMockFactory {
 
 	public static createPiece(
 		pieceInterface?: Partial<PieceInterface>,
-		misc?: Partial<{ executedAt?: number }>
+		misc?: { executedAt?: number }
 	): Piece {
 		const mockedPiece: Piece = this.createPieceMockInstance(pieceInterface, misc)
 		return instance(mockedPiece)
@@ -165,7 +165,7 @@ export class EntityMockFactory {
 
 	public static createPieceMockInstance(
 		pieceInterface?: Partial<PieceInterface>,
-		misc?: Partial<{ executedAt?: number }>
+		misc?: { executedAt?: number }
 	): Piece {
 		const mockedPiece: Piece = mock(Piece)
 
