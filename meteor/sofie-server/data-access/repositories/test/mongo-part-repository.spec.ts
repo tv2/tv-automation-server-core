@@ -32,7 +32,7 @@ describe(`${MongoPartRepository.name}`, () => {
 
 			await testee.deleteSegmentParts(segmentId)
 
-			expect(await db.collection(COLLECTION_NAME).countDocuments()).toBe(0)
+			await expect(db.collection(COLLECTION_NAME).countDocuments()).resolves.toBe(0)
 		})
 
 		it('deletes multiple parts successfully', async () => {
@@ -49,7 +49,7 @@ describe(`${MongoPartRepository.name}`, () => {
 
 			await testee.deleteSegmentParts(segmentId)
 
-			expect(await db.collection(COLLECTION_NAME).countDocuments()).toBe(0)
+			await expect(db.collection(COLLECTION_NAME).countDocuments()).resolves.toBe(0)
 		})
 
 		// eslint-disable-next-line jest/expect-expect
@@ -85,16 +85,10 @@ describe(`${MongoPartRepository.name}`, () => {
 				mongoConverter: mongoConverter,
 			})
 
-			try {
-				await testee.deleteSegmentParts(nonExistingId)
-			} catch (error) {
-				// eslint-disable-next-line jest/no-conditional-expect
-				expect(error).toBeInstanceOf(DeletionFailedException)
-				// eslint-disable-next-line jest/no-conditional-expect
-				expect((error as DeletionFailedException).message).toContain(expectedErrorMessageFragment)
-				return
-			}
-			throw new Error(`Expected an exception of type ${DeletionFailedException.name} to be thrown, but it wasn't`)
+			const action = async () => testee.deleteSegmentParts(nonExistingId)
+
+			await expect(action).rejects.toThrow(DeletionFailedException)
+			await expect(action).rejects.toThrow(expectedErrorMessageFragment)
 		})
 
 		it('does not deletes any pieces, when nonexistent segmentId is given', async () => {
@@ -108,17 +102,10 @@ describe(`${MongoPartRepository.name}`, () => {
 			const testee = await createCommonTestee({
 				mongoConverter: mongoConverter,
 			})
+			const action = async () => testee.deleteSegmentParts(nonExistingId)
 
-			try {
-				await testee.deleteSegmentParts(nonExistingId)
-			} catch (error) {
-				// eslint-disable-next-line jest/no-conditional-expect
-				expect(error).toBeInstanceOf(DeletionFailedException)
-				// eslint-disable-next-line jest/no-conditional-expect
-				expect(await db.collection(COLLECTION_NAME).countDocuments()).toBe(1)
-				return
-			}
-			throw new Error(`Expected an exception of type ${DeletionFailedException.name} to be thrown, but it wasn't`)
+			await expect(action).rejects.toThrow(DeletionFailedException)
+			await expect(db.collection(COLLECTION_NAME).countDocuments()).resolves.toBe(1)
 		})
 
 		// eslint-disable-next-line jest/expect-expect

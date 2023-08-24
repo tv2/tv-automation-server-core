@@ -35,7 +35,7 @@ describe(`${MongoSegmentRepository.name}`, () => {
 
 			await testee.deleteRundownSegments(rundownId)
 
-			expect(await db.collection(COLLECTION_NAME).countDocuments()).toBe(0)
+			await expect(db.collection(COLLECTION_NAME).countDocuments()).resolves.toBe(0)
 		})
 
 		it('deletes multiple segments successfully', async () => {
@@ -59,7 +59,7 @@ describe(`${MongoSegmentRepository.name}`, () => {
 
 			await testee.deleteRundownSegments(rundownId)
 
-			expect(await db.collection(COLLECTION_NAME).countDocuments()).toBe(0)
+			await expect(db.collection(COLLECTION_NAME).countDocuments()).resolves.toBe(0)
 		})
 
 		// eslint-disable-next-line jest/expect-expect
@@ -97,17 +97,10 @@ describe(`${MongoSegmentRepository.name}`, () => {
 			const testee: SegmentRepository = await createCommonTestee({
 				mongoConverter: mongoConverter,
 			})
+			const action = async () => testee.deleteRundownSegments(nonExistingId)
 
-			try {
-				await testee.deleteRundownSegments(nonExistingId)
-			} catch (error) {
-				// eslint-disable-next-line jest/no-conditional-expect
-				expect(error).toBeInstanceOf(DeletionFailedException)
-				// eslint-disable-next-line jest/no-conditional-expect
-				expect(await db.collection(COLLECTION_NAME).countDocuments()).toBe(1)
-				return
-			}
-			throw new Error(`Expected an exception of type ${DeletionFailedException.name} to be thrown, but it wasn't`)
+			await expect(action).rejects.toThrow(DeletionFailedException)
+			await expect(db.collection(COLLECTION_NAME).countDocuments()).resolves.toBe(1)
 		})
 
 		it('throws exception, when nonexistent rundownId is given', async () => {
@@ -121,17 +114,10 @@ describe(`${MongoSegmentRepository.name}`, () => {
 			const testee: SegmentRepository = await createCommonTestee({
 				mongoConverter: mongoConverter,
 			})
+			const action = async () => testee.deleteRundownSegments(nonExistingId)
 
-			try {
-				await testee.deleteRundownSegments(nonExistingId)
-			} catch (error) {
-				// eslint-disable-next-line jest/no-conditional-expect
-				expect(error).toBeInstanceOf(DeletionFailedException)
-				// eslint-disable-next-line jest/no-conditional-expect
-				expect((error as DeletionFailedException).message).toContain(expectedErrorMessageFragment)
-				return
-			}
-			throw new Error(`Expected an exception of type ${DeletionFailedException.name} to be thrown, but it wasn't`)
+			await expect(action).rejects.toThrow(DeletionFailedException)
+			await expect(action).rejects.toThrow(expectedErrorMessageFragment)
 		})
 
 		// eslint-disable-next-line jest/expect-expect

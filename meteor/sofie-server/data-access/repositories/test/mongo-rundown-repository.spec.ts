@@ -32,7 +32,7 @@ describe(`${MongoRundownRepository.name}`, () => {
 			})
 			await testee.deleteRundown(rundownId)
 
-			expect(await db.collection(COLLECTION_NAME).countDocuments()).toBe(0)
+			await expect(db.collection(COLLECTION_NAME).countDocuments()).resolves.toBe(0)
 		})
 
 		it('deletes inactive rundown successfully', async () => {
@@ -51,7 +51,7 @@ describe(`${MongoRundownRepository.name}`, () => {
 			})
 			await testee.deleteRundown(rundownId)
 
-			expect(await db.collection(COLLECTION_NAME).countDocuments()).toBe(0)
+			await expect(db.collection(COLLECTION_NAME).countDocuments()).resolves.toBe(0)
 		})
 
 		// eslint-disable-next-line jest/expect-expect
@@ -80,17 +80,10 @@ describe(`${MongoRundownRepository.name}`, () => {
 			const db: Db = testDatabase.getDatabase()
 
 			const testee = await createCommonTestee({})
+			const action = async () => testee.deleteRundown(nonExistingId)
 
-			try {
-				await testee.deleteRundown(nonExistingId)
-			} catch (error) {
-				// eslint-disable-next-line jest/no-conditional-expect
-				expect(error).toBeInstanceOf(NotFoundException)
-				// eslint-disable-next-line jest/no-conditional-expect
-				expect(await db.collection(COLLECTION_NAME).countDocuments()).toBe(1)
-				return
-			}
-			throw new Error(`Expected an exception of type ${NotFoundException.name} to be thrown, but it wasn't`)
+			await expect(action).rejects.toThrow(NotFoundException)
+			await expect(db.collection(COLLECTION_NAME).countDocuments()).resolves.toBe(1)
 		})
 
 		it('throws exception, when nonexistent rundownId is given', async () => {
@@ -100,18 +93,10 @@ describe(`${MongoRundownRepository.name}`, () => {
 			await testDatabase.populateDatabaseWithRundowns([rundown])
 
 			const testee = await createCommonTestee({})
+			const action = async () => testee.deleteRundown(nonExistingId)
 
-			try {
-				await testee.deleteRundown(nonExistingId)
-			} catch (error) {
-				// It isn't conditional, as the test will fail, if not hit, due to the 'expect.assertions(2)'
-				// eslint-disable-next-line jest/no-conditional-expect
-				expect(error).toBeInstanceOf(NotFoundException)
-				// eslint-disable-next-line jest/no-conditional-expect
-				expect((error as NotFoundException).message).toContain(expectedErrorMessageFragment)
-				return
-			}
-			throw new Error(`Expected an exception of type ${NotFoundException.name} to be thrown, but it wasn't`)
+			await expect(action).rejects.toThrow(NotFoundException)
+			await expect(action).rejects.toThrow(expectedErrorMessageFragment)
 		})
 
 		// eslint-disable-next-line jest/expect-expect
