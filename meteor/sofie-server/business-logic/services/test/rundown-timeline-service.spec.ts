@@ -100,16 +100,14 @@ function createRundown(params: { rundownId?: string; name?: string; isRundownAct
 	} as RundownInterface)
 }
 
-interface TesteeBuilderParams {
+function createTestee(params: {
 	rundownEventEmitter?: RundownEventEmitter
 	rundownRepository?: RundownRepository
 	timelineRepository?: TimelineRepository
 	adLibPieceRepository?: AdLibPieceRepository
 	timelineBuilder?: TimelineBuilder
 	rundownEventBuilder?: RundownEventBuilder
-}
-
-function createTestee(params: TesteeBuilderParams): RundownTimelineService {
+}): RundownTimelineService {
 	return new RundownTimelineService(
 		params.rundownEventEmitter ?? instance(mock<RundownEventEmitter>()),
 		params.rundownRepository ?? instance(mock<RundownRepository>()),
