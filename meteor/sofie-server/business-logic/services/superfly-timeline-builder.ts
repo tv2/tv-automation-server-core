@@ -16,6 +16,7 @@ import { TransitionType } from '../../model/enums/transition-type'
 import { PartTimings } from '../../model/value-objects/part-timings'
 import { PieceLifespan } from '../../model/enums/piece-lifespan'
 import { UnsupportedOperation } from '../../model/exceptions/unsupported-operation'
+import { ExhaustiveCaseChecker } from '../exhaustive-case-checker'
 
 const ACTIVE_GROUP_PREFIX: string = 'active_group_'
 const PREVIOUS_GROUP_PREFIX: string = 'previous_group_'
@@ -138,7 +139,7 @@ export class SuperflyTimelineBuilder implements TimelineBuilder {
 			// TODO: We would like to try to not use "now", but they might be necessary for AdLibs. We have to double check when implementing AdLibs.
 			// TODO: This is mainly to alert of if we ever find a Piece with start==="now" while implementing the Timeline. Should be removed when done.
 			throw new UnsupportedOperation(
-				`Found an enable.start="start" for control for Piece: ${piece.id}. We are trying to avoid those if possible.`
+				`Found an enable.start="now" for control for Piece: ${piece.id}. We are trying to avoid those if possible.`
 			)
 		}
 
@@ -182,49 +183,60 @@ export class SuperflyTimelineBuilder implements TimelineBuilder {
 		const partCalculatedTimings: PartTimings = part.getTimings()
 		switch (piece.transitionType) {
 			case TransitionType.IN_TRANSITION: {
-				if (!partCalculatedTimings.inTransitionStart || partCalculatedTimings.inTransitionStart <= 0) {
-					return
-				}
-
-				const startOffset: number = piece.start
-				return {
-					start: partCalculatedTimings.inTransitionStart + startOffset,
-					duration: piece.duration,
-				}
+				return this.createInTransitionTimelineEnable(partCalculatedTimings, piece)
 			}
 			case TransitionType.OUT_TRANSITION: {
-				if (!part.outTransition.keepAliveDuration) {
-					return
-				}
-
-				const postRollDurationPostFix: string = partCalculatedTimings.postRollDuration
-					? ` - ${partCalculatedTimings.postRollDuration}`
-					: ''
-				return {
-					start: `#${parentGroup.id}.end - ${part.outTransition.keepAliveDuration}${postRollDurationPostFix}`,
-				}
+				return this.createOutTransitionTimelineEnable(part, partCalculatedTimings, parentGroup)
 			}
 			case TransitionType.NO_TRANSITION: {
-				// TODO: Check for dynamically inserted and if the Piece.duration is a number (which it should be).
-				// TODO: If it is, set enable.start += partCalculatedTimings.toPartDelay-
-				// TODO: This is something Core does. Might just be used for AdLibs, if used at all?
-
-				// TODO: This hurts...
-				const duration: string | number =
-					partCalculatedTimings.postRollDuration && !piece.duration
-						? `#${parentGroup.id} - ${partCalculatedTimings.postRollDuration}`
-						: piece.duration
-
-				return {
-					start: piece.start,
-					duration: duration,
-				}
+				return this.createNoTransitionTimelineEnable(partCalculatedTimings, piece, parentGroup)
 			}
 			default: {
-				throw new UnsupportedOperation(
-					`Unknown TransitionType "${piece.transitionType}" for Piece: ${piece.id}`
-				)
+				ExhaustiveCaseChecker.assertAllCases(piece.transitionType)
 			}
+		}
+	}
+
+	// TODO: Find a way to remove undefined from the 'createXTimelineEnable' methods
+	private createInTransitionTimelineEnable(partCalculatedTimings: PartTimings, piece: Piece): TimelineEnable | undefined {
+		if (!partCalculatedTimings.inTransitionStart || partCalculatedTimings.inTransitionStart <= 0) {
+			return
+		}
+
+		const startOffset: number = piece.start
+		return {
+			start: partCalculatedTimings.inTransitionStart + startOffset,
+			duration: piece.duration,
+		}
+	}
+
+	private createOutTransitionTimelineEnable(part: Part, partCalculatedTimings: PartTimings, parentGroup: TimelineObjectGroup): TimelineEnable | undefined {
+		if (!part.outTransition.keepAliveDuration) {
+			return
+		}
+
+		const postRollDurationPostFix: string = partCalculatedTimings.postRollDuration
+			? ` - ${partCalculatedTimings.postRollDuration}`
+			: ''
+		return {
+			start: `#${parentGroup.id}.end - ${part.outTransition.keepAliveDuration}${postRollDurationPostFix}`,
+		}
+	}
+
+	private createNoTransitionTimelineEnable(partCalculatedTimings: PartTimings, piece: Piece, parentGroup: TimelineObjectGroup): TimelineEnable | undefined {
+		// TODO: Check for dynamically inserted and if the Piece.duration is a number (which it should be).
+		// TODO: If it is, set enable.start += partCalculatedTimings.toPartDelay-
+		// TODO: This is something Core does. Might just be used for AdLibs, if used at all?
+
+		// TODO: This hurts...
+		const duration: string | number =
+			partCalculatedTimings.postRollDuration && !piece.duration
+				? `#${parentGroup.id} - ${partCalculatedTimings.postRollDuration}`
+				: piece.duration
+
+		return {
+			start: piece.start,
+			duration: duration,
 		}
 	}
 
@@ -262,8 +274,8 @@ export class SuperflyTimelineBuilder implements TimelineBuilder {
 			inGroup: parentGroup.id,
 			children: [],
 			enable: {
-				start: `#${controlForPiece.id}.start - ${piece.preRollDuration ?? 0}`,
-				end: `#${controlForPiece.id}.end - ${piece.postRollDuration ?? 0}`,
+				start: `#${controlForPiece.id}.start${piece.preRollDuration ? ` - ${piece.preRollDuration}` : ''}`,
+				end: `#${controlForPiece.id}.end${piece.postRollDuration ? ` - ${piece.postRollDuration}` : ''}`,
 			},
 			layer: '',
 		}

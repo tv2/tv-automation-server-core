@@ -680,7 +680,7 @@ describe('superfly-timeline-builder', () => {
 								child.id.includes(PIECE_GROUP_INFIX)
 							)!
 
-							expect(childGroup.enable.start).toBe(`#${controlObject.id}.start - 0`)
+							expect(childGroup.enable.start).toBe(`#${controlObject.id}.start`)
 						})
 					})
 
@@ -731,7 +731,7 @@ describe('superfly-timeline-builder', () => {
 								child.id.includes(PIECE_GROUP_INFIX)
 							)!
 
-							expect(childGroup.enable.end).toBe(`#${controlObject.id}.end - 0`)
+							expect(childGroup.enable.end).toBe(`#${controlObject.id}.end`)
 						})
 					})
 
@@ -833,7 +833,8 @@ describe('superfly-timeline-builder', () => {
 								child.id.includes(PIECE_GROUP_INFIX)
 							)! as TimelineObjectGroup
 
-							expect(childGroup.children).toHaveLength(5)
+							const timelineObjectIds: string[] = childGroup.children.map(timelineObject => timelineObject.id)
+							timelineObjects.forEach(timelineObject => expect(timelineObjectIds).toContainEqual(`${childGroup.id}_${piece.id}_${timelineObject.id}`))
 						})
 					})
 				})
@@ -875,7 +876,8 @@ describe('superfly-timeline-builder', () => {
 					const controlGroups: TimelineObject[] = activeGroup.children.filter((child) =>
 						child.id.includes(PIECE_CONTROL_INFIX)
 					)
-					expect(controlGroups).toHaveLength(5)
+					const controlGroupIds: string[] = controlGroups.map(controlGroup => controlGroup.id)
+					pieces.forEach(piece => expect(controlGroupIds).toContainEqual(`${activeGroup.id}${PIECE_CONTROL_INFIX}${piece.id}`))
 				})
 
 				it('creates five Piece child groups on the active group', () => {
@@ -913,7 +915,8 @@ describe('superfly-timeline-builder', () => {
 					const childGroups: TimelineObject[] = activeGroup.children.filter((child) =>
 						child.id.includes(PIECE_GROUP_INFIX)
 					)
-					expect(childGroups).toHaveLength(5)
+					const childGroupIds: string[] = childGroups.map(controlGroup => controlGroup.id)
+					pieces.forEach(piece => expect(childGroupIds).toContainEqual(`${activeGroup.id}${PIECE_GROUP_INFIX}${piece.id}`))
 				})
 
 				describe('four of the Pieces are infinite Pieces', () => {
@@ -957,8 +960,8 @@ describe('superfly-timeline-builder', () => {
 						const controlGroups: TimelineObject[] = activeGroup.children.filter((child) =>
 							child.id.includes(PIECE_CONTROL_INFIX)
 						)
-
-						expect(controlGroups).toHaveLength(5)
+						const controlGroupIds: string[] = controlGroups.map(controlGroup => controlGroup.id)
+						pieces.forEach(piece => expect(controlGroupIds).toContainEqual(`${activeGroup.id}${PIECE_CONTROL_INFIX}${piece.id}`))
 					})
 				})
 			})
@@ -1859,7 +1862,7 @@ describe('superfly-timeline-builder', () => {
 									child.id.includes(PIECE_GROUP_INFIX)
 								)!
 
-								expect(childGroup.enable.start).toBe(`#${controlGroup.id}.start - 0`)
+								expect(childGroup.enable.start).toBe(`#${controlGroup.id}.start`)
 							})
 						})
 
@@ -1901,7 +1904,7 @@ describe('superfly-timeline-builder', () => {
 						})
 
 						describe('Piece does not have PostRoll', () => {
-							it('sets TimelineEnable.end to PieceControlGroup.end - 0', () => {
+							it('sets TimelineEnable.end to PieceControlGroup.end', () => {
 								const piece: Piece = EntityMockFactory.createPiece({
 									transitionType: TransitionType.NO_TRANSITION,
 								})
@@ -1930,7 +1933,7 @@ describe('superfly-timeline-builder', () => {
 									child.id.includes(PIECE_GROUP_INFIX)
 								)!
 
-								expect(childGroup.enable.end).toBe(`#${controlGroup.id}.end - 0`)
+								expect(childGroup.enable.end).toBe(`#${controlGroup.id}.end`)
 							})
 						})
 
@@ -2071,7 +2074,8 @@ describe('superfly-timeline-builder', () => {
 									child.id.includes(PIECE_GROUP_INFIX)
 								)! as TimelineObjectGroup
 
-								expect(childGroup.children).toHaveLength(5)
+								const timelineObjectIds: string[] = childGroup.children.map(timelineObject => timelineObject.id)
+								timelineObjects.forEach(timelineObject => expect(timelineObjectIds).toContainEqual(`${childGroup.id}_${piece.id}_${timelineObject.id}`))
 							})
 						})
 					})
@@ -3204,7 +3208,7 @@ describe('superfly-timeline-builder', () => {
 							})
 
 							describe('Piece does not have PreRoll', () => {
-								it('sets TimelineEnable.start to PieceControlGroup.start - 0', () => {
+								it('sets TimelineEnable.start to PieceControlGroup.start', () => {
 									const piece: Piece = EntityMockFactory.createPiece({
 										transitionType: TransitionType.NO_TRANSITION,
 									})
@@ -3235,7 +3239,7 @@ describe('superfly-timeline-builder', () => {
 										child.id.includes(PIECE_GROUP_INFIX)
 									)!
 
-									expect(childGroup.enable.start).toBe(`#${controlGroup.id}.start - 0`)
+									expect(childGroup.enable.start).toBe(`#${controlGroup.id}.start`)
 								})
 							})
 
@@ -3279,7 +3283,7 @@ describe('superfly-timeline-builder', () => {
 							})
 
 							describe('Piece does not have PostRoll', () => {
-								it('sets TimelineEnable.end to PieceControlGroup.end - 0', () => {
+								it('sets TimelineEnable.end to PieceControlGroup.end', () => {
 									const piece: Piece = EntityMockFactory.createPiece({
 										transitionType: TransitionType.NO_TRANSITION,
 									})
@@ -3310,7 +3314,7 @@ describe('superfly-timeline-builder', () => {
 										child.id.includes(PIECE_GROUP_INFIX)
 									)!
 
-									expect(childGroup.enable.end).toBe(`#${controlGroup.id}.end - 0`)
+									expect(childGroup.enable.end).toBe(`#${controlGroup.id}.end`)
 								})
 							})
 
@@ -3459,7 +3463,8 @@ describe('superfly-timeline-builder', () => {
 										child.id.includes(PIECE_GROUP_INFIX)
 									)! as TimelineObjectGroup
 
-									expect(childGroup.children).toHaveLength(5)
+									const timelineObjectIds: string[] = childGroup.children.map(timelineObject => timelineObject.id)
+									timelineObjects.forEach(timelineObject => expect(timelineObjectIds).toContainEqual(`${childGroup.id}_${piece.id}_${timelineObject.id}`))
 								})
 							})
 						})
@@ -4080,7 +4085,8 @@ describe('superfly-timeline-builder', () => {
 										group.id.includes(INFINITE_GROUP_PREFIX)
 									)!
 
-									expect(infiniteGroup.children).toHaveLength(5)
+									const timelineObjectIds: string[] = infiniteGroup.children.map(timelineObject => timelineObject.id)
+									timelineObjects.forEach(timelineObject => expect(timelineObjectIds).toContainEqual(`${infiniteGroup.id}_${infinitePiece.id}_${timelineObject.id}`))
 								})
 							})
 						})
