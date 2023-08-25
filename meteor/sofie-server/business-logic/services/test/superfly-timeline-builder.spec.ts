@@ -11,6 +11,8 @@ import { PieceLifespan } from '../../../model/enums/piece-lifespan'
 import { ObjectCloner } from '../interfaces/object-cloner'
 import { anything, instance, mock, when } from 'ts-mockito'
 
+const BASELINE_GROUP_ID: string = 'baseline_group'
+
 const ACTIVE_GROUP_PREFIX: string = 'active_group_'
 const PREVIOUS_GROUP_PREFIX: string = 'previous_group_'
 const NEXT_GROUP_PREFIX: string = 'next_group_'
@@ -22,10 +24,87 @@ const PIECE_GROUP_INFIX: string = '_piece_group_'
 
 const HIGH_PRIORITY: number = 5
 const MEDIUM_PRIORITY: number = 1
+const BASELINE_PRIORITY: number = 0
 const LOW_PRIORITY: number = -1
 
 describe('superfly-timeline-builder', () => {
 	describe('buildTimeline', () => {
+		describe('for baseline', () => {
+			describe('it creates a group for the baseline', () => {
+				it('sets the correct baseline group id', () => {
+					const rundown: Rundown = EntityMockFactory.createActiveRundown()
+
+					const testee: TimelineBuilder = createTestee()
+					const timeline: Timeline = testee.buildTimeline(rundown)
+
+					const baselineGroup: TimelineObjectGroup | undefined = timeline.timelineGroups.find(
+						(group) => group.id === BASELINE_GROUP_ID
+					)
+					expect(baselineGroup).not.toBeUndefined()
+				})
+
+				it('sets the enable to while="1"', () => {
+					const rundown: Rundown = EntityMockFactory.createActiveRundown()
+
+					const testee: TimelineBuilder = createTestee()
+					const timeline: Timeline = testee.buildTimeline(rundown)
+
+					const baselineGroup: TimelineObjectGroup = timeline.timelineGroups.find(
+						(group) => group.id === BASELINE_GROUP_ID
+					)!
+					expect(baselineGroup.enable.while).toBe('1')
+				})
+
+				it('sets an empty layer', () => {
+					const rundown: Rundown = EntityMockFactory.createActiveRundown()
+
+					const testee: TimelineBuilder = createTestee()
+					const timeline: Timeline = testee.buildTimeline(rundown)
+
+					const baselineGroup: TimelineObjectGroup = timeline.timelineGroups.find(
+						(group) => group.id === BASELINE_GROUP_ID
+					)!
+					expect(baselineGroup.layer).toBe('')
+				})
+
+				it('sets priority to "baseline" priority', () => {
+					const rundown: Rundown = EntityMockFactory.createActiveRundown()
+
+					const testee: TimelineBuilder = createTestee()
+					const timeline: Timeline = testee.buildTimeline(rundown)
+
+					const baselineGroup: TimelineObjectGroup = timeline.timelineGroups.find(
+						(group) => group.id === BASELINE_GROUP_ID
+					)!
+					expect(baselineGroup.priority).toBe(BASELINE_PRIORITY)
+				})
+
+				it('sets the children to the baseline objects of the Rundown', () => {
+					const baselineTimelineObjects: TimelineObject[] = [
+						{ id: 'object1' } as TimelineObject,
+						{ id: 'object2' } as TimelineObject,
+						{ id: 'object3' } as TimelineObject,
+						{ id: 'object4' } as TimelineObject,
+					]
+					const rundown: Rundown = EntityMockFactory.createActiveRundown({}, { baselineTimelineObjects })
+
+					const testee: TimelineBuilder = createTestee()
+					const timeline: Timeline = testee.buildTimeline(rundown)
+
+					const baselineGroup: TimelineObjectGroup = timeline.timelineGroups.find(
+						(group) => group.id === BASELINE_GROUP_ID
+					)!
+					const timelineObjectIds: string[] = baselineGroup.children.map(
+						(timelineObject) => timelineObject.id
+					)
+					expect(timelineObjectIds).toHaveLength(baselineTimelineObjects.length)
+					baselineTimelineObjects.forEach((timelineObject) =>
+						expect(timelineObjectIds).toContainEqual(timelineObject.id)
+					)
+				})
+			})
+		})
+
 		describe('for active Part', () => {
 			describe('it creates a group for active Part', () => {
 				it('sets correct active group id for the active Part', () => {

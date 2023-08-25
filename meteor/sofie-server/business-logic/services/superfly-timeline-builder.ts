@@ -19,6 +19,8 @@ import { UnsupportedOperation } from '../../model/exceptions/unsupported-operati
 import { ExhaustiveCaseChecker } from '../exhaustive-case-checker'
 import { ObjectCloner } from './interfaces/object-cloner'
 
+const BASELINE_GROUP_ID: string = 'baseline_group'
+
 const ACTIVE_GROUP_PREFIX: string = 'active_group_'
 const PREVIOUS_GROUP_PREFIX: string = 'previous_group_'
 const NEXT_GROUP_PREFIX: string = 'next_group_'
@@ -31,6 +33,7 @@ const PIECE_GROUP_INFIX: string = '_piece_group_'
 // These priority values are the same values used by Core
 const HIGH_PRIORITY: number = 5
 const MEDIUM_PRIORITY: number = 1
+const BASELINE_PRIORITY: number = 0
 const LOW_PRIORITY: number = -1
 
 export class SuperflyTimelineBuilder implements TimelineBuilder {
@@ -46,7 +49,9 @@ export class SuperflyTimelineBuilder implements TimelineBuilder {
 		}
 
 		// TODO: Find LookAhead
-		// TODO: Find Baseline
+
+		const baselineGroup: TimelineObjectGroup = this.createBaselineGroup(rundown)
+		timeline.timelineGroups.push(baselineGroup)
 
 		const activePartTimelineGroup: ActivePartTimelineObjectGroup =
 			this.createTimelineObjectGroupForActivePart(rundown)
@@ -88,6 +93,24 @@ export class SuperflyTimelineBuilder implements TimelineBuilder {
 		// TODO: Call Blueprint "onTimelineGenerate". This will most likely need some tweaks.
 
 		return timeline
+	}
+
+	private createBaselineGroup(rundown: Rundown) {
+		const baselineGroup: TimelineObjectGroup = {
+			id: BASELINE_GROUP_ID,
+			isGroup: true,
+			children: rundown.getBaseline(),
+			enable: {
+				while: '1',
+			},
+			priority: BASELINE_PRIORITY,
+			layer: '',
+			content: {
+				type: TimelineObjectType.GROUP,
+				deviceType: DeviceType.ABSTRACT,
+			},
+		}
+		return baselineGroup
 	}
 
 	private createTimelineObjectGroupForActivePart(rundown: Rundown): ActivePartTimelineObjectGroup {

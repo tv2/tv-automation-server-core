@@ -12,11 +12,13 @@ import { BasicRundown } from './basic-rundown'
 import { PieceLifespan } from '../enums/piece-lifespan'
 import { MisconfigurationException } from '../exceptions/misconfiguration-exception'
 import { ExhaustiveCaseChecker } from '../../business-logic/exhaustive-case-checker'
+import { TimelineObject } from './timeline-object'
 
 export interface RundownInterface {
 	id: string
 	name: string
 	segments: Segment[]
+	baselineTimelineObjects: TimelineObject[]
 	isRundownActive: boolean
 	modifiedAt: number
 
@@ -30,6 +32,7 @@ export interface RundownInterface {
 }
 
 export class Rundown extends BasicRundown {
+	private baselineTimelineObjects: TimelineObject[]
 	private segments: Segment[]
 
 	private activeSegment: Segment
@@ -45,6 +48,7 @@ export class Rundown extends BasicRundown {
 	constructor(rundown: RundownInterface) {
 		super(rundown.id, rundown.name, rundown.isRundownActive, rundown.modifiedAt)
 		this.segments = rundown.segments ?? []
+		this.baselineTimelineObjects = rundown.baselineTimelineObjects ?? []
 
 		if (rundown.alreadyActiveProperties) {
 			if (
@@ -173,6 +177,10 @@ export class Rundown extends BasicRundown {
 	public getPreviousPart(): Part | undefined {
 		this.assertActive(this.getPreviousPart.name)
 		return this.previousPart
+	}
+
+	public getBaseline(): TimelineObject[] {
+		return this.baselineTimelineObjects
 	}
 
 	public takeNext(): void {

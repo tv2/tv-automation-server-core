@@ -5,6 +5,8 @@ import { MongoDatabase } from './mongo-database'
 import { SegmentRepository } from '../interfaces/segment-repository'
 import { BaseMongoRepository } from './base-mongo-repository'
 import { BasicRundown } from '../../../model/entities/basic-rundown'
+import { RundownBaselineRepository } from '../interfaces/rundown-baseline-repository'
+import { TimelineObject } from '../../../model/entities/timeline-object'
 
 const RUNDOWN_COLLECTION_NAME: string = 'rundowns'
 
@@ -12,6 +14,7 @@ export class MongoRundownRepository extends BaseMongoRepository implements Rundo
 	constructor(
 		mongoDatabase: MongoDatabase,
 		mongoEntityConverter: MongoEntityConverter,
+		private rundownBaselineRepository: RundownBaselineRepository,
 		private segmentRepository: SegmentRepository
 	) {
 		super(mongoDatabase, mongoEntityConverter)
@@ -35,7 +38,10 @@ export class MongoRundownRepository extends BaseMongoRepository implements Rundo
 		const mongoRundown: MongoRundown = (await this.getCollection().findOne({
 			_id: rundownId,
 		})) as unknown as MongoRundown
-		const rundown: Rundown = this.mongoEntityConverter.convertRundown(mongoRundown)
+		const baselineTimelineObjects: TimelineObject[] = await this.rundownBaselineRepository.getRundownBaseline(
+			rundownId
+		)
+		const rundown: Rundown = this.mongoEntityConverter.convertRundown(mongoRundown, baselineTimelineObjects)
 		rundown.setSegments(await this.segmentRepository.getSegments(rundown.id))
 		return rundown
 	}

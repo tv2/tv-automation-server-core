@@ -9,6 +9,7 @@ import { AdLibPiece } from '../../../model/entities/ad-lib-piece'
 import { PieceLifespan } from '../../../model/enums/piece-lifespan'
 import { TransitionType } from '../../../model/enums/transition-type'
 import { BasicRundown } from '../../../model/entities/basic-rundown'
+import { TimelineObject } from '../../../model/entities/timeline-object'
 
 export interface MongoIdentifier {
 	_id: string
@@ -103,29 +104,15 @@ export interface MongoAdLibPiece {
 }
 
 export class MongoEntityConverter {
-	public convertIdentifier(mongoIdentifier: MongoIdentifier): Identifier {
-		return {
-			id: mongoIdentifier._id,
-			name: mongoIdentifier.name,
-		}
-	}
-
-	public convertIdentifiers(mongoIdentifiers: MongoIdentifier[]): Identifier[] {
-		return mongoIdentifiers.map(this.convertIdentifier)
-	}
-
-	public convertRundown(mongoRundown: MongoRundown): Rundown {
+	public convertRundown(mongoRundown: MongoRundown, baselineTimelineObjects?: TimelineObject[]): Rundown {
 		return new Rundown({
 			id: mongoRundown._id,
 			name: mongoRundown.name,
+			baselineTimelineObjects: baselineTimelineObjects ?? [],
 			isRundownActive: false,
 			segments: [],
 			modifiedAt: mongoRundown.modified,
 		})
-	}
-
-	public convertRundowns(mongoRundowns: MongoRundown[]): Rundown[] {
-		return mongoRundowns.map(this.convertRundown)
 	}
 
 	public convertBasicRundown(mongoRundown: MongoRundown): BasicRundown {

@@ -3,12 +3,34 @@ import { Part, PartInterface } from '../part'
 import { Piece, PieceInterface } from '../piece'
 import { PieceType } from '../../enums/piece-type'
 import { PieceLifespan } from '../../enums/piece-lifespan'
-import { Rundown } from '../rundown'
+import { Rundown, RundownInterface } from '../rundown'
 import { anything, instance, mock, when } from 'ts-mockito'
 import { TransitionType } from '../../enums/transition-type'
 import { PartTimings } from '../../value-objects/part-timings'
 
 export class EntityMockFactory {
+	public static createRundown(rundownInterface?: Partial<RundownInterface>): Rundown {
+		const mockedRundown: Rundown = this.createRundownMockInstance(rundownInterface)
+		return instance(mockedRundown)
+	}
+
+	public static createRundownMockInstance(rundownInterface?: Partial<RundownInterface>): Rundown {
+		if (!rundownInterface) {
+			rundownInterface = {} as RundownInterface
+		}
+
+		const mockedRundown: Rundown = mock(Rundown)
+
+		when(mockedRundown.id).thenReturn(rundownInterface.id ?? 'rundownId')
+		when(mockedRundown.name).thenReturn(rundownInterface.name ?? 'rundownName')
+		when(mockedRundown.isActive()).thenReturn(rundownInterface.isRundownActive ?? false)
+		when(mockedRundown.getLastTimeModified()).thenReturn(rundownInterface.modifiedAt ?? 0)
+
+		when(mockedRundown.getBaseline()).thenReturn(rundownInterface.baselineTimelineObjects ?? [])
+
+		return mockedRundown
+	}
+
 	public static createActiveRundown(
 		activeRundownProperties: {
 			activePart?: Part
@@ -17,14 +39,10 @@ export class EntityMockFactory {
 			activeSegment?: Segment
 			nextSegment?: Segment
 			infinitePieces?: Piece[]
-		} = {}
+		} = {},
+		rundownInterface?: Partial<RundownInterface>
 	): Rundown {
-		const mockedRundown: Rundown = mock(Rundown)
-
-		when(mockedRundown.id).thenReturn('rundownId')
-		when(mockedRundown.name).thenReturn('rundownName')
-		when(mockedRundown.isActive()).thenReturn(true)
-		when(mockedRundown.getLastTimeModified()).thenReturn(0)
+		const mockedRundown: Rundown = this.createRundownMockInstance({ ...rundownInterface, isRundownActive: true })
 		when(mockedRundown.getActivePart()).thenReturn(activeRundownProperties.activePart ?? this.createPart())
 		when(mockedRundown.getNextPart()).thenReturn(activeRundownProperties.nextPart ?? this.createPart())
 		when(mockedRundown.getPreviousPart()).thenReturn(activeRundownProperties.previousPart ?? undefined)
