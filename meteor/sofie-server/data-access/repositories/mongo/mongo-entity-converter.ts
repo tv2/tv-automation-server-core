@@ -210,6 +210,9 @@ export class MongoEntityConverter {
 			case 'segment-end': {
 				return PieceLifespan.SPANNING_UNTIL_SEGMENT_END
 			}
+			case 'rundown-change-segment-lookback': {
+				return PieceLifespan.START_SPANNING_SEGMENT_THEN_STICKY_RUNDOWN
+			}
 			case 'part-only':
 			default: {
 				return PieceLifespan.WITHIN_PART

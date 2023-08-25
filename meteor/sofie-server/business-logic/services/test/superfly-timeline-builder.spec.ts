@@ -1012,7 +1012,6 @@ describe('superfly-timeline-builder', () => {
 						{ id: 'previousId' },
 						{
 							executedAt: 10,
-							pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
 						}
 					)
 					const activePart: Part = EntityMockFactory.createPart({ id: 'activeId' })
@@ -1034,7 +1033,6 @@ describe('superfly-timeline-builder', () => {
 						{ id: 'previousId' },
 						{
 							executedAt: 10,
-							pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
 						}
 					)
 					const activePart: Part = EntityMockFactory.createPart({ id: 'activeId' })
@@ -1055,7 +1053,6 @@ describe('superfly-timeline-builder', () => {
 						{ id: 'previousId' },
 						{
 							executedAt: 10,
-							pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
 						}
 					)
 					const activePart: Part = EntityMockFactory.createPart({ id: 'activeId' })
@@ -1076,7 +1073,6 @@ describe('superfly-timeline-builder', () => {
 						{ id: 'previousId' },
 						{
 							executedAt: 10,
-							pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
 						}
 					)
 					const activePart: Part = EntityMockFactory.createPart({ id: 'activeId' })
@@ -1100,7 +1096,6 @@ describe('superfly-timeline-builder', () => {
 							{ id: 'previousId' },
 							{
 								executedAt: 10,
-								pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
 							}
 						)
 						const activePart: Part = EntityMockFactory.createPart(
@@ -1131,7 +1126,6 @@ describe('superfly-timeline-builder', () => {
 							{ id: 'previousId' },
 							{
 								executedAt: 10,
-								pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
 							}
 						)
 						const activePart: Part = EntityMockFactory.createPart({ id: 'activeId' })
@@ -1157,7 +1151,7 @@ describe('superfly-timeline-builder', () => {
 							})
 							const previousPart: Part = EntityMockFactory.createPart(
 								{ id: 'previousId', pieces: [piece] },
-								{ executedAt: 10, pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
+								{ executedAt: 10, piecesWithLifespanFilters: [piece] }
 							)
 							const activePart: Part = EntityMockFactory.createPart({ id: 'activeId' })
 							const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, previousPart })
@@ -1182,7 +1176,7 @@ describe('superfly-timeline-builder', () => {
 							})
 							const previousPart: Part = EntityMockFactory.createPart(
 								{ id: 'previousId', pieces: [piece] },
-								{ executedAt: 10, pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
+								{ executedAt: 10, piecesWithLifespanFilters: [piece] }
 							)
 							const activePart: Part = EntityMockFactory.createPart({ id: 'activeId' })
 							const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, previousPart })
@@ -1208,7 +1202,7 @@ describe('superfly-timeline-builder', () => {
 							})
 							const previousPart: Part = EntityMockFactory.createPart(
 								{ id: 'previousId', pieces: [piece] },
-								{ executedAt: 10, pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
+								{ executedAt: 10, piecesWithLifespanFilters: [piece] }
 							)
 							const activePart: Part = EntityMockFactory.createPart({ id: 'activeId' })
 							const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, previousPart })
@@ -1232,7 +1226,7 @@ describe('superfly-timeline-builder', () => {
 							})
 							const previousPart: Part = EntityMockFactory.createPart(
 								{ id: 'previousId', pieces: [piece] },
-								{ executedAt: 10, pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
+								{ executedAt: 10, piecesWithLifespanFilters: [piece] }
 							)
 							const activePart: Part = EntityMockFactory.createPart({ id: 'activeId' })
 							const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, previousPart })
@@ -1263,7 +1257,7 @@ describe('superfly-timeline-builder', () => {
 										{
 											partTimings: { inTransitionStart },
 											executedAt: 10,
-											pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
+											piecesWithLifespanFilters: [piece],
 										}
 									)
 									const activePart: Part = EntityMockFactory.createPart({
@@ -1298,7 +1292,7 @@ describe('superfly-timeline-builder', () => {
 										{
 											partTimings: { inTransitionStart },
 											executedAt: 10,
-											pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
+											piecesWithLifespanFilters: [piece],
 										}
 									)
 									const activePart: Part = EntityMockFactory.createPart({
@@ -1330,7 +1324,7 @@ describe('superfly-timeline-builder', () => {
 									})
 									const previousPart: Part = EntityMockFactory.createPart(
 										{ id: 'previousId', pieces: [piece] },
-										{ executedAt: 10, pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
+										{ executedAt: 10, piecesWithLifespanFilters: [piece] }
 									)
 									const activePart: Part = EntityMockFactory.createPart({
 										id: 'activeId',
@@ -1374,7 +1368,7 @@ describe('superfly-timeline-builder', () => {
 											{
 												partTimings: { postRollDuration },
 												executedAt: 10,
-												pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
+												piecesWithLifespanFilters: [piece],
 											}
 										)
 										const activePart: Part = EntityMockFactory.createPart({
@@ -1414,7 +1408,7 @@ describe('superfly-timeline-builder', () => {
 												outTransition: { keepAliveDuration },
 												pieces: [piece],
 											},
-											{ executedAt: 10, pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
+											{ executedAt: 10, piecesWithLifespanFilters: [piece] }
 										)
 										const activePart: Part = EntityMockFactory.createPart({
 											id: 'activeId',
@@ -1448,7 +1442,7 @@ describe('superfly-timeline-builder', () => {
 									})
 									const previousPart: Part = EntityMockFactory.createPart(
 										{ id: 'previousId', pieces: [piece] },
-										{ executedAt: 10, pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
+										{ executedAt: 10, piecesWithLifespanFilters: [piece] }
 									)
 									const activePart: Part = EntityMockFactory.createPart({
 										id: 'activeId',
@@ -1481,7 +1475,7 @@ describe('superfly-timeline-builder', () => {
 								})
 								const previousPart: Part = EntityMockFactory.createPart(
 									{ id: 'previousId', pieces: [piece] },
-									{ executedAt: 10, pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
+									{ executedAt: 10, piecesWithLifespanFilters: [piece] }
 								)
 								const activePart: Part = EntityMockFactory.createPart({
 									id: 'activeId',
@@ -1512,7 +1506,7 @@ describe('superfly-timeline-builder', () => {
 									})
 									const previousPart: Part = EntityMockFactory.createPart(
 										{ id: 'previousId', pieces: [piece] },
-										{ executedAt: 10, pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
+										{ executedAt: 10, piecesWithLifespanFilters: [piece] }
 									)
 									const activePart: Part = EntityMockFactory.createPart({
 										id: 'activeId',
@@ -1549,7 +1543,7 @@ describe('superfly-timeline-builder', () => {
 											{
 												partTimings: { postRollDuration },
 												executedAt: 10,
-												pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
+												piecesWithLifespanFilters: [piece],
 											}
 										)
 										const activePart: Part = EntityMockFactory.createPart({
@@ -1583,7 +1577,7 @@ describe('superfly-timeline-builder', () => {
 										})
 										const previousPart: Part = EntityMockFactory.createPart(
 											{ id: 'previousId', pieces: [piece] },
-											{ executedAt: 10, pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
+											{ executedAt: 10, piecesWithLifespanFilters: [piece] }
 										)
 										const activePart: Part = EntityMockFactory.createPart({
 											id: 'activeId',
@@ -1619,7 +1613,7 @@ describe('superfly-timeline-builder', () => {
 									})
 									const previousPart: Part = EntityMockFactory.createPart(
 										{ id: 'previousId', pieces: [piece] },
-										{ executedAt: 10, pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
+										{ executedAt: 10, piecesWithLifespanFilters: [piece] }
 									)
 									const activePart: Part = EntityMockFactory.createPart({
 										id: 'activeId',
@@ -1654,7 +1648,7 @@ describe('superfly-timeline-builder', () => {
 									})
 									const previousPart: Part = EntityMockFactory.createPart(
 										{ id: 'previousId', pieces: [piece] },
-										{ executedAt: 10, pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
+										{ executedAt: 10, piecesWithLifespanFilters: [piece] }
 									)
 									const activePart: Part = EntityMockFactory.createPart({
 										id: 'activeId',
@@ -1685,7 +1679,7 @@ describe('superfly-timeline-builder', () => {
 									})
 									const previousPart: Part = EntityMockFactory.createPart(
 										{ id: 'previousId', pieces: [piece] },
-										{ executedAt: 10, pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
+										{ executedAt: 10, piecesWithLifespanFilters: [piece] }
 									)
 									const activePart: Part = EntityMockFactory.createPart({
 										id: 'activeId',
@@ -1716,7 +1710,7 @@ describe('superfly-timeline-builder', () => {
 									})
 									const previousPart: Part = EntityMockFactory.createPart(
 										{ id: 'previousId', pieces: [piece] },
-										{ executedAt: 10, pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
+										{ executedAt: 10, piecesWithLifespanFilters: [piece] }
 									)
 									const activePart: Part = EntityMockFactory.createPart({
 										id: 'activeId',
@@ -1754,7 +1748,7 @@ describe('superfly-timeline-builder', () => {
 							})
 							const previousPart: Part = EntityMockFactory.createPart(
 								{ id: 'previousId', pieces: [piece] },
-								{ executedAt: 10, pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
+								{ executedAt: 10, piecesWithLifespanFilters: [piece] }
 							)
 							const activePart: Part = EntityMockFactory.createPart({ id: 'activeId' })
 							const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, previousPart })
@@ -1779,7 +1773,7 @@ describe('superfly-timeline-builder', () => {
 							})
 							const previousPart: Part = EntityMockFactory.createPart(
 								{ id: 'previousId', pieces: [piece] },
-								{ executedAt: 10, pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
+								{ executedAt: 10, piecesWithLifespanFilters: [piece] }
 							)
 							const activePart: Part = EntityMockFactory.createPart({ id: 'activeId' })
 							const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, previousPart })
@@ -1803,7 +1797,7 @@ describe('superfly-timeline-builder', () => {
 							})
 							const previousPart: Part = EntityMockFactory.createPart(
 								{ id: 'previousId', pieces: [piece] },
-								{ executedAt: 10, pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
+								{ executedAt: 10, piecesWithLifespanFilters: [piece] }
 							)
 							const activePart: Part = EntityMockFactory.createPart({ id: 'activeId' })
 							const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, previousPart })
@@ -1829,7 +1823,7 @@ describe('superfly-timeline-builder', () => {
 								})
 								const previousPart: Part = EntityMockFactory.createPart(
 									{ id: 'previousId', pieces: [piece] },
-									{ executedAt: 10, pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
+									{ executedAt: 10, piecesWithLifespanFilters: [piece] }
 								)
 								const activePart: Part = EntityMockFactory.createPart({
 									id: 'activeId',
@@ -1865,7 +1859,7 @@ describe('superfly-timeline-builder', () => {
 								})
 								const previousPart: Part = EntityMockFactory.createPart(
 									{ id: 'previousId', pieces: [piece] },
-									{ executedAt: 10, pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
+									{ executedAt: 10, piecesWithLifespanFilters: [piece] }
 								)
 								const activePart: Part = EntityMockFactory.createPart({
 									id: 'activeId',
@@ -1900,7 +1894,7 @@ describe('superfly-timeline-builder', () => {
 								})
 								const previousPart: Part = EntityMockFactory.createPart(
 									{ id: 'previousId', pieces: [piece] },
-									{ executedAt: 10, pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
+									{ executedAt: 10, piecesWithLifespanFilters: [piece] }
 								)
 								const activePart: Part = EntityMockFactory.createPart({
 									id: 'activeId',
@@ -1936,7 +1930,7 @@ describe('superfly-timeline-builder', () => {
 								})
 								const previousPart: Part = EntityMockFactory.createPart(
 									{ id: 'previousId', pieces: [piece] },
-									{ executedAt: 10, pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
+									{ executedAt: 10, piecesWithLifespanFilters: [piece] }
 								)
 								const activePart: Part = EntityMockFactory.createPart({
 									id: 'activeId',
@@ -1972,7 +1966,7 @@ describe('superfly-timeline-builder', () => {
 								})
 								const previousPart: Part = EntityMockFactory.createPart(
 									{ id: 'previousId', pieces: [piece] },
-									{ executedAt: 10, pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
+									{ executedAt: 10, piecesWithLifespanFilters: [piece] }
 								)
 								const activePart: Part = EntityMockFactory.createPart({
 									id: 'activeId',
@@ -2004,7 +1998,7 @@ describe('superfly-timeline-builder', () => {
 								})
 								const previousPart: Part = EntityMockFactory.createPart(
 									{ id: 'previousId', pieces: [piece] },
-									{ executedAt: 10, pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
+									{ executedAt: 10, piecesWithLifespanFilters: [piece] }
 								)
 								const activePart: Part = EntityMockFactory.createPart({
 									id: 'activeId',
@@ -2040,7 +2034,7 @@ describe('superfly-timeline-builder', () => {
 								})
 								const previousPart: Part = EntityMockFactory.createPart(
 									{ id: 'previousId', pieces: [piece] },
-									{ executedAt: 10, pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
+									{ executedAt: 10, piecesWithLifespanFilters: [piece] }
 								)
 								const activePart: Part = EntityMockFactory.createPart({
 									id: 'activeId',
@@ -2085,7 +2079,7 @@ describe('superfly-timeline-builder', () => {
 								})
 								const previousPart: Part = EntityMockFactory.createPart(
 									{ id: 'previousId', pieces: [piece] },
-									{ executedAt: 10, pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
+									{ executedAt: 10, piecesWithLifespanFilters: [piece] }
 								)
 								const activePart: Part = EntityMockFactory.createPart({
 									id: 'activeId',
@@ -2132,7 +2126,6 @@ describe('superfly-timeline-builder', () => {
 						{ id: 'previousId' },
 						{
 							executedAt: 10,
-							pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
 						}
 					)
 					const activePart: Part = EntityMockFactory.createPart({ id: 'activeId' })
@@ -2155,11 +2148,11 @@ describe('superfly-timeline-builder', () => {
 			describe('previous Part has Pieces', () => {
 				describe('previous Part has five Pieces, but one of them is an infinite Piece', () => {
 					it('only creates groups for four Pieces', () => {
-						const pieces: Piece[] = [
-							EntityMockFactory.createPiece({
-								pieceLifespan: PieceLifespan.STICKY_UNTIL_RUNDOWN_CHANGE,
-								transitionType: TransitionType.NO_TRANSITION,
-							}),
+						const infinitePiece: Piece = EntityMockFactory.createPiece({
+							pieceLifespan: PieceLifespan.STICKY_UNTIL_RUNDOWN_CHANGE,
+							transitionType: TransitionType.NO_TRANSITION,
+						})
+						const nonInfinitePieces: Piece[] = [
 							EntityMockFactory.createPiece({
 								pieceLifespan: PieceLifespan.WITHIN_PART,
 								transitionType: TransitionType.NO_TRANSITION,
@@ -2178,8 +2171,8 @@ describe('superfly-timeline-builder', () => {
 							}),
 						]
 						const previousPart: Part = EntityMockFactory.createPart(
-							{ id: 'previousId', pieces },
-							{ executedAt: 10, pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
+							{ id: 'previousId', pieces: [infinitePiece, ...nonInfinitePieces] },
+							{ executedAt: 10, piecesWithLifespanFilters: nonInfinitePieces }
 						)
 						const activePart: Part = EntityMockFactory.createPart({ id: 'activeId' })
 						const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, previousPart })
@@ -2200,7 +2193,7 @@ describe('superfly-timeline-builder', () => {
 
 				describe('previous Part has five Pieces, but all of them are infinite Pieces', () => {
 					it('does not create any groups for the Pieces', () => {
-						const pieces: Piece[] = [
+						const infinitePieces: Piece[] = [
 							EntityMockFactory.createPiece({
 								pieceLifespan: PieceLifespan.STICKY_UNTIL_RUNDOWN_CHANGE,
 								transitionType: TransitionType.NO_TRANSITION,
@@ -2223,8 +2216,8 @@ describe('superfly-timeline-builder', () => {
 							}),
 						]
 						const previousPart: Part = EntityMockFactory.createPart(
-							{ id: 'previousId', pieces },
-							{ executedAt: 10, pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
+							{ id: 'previousId', pieces: infinitePieces },
+							{ executedAt: 10 }
 						)
 						const activePart: Part = EntityMockFactory.createPart({ id: 'activeId' })
 						const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, previousPart })
@@ -2267,12 +2260,7 @@ describe('superfly-timeline-builder', () => {
 					it('sets TimelineEnable.duration of the active group to active Part.expectedDuration + active Part.timings.delayStartOfPiecesDuration', () => {
 						const delayStartOfPiecesDuration: number = 5
 
-						const nextPart: Part = EntityMockFactory.createPart(
-							{ id: 'nextId' },
-							{
-								pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
-							}
-						)
+						const nextPart: Part = EntityMockFactory.createPart({ id: 'nextId' })
 						const activePart: Part = EntityMockFactory.createPart(
 							{ id: 'activeId', expectedDuration: 15, autoNext: { overlap: 0 } },
 							{ partTimings: { delayStartOfPiecesDuration } }
@@ -2294,12 +2282,7 @@ describe('superfly-timeline-builder', () => {
 
 				describe('active Part does not have "delayStartOfPiecesDuration', () => {
 					it('sets TimelineEnable.duration of the active group to active Part.expectedDuration', () => {
-						const nextPart: Part = EntityMockFactory.createPart(
-							{ id: 'nextId' },
-							{
-								pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
-							}
-						)
+						const nextPart: Part = EntityMockFactory.createPart({ id: 'nextId' })
 						const activePart: Part = EntityMockFactory.createPart({
 							id: 'activeId',
 							expectedDuration: 15,
@@ -2329,7 +2312,6 @@ describe('superfly-timeline-builder', () => {
 						{ id: 'nextId' },
 						{
 							partTimings: { previousPartContinueIntoPartDuration: continueIntoPartDuration },
-							pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
 						}
 					)
 					const activePart: Part = EntityMockFactory.createPart(
@@ -2349,12 +2331,7 @@ describe('superfly-timeline-builder', () => {
 
 				describe('it creates a group for next Part', () => {
 					it('sets correct next group id for the next Part', () => {
-						const nextPart: Part = EntityMockFactory.createPart(
-							{ id: 'nextId' },
-							{
-								pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
-							}
-						)
+						const nextPart: Part = EntityMockFactory.createPart({ id: 'nextId' })
 						const activePart: Part = EntityMockFactory.createPart({
 							id: 'activeId',
 							expectedDuration: 15,
@@ -2374,12 +2351,7 @@ describe('superfly-timeline-builder', () => {
 					})
 
 					it('sets priority of the group to high', () => {
-						const nextPart: Part = EntityMockFactory.createPart(
-							{ id: 'nextId' },
-							{
-								pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
-							}
-						)
+						const nextPart: Part = EntityMockFactory.createPart({ id: 'nextId' })
 						const activePart: Part = EntityMockFactory.createPart({
 							id: 'activeId',
 							expectedDuration: 15,
@@ -2398,12 +2370,7 @@ describe('superfly-timeline-builder', () => {
 					})
 
 					it('sets an empty layer', () => {
-						const nextPart: Part = EntityMockFactory.createPart(
-							{ id: 'nextId' },
-							{
-								pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
-							}
-						)
+						const nextPart: Part = EntityMockFactory.createPart({ id: 'nextId' })
 						const activePart: Part = EntityMockFactory.createPart({
 							id: 'activeId',
 							expectedDuration: 15,
@@ -2429,7 +2396,6 @@ describe('superfly-timeline-builder', () => {
 								{ id: 'nextId' },
 								{
 									partTimings: { previousPartContinueIntoPartDuration },
-									pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
 								}
 							)
 							const activePart: Part = EntityMockFactory.createPart({
@@ -2457,12 +2423,7 @@ describe('superfly-timeline-builder', () => {
 
 					describe('next Part does not have "previousPartContinueIntoPartDuration', () => {
 						it('sets the TimelineEnable.start to be activeGroup.end - 0', () => {
-							const nextPart: Part = EntityMockFactory.createPart(
-								{ id: 'nextId' },
-								{
-									pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
-								}
-							)
+							const nextPart: Part = EntityMockFactory.createPart({ id: 'nextId' })
 							const activePart: Part = EntityMockFactory.createPart({
 								id: 'activeId',
 								expectedDuration: 15,
@@ -2492,7 +2453,7 @@ describe('superfly-timeline-builder', () => {
 								})
 								const nextPart: Part = EntityMockFactory.createPart(
 									{ id: 'nextId', pieces: [piece] },
-									{ pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
+									{ piecesWithLifespanFilters: [piece] }
 								)
 								const activePart: Part = EntityMockFactory.createPart({
 									id: 'activeId',
@@ -2521,7 +2482,7 @@ describe('superfly-timeline-builder', () => {
 								})
 								const nextPart: Part = EntityMockFactory.createPart(
 									{ id: 'nextId', pieces: [piece] },
-									{ pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
+									{ piecesWithLifespanFilters: [piece] }
 								)
 								const activePart: Part = EntityMockFactory.createPart({
 									id: 'activeId',
@@ -2551,7 +2512,7 @@ describe('superfly-timeline-builder', () => {
 								})
 								const nextPart: Part = EntityMockFactory.createPart(
 									{ id: 'nextId', pieces: [piece] },
-									{ pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
+									{ piecesWithLifespanFilters: [piece] }
 								)
 								const activePart: Part = EntityMockFactory.createPart({
 									id: 'activeId',
@@ -2579,7 +2540,7 @@ describe('superfly-timeline-builder', () => {
 								})
 								const nextPart: Part = EntityMockFactory.createPart(
 									{ id: 'nextId', pieces: [piece] },
-									{ pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
+									{ piecesWithLifespanFilters: [piece] }
 								)
 								const activePart: Part = EntityMockFactory.createPart({
 									id: 'activeId',
@@ -2614,7 +2575,7 @@ describe('superfly-timeline-builder', () => {
 											{ id: 'nextId', pieces: [piece] },
 											{
 												partTimings: { inTransitionStart },
-												pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
+												piecesWithLifespanFilters: [piece],
 											}
 										)
 										const activePart: Part = EntityMockFactory.createPart({
@@ -2650,7 +2611,7 @@ describe('superfly-timeline-builder', () => {
 											{ id: 'nextId', pieces: [piece] },
 											{
 												partTimings: { inTransitionStart },
-												pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
+												piecesWithLifespanFilters: [piece],
 											}
 										)
 										const activePart: Part = EntityMockFactory.createPart({
@@ -2684,7 +2645,7 @@ describe('superfly-timeline-builder', () => {
 										})
 										const nextPart: Part = EntityMockFactory.createPart(
 											{ id: 'nextId', pieces: [piece] },
-											{ pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
+											{ piecesWithLifespanFilters: [piece] }
 										)
 										const activePart: Part = EntityMockFactory.createPart({
 											id: 'activeId',
@@ -2730,7 +2691,7 @@ describe('superfly-timeline-builder', () => {
 												},
 												{
 													partTimings: { postRollDuration },
-													pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
+													piecesWithLifespanFilters: [piece],
 												}
 											)
 											const activePart: Part = EntityMockFactory.createPart({
@@ -2773,7 +2734,7 @@ describe('superfly-timeline-builder', () => {
 													outTransition: { keepAliveDuration },
 													pieces: [piece],
 												},
-												{ pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
+												{ piecesWithLifespanFilters: [piece] }
 											)
 											const activePart: Part = EntityMockFactory.createPart({
 												id: 'activeId',
@@ -2810,7 +2771,7 @@ describe('superfly-timeline-builder', () => {
 
 										const nextPart: Part = EntityMockFactory.createPart(
 											{ id: 'nextId', pieces: [piece] },
-											{ pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
+											{ piecesWithLifespanFilters: [piece] }
 										)
 										const activePart: Part = EntityMockFactory.createPart({
 											id: 'activeId',
@@ -2845,7 +2806,7 @@ describe('superfly-timeline-builder', () => {
 									})
 									const nextPart: Part = EntityMockFactory.createPart(
 										{ id: 'nextId', pieces: [piece] },
-										{ pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
+										{ piecesWithLifespanFilters: [piece] }
 									)
 									const activePart: Part = EntityMockFactory.createPart({
 										id: 'activeId',
@@ -2878,7 +2839,7 @@ describe('superfly-timeline-builder', () => {
 										})
 										const nextPart: Part = EntityMockFactory.createPart(
 											{ id: 'nextId', pieces: [piece] },
-											{ pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
+											{ piecesWithLifespanFilters: [piece] }
 										)
 										const activePart: Part = EntityMockFactory.createPart({
 											id: 'activeId',
@@ -2916,7 +2877,7 @@ describe('superfly-timeline-builder', () => {
 												{ id: 'nextId', pieces: [piece] },
 												{
 													partTimings: { postRollDuration },
-													pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
+													piecesWithLifespanFilters: [piece],
 												}
 											)
 											const activePart: Part = EntityMockFactory.createPart({
@@ -2952,7 +2913,7 @@ describe('superfly-timeline-builder', () => {
 											})
 											const nextPart: Part = EntityMockFactory.createPart(
 												{ id: 'nextId', pieces: [piece] },
-												{ pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
+												{ piecesWithLifespanFilters: [piece] }
 											)
 											const activePart: Part = EntityMockFactory.createPart({
 												id: 'activeId',
@@ -2990,7 +2951,7 @@ describe('superfly-timeline-builder', () => {
 										})
 										const nextPart: Part = EntityMockFactory.createPart(
 											{ id: 'nextId', pieces: [piece] },
-											{ pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
+											{ piecesWithLifespanFilters: [piece] }
 										)
 										const activePart: Part = EntityMockFactory.createPart({
 											id: 'activeId',
@@ -3027,7 +2988,7 @@ describe('superfly-timeline-builder', () => {
 										})
 										const nextPart: Part = EntityMockFactory.createPart(
 											{ id: 'nextId', pieces: [piece] },
-											{ pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
+											{ piecesWithLifespanFilters: [piece] }
 										)
 										const activePart: Part = EntityMockFactory.createPart({
 											id: 'activeId',
@@ -3060,7 +3021,7 @@ describe('superfly-timeline-builder', () => {
 										})
 										const nextPart: Part = EntityMockFactory.createPart(
 											{ id: 'nextId', pieces: [piece] },
-											{ pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
+											{ piecesWithLifespanFilters: [piece] }
 										)
 										const activePart: Part = EntityMockFactory.createPart({
 											id: 'activeId',
@@ -3093,7 +3054,7 @@ describe('superfly-timeline-builder', () => {
 										})
 										const nextPart: Part = EntityMockFactory.createPart(
 											{ id: 'nextId', pieces: [piece] },
-											{ pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
+											{ piecesWithLifespanFilters: [piece] }
 										)
 										const activePart: Part = EntityMockFactory.createPart({
 											id: 'activeId',
@@ -3133,7 +3094,7 @@ describe('superfly-timeline-builder', () => {
 								})
 								const nextPart: Part = EntityMockFactory.createPart(
 									{ id: 'nextId', pieces: [piece] },
-									{ pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
+									{ piecesWithLifespanFilters: [piece] }
 								)
 								const activePart: Part = EntityMockFactory.createPart({
 									id: 'activeId',
@@ -3162,7 +3123,7 @@ describe('superfly-timeline-builder', () => {
 								})
 								const nextPart: Part = EntityMockFactory.createPart(
 									{ id: 'nextId', pieces: [piece] },
-									{ pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
+									{ piecesWithLifespanFilters: [piece] }
 								)
 								const activePart: Part = EntityMockFactory.createPart({
 									id: 'activeId',
@@ -3190,7 +3151,7 @@ describe('superfly-timeline-builder', () => {
 								})
 								const nextPart: Part = EntityMockFactory.createPart(
 									{ id: 'nextId', pieces: [piece] },
-									{ pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
+									{ piecesWithLifespanFilters: [piece] }
 								)
 								const activePart: Part = EntityMockFactory.createPart({
 									id: 'activeId',
@@ -3220,7 +3181,7 @@ describe('superfly-timeline-builder', () => {
 									})
 									const nextPart: Part = EntityMockFactory.createPart(
 										{ id: 'nextId', pieces: [piece] },
-										{ pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
+										{ piecesWithLifespanFilters: [piece] }
 									)
 									const activePart: Part = EntityMockFactory.createPart({
 										id: 'activeId',
@@ -3258,7 +3219,7 @@ describe('superfly-timeline-builder', () => {
 									})
 									const nextPart: Part = EntityMockFactory.createPart(
 										{ id: 'nextId', pieces: [piece] },
-										{ pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
+										{ piecesWithLifespanFilters: [piece] }
 									)
 									const activePart: Part = EntityMockFactory.createPart({
 										id: 'activeId',
@@ -3295,7 +3256,7 @@ describe('superfly-timeline-builder', () => {
 									})
 									const nextPart: Part = EntityMockFactory.createPart(
 										{ id: 'nextId', pieces: [piece] },
-										{ pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
+										{ piecesWithLifespanFilters: [piece] }
 									)
 									const activePart: Part = EntityMockFactory.createPart({
 										id: 'activeId',
@@ -3333,7 +3294,7 @@ describe('superfly-timeline-builder', () => {
 									})
 									const nextPart: Part = EntityMockFactory.createPart(
 										{ id: 'nextId', pieces: [piece] },
-										{ pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
+										{ piecesWithLifespanFilters: [piece] }
 									)
 									const activePart: Part = EntityMockFactory.createPart({
 										id: 'activeId',
@@ -3371,7 +3332,7 @@ describe('superfly-timeline-builder', () => {
 									})
 									const nextPart: Part = EntityMockFactory.createPart(
 										{ id: 'nextId', pieces: [piece] },
-										{ pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
+										{ piecesWithLifespanFilters: [piece] }
 									)
 									const activePart: Part = EntityMockFactory.createPart({
 										id: 'activeId',
@@ -3405,7 +3366,7 @@ describe('superfly-timeline-builder', () => {
 									})
 									const nextPart: Part = EntityMockFactory.createPart(
 										{ id: 'nextId', pieces: [piece] },
-										{ pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
+										{ piecesWithLifespanFilters: [piece] }
 									)
 									const activePart: Part = EntityMockFactory.createPart({
 										id: 'activeId',
@@ -3443,7 +3404,7 @@ describe('superfly-timeline-builder', () => {
 									})
 									const nextPart: Part = EntityMockFactory.createPart(
 										{ id: 'nextId', pieces: [piece] },
-										{ pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
+										{ piecesWithLifespanFilters: [piece] }
 									)
 									const activePart: Part = EntityMockFactory.createPart({
 										id: 'activeId',
@@ -3490,7 +3451,7 @@ describe('superfly-timeline-builder', () => {
 									})
 									const nextPart: Part = EntityMockFactory.createPart(
 										{ id: 'nextId', pieces: [piece] },
-										{ pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
+										{ piecesWithLifespanFilters: [piece] }
 									)
 									const activePart: Part = EntityMockFactory.createPart({
 										id: 'activeId',
@@ -3534,12 +3495,7 @@ describe('superfly-timeline-builder', () => {
 
 					describe('next Part does not have any Pieces', () => {
 						it('does not create any groups for the Pieces', () => {
-							const nextPart: Part = EntityMockFactory.createPart(
-								{ id: 'nextId' },
-								{
-									pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
-								}
-							)
+							const nextPart: Part = EntityMockFactory.createPart({ id: 'nextId' })
 							const activePart: Part = EntityMockFactory.createPart({
 								id: 'activeId',
 								expectedDuration: 15,
@@ -3564,11 +3520,11 @@ describe('superfly-timeline-builder', () => {
 					describe('next Part has Pieces', () => {
 						describe('next Part has five Pieces, but one of them is an infinite Piece', () => {
 							it('only creates groups for four Pieces', () => {
-								const pieces: Piece[] = [
-									EntityMockFactory.createPiece({
-										pieceLifespan: PieceLifespan.STICKY_UNTIL_RUNDOWN_CHANGE,
-										transitionType: TransitionType.NO_TRANSITION,
-									}),
+								const infinitePiece: Piece = EntityMockFactory.createPiece({
+									pieceLifespan: PieceLifespan.STICKY_UNTIL_RUNDOWN_CHANGE,
+									transitionType: TransitionType.NO_TRANSITION,
+								})
+								const nonInfinitePieces: Piece[] = [
 									EntityMockFactory.createPiece({
 										pieceLifespan: PieceLifespan.WITHIN_PART,
 										transitionType: TransitionType.NO_TRANSITION,
@@ -3587,8 +3543,8 @@ describe('superfly-timeline-builder', () => {
 									}),
 								]
 								const nextPart: Part = EntityMockFactory.createPart(
-									{ id: 'nextId', pieces },
-									{ pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
+									{ id: 'nextId', pieces: [infinitePiece, ...nonInfinitePieces] },
+									{ piecesWithLifespanFilters: nonInfinitePieces }
 								)
 								const activePart: Part = EntityMockFactory.createPart({
 									id: 'activeId',
@@ -3613,7 +3569,7 @@ describe('superfly-timeline-builder', () => {
 
 						describe('next Part has five Pieces, but all of them are infinite Pieces', () => {
 							it('does not create any groups for the Pieces', () => {
-								const pieces: Piece[] = [
+								const infinitePieces: Piece[] = [
 									EntityMockFactory.createPiece({
 										pieceLifespan: PieceLifespan.STICKY_UNTIL_RUNDOWN_CHANGE,
 										transitionType: TransitionType.NO_TRANSITION,
@@ -3635,10 +3591,10 @@ describe('superfly-timeline-builder', () => {
 										transitionType: TransitionType.NO_TRANSITION,
 									}),
 								]
-								const nextPart: Part = EntityMockFactory.createPart(
-									{ id: 'nextId', pieces },
-									{ pieceLifespanFilters: [PieceLifespan.WITHIN_PART] }
-								)
+								const nextPart: Part = EntityMockFactory.createPart({
+									id: 'nextId',
+									pieces: infinitePieces,
+								})
 								const activePart: Part = EntityMockFactory.createPart({
 									id: 'activeId',
 									expectedDuration: 15,
@@ -3665,12 +3621,7 @@ describe('superfly-timeline-builder', () => {
 
 			describe('active Part does not have an expected duration longer than zero', () => {
 				it('does not create a group for next Part', () => {
-					const nextPart: Part = EntityMockFactory.createPart(
-						{ id: 'nextId' },
-						{
-							pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
-						}
-					)
+					const nextPart: Part = EntityMockFactory.createPart({ id: 'nextId' })
 					const activePart: Part = EntityMockFactory.createPart({
 						id: 'activeId',
 						autoNext: { overlap: 0 },
@@ -3688,12 +3639,7 @@ describe('superfly-timeline-builder', () => {
 				})
 
 				it('does not set Timeline.autoNext', () => {
-					const nextPart: Part = EntityMockFactory.createPart(
-						{ id: 'nextId' },
-						{
-							pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
-						}
-					)
+					const nextPart: Part = EntityMockFactory.createPart({ id: 'nextId' })
 					const activePart: Part = EntityMockFactory.createPart({
 						id: 'activeId',
 						autoNext: { overlap: 0 },
@@ -3710,12 +3656,7 @@ describe('superfly-timeline-builder', () => {
 
 		describe('active Part does not have autoNext', () => {
 			it('does not create a group for next Part', () => {
-				const nextPart: Part = EntityMockFactory.createPart(
-					{ id: 'nextId' },
-					{
-						pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
-					}
-				)
+				const nextPart: Part = EntityMockFactory.createPart({ id: 'nextId' })
 				const activePart: Part = EntityMockFactory.createPart({ id: 'activeId' })
 				const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
 
@@ -3730,12 +3671,7 @@ describe('superfly-timeline-builder', () => {
 			})
 
 			it('does not set Timeline.autoNext', () => {
-				const nextPart: Part = EntityMockFactory.createPart(
-					{ id: 'nextId' },
-					{
-						pieceLifespanFilters: [PieceLifespan.WITHIN_PART],
-					}
-				)
+				const nextPart: Part = EntityMockFactory.createPart({ id: 'nextId' })
 				const activePart: Part = EntityMockFactory.createPart({ id: 'activeId' })
 				const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
 

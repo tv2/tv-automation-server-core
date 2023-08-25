@@ -4,7 +4,7 @@ import { Piece, PieceInterface } from '../piece'
 import { PieceType } from '../../enums/piece-type'
 import { PieceLifespan } from '../../enums/piece-lifespan'
 import { Rundown } from '../rundown'
-import { anything, deepEqual, instance, mock, when } from 'ts-mockito'
+import { anything, instance, mock, when } from 'ts-mockito'
 import { TransitionType } from '../../enums/transition-type'
 import { PartTimings } from '../../value-objects/part-timings'
 
@@ -41,7 +41,7 @@ export class EntityMockFactory {
 			firstPart?: Part
 			nextPart?: Part
 			firstSpanningPieceForEachLayerBeforePart?: Piece[]
-			firstSpanningRundownPieceForeachLayerForAllParts?: Piece[]
+			firstSpanningRundownPieceForEachLayerForAllParts?: Piece[]
 		}
 	): Segment {
 		const mockedSegment: Segment = this.createSegmentMockInstance(segmentInterface, misc)
@@ -54,7 +54,7 @@ export class EntityMockFactory {
 			firstPart?: Part
 			nextPart?: Part
 			firstSpanningPieceForEachLayerBeforePart?: Piece[]
-			firstSpanningRundownPieceForeachLayerForAllParts?: Piece[]
+			firstSpanningRundownPieceForEachLayerForAllParts?: Piece[]
 		}>
 	): Segment {
 		const mockedSegment: Segment = mock(Segment)
@@ -85,7 +85,7 @@ export class EntityMockFactory {
 			misc.firstSpanningPieceForEachLayerBeforePart ?? []
 		)
 		when(mockedSegment.getFirstSpanningRundownPieceForEachLayerForAllParts(anything())).thenReturn(
-			misc.firstSpanningRundownPieceForeachLayerForAllParts ?? []
+			misc.firstSpanningRundownPieceForEachLayerForAllParts ?? []
 		)
 
 		return mockedSegment
@@ -96,7 +96,7 @@ export class EntityMockFactory {
 		misc?: {
 			partTimings?: Partial<PartTimings>
 			executedAt?: number
-			pieceLifespanFilters?: PieceLifespan[]
+			piecesWithLifespanFilters?: Piece[]
 		}
 	): Part {
 		const mockedPart: Part = this.createPartMockInstance(partInterface, misc)
@@ -108,7 +108,7 @@ export class EntityMockFactory {
 		misc?: {
 			partTimings?: Partial<PartTimings>
 			executedAt?: number
-			pieceLifespanFilters?: PieceLifespan[]
+			piecesWithLifespanFilters?: Piece[]
 		}
 	): Part {
 		const mockedPart: Part = mock(Part)
@@ -139,11 +139,8 @@ export class EntityMockFactory {
 
 		when(mockedPart.getExecutedAt()).thenReturn(misc.executedAt ?? 0)
 
-		const pieces: Piece[] = partInterface.pieces ?? []
-		when(mockedPart.getPieces()).thenReturn(pieces)
-		when(mockedPart.getPiecesWithLifespan(deepEqual(misc.pieceLifespanFilters ?? []))).thenReturn(
-			pieces.filter((piece) => misc?.pieceLifespanFilters?.includes(piece.pieceLifespan))
-		)
+		when(mockedPart.getPieces()).thenReturn(partInterface.pieces ?? [])
+		when(mockedPart.getPiecesWithLifespan(anything())).thenReturn(misc.piecesWithLifespanFilters ?? [])
 
 		when(mockedPart.getTimings()).thenReturn({
 			inTransitionStart: misc.partTimings?.inTransitionStart ?? undefined,

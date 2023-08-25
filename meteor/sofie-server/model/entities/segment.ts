@@ -91,10 +91,11 @@ export class Segment {
 	}
 
 	public getFirstSpanningPieceForEachLayerBeforePart(part: Part, layersToIgnore: Set<string>): Piece[] {
-		const indexOfPart = this.parts.findIndex((p) => p.id === part.id)
+		const indexOfPart: number = this.parts.findIndex((p) => p.id === part.id)
 		return this.getPiecesFromIndex(indexOfPart - 1, layersToIgnore, [
 			PieceLifespan.SPANNING_UNTIL_RUNDOWN_END,
 			PieceLifespan.SPANNING_UNTIL_SEGMENT_END,
+			PieceLifespan.START_SPANNING_SEGMENT_THEN_STICKY_RUNDOWN,
 		])
 	}
 

@@ -499,7 +499,7 @@ describe('Rundown', () => {
 					const firstPart: Part = EntityMockFactory.createPart({ pieces: [firstPiece] })
 					const firstSegment: Segment = EntityMockFactory.createSegment(
 						{ id: 'firstSegment', parts: [firstPart] },
-						{ firstSpanningRundownPieceForeachLayerForAllParts: [firstPiece] }
+						{ firstSpanningRundownPieceForEachLayerForAllParts: [firstPiece] }
 					)
 
 					const nextPiece: Piece = EntityMockFactory.createPiece({
@@ -794,37 +794,6 @@ describe('Rundown', () => {
 					expect(result).toContain(lastPiece)
 				})
 			})
-
-			describe('it "skips" a Segment with a "spanning Rundown" infinite Piece"', () => {
-				// TODO: This isn't supported yet...
-				// 	it('changes to the "spanning" infinite Piece', () => {
-				// 		const layer: string = 'someLayer'
-				// 		const firstPiece: Piece = EntityMockFactory.createPiece({ id: 'firstPiece', layer, pieceLifespan: PieceLifespan.STICKY_UNTIL_RUNDOWN_CHANGE } )
-				// 		const firstPart: Part = EntityMockFactory.createPart({ id: 'firstPart', pieces: [firstPiece] } )
-				// 		const firstSegment: Segment = EntityMockFactory.createSegment({ id: 'firstSegment', parts: [firstPart] } )
-				//
-				// 		const middlePiece: Piece = EntityMockFactory.createPiece({ id: 'middlePiece', layer, pieceLifespan: PieceLifespan.SPANNING_UNTIL_RUNDOWN_END } )
-				// 		const middlePart: Part = EntityMockFactory.createPart({ id: 'middlePart', pieces: [middlePiece] } )
-				// 		const middleSegment: Segment = EntityMockFactory.createSegment({ id: 'middleSegment', parts: [middlePart] } , { firstSpanningRundownPieceForeachLayerForAllParts: [middlePiece] })
-				//
-				// 		const lastPart: Part = EntityMockFactory.createPart({ id: 'lastPart' } )
-				// 		const lastSegment: Segment = EntityMockFactory.createSegment({ id: 'lastSegment', parts: [lastPart] } )
-				//
-				// 		const testee: Rundown = new Rundown({ segments: [firstSegment, middleSegment, lastSegment], isRundownActive: true, alreadyActiveProperties: {
-				// 				activePart: firstPart,
-				// 				nextPart: lastPart,
-				// 				activeSegment: firstSegment,
-				// 				nextSegment: lastSegment,
-				// 				infinitePieces: new Map([[firstPiece.layer, firstPiece]])
-				// 			} } as RundownInterface)
-				//
-				// 		testee.takeNext()
-				//
-				// 		const result: Piece[] = testee.getInfinitePieces()
-				// 		expect(result).toHaveLength(1)
-				// 		expect(result).toContainEqual(middlePiece)
-				// 	})
-			})
 		})
 
 		describe('Rundown has a "spanning Rundown" infinite Piece', () => {
@@ -856,7 +825,7 @@ describe('Rundown', () => {
 					})
 					const middleSegment: Segment = EntityMockFactory.createSegment(
 						{ id: 'middleSegment', parts: [middlePart] },
-						{ firstSpanningRundownPieceForeachLayerForAllParts: [middlePiece] }
+						{ firstSpanningRundownPieceForEachLayerForAllParts: [middlePiece] }
 					)
 
 					const lastPart: Part = EntityMockFactory.createPart({ id: 'lastPart' })
@@ -915,7 +884,7 @@ describe('Rundown', () => {
 					})
 					const middleSegment: Segment = EntityMockFactory.createSegment(
 						{ id: 'middleSegment', parts: [middlePart] },
-						{ firstSpanningRundownPieceForeachLayerForAllParts: [middlePiece] }
+						{ firstSpanningRundownPieceForEachLayerForAllParts: [middlePiece] }
 					)
 
 					const lastPart: Part = EntityMockFactory.createPart({ id: 'lastPart' })
@@ -957,7 +926,7 @@ describe('Rundown', () => {
 						})
 						const firstSegment: Segment = EntityMockFactory.createSegment(
 							{ id: 'firstSegment', parts: [firstPart] },
-							{ firstSpanningRundownPieceForeachLayerForAllParts: [firstPiece] }
+							{ firstSpanningRundownPieceForEachLayerForAllParts: [firstPiece] }
 						)
 
 						const middlePart: Part = EntityMockFactory.createPart({ id: 'middlePart' })
@@ -1046,6 +1015,96 @@ describe('Rundown', () => {
 						const result: Piece[] = testee.getInfinitePieces()
 						expect(result).toHaveLength(0)
 					})
+				})
+			})
+
+			describe('it takes a Segment with a "stickyThenSpanning" infinite Piece', () => {
+				it('takes the "stickyThenSpanning" Piece', () => {
+					const firstPiece: Piece = EntityMockFactory.createPiece({
+						id: 'firstPiece',
+						pieceLifespan: PieceLifespan.SPANNING_UNTIL_RUNDOWN_END,
+					})
+					const firstPart: Part = EntityMockFactory.createPart({ id: 'firstPart', pieces: [firstPiece] })
+					const firstSegment: Segment = EntityMockFactory.createSegment({
+						id: 'firstSegment',
+						parts: [firstPart],
+					})
+
+					const lastPiece: Piece = EntityMockFactory.createPiece({
+						id: 'lastPiece',
+						pieceLifespan: PieceLifespan.START_SPANNING_SEGMENT_THEN_STICKY_RUNDOWN,
+					})
+					const lastPart: Part = EntityMockFactory.createPart({ id: 'lastPart', pieces: [lastPiece] })
+					const lastSegment: Segment = EntityMockFactory.createSegment({
+						id: 'lastSegment',
+						parts: [lastPart],
+					})
+
+					const testee: Rundown = new Rundown({
+						segments: [firstSegment, lastSegment],
+						isRundownActive: true,
+						alreadyActiveProperties: {
+							activePart: firstPart,
+							nextPart: lastPart,
+							activeSegment: firstSegment,
+							nextSegment: lastSegment,
+							infinitePieces: new Map([[firstPiece.layer, firstPiece]]),
+						},
+					} as RundownInterface)
+
+					testee.takeNext()
+
+					const result: Piece[] = testee.getInfinitePieces()
+					expect(result).toHaveLength(1)
+					expect(result).toContain(lastPiece)
+				})
+			})
+
+			describe('"skips" a Segment with a "stickyThenSpanning infinite Piece', () => {
+				it('does not change infinite Piece', () => {
+					const firstPiece: Piece = EntityMockFactory.createPiece({
+						id: 'firstPiece',
+						pieceLifespan: PieceLifespan.SPANNING_UNTIL_RUNDOWN_END,
+					})
+					const firstPart: Part = EntityMockFactory.createPart({ id: 'firstPart', pieces: [firstPiece] })
+					const firstSegment: Segment = EntityMockFactory.createSegment(
+						{ id: 'firstSegment', parts: [firstPart] },
+						{ firstSpanningRundownPieceForEachLayerForAllParts: [firstPiece] }
+					)
+
+					const middlePiece: Piece = EntityMockFactory.createPiece({
+						id: 'middlePiece',
+						pieceLifespan: PieceLifespan.START_SPANNING_SEGMENT_THEN_STICKY_RUNDOWN,
+					})
+					const middlePart: Part = EntityMockFactory.createPart({ id: 'middlePart', pieces: [middlePiece] })
+					const middleSegment: Segment = EntityMockFactory.createSegment({
+						id: 'firstSegment',
+						parts: [middlePart],
+					})
+
+					const lastPart: Part = EntityMockFactory.createPart({ id: 'lastPart' })
+					const lastSegment: Segment = EntityMockFactory.createSegment({
+						id: 'lastSegment',
+						parts: [lastPart],
+					})
+
+					const testee: Rundown = new Rundown({
+						segments: [firstSegment, middleSegment, lastSegment],
+						isRundownActive: true,
+						alreadyActiveProperties: {
+							activePart: firstPart,
+							nextPart: lastPart,
+							activeSegment: firstSegment,
+							nextSegment: lastSegment,
+							infinitePieces: new Map([[firstPiece.layer, firstPiece]]),
+						},
+					} as RundownInterface)
+
+					testee.takeNext()
+
+					const result: Piece[] = testee.getInfinitePieces()
+					expect(result).toHaveLength(1)
+					expect(result).toContain(firstPiece)
 				})
 			})
 		})
@@ -1307,6 +1366,110 @@ describe('Rundown', () => {
 				})
 			})
 
+			describe('it takes a Part within segment with "stickyThenSpanning" infinite Piece', () => {
+				it('changes the infinite Piece', () => {
+					const layer: string = 'someLayer'
+					const firstPiece: Piece = EntityMockFactory.createPiece({
+						id: 'firstPiece',
+						layer,
+						pieceLifespan: PieceLifespan.STICKY_UNTIL_SEGMENT_CHANGE,
+					})
+					const firstPart: Part = EntityMockFactory.createPart({
+						id: 'firstPart',
+						pieces: [firstPiece],
+					})
+
+					const nextPiece: Piece = EntityMockFactory.createPiece({
+						id: 'nextPiece',
+						layer,
+						pieceLifespan: PieceLifespan.START_SPANNING_SEGMENT_THEN_STICKY_RUNDOWN,
+					})
+					const nextPart: Part = EntityMockFactory.createPart({
+						id: 'nextPart',
+						pieces: [nextPiece],
+					})
+
+					const mockedSegment: Segment = EntityMockFactory.createSegmentMockInstance({
+						id: 'segment',
+						parts: [firstPart, nextPart],
+					})
+					when(mockedSegment.doesPieceBelongToSegment(firstPiece)).thenReturn(true)
+					const segment: Segment = instance(mockedSegment)
+
+					const testee: Rundown = new Rundown({
+						segments: [segment],
+						isRundownActive: true,
+						alreadyActiveProperties: {
+							activePart: firstPart,
+							nextPart: nextPart,
+							activeSegment: segment,
+							nextSegment: segment,
+							infinitePieces: new Map([[firstPiece.layer, firstPiece]]),
+						},
+					} as RundownInterface)
+
+					testee.takeNext()
+
+					const result: Piece[] = testee.getInfinitePieces()
+					expect(result).toHaveLength(1)
+					expect(result).toContain(nextPiece)
+				})
+			})
+
+			describe('it "skips" a Part within the Segment with "stickyThenSpanning" infinite Piece', () => {
+				it('does not change the infinite Piece', () => {
+					const layer: string = 'someLayer'
+					const firstPiece: Piece = EntityMockFactory.createPiece({
+						id: 'firstPiece',
+						layer,
+						pieceLifespan: PieceLifespan.STICKY_UNTIL_SEGMENT_CHANGE,
+					})
+					const firstPart: Part = EntityMockFactory.createPart({
+						id: 'firstPart',
+						pieces: [firstPiece],
+					})
+
+					const middlePiece: Piece = EntityMockFactory.createPiece({
+						id: 'middlePiece',
+						layer,
+						pieceLifespan: PieceLifespan.START_SPANNING_SEGMENT_THEN_STICKY_RUNDOWN,
+					})
+					const middlePart: Part = EntityMockFactory.createPart({
+						id: 'middlePart',
+						pieces: [middlePiece],
+					})
+
+					const lastPart: Part = EntityMockFactory.createPart({
+						id: 'lastPart',
+					})
+
+					const mockedSegment: Segment = EntityMockFactory.createSegmentMockInstance({
+						id: 'segment',
+						parts: [firstPart, middlePart, lastPart],
+					})
+					when(mockedSegment.doesPieceBelongToSegment(firstPiece)).thenReturn(true)
+					const segment: Segment = instance(mockedSegment)
+
+					const testee: Rundown = new Rundown({
+						segments: [segment],
+						isRundownActive: true,
+						alreadyActiveProperties: {
+							activePart: firstPart,
+							nextPart: lastPart,
+							activeSegment: segment,
+							nextSegment: segment,
+							infinitePieces: new Map([[firstPiece.layer, firstPiece]]),
+						},
+					} as RundownInterface)
+
+					testee.takeNext()
+
+					const result: Piece[] = testee.getInfinitePieces()
+					expect(result).toHaveLength(1)
+					expect(result).toContain(firstPiece)
+				})
+			})
+
 			describe('it changes Segment', () => {
 				it('no longer have any infinite Pieces', () => {
 					const layer: string = 'someLayer'
@@ -1544,6 +1707,103 @@ describe('Rundown', () => {
 				})
 			})
 
+			describe('it takes a Part within the Segment with a "stickyThenSpanning" infinite Piece', () => {
+				it('changes the infinite Piece', () => {
+					const layer: string = 'someLayer'
+					const firstPiece: Piece = EntityMockFactory.createPiece({
+						id: 'firstPiece',
+						layer,
+						pieceLifespan: PieceLifespan.SPANNING_UNTIL_SEGMENT_END,
+					})
+					const firstPart: Part = EntityMockFactory.createPart({
+						id: 'firstPart',
+						pieces: [firstPiece],
+					})
+
+					const lastPiece: Piece = EntityMockFactory.createPiece({
+						id: 'lastPiece',
+						layer,
+						pieceLifespan: PieceLifespan.START_SPANNING_SEGMENT_THEN_STICKY_RUNDOWN,
+					})
+					const lastPart: Part = EntityMockFactory.createPart({
+						id: 'lastPart',
+						pieces: [lastPiece],
+					})
+
+					const segment: Segment = EntityMockFactory.createSegment({
+						id: 'segment',
+						parts: [firstPart, lastPart],
+					})
+
+					const testee: Rundown = new Rundown({
+						segments: [segment],
+						isRundownActive: true,
+						alreadyActiveProperties: {
+							activePart: firstPart,
+							nextPart: lastPart,
+							activeSegment: segment,
+							nextSegment: segment,
+							infinitePieces: new Map([[firstPiece.layer, firstPiece]]),
+						},
+					} as RundownInterface)
+
+					testee.takeNext()
+
+					const result: Piece[] = testee.getInfinitePieces()
+					expect(result).toHaveLength(1)
+					expect(result).toContainEqual(lastPiece)
+				})
+			})
+
+			describe('it "skips" a Part within the Segment with a "stickyThenSpanning" infinite Piece', () => {
+				it('changes the infinite Piece', () => {
+					const layer: string = 'someLayer'
+					const firstPiece: Piece = EntityMockFactory.createPiece({
+						id: 'firstPiece',
+						layer,
+						pieceLifespan: PieceLifespan.SPANNING_UNTIL_SEGMENT_END,
+					})
+					const firstPart: Part = EntityMockFactory.createPart({
+						id: 'firstPart',
+						pieces: [firstPiece],
+					})
+
+					const middlePiece: Piece = EntityMockFactory.createPiece({
+						id: 'middlePiece',
+						layer,
+						pieceLifespan: PieceLifespan.START_SPANNING_SEGMENT_THEN_STICKY_RUNDOWN,
+					})
+					const middlePart: Part = EntityMockFactory.createPart({ id: 'middlePart', pieces: [middlePiece] })
+
+					const lastPart: Part = EntityMockFactory.createPart({
+						id: 'lastPart',
+					})
+
+					const segment: Segment = EntityMockFactory.createSegment(
+						{ id: 'segment', parts: [firstPart, middlePart, lastPart] },
+						{ firstSpanningPieceForEachLayerBeforePart: [middlePiece] }
+					)
+
+					const testee: Rundown = new Rundown({
+						segments: [segment],
+						isRundownActive: true,
+						alreadyActiveProperties: {
+							activePart: firstPart,
+							nextPart: lastPart,
+							activeSegment: segment,
+							nextSegment: segment,
+							infinitePieces: new Map([[firstPiece.layer, firstPiece]]),
+						},
+					} as RundownInterface)
+
+					testee.takeNext()
+
+					const result: Piece[] = testee.getInfinitePieces()
+					expect(result).toHaveLength(1)
+					expect(result).toContainEqual(middlePiece)
+				})
+			})
+
 			describe('it changes Segment', () => {
 				it('no longer have any infinite Pieces', () => {
 					const layer: string = 'someLayer'
@@ -1583,6 +1843,188 @@ describe('Rundown', () => {
 
 					const result: Piece[] = testee.getInfinitePieces()
 					expect(result).toHaveLength(0)
+				})
+			})
+		})
+
+		describe('Rundown has a "stickyThenSpanning" infinite Piece', () => {
+			describe('it takes another Segment with a "spanningThenSticky" infinite Piece', () => {
+				it('changes infinite Piece', () => {
+					const firstPiece: Piece = EntityMockFactory.createPiece({
+						id: 'firstPiece',
+						pieceLifespan: PieceLifespan.START_SPANNING_SEGMENT_THEN_STICKY_RUNDOWN,
+					})
+					const firstPart: Part = EntityMockFactory.createPart({ id: 'firstPart', pieces: [firstPiece] })
+					const firstSegment: Segment = EntityMockFactory.createSegment({
+						id: 'firstSegment',
+						parts: [firstPart],
+					})
+
+					const nextPiece: Piece = EntityMockFactory.createPiece({
+						id: 'nextPiece',
+						pieceLifespan: PieceLifespan.START_SPANNING_SEGMENT_THEN_STICKY_RUNDOWN,
+					})
+					const nextPart: Part = EntityMockFactory.createPart({ id: 'nextPart', pieces: [nextPiece] })
+					const nextSegment: Segment = EntityMockFactory.createSegment({
+						id: 'firstSegment',
+						parts: [nextPart],
+					})
+
+					const testee: Rundown = new Rundown({
+						segments: [firstSegment, nextSegment],
+						isRundownActive: true,
+						alreadyActiveProperties: {
+							activePart: firstPart,
+							nextPart: nextPart,
+							activeSegment: firstSegment,
+							nextSegment: nextSegment,
+							infinitePieces: new Map([[firstPiece.layer, firstPiece]]),
+						},
+					} as RundownInterface)
+
+					testee.takeNext()
+
+					const result: Piece[] = testee.getInfinitePieces()
+					expect(result).toContainEqual(nextPiece)
+				})
+			})
+
+			describe('it "skips" a Segment with a "spanningThenSticky" infinite Piece', () => {
+				it('does not change the infinite Piece', () => {
+					const firstPiece: Piece = EntityMockFactory.createPiece({
+						id: 'firstPiece',
+						pieceLifespan: PieceLifespan.START_SPANNING_SEGMENT_THEN_STICKY_RUNDOWN,
+					})
+					const firstPart: Part = EntityMockFactory.createPart({ id: 'firstPart', pieces: [firstPiece] })
+					const firstSegment: Segment = EntityMockFactory.createSegment({
+						id: 'firstSegment',
+						parts: [firstPart],
+					})
+
+					const middlePiece: Piece = EntityMockFactory.createPiece({
+						id: 'middlePiece',
+						pieceLifespan: PieceLifespan.START_SPANNING_SEGMENT_THEN_STICKY_RUNDOWN,
+					})
+					const middlePart: Part = EntityMockFactory.createPart({ id: 'middlePart', pieces: [middlePiece] })
+					const middleSegment: Segment = EntityMockFactory.createSegment({
+						id: 'firstSegment',
+						parts: [middlePart],
+					})
+
+					const lastPart: Part = EntityMockFactory.createPart({ id: 'lastPart' })
+					const lastSegment: Segment = EntityMockFactory.createSegment({
+						id: 'firstSegment',
+						parts: [lastPart],
+					})
+
+					const testee: Rundown = new Rundown({
+						segments: [firstSegment, middleSegment, lastSegment],
+						isRundownActive: true,
+						alreadyActiveProperties: {
+							activePart: firstPart,
+							nextPart: lastPart,
+							activeSegment: firstSegment,
+							nextSegment: lastSegment,
+							infinitePieces: new Map([[firstPiece.layer, firstPiece]]),
+						},
+					} as RundownInterface)
+
+					testee.takeNext()
+
+					const result: Piece[] = testee.getInfinitePieces()
+					expect(result).toContainEqual(firstPiece)
+				})
+			})
+
+			describe('it "jumps back up" the Rundown before its "spanningThenSticky" infinite Piece', () => {
+				describe('there is a previous "spanningThenSticky" infinite Piece', () => {
+					it('keeps the first "spanningThenSticky" Piece', () => {
+						const firstPiece: Piece = EntityMockFactory.createPiece({
+							id: 'firstPiece',
+							pieceLifespan: PieceLifespan.START_SPANNING_SEGMENT_THEN_STICKY_RUNDOWN,
+						})
+						const firstPart: Part = EntityMockFactory.createPart({ id: 'firstPart', pieces: [firstPiece] })
+						const firstSegment: Segment = EntityMockFactory.createSegment({
+							id: 'firstSegment',
+							parts: [firstPart],
+						})
+
+						const middlePart: Part = EntityMockFactory.createPart({ id: 'middlePart' })
+						const middleSegment: Segment = EntityMockFactory.createSegment({
+							id: 'firstSegment',
+							parts: [middlePart],
+						})
+
+						const lastPiece: Piece = EntityMockFactory.createPiece({
+							id: 'lastPiece',
+							pieceLifespan: PieceLifespan.START_SPANNING_SEGMENT_THEN_STICKY_RUNDOWN,
+						})
+						const lastPart: Part = EntityMockFactory.createPart({ id: 'lastPart', pieces: [lastPiece] })
+						const lastSegment: Segment = EntityMockFactory.createSegment(
+							{ id: 'firstSegment', parts: [lastPart] },
+							{ firstSpanningPieceForEachLayerBeforePart: [lastPiece] }
+						)
+
+						const testee: Rundown = new Rundown({
+							segments: [firstSegment, middleSegment, lastSegment],
+							isRundownActive: true,
+							alreadyActiveProperties: {
+								activePart: lastPart,
+								nextPart: middlePart,
+								activeSegment: lastSegment,
+								nextSegment: middleSegment,
+								infinitePieces: new Map([[lastPiece.layer, lastPiece]]),
+							},
+						} as RundownInterface)
+
+						testee.takeNext()
+
+						const result: Piece[] = testee.getInfinitePieces()
+						expect(result).toContainEqual(lastPiece)
+					})
+				})
+
+				describe('there is no other "spanningThenSticky" infinite Piece', () => {
+					it('keeps the first "spanningThenSticky" Piece', () => {
+						const firstPart: Part = EntityMockFactory.createPart({ id: 'firstPart' })
+						const firstSegment: Segment = EntityMockFactory.createSegment({
+							id: 'firstSegment',
+							parts: [firstPart],
+						})
+
+						const middlePart: Part = EntityMockFactory.createPart({ id: 'middlePart' })
+						const middleSegment: Segment = EntityMockFactory.createSegment({
+							id: 'firstSegment',
+							parts: [middlePart],
+						})
+
+						const lastPiece: Piece = EntityMockFactory.createPiece({
+							id: 'lastPiece',
+							pieceLifespan: PieceLifespan.START_SPANNING_SEGMENT_THEN_STICKY_RUNDOWN,
+						})
+						const lastPart: Part = EntityMockFactory.createPart({ id: 'lastPart', pieces: [lastPiece] })
+						const lastSegment: Segment = EntityMockFactory.createSegment({
+							id: 'firstSegment',
+							parts: [lastPart],
+						})
+
+						const testee: Rundown = new Rundown({
+							segments: [firstSegment, middleSegment, lastSegment],
+							isRundownActive: true,
+							alreadyActiveProperties: {
+								activePart: lastPart,
+								nextPart: middlePart,
+								activeSegment: lastSegment,
+								nextSegment: middleSegment,
+								infinitePieces: new Map([[lastPiece.layer, lastPiece]]),
+							},
+						} as RundownInterface)
+
+						testee.takeNext()
+
+						const result: Piece[] = testee.getInfinitePieces()
+						expect(result).toContainEqual(lastPiece)
+					})
 				})
 			})
 		})

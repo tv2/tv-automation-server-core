@@ -79,7 +79,7 @@ export class RundownTimelineService implements RundownService {
 
 		this.emitAddInfinitePieces(rundown, infinitePiecesBefore)
 		// TODO: Emit if any infinite Pieces no longer exist e.g. we had a Segment infinite Piece and we changed Segment
-		// TODO: Should we just emit a list of current infinite Pieces? That would be easy.
+		// TODO: Should we just emit a list of current infinite Pieces? That would be easy, but it then we would potentially emit the same pieces over and over again.
 
 		this.rundownRepository.saveRundown(rundown)
 

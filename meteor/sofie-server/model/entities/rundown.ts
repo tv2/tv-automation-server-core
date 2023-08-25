@@ -10,8 +10,8 @@ import { AdLibPiece } from './ad-lib-piece'
 import { Piece } from './piece'
 import { BasicRundown } from './basic-rundown'
 import { PieceLifespan } from '../enums/piece-lifespan'
-import { UnsupportedOperation } from '../exceptions/unsupported-operation'
 import { MisconfigurationException } from '../exceptions/misconfiguration-exception'
+import { ExhaustiveCaseChecker } from '../../business-logic/exhaustive-case-checker'
 
 export interface RundownInterface {
 	id: string
@@ -245,6 +245,8 @@ export class Rundown extends BasicRundown {
 				// Not an infinite, so we don't care about it and just mark it as outlived.
 				return true
 			}
+			// Once taken, the Piece acts like STICKY_UNTIL_RUNDOWN_CHANGE, so it has same rules about being outlived.
+			case PieceLifespan.START_SPANNING_SEGMENT_THEN_STICKY_RUNDOWN:
 			case PieceLifespan.STICKY_UNTIL_RUNDOWN_CHANGE: {
 				// Since we are in the context of a Rundown then the Piece will never be able to leave the Rundown, so the Piece is NOT outlived.
 				return false
@@ -259,9 +261,8 @@ export class Rundown extends BasicRundown {
 				return true
 			}
 			default: {
-				throw new UnsupportedOperation(
-					`{${piece.pieceLifespan}} is not supported. Are you missing an implementation?`
-				)
+				ExhaustiveCaseChecker.assertAllCases(piece.pieceLifespan)
+				return true
 			}
 		}
 	}
