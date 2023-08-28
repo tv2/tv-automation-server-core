@@ -26,7 +26,7 @@ describe(`${MongoPartRepository.name}`, () => {
 			const db: Db = testDatabase.getDatabase()
 
 			when(mongoConverter.convertParts(anything())).thenReturn([part])
-			const testee: PartRepository = await createCommonTestee({
+			const testee: PartRepository = createTestee({
 				mongoConverter: mongoConverter,
 			})
 
@@ -43,7 +43,7 @@ describe(`${MongoPartRepository.name}`, () => {
 			const db: Db = testDatabase.getDatabase()
 
 			when(mongoConverter.convertParts(anything())).thenReturn(parts)
-			const testee: PartRepository = await createCommonTestee({
+			const testee: PartRepository = createTestee({
 				mongoConverter: mongoConverter,
 			})
 
@@ -63,7 +63,7 @@ describe(`${MongoPartRepository.name}`, () => {
 
 			when(mongoConverter.convertParts(anything())).thenReturn(parts)
 			when(pieceRepository.getPieces(anything())).thenResolve(pieces)
-			const testee: PartRepository = await createCommonTestee({
+			const testee: PartRepository = createTestee({
 				mongoConverter: mongoConverter,
 				pieceRepository: pieceRepository,
 			})
@@ -81,7 +81,7 @@ describe(`${MongoPartRepository.name}`, () => {
 			await testDatabase.populateDatabaseWithParts([part])
 
 			when(mongoConverter.convertParts(anything())).thenReturn([])
-			const testee: PartRepository = await createCommonTestee({
+			const testee: PartRepository = createTestee({
 				mongoConverter: mongoConverter,
 			})
 
@@ -99,7 +99,7 @@ describe(`${MongoPartRepository.name}`, () => {
 			const db = testDatabase.getDatabase()
 
 			when(mongoConverter.convertParts(anything())).thenReturn([])
-			const testee = await createCommonTestee({
+			const testee = createTestee({
 				mongoConverter: mongoConverter,
 			})
 			const action = async () => testee.deletePartsForSegment(nonExistingId)
@@ -123,7 +123,7 @@ describe(`${MongoPartRepository.name}`, () => {
 			when(mongoConverter.convertParts(anything())).thenReturn([part])
 			when(pieceRepository.getPieces(anything())).thenResolve([])
 			when(mongoDb.getCollection(anything())).thenReturn(collection)
-			const testee: PartRepository = await createTestee({
+			const testee: PartRepository = createTestee({
 				mongoConverter: mongoConverter,
 				mongoDb: mongoDb,
 				pieceRepository: pieceRepository,
@@ -154,29 +154,21 @@ describe(`${MongoPartRepository.name}`, () => {
 		} as PartInterface)
 	}
 
-	interface TesteeBuilderParams {
+	function createTestee(params: {
 		pieceRepository?: PieceRepository
 		mongoDb?: MongoDatabase
 		mongoConverter?: MongoEntityConverter
-	}
-
-	async function createCommonTestee(params: TesteeBuilderParams): Promise<PartRepository> {
-		const mongoDb: MongoDatabase = params.mongoDb ?? mock(MongoDatabase)
-
-		testDatabase.applyCommonMocking(testDatabase.getDatabase(), mongoDb, COLLECTION_NAME)
-
-		return createTestee({
-			pieceRepository: params.pieceRepository,
-			mongoConverter: params.mongoConverter,
-			mongoDb: mongoDb,
-		})
-	}
-
-	async function createTestee(params: TesteeBuilderParams): Promise<PartRepository> {
+	}): MongoPartRepository {
 		const pieceRepository: PieceRepository = params.pieceRepository ?? mock<PieceRepository>()
-		const mongoDb: MongoDatabase = params.mongoDb ?? mock(MongoDatabase)
 		const mongoConverter: MongoEntityConverter = params.mongoConverter ?? mock(MongoEntityConverter)
 
-		return new MongoPartRepository(instance(mongoDb), instance(mongoConverter), instance(pieceRepository))
+		if (!params.mongoDb) {
+			params.mongoDb = mock(MongoDatabase)
+			when(params.mongoDb.getCollection(COLLECTION_NAME)).thenReturn(
+				testDatabase.getDatabase().collection(COLLECTION_NAME)
+			)
+		}
+
+		return new MongoPartRepository(instance(params.mongoDb), instance(mongoConverter), instance(pieceRepository))
 	}
 })

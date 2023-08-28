@@ -24,7 +24,7 @@ describe(`${MongoPieceRepository.name}`, () => {
 			const db: Db = testDatabase.getDatabase()
 
 			when(mongoConverter.convertPieces(anything())).thenReturn([piece])
-			const testee: PieceRepository = await createTestee(db, {
+			const testee: PieceRepository = createTestee({
 				mongoConverter: mongoConverter,
 			})
 
@@ -41,7 +41,7 @@ describe(`${MongoPieceRepository.name}`, () => {
 			const db: Db = testDatabase.getDatabase()
 
 			when(mongoConverter.convertPieces(anything())).thenReturn(pieces)
-			const testee: PieceRepository = await createTestee(db, {
+			const testee: PieceRepository = createTestee({
 				mongoConverter: mongoConverter,
 			})
 
@@ -57,10 +57,9 @@ describe(`${MongoPieceRepository.name}`, () => {
 			const partId: string = 'somePartId'
 			const piece: Piece = createPiece({ partId: partId })
 			await testDatabase.populateDatabaseWithPieces([piece])
-			const db: Db = testDatabase.getDatabase()
 
 			when(mongoConverter.convertPieces(anything())).thenReturn([])
-			const testee: PieceRepository = await createTestee(db, {
+			const testee: PieceRepository = createTestee({
 				mongoConverter: mongoConverter,
 			})
 			const action = async () => testee.deletePiecesForPart(nonExistingId)
@@ -78,7 +77,7 @@ describe(`${MongoPieceRepository.name}`, () => {
 			const db: Db = testDatabase.getDatabase()
 
 			when(mongoConverter.convertPieces(anything())).thenReturn([])
-			const testee: PieceRepository = await createTestee(db, {
+			const testee: PieceRepository = createTestee({
 				mongoConverter: mongoConverter,
 			})
 			const action = async () => testee.deletePiecesForPart(nonExistingId)
@@ -97,17 +96,14 @@ describe(`${MongoPieceRepository.name}`, () => {
 		} as PieceInterface)
 	}
 
-	async function createTestee(
-		db: Db,
-		params: {
-			mongoDb?: MongoDatabase
-			mongoConverter?: MongoEntityConverter
-		}
-	): Promise<PieceRepository> {
+	function createTestee(params: {
+		mongoDb?: MongoDatabase
+		mongoConverter?: MongoEntityConverter
+	}): MongoPieceRepository {
 		const mongoDb: MongoDatabase = params.mongoDb ?? mock(MongoDatabase)
 		const mongoConverter: MongoEntityConverter = params.mongoConverter ?? mock(MongoEntityConverter)
 
-		when(mongoDb.getCollection(COLLECTION_NAME)).thenReturn(db.collection(COLLECTION_NAME))
+		when(mongoDb.getCollection(COLLECTION_NAME)).thenReturn(testDatabase.getDatabase().collection(COLLECTION_NAME))
 
 		return new MongoPieceRepository(instance(mongoDb), instance(mongoConverter))
 	}

@@ -4,8 +4,6 @@ import { MongoEntityConverter } from '../mongo/mongo-entity-converter'
 import { MongoRundownPlaylistRepository } from '../mongo/mongo-rundown-playlist-repository'
 import { RundownRepository } from '../interfaces/rundown-repository'
 import { MongoDatabase } from '../mongo/mongo-database'
-
-import { Db } from 'mongodb'
 import { BasicRundown } from '../../../model/entities/basic-rundown'
 import { MongoTestDatabase } from './mongo-test-database'
 
@@ -20,9 +18,8 @@ describe('MongoRundownPlaylistRepository', () => {
 		it('has an activationId, return an active rundown', async () => {
 			const activatedRundown: Rundown = createActiveRundown()
 			await testDatabase.populateDatabaseWithRundowns([activatedRundown])
-			const db: Db = testDatabase.getDatabase()
 
-			const testee: RundownRepository = await createTestee(db, [activatedRundown])
+			const testee: RundownRepository = createTestee([activatedRundown])
 			const result: Rundown = await testee.getRundown(activatedRundown.id)
 
 			expect(result.isActive()).toBe(true)
@@ -30,9 +27,8 @@ describe('MongoRundownPlaylistRepository', () => {
 		it('does not have an activationId, return inactive rundown', async () => {
 			const inactiveRundown: Rundown = createInactiveRundown()
 			await testDatabase.populateDatabaseWithRundowns([inactiveRundown])
-			const db: Db = testDatabase.getDatabase()
 
-			const testee: RundownRepository = await createTestee(db, [inactiveRundown])
+			const testee: RundownRepository = createTestee([inactiveRundown])
 			const result: Rundown = await testee.getRundown(inactiveRundown.id)
 
 			expect(result.isActive()).toBe(false)
@@ -43,9 +39,8 @@ describe('MongoRundownPlaylistRepository', () => {
 			const activatedRundown: Rundown = createActiveRundown()
 			const inactiveRundown: Rundown = createInactiveRundown()
 			await testDatabase.populateDatabaseWithRundowns([activatedRundown, inactiveRundown])
-			const db: Db = testDatabase.getDatabase()
 
-			const testee: RundownRepository = await createTestee(db, [activatedRundown, inactiveRundown])
+			const testee: RundownRepository = createTestee([activatedRundown, inactiveRundown])
 			const result: BasicRundown[] = await testee.getBasicRundowns()
 
 			expect(result[0].isActive()).toBe(true)
@@ -55,9 +50,8 @@ describe('MongoRundownPlaylistRepository', () => {
 			const inactiveRundown: Rundown = createInactiveRundown()
 			const secondInactiveRundown: Rundown = createInactiveRundown()
 			await testDatabase.populateDatabaseWithRundowns([inactiveRundown, secondInactiveRundown])
-			const db: Db = testDatabase.getDatabase()
 
-			const testee: RundownRepository = await createTestee(db, [inactiveRundown, secondInactiveRundown])
+			const testee: RundownRepository = createTestee([inactiveRundown, secondInactiveRundown])
 			const result: BasicRundown[] = await testee.getBasicRundowns()
 
 			expect(result[0].isActive()).toBe(false)
@@ -83,7 +77,7 @@ describe('MongoRundownPlaylistRepository', () => {
 		} as RundownInterface)
 	}
 
-	async function createTestee(db: Db, rundowns: Rundown[]): Promise<RundownRepository> {
+	function createTestee(rundowns: Rundown[]): MongoRundownPlaylistRepository {
 		const rundownRepository: RundownRepository = mock<RundownRepository>()
 		const mongoDb: MongoDatabase = mock(MongoDatabase)
 		const mongoConverter: MongoEntityConverter = mock(MongoEntityConverter)
@@ -92,7 +86,7 @@ describe('MongoRundownPlaylistRepository', () => {
 			when(rundownRepository.getRundown(rundown.id)).thenResolve(rundown)
 		})
 		when(rundownRepository.getBasicRundowns()).thenResolve(rundowns)
-		when(mongoDb.getCollection(COLLECTION_NAME)).thenReturn(db.collection(COLLECTION_NAME))
+		when(mongoDb.getCollection(COLLECTION_NAME)).thenReturn(testDatabase.getDatabase().collection(COLLECTION_NAME))
 
 		return new MongoRundownPlaylistRepository(
 			instance(mongoDb),

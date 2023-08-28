@@ -28,7 +28,7 @@ describe(`${MongoSegmentRepository.name}`, () => {
 
 			when(mongoConverter.convertSegments(anything())).thenReturn([segment])
 			when(partRepository.getParts(anything())).thenResolve([])
-			const testee: SegmentRepository = await createCommonTestee({
+			const testee: SegmentRepository = createTestee({
 				mongoConverter: mongoConverter,
 				partRepository: partRepository,
 			})
@@ -52,7 +52,7 @@ describe(`${MongoSegmentRepository.name}`, () => {
 
 			when(mongoConverter.convertSegments(anything())).thenReturn(segments)
 			when(partRepository.getParts(anything())).thenResolve([])
-			const testee: SegmentRepository = await createCommonTestee({
+			const testee: SegmentRepository = createTestee({
 				mongoConverter: mongoConverter,
 				partRepository: partRepository,
 			})
@@ -76,7 +76,7 @@ describe(`${MongoSegmentRepository.name}`, () => {
 
 			when(mongoConverter.convertSegments(anything())).thenReturn(segments)
 			when(partRepository.getParts(anything())).thenResolve(parts)
-			const testee: SegmentRepository = await createCommonTestee({
+			const testee: SegmentRepository = createTestee({
 				mongoConverter: mongoConverter,
 				partRepository: partRepository,
 			})
@@ -94,7 +94,7 @@ describe(`${MongoSegmentRepository.name}`, () => {
 			const db: Db = testDatabase.getDatabase()
 
 			when(mongoConverter.convertSegments(anything())).thenReturn([])
-			const testee: SegmentRepository = await createCommonTestee({
+			const testee: SegmentRepository = createTestee({
 				mongoConverter: mongoConverter,
 			})
 			const action = async () => testee.deleteSegmentsForRundown(nonExistingId)
@@ -111,7 +111,7 @@ describe(`${MongoSegmentRepository.name}`, () => {
 			await testDatabase.populateDatabaseWithSegments([segment])
 
 			when(mongoConverter.convertSegments(anything())).thenReturn([])
-			const testee: SegmentRepository = await createCommonTestee({
+			const testee: SegmentRepository = createTestee({
 				mongoConverter: mongoConverter,
 			})
 			const action = async () => testee.deleteSegmentsForRundown(nonExistingId)
@@ -135,7 +135,7 @@ describe(`${MongoSegmentRepository.name}`, () => {
 			when(mongoConverter.convertSegments(anything())).thenReturn([segment])
 			when(partRepository.getParts(anything())).thenResolve([])
 			when(mongoDb.getCollection(anything())).thenReturn(collection)
-			const testee: SegmentRepository = await createTestee({
+			const testee: SegmentRepository = createTestee({
 				mongoConverter: mongoConverter,
 				mongoDb: mongoDb,
 				partRepository: partRepository,
@@ -166,29 +166,21 @@ describe(`${MongoSegmentRepository.name}`, () => {
 		} as SegmentInterface)
 	}
 
-	interface TesteeBuilderParams {
+	function createTestee(params: {
 		partRepository?: PartRepository
 		mongoDb?: MongoDatabase
 		mongoConverter?: MongoEntityConverter
-	}
-
-	async function createCommonTestee(params: TesteeBuilderParams): Promise<SegmentRepository> {
-		const mongoDb: MongoDatabase = params.mongoDb ?? mock(MongoDatabase)
-
-		testDatabase.applyCommonMocking(testDatabase.getDatabase(), mongoDb, COLLECTION_NAME)
-
-		return createTestee({
-			partRepository: params.partRepository,
-			mongoConverter: params.mongoConverter,
-			mongoDb: mongoDb,
-		})
-	}
-
-	async function createTestee(params: TesteeBuilderParams): Promise<SegmentRepository> {
+	}): MongoSegmentRepository {
 		const partRepository: PartRepository = params.partRepository ?? mock<PartRepository>()
-		const mongoDb: MongoDatabase = params.mongoDb ?? mock(MongoDatabase)
 		const mongoConverter: MongoEntityConverter = params.mongoConverter ?? mock(MongoEntityConverter)
 
-		return new MongoSegmentRepository(instance(mongoDb), instance(mongoConverter), instance(partRepository))
+		if (!params.mongoDb) {
+			params.mongoDb = mock(MongoDatabase)
+			when(params.mongoDb.getCollection(COLLECTION_NAME)).thenReturn(
+				testDatabase.getDatabase().collection(COLLECTION_NAME)
+			)
+		}
+
+		return new MongoSegmentRepository(instance(params.mongoDb), instance(mongoConverter), instance(partRepository))
 	}
 })

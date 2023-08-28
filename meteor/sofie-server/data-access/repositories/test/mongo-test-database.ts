@@ -6,8 +6,6 @@ import { MongoEntityConverter, MongoRundown } from '../mongo/mongo-entity-conver
 import { Segment } from '../../../model/entities/segment'
 import { Part } from '../../../model/entities/part'
 import { Piece } from '../../../model/entities/piece'
-import { MongoDatabase } from '../mongo/mongo-database'
-import { when } from 'ts-mockito'
 
 export class MongoTestDatabase {
 	private mongoServer: MongoMemoryServer
@@ -34,10 +32,6 @@ export class MongoTestDatabase {
 
 	public getDatabase(): Db {
 		return this.client.db(this.mongoServer.instanceInfo!.dbName)
-	}
-
-	public applyCommonMocking(db: Db, mongoDb: MongoDatabase, collectionName: string): void {
-		when(mongoDb.getCollection(collectionName)).thenReturn(db.collection(collectionName))
 	}
 
 	public async populateDatabaseWithRundowns(rundowns: Rundown[]): Promise<void> {

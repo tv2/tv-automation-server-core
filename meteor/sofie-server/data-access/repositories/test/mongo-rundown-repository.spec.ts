@@ -1,7 +1,6 @@
 import { MongoRundownRepository } from '../mongo/mongo-rundown-repository'
 import { MongoTestDatabase } from './mongo-test-database'
 import { Rundown, RundownInterface } from '../../../model/entities/rundown'
-import { RundownRepository } from '../interfaces/rundown-repository'
 import { SegmentRepository } from '../interfaces/segment-repository'
 import { MongoDatabase } from '../mongo/mongo-database'
 import { anyString, anything, instance, mock, spy, verify, when } from 'ts-mockito'
@@ -26,7 +25,7 @@ describe(`${MongoRundownRepository.name}`, () => {
 
 			when(mongoConverter.convertRundown(anything())).thenReturn(activeRundown)
 			when(segmentRepository.getSegments(anything())).thenResolve([])
-			const testee = await createCommonTestee({
+			const testee = createTestee({
 				segmentRepository: segmentRepository,
 				mongoConverter: mongoConverter,
 			})
@@ -45,7 +44,7 @@ describe(`${MongoRundownRepository.name}`, () => {
 
 			when(mongoConverter.convertRundown(anything())).thenReturn(inactiveRundown)
 			when(segmentRepository.getSegments(anything())).thenResolve([])
-			const testee = await createCommonTestee({
+			const testee = createTestee({
 				segmentRepository: segmentRepository,
 				mongoConverter: mongoConverter,
 			})
@@ -64,7 +63,7 @@ describe(`${MongoRundownRepository.name}`, () => {
 
 			when(mongoConverter.convertRundown(anything())).thenReturn(rundown)
 			when(segmentRepository.getSegments(anything())).thenResolve([])
-			const testee = await createCommonTestee({
+			const testee = createTestee({
 				segmentRepository: segmentRepository,
 				mongoConverter: mongoConverter,
 			})
@@ -79,7 +78,7 @@ describe(`${MongoRundownRepository.name}`, () => {
 			await testDatabase.populateDatabaseWithRundowns([rundown])
 			const db: Db = testDatabase.getDatabase()
 
-			const testee = await createCommonTestee({})
+			const testee = createTestee({})
 			const action = async () => testee.deleteRundown(nonExistingId)
 
 			await expect(action).rejects.toThrow(NotFoundException)
@@ -92,7 +91,7 @@ describe(`${MongoRundownRepository.name}`, () => {
 			const rundown: Rundown = createRundown({})
 			await testDatabase.populateDatabaseWithRundowns([rundown])
 
-			const testee = await createCommonTestee({})
+			const testee = createTestee({})
 			const action = async () => testee.deleteRundown(nonExistingId)
 
 			await expect(action).rejects.toThrow(NotFoundException)
@@ -114,7 +113,7 @@ describe(`${MongoRundownRepository.name}`, () => {
 			when(mongoConverter.convertRundown(anything())).thenReturn(rundown)
 			when(segmentRepository.getSegments(anything())).thenResolve([])
 			when(mongoDb.getCollection(anything())).thenReturn(collection)
-			const testee = await createTestee({
+			const testee = createTestee({
 				segmentRepository: segmentRepository,
 				mongoConverter: mongoConverter,
 				mongoDb: mongoDb,
@@ -135,30 +134,25 @@ describe(`${MongoRundownRepository.name}`, () => {
 		} as RundownInterface)
 	}
 
-	interface TesteeBuilderParams {
+	function createTestee(params: {
 		segmentRepository?: SegmentRepository
 		mongoDb?: MongoDatabase
 		mongoConverter?: MongoEntityConverter
-	}
-
-	async function createCommonTestee(params: TesteeBuilderParams): Promise<RundownRepository> {
-		const mongoDb: MongoDatabase = params.mongoDb ?? mock(MongoDatabase)
-
-		testDatabase.applyCommonMocking(testDatabase.getDatabase(), mongoDb, COLLECTION_NAME)
-
-		// Todo: figure out the syntax for unpacking the existing and only changing one. I know Anders knows it.
-		return createTestee({
-			segmentRepository: params.segmentRepository,
-			mongoConverter: params.mongoConverter,
-			mongoDb: mongoDb,
-		})
-	}
-
-	async function createTestee(params: TesteeBuilderParams): Promise<RundownRepository> {
+	}): MongoRundownRepository {
 		const segmentRepository: SegmentRepository = params.segmentRepository ?? mock<SegmentRepository>()
-		const mongoDb: MongoDatabase = params.mongoDb ?? mock(MongoDatabase)
 		const mongoConverter: MongoEntityConverter = params.mongoConverter ?? mock(MongoEntityConverter)
 
-		return new MongoRundownRepository(instance(mongoDb), instance(mongoConverter), instance(segmentRepository))
+		if (!params.mongoDb) {
+			params.mongoDb = mock(MongoDatabase)
+			when(params.mongoDb.getCollection(COLLECTION_NAME)).thenReturn(
+				testDatabase.getDatabase().collection(COLLECTION_NAME)
+			)
+		}
+
+		return new MongoRundownRepository(
+			instance(params.mongoDb),
+			instance(mongoConverter),
+			instance(segmentRepository)
+		)
 	}
 })
