@@ -47,16 +47,6 @@ export class MongoTestDatabase {
 		for (const rundown of rundowns) {
 			const convertedRundown: MongoRundown = entityConverter.convertToMongoRundown(rundown)
 			await rundownsCollection.insertOne(convertedRundown)
-			if (rundown.isActive()) {
-				await db.collection('rundownPlaylists').insertOne({
-					externalId: rundown.name,
-					activationId: 'activated',
-				})
-			} else {
-				await db.collection('rundownPlaylists').insertOne({
-					externalId: rundown.name,
-				})
-			}
 		}
 	}
 

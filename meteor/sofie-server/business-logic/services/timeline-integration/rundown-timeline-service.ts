@@ -36,7 +36,7 @@ export class RundownTimelineService implements RundownService {
 
 		this.emitAddInfinitePieces(rundown, [])
 
-		this.rundownRepository.saveRundown(rundown)
+		await this.rundownRepository.saveRundown(rundown)
 
 		const activateEvent: RundownEvent = this.rundownEventBuilder.buildActivateEvent(rundown)
 		this.rundownEventEmitter.emitRundownEvent(activateEvent)
@@ -52,7 +52,7 @@ export class RundownTimelineService implements RundownService {
 		const timeline: Timeline = this.timelineBuilder.getBaseTimeline()
 
 		this.timelineRepository.saveTimeline(timeline)
-		this.rundownRepository.saveRundown(rundown)
+		await this.rundownRepository.saveRundown(rundown)
 
 		const deactivateEvent: RundownEvent = this.rundownEventBuilder.buildDeactivateEvent(rundown)
 		this.rundownEventEmitter.emitRundownEvent(deactivateEvent)
@@ -69,7 +69,7 @@ export class RundownTimelineService implements RundownService {
 
 		this.emitAddInfinitePieces(rundown, infinitePiecesBefore)
 
-		this.rundownRepository.saveRundown(rundown)
+		await this.rundownRepository.saveRundown(rundown)
 
 		const takeEvent: RundownEvent = this.rundownEventBuilder.buildTakeEvent(rundown)
 		this.rundownEventEmitter.emitRundownEvent(takeEvent)
@@ -92,7 +92,7 @@ export class RundownTimelineService implements RundownService {
 	public async setNext(rundownId: string, segmentId: string, partId: string): Promise<void> {
 		const rundown: Rundown = await this.rundownRepository.getRundown(rundownId)
 		rundown.setNext(segmentId, partId)
-		this.rundownRepository.saveRundown(rundown)
+		await this.rundownRepository.saveRundown(rundown)
 
 		const setNextEvent: RundownEvent = this.rundownEventBuilder.buildSetNextEvent(rundown)
 		this.rundownEventEmitter.emitRundownEvent(setNextEvent)
@@ -105,7 +105,7 @@ export class RundownTimelineService implements RundownService {
 		const timeline: Timeline = this.timelineBuilder.buildTimeline(rundown)
 
 		this.timelineRepository.saveTimeline(timeline)
-		this.rundownRepository.saveRundown(rundown)
+		await this.rundownRepository.saveRundown(rundown)
 
 		const resetEvent: RundownEvent = this.rundownEventBuilder.buildResetEvent(rundown)
 		this.rundownEventEmitter.emitRundownEvent(resetEvent)
@@ -120,7 +120,7 @@ export class RundownTimelineService implements RundownService {
 		const timeline: Timeline = this.timelineBuilder.buildTimeline(rundown)
 
 		this.timelineRepository.saveTimeline(timeline)
-		this.rundownRepository.saveRundown(rundown)
+		await this.rundownRepository.saveRundown(rundown)
 
 		const adLibPieceInsertedEvent: AdLibPieceInsertedEvent = this.rundownEventBuilder.buildAdLibPieceInsertedEvent(
 			rundown,

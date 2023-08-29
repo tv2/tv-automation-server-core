@@ -41,6 +41,7 @@ export interface MongoRundown {
 	showStyleVariantId: string
 	showStyleBaseId: string
 	modified: number
+	isActive: boolean
 }
 
 export interface MongoSegment {
@@ -50,6 +51,8 @@ export interface MongoSegment {
 	rundownId: string
 	externalId: string
 	isHidden: boolean
+	isOnAir: boolean
+	isNext: boolean
 }
 
 export interface MongoPart {
@@ -58,6 +61,8 @@ export interface MongoPart {
 	title: string
 	_rank: number
 	expectedDuration: number
+	isOnAir: boolean
+	isNext: boolean
 }
 
 export interface MongoPiece {
@@ -104,7 +109,7 @@ export class MongoEntityConverter {
 		return new Rundown({
 			id: mongoRundown._id,
 			name: mongoRundown.name,
-			isRundownActive: false,
+			isRundownActive: mongoRundown.isActive,
 			segments: [],
 			modifiedAt: mongoRundown.modified,
 		})
@@ -116,6 +121,7 @@ export class MongoEntityConverter {
 
 	public convertToMongoRundown(rundown: Rundown): MongoRundown {
 		return {
+			isActive: rundown.isActive(),
 			externalId: '', // Todo: figure out where the value for this attribute is
 			metaData: { rank: 0 }, // Todo: figure out where the value for this attribute is
 			modified: rundown.getLastTimeModified(),
@@ -135,12 +141,12 @@ export class MongoEntityConverter {
 		return rundowns.map(this.convertToMongoRundown.bind(this))
 	}
 
-	public convertBasicRundown(mongoRundown: MongoRundown): BasicRundown {
-		return new BasicRundown(mongoRundown._id, mongoRundown.name, false, mongoRundown.modified)
+	public convertToBasicRundown(mongoRundown: MongoRundown): BasicRundown {
+		return new BasicRundown(mongoRundown._id, mongoRundown.name, mongoRundown.isActive, mongoRundown.modified)
 	}
 
-	public convertBasicRundowns(mongoRundowns: MongoRundown[]): BasicRundown[] {
-		return mongoRundowns.map(this.convertBasicRundown.bind(this))
+	public convertToBasicRundowns(mongoRundowns: MongoRundown[]): BasicRundown[] {
+		return mongoRundowns.map(this.convertToBasicRundown.bind(this))
 	}
 
 	public convertSegment(mongoSegment: MongoSegment): Segment {
@@ -167,6 +173,8 @@ export class MongoEntityConverter {
 			name: segment.name,
 			rundownId: segment.rundownId,
 			_rank: segment.rank,
+			isOnAir: segment.isOnAir(),
+			isNext: segment.isNext(),
 		}
 	}
 
@@ -198,6 +206,8 @@ export class MongoEntityConverter {
 			_id: part.id,
 			segmentId: part.segmentId,
 			_rank: part.rank,
+			isOnAir: part.isOnAir(),
+			isNext: part.isNext(),
 		}
 	}
 

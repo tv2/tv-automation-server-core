@@ -1,7 +1,7 @@
 import { MongoPartRepository } from '../mongo/mongo-part-repository'
 import { Part, PartInterface } from '../../../model/entities/part'
 import { Db } from 'mongodb'
-import { MongoEntityConverter } from '../mongo/mongo-entity-converter'
+import { MongoEntityConverter, MongoPart } from '../mongo/mongo-entity-converter'
 import { PartRepository } from '../interfaces/part-repository'
 import { MongoDatabase } from '../mongo/mongo-database'
 import { anyString, anything, instance, mock, spy, verify, when } from 'ts-mockito'
@@ -135,6 +135,174 @@ describe(`${MongoPartRepository.name}`, () => {
 		})
 	})
 
+	describe(`${MongoPartRepository.prototype.save.name}`, () => {
+		it('keeps properties intact on save', async () => {
+			const mongoConverter: MongoEntityConverter = mock(MongoEntityConverter)
+			const localMongoConverter: MongoEntityConverter = new MongoEntityConverter()
+			const mongoDb: MongoDatabase = mock(MongoDatabase)
+			const partBeforeSave: Part = createPart({})
+			const db: Db = testDatabase.getDatabase()
+			const collection = db.collection(COLLECTION_NAME)
+
+			when(mongoDb.getCollection(anything())).thenReturn(collection)
+			when(mongoConverter.convertToMongoPart(anything())).thenReturn({
+				_id: partBeforeSave.id,
+				segmentId: partBeforeSave.segmentId,
+				_rank: partBeforeSave.rank,
+				isNext: false,
+				isOnAir: false,
+				title: partBeforeSave.name,
+				expectedDuration: partBeforeSave.expectedDuration,
+			})
+
+			const testee: PartRepository = await createTestee({ mongoDb: mongoDb, mongoConverter: mongoConverter })
+			await testee.save(partBeforeSave)
+
+			const mongoPart: MongoPart = (await db
+				.collection(COLLECTION_NAME)
+				.findOne({ _id: partBeforeSave.id })) as unknown as MongoPart
+			const partAfterSave: Part = localMongoConverter.convertPart(mongoPart)
+
+			expect(partBeforeSave).toEqual(partAfterSave)
+		})
+		it('has part as not on air and saves the part as on air', async () => {
+			const id: string = 'randomId'
+			const inactivePart: Part = createPart({ id: id, isOnAir: false })
+			const onAirPart: Part = createPart({ id: id, isOnAir: true })
+
+			await testDatabase.populateDatabaseWithParts([inactivePart])
+			const mongoConverter: MongoEntityConverter = mock(MongoEntityConverter)
+			const mongoDb: MongoDatabase = mock(MongoDatabase)
+			const db: Db = testDatabase.getDatabase()
+			const collection = db.collection(COLLECTION_NAME)
+
+			when(mongoDb.getCollection(anything())).thenReturn(collection)
+			when(mongoConverter.convertToMongoPart(anything())).thenReturn({
+				_id: onAirPart.id,
+				segmentId: onAirPart.segmentId,
+				_rank: inactivePart.rank,
+				isNext: onAirPart.isNext(),
+				isOnAir: onAirPart.isOnAir(),
+				title: onAirPart.name,
+				expectedDuration: onAirPart.expectedDuration,
+			})
+
+			const testee: PartRepository = await createTestee({
+				mongoDb: mongoDb,
+				mongoConverter: mongoConverter,
+			})
+			await testee.save(onAirPart)
+
+			const result: MongoPart = (await db
+				.collection(COLLECTION_NAME)
+				.findOne({ _id: id })) as unknown as MongoPart
+
+			expect(result.isOnAir).toBeTruthy()
+		})
+		it('has part as on air and saves the part as not on air', async () => {
+			const id: string = 'randomId'
+			const onAirPart: Part = createPart({ id: id, isOnAir: true })
+			const inactivePart: Part = createPart({ id: id, isOnAir: false })
+
+			await testDatabase.populateDatabaseWithParts([onAirPart])
+			const mongoConverter: MongoEntityConverter = mock(MongoEntityConverter)
+			const mongoDb: MongoDatabase = mock(MongoDatabase)
+			const db: Db = testDatabase.getDatabase()
+			const collection = db.collection(COLLECTION_NAME)
+
+			when(mongoDb.getCollection(anything())).thenReturn(collection)
+			when(mongoConverter.convertToMongoPart(anything())).thenReturn({
+				_id: inactivePart.id,
+				segmentId: inactivePart.segmentId,
+				_rank: onAirPart.rank,
+				isNext: inactivePart.isNext(),
+				isOnAir: inactivePart.isOnAir(),
+				title: inactivePart.name,
+				expectedDuration: inactivePart.expectedDuration,
+			})
+
+			const testee: PartRepository = await createTestee({
+				mongoDb: mongoDb,
+				mongoConverter: mongoConverter,
+			})
+			await testee.save(inactivePart)
+
+			const result: MongoPart = (await db
+				.collection(COLLECTION_NAME)
+				.findOne({ _id: id })) as unknown as MongoPart
+
+			expect(result.isOnAir).toBeFalsy()
+		})
+		it('does not have part as next but saves the part as next', async () => {
+			const id: string = 'randomId'
+			const nonQueuedPart: Part = createPart({ id: id, isNext: false })
+			const nextPart: Part = createPart({ id: id, isNext: true })
+
+			await testDatabase.populateDatabaseWithParts([nonQueuedPart])
+			const mongoConverter: MongoEntityConverter = mock(MongoEntityConverter)
+			const mongoDb: MongoDatabase = mock(MongoDatabase)
+			const db: Db = testDatabase.getDatabase()
+			const collection = db.collection(COLLECTION_NAME)
+
+			when(mongoDb.getCollection(anything())).thenReturn(collection)
+			when(mongoConverter.convertToMongoPart(anything())).thenReturn({
+				_id: nextPart.id,
+				segmentId: nextPart.segmentId,
+				_rank: nonQueuedPart.rank,
+				isNext: nextPart.isNext(),
+				isOnAir: nextPart.isOnAir(),
+				title: nextPart.name,
+				expectedDuration: nextPart.expectedDuration,
+			})
+
+			const testee: PartRepository = await createTestee({
+				mongoDb: mongoDb,
+				mongoConverter: mongoConverter,
+			})
+			await testee.save(nextPart)
+
+			const result: MongoPart = (await db
+				.collection(COLLECTION_NAME)
+				.findOne({ _id: id })) as unknown as MongoPart
+
+			expect(result.isNext).toBeTruthy()
+		})
+		it('has part as next and saves the part as not next', async () => {
+			const id: string = 'randomId'
+			const nextPart: Part = createPart({ id: id, isNext: true })
+			const nonQueuedPart: Part = createPart({ id: id, isNext: false })
+
+			await testDatabase.populateDatabaseWithParts([nextPart])
+			const mongoConverter: MongoEntityConverter = mock(MongoEntityConverter)
+			const mongoDb: MongoDatabase = mock(MongoDatabase)
+			const db: Db = testDatabase.getDatabase()
+			const collection = db.collection(COLLECTION_NAME)
+
+			when(mongoDb.getCollection(anything())).thenReturn(collection)
+			when(mongoConverter.convertToMongoPart(anything())).thenReturn({
+				_id: nonQueuedPart.id,
+				segmentId: nonQueuedPart.segmentId,
+				_rank: nextPart.rank,
+				isNext: nonQueuedPart.isNext(),
+				isOnAir: nonQueuedPart.isOnAir(),
+				title: nonQueuedPart.name,
+				expectedDuration: nonQueuedPart.expectedDuration,
+			})
+
+			const testee: PartRepository = await createTestee({
+				mongoDb: mongoDb,
+				mongoConverter: mongoConverter,
+			})
+			await testee.save(nonQueuedPart)
+
+			const result: MongoPart = (await db
+				.collection(COLLECTION_NAME)
+				.findOne({ _id: id })) as unknown as MongoPart
+
+			expect(result.isNext).toBeFalsy()
+		})
+	})
+
 	// TODO: Extract to Helper Class in Model layer
 	function createPiece(params: { id?: string; name?: string; partId?: string }): Piece {
 		return new Piece({
@@ -145,12 +313,23 @@ describe(`${MongoPartRepository.name}`, () => {
 	}
 
 	// TODO: Extract to Helper Class in Model layer
-	function createPart(params: { id?: string; name?: string; rank?: number; segmentId?: string }): Part {
+	function createPart(params: {
+		id?: string
+		name?: string
+		rank?: number
+		segmentId?: string
+		expectedDuration?: number
+		isOnAir?: boolean
+		isNext?: boolean
+	}): Part {
 		return new Part({
 			id: params.id ?? 'id' + Math.random(),
 			name: params.name ?? 'name' + Math.random(),
 			rank: params.rank ?? Math.random(),
 			segmentId: params.segmentId ?? 'segmentId' + Math.random(),
+			expectedDuration: params.expectedDuration ?? Math.random(),
+			isOnAir: params.isOnAir ?? false,
+			isNext: params.isNext ?? false,
 		} as PartInterface)
 	}
 

@@ -1,6 +1,6 @@
 import { MongoSegmentRepository } from '../mongo/mongo-segment-repository'
 import { MongoDatabase } from '../mongo/mongo-database'
-import { MongoEntityConverter } from '../mongo/mongo-entity-converter'
+import { MongoEntityConverter, MongoSegment } from '../mongo/mongo-entity-converter'
 import { Db } from 'mongodb'
 import { anyString, anything, instance, mock, spy, verify, when } from 'ts-mockito'
 import { PartRepository } from '../interfaces/part-repository'
@@ -147,6 +147,179 @@ describe(`${MongoSegmentRepository.name}`, () => {
 		})
 	})
 
+	describe(`${MongoSegmentRepository.prototype.save.name}`, () => {
+		it('keeps properties intact on save', async () => {
+			const mongoConverter: MongoEntityConverter = mock(MongoEntityConverter)
+			const localMongoConverter: MongoEntityConverter = new MongoEntityConverter()
+			const mongoDb: MongoDatabase = mock(MongoDatabase)
+			const segmentBeforeSave: Segment = createSegment({})
+			const db: Db = testDatabase.getDatabase()
+			const collection = db.collection(COLLECTION_NAME)
+
+			when(mongoDb.getCollection(anything())).thenReturn(collection)
+			when(mongoConverter.convertToMongoSegment(anything())).thenReturn({
+				_id: segmentBeforeSave.id,
+				_rank: segmentBeforeSave.rank,
+				externalId: '',
+				isHidden: false,
+				isNext: segmentBeforeSave.isNext(),
+				isOnAir: segmentBeforeSave.isOnAir(),
+				name: segmentBeforeSave.name,
+				rundownId: segmentBeforeSave.rundownId,
+			})
+
+			const testee: SegmentRepository = await createTestee({ mongoDb: mongoDb, mongoConverter: mongoConverter })
+			await testee.save(segmentBeforeSave)
+
+			const mongoSegment: MongoSegment = (await db
+				.collection(COLLECTION_NAME)
+				.findOne({ _id: segmentBeforeSave.id })) as unknown as MongoSegment
+			const segmentAfterSave: Segment = localMongoConverter.convertSegment(mongoSegment)
+
+			expect(segmentBeforeSave).toEqual(segmentAfterSave)
+		})
+		it('has segment as not on air and saves the segment as on air', async () => {
+			const id: string = 'randomId'
+			const inactiveSegment: Segment = createSegment({ id: id, isOnAir: false })
+			const onAirSegment: Segment = createSegment({ id: id, isOnAir: true })
+
+			await testDatabase.populateDatabaseWithSegments([inactiveSegment])
+			const mongoConverter: MongoEntityConverter = mock(MongoEntityConverter)
+			const mongoDb: MongoDatabase = mock(MongoDatabase)
+			const db: Db = testDatabase.getDatabase()
+			const collection = db.collection(COLLECTION_NAME)
+
+			when(mongoDb.getCollection(anything())).thenReturn(collection)
+			when(mongoConverter.convertToMongoSegment(anything())).thenReturn({
+				_id: onAirSegment.id,
+				_rank: onAirSegment.rank,
+				externalId: '',
+				isHidden: false,
+				isNext: onAirSegment.isNext(),
+				isOnAir: onAirSegment.isOnAir(),
+				name: onAirSegment.name,
+				rundownId: onAirSegment.rundownId,
+			})
+
+			const testee: SegmentRepository = await createTestee({
+				mongoDb: mongoDb,
+				mongoConverter: mongoConverter,
+			})
+			await testee.save(onAirSegment)
+
+			const result: MongoSegment = (await db
+				.collection(COLLECTION_NAME)
+				.findOne({ _id: id })) as unknown as MongoSegment
+
+			expect(result.isOnAir).toBeTruthy()
+		})
+		it('has segment as on air and saves the segment as not on air', async () => {
+			const id: string = 'randomId'
+			const onAirSegment: Segment = createSegment({ id: id, isOnAir: true })
+			const inactiveSegment: Segment = createSegment({ id: id, isOnAir: false })
+
+			await testDatabase.populateDatabaseWithSegments([onAirSegment])
+			const mongoConverter: MongoEntityConverter = mock(MongoEntityConverter)
+			const mongoDb: MongoDatabase = mock(MongoDatabase)
+			const db: Db = testDatabase.getDatabase()
+			const collection = db.collection(COLLECTION_NAME)
+
+			when(mongoDb.getCollection(anything())).thenReturn(collection)
+			when(mongoConverter.convertToMongoSegment(anything())).thenReturn({
+				_id: inactiveSegment.id,
+				_rank: inactiveSegment.rank,
+				externalId: '',
+				isHidden: false,
+				isNext: inactiveSegment.isNext(),
+				isOnAir: inactiveSegment.isOnAir(),
+				name: inactiveSegment.name,
+				rundownId: inactiveSegment.rundownId,
+			})
+
+			const testee: SegmentRepository = await createTestee({
+				mongoDb: mongoDb,
+				mongoConverter: mongoConverter,
+			})
+			await testee.save(inactiveSegment)
+
+			const result: MongoSegment = (await db
+				.collection(COLLECTION_NAME)
+				.findOne({ _id: id })) as unknown as MongoSegment
+
+			expect(result.isOnAir).toBeFalsy()
+		})
+		it('does not have segment as next but saves the segment as next', async () => {
+			const id: string = 'randomId'
+			const nonQueuedSegment: Segment = createSegment({ id: id, isNext: false })
+			const nextSegment: Segment = createSegment({ id: id, isNext: true })
+
+			await testDatabase.populateDatabaseWithSegments([nonQueuedSegment])
+			const mongoConverter: MongoEntityConverter = mock(MongoEntityConverter)
+			const mongoDb: MongoDatabase = mock(MongoDatabase)
+			const db: Db = testDatabase.getDatabase()
+			const collection = db.collection(COLLECTION_NAME)
+
+			when(mongoDb.getCollection(anything())).thenReturn(collection)
+			when(mongoConverter.convertToMongoSegment(anything())).thenReturn({
+				_id: nextSegment.id,
+				_rank: nextSegment.rank,
+				externalId: '',
+				isHidden: false,
+				isNext: nextSegment.isNext(),
+				isOnAir: nextSegment.isOnAir(),
+				name: nextSegment.name,
+				rundownId: nextSegment.rundownId,
+			})
+
+			const testee: SegmentRepository = await createTestee({
+				mongoDb: mongoDb,
+				mongoConverter: mongoConverter,
+			})
+			await testee.save(nextSegment)
+
+			const result: MongoSegment = (await db
+				.collection(COLLECTION_NAME)
+				.findOne({ _id: id })) as unknown as MongoSegment
+
+			expect(result.isNext).toBeTruthy()
+		})
+		it('has segment as next and saves the segment as not next', async () => {
+			const id: string = 'randomId'
+			const nextSegment: Segment = createSegment({ id: id, isNext: true })
+			const nonQueuedSegment: Segment = createSegment({ id: id, isNext: false })
+
+			await testDatabase.populateDatabaseWithSegments([nextSegment])
+			const mongoConverter: MongoEntityConverter = mock(MongoEntityConverter)
+			const mongoDb: MongoDatabase = mock(MongoDatabase)
+			const db: Db = testDatabase.getDatabase()
+			const collection = db.collection(COLLECTION_NAME)
+
+			when(mongoDb.getCollection(anything())).thenReturn(collection)
+			when(mongoConverter.convertToMongoSegment(anything())).thenReturn({
+				_id: nonQueuedSegment.id,
+				_rank: nonQueuedSegment.rank,
+				externalId: '',
+				isHidden: false,
+				isNext: nonQueuedSegment.isNext(),
+				isOnAir: nonQueuedSegment.isOnAir(),
+				name: nonQueuedSegment.name,
+				rundownId: nonQueuedSegment.rundownId,
+			})
+
+			const testee: SegmentRepository = await createTestee({
+				mongoDb: mongoDb,
+				mongoConverter: mongoConverter,
+			})
+			await testee.save(nonQueuedSegment)
+
+			const result: MongoSegment = (await db
+				.collection(COLLECTION_NAME)
+				.findOne({ _id: id })) as unknown as MongoSegment
+
+			expect(result.isNext).toBeFalsy()
+		})
+	})
+
 	// TODO: Extract to Helper Class in Model layer
 	function createPart(params: { id?: string; name?: string; rank?: number; segmentId?: string }): Part {
 		return new Part({
@@ -158,11 +331,23 @@ describe(`${MongoSegmentRepository.name}`, () => {
 	}
 
 	// TODO: Extract to Helper Class in Model layer
-	function createSegment(params: { id?: string; name?: string; rundownId?: string }): Segment {
+	function createSegment(params: {
+		id?: string
+		name?: string
+		rundownId?: string
+		rank?: number
+		isNext?: boolean
+		isOnAir?: boolean
+		parts?: Part[]
+	}): Segment {
 		return new Segment({
 			id: params.id ?? 'id' + Math.random(),
 			name: params.name ?? 'name' + Math.random(),
 			rundownId: params.rundownId ?? 'rundownId' + Math.random(),
+			rank: params.rank ?? Math.random(),
+			isNext: params.isNext ?? false,
+			isOnAir: params.isOnAir ?? false,
+			parts: params.parts ?? [],
 		} as SegmentInterface)
 	}
 
