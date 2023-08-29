@@ -59,7 +59,6 @@ export class MongoRundownRepository extends BaseMongoRepository implements Rundo
 			_id: rundown.id,
 		})
 
-		// TODO: Figure out how to archive a 'false' acknowledgment, and add test case using that knowledge
 		if (!rundownDeletionResult.acknowledged) {
 			throw new DeletionFailedException(`Deletion of rundown was not acknowledged, for rundownId: ${rundownId}`)
 		}
