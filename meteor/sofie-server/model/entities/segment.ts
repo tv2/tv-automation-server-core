@@ -92,42 +92,44 @@ export class Segment {
 
 	public getFirstSpanningPieceForEachLayerBeforePart(part: Part, layersToIgnore: Set<string>): Piece[] {
 		const indexOfPart: number = this.parts.findIndex((p) => p.id === part.id)
-		return this.getPiecesFromIndex(indexOfPart - 1, layersToIgnore, [
+		return this.getPiecesOnUnusedLayersFromIndexToStart(indexOfPart - 1, layersToIgnore, [
 			PieceLifespan.SPANNING_UNTIL_RUNDOWN_END,
 			PieceLifespan.SPANNING_UNTIL_SEGMENT_END,
 			PieceLifespan.START_SPANNING_SEGMENT_THEN_STICKY_RUNDOWN,
 		])
 	}
 
-	private getPiecesFromIndex(
+	private getPiecesOnUnusedLayersFromIndexToStart(
 		startIndex: number,
-		layersToIgnore: Set<string>,
-		lifespanFilters: PieceLifespan[]
+		usedLayers: Set<string>,
+		lifespans: PieceLifespan[]
 	): Piece[] {
-		const pieces: Piece[] = []
+		return this.parts
+			.slice(0, startIndex + 1)
+			.flatMap((part) => part.getPiecesWithLifespan(lifespans))
+			.reduceRight(this.createGetPiecesOnUnusedLayersReducer(usedLayers), [])
+	}
 
-		for (let i = startIndex; i >= 0; i--) {
-			const piecesSpanningSegment: Piece[] = this.parts[i].getPiecesWithLifespan(lifespanFilters)
-			for (let j = piecesSpanningSegment.length - 1; j >= 0; j--) {
-				const piece: Piece = piecesSpanningSegment[j]
-				if (layersToIgnore.has(piece.layer)) {
-					continue
-				}
+	private createGetPiecesOnUnusedLayersReducer(
+		originalUsedLayers: Set<string>
+	): (pieces: Piece[], piece: Piece) => Piece[] {
+		const usedLayers: Set<string> = new Set(originalUsedLayers)
+		return (pieces: Piece[], piece: Piece) => {
+			if (!usedLayers.has(piece.layer)) {
 				pieces.push(piece)
-				layersToIgnore.add(piece.layer)
+				usedLayers.add(piece.layer)
 			}
+			return pieces
 		}
-
-		return pieces
 	}
 
 	public getFirstSpanningRundownPieceForEachLayerForAllParts(layersToIgnore: Set<string>): Piece[] {
-		return this.getPiecesFromIndex(this.parts.length - 1, layersToIgnore, [
+		return this.getPiecesOnUnusedLayersFromIndexToStart(this.parts.length - 1, layersToIgnore, [
 			PieceLifespan.SPANNING_UNTIL_RUNDOWN_END,
 		])
 	}
 
 	public doesPieceBelongToSegment(piece: Piece): boolean {
-		return this.parts.findIndex((part) => part.id === piece.partId) >= 0
+		return this.parts.some((part) => part.id === piece.partId)
 	}
 }

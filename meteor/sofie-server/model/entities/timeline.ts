@@ -18,7 +18,7 @@ export interface TimelineObjectGroup extends TimelineObject {
 }
 
 export interface ActivePartTimelineObjectGroup extends TimelineObjectGroup {
-	shouldAutoNextAtPointInTime: number
+	autoNextEpochTime: number
 }
 
 // TODO: Do we need separate interface for this?

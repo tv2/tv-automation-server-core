@@ -71,7 +71,7 @@ export class SuperflyTimelineBuilder implements TimelineBuilder {
 			this.createTimelineObjectGroupsForInfinitePieces(rundown)
 		timeline.timelineGroups.push(...infinitePiecesTimelineGroups)
 
-		if (activePartTimelineGroup.shouldAutoNextAtPointInTime > 0) {
+		if (activePartTimelineGroup.autoNextEpochTime > 0) {
 			const nextPartTimeline: TimelineObjectGroup = this.createTimelineForNextPart(
 				rundown,
 				activePartTimelineGroup
@@ -85,7 +85,7 @@ export class SuperflyTimelineBuilder implements TimelineBuilder {
 			}
 			timeline.autoNext = {
 				epochTimeToTakeNext:
-					activePartTimelineGroup.shouldAutoNextAtPointInTime -
+					activePartTimelineGroup.autoNextEpochTime -
 					rundown.getNextPart().getTimings().previousPartContinueIntoPartDuration,
 			}
 		}
@@ -122,11 +122,11 @@ export class SuperflyTimelineBuilder implements TimelineBuilder {
 			start: now,
 		}
 
-		let shouldAutoNextAtPointInTime: number = 0
+		let autoNextEpochTime: number = 0
 		if (activePart.autoNext && !!activePart.expectedDuration) {
 			currentPartEnable.duration =
 				activePart.expectedDuration + activePart.getTimings().delayStartOfPiecesDuration
-			shouldAutoNextAtPointInTime = now + currentPartEnable.duration
+			autoNextEpochTime = now + currentPartEnable.duration
 		}
 
 		const activeGroup: ActivePartTimelineObjectGroup = {
@@ -136,7 +136,7 @@ export class SuperflyTimelineBuilder implements TimelineBuilder {
 			children: [],
 			enable: currentPartEnable,
 			layer: '',
-			shouldAutoNextAtPointInTime,
+			autoNextEpochTime,
 			content: {
 				type: TimelineObjectType.GROUP,
 				deviceType: DeviceType.ABSTRACT,
