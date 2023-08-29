@@ -2,7 +2,7 @@
 import { MongoMemoryServer } from 'mongodb-memory-server'
 import { Db, MongoClient } from 'mongodb'
 import { Rundown } from '../../../model/entities/rundown'
-import { MongoEntityConverter, MongoRundown } from '../mongo/mongo-entity-converter'
+import { MongoEntityConverter } from '../mongo/mongo-entity-converter'
 import { Segment } from '../../../model/entities/segment'
 import { Part } from '../../../model/entities/part'
 import { Piece } from '../../../model/entities/piece'
@@ -67,10 +67,11 @@ export class MongoTestDatabase {
 		const db: Db = this.getDatabase()
 		const entityConverter: MongoEntityConverter = new MongoEntityConverter()
 		const rundownsCollection = db.collection('rundowns')
-		for (const rundown of rundowns) {
-			const convertedRundown: MongoRundown = entityConverter.convertToMongoRundown(rundown)
-			await rundownsCollection.insertOne(convertedRundown)
-		}
+		await Promise.all(
+			entityConverter
+				.convertToMongoRundowns(rundowns)
+				.map(async (rundown) => rundownsCollection.insertOne(rundown))
+		)
 	}
 
 	public async populateDatabaseWithSegments(segments: Segment[]): Promise<void> {

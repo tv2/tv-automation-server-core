@@ -128,7 +128,7 @@ describe(`${MongoRundownRepository.name}`, () => {
 
 	describe(`${MongoRundownRepository.prototype.saveRundown.name}`, () => {
 		it('has rundown as not on air and saves the rundown as on air', async () => {
-			const id: string = 'randomId'
+			const id: string = testDatabase.getValidObjectIdString('rundownId')
 			const inactiveRundown: Rundown = createRundown({ rundownId: id, isRundownActive: false })
 			const activeRundown: Rundown = createRundown({ rundownId: id, isRundownActive: true })
 
@@ -159,7 +159,7 @@ describe(`${MongoRundownRepository.name}`, () => {
 		})
 
 		it('has rundown as on air and saves the rundown as not on air', async () => {
-			const id: string = 'randomId'
+			const id: string = testDatabase.getValidObjectIdString('rundownId')
 			const activeRundown: Rundown = createRundown({ rundownId: id, isRundownActive: true })
 			const inactiveRundown: Rundown = createRundown({ rundownId: id, isRundownActive: false })
 

@@ -149,7 +149,7 @@ describe(`${MongoSegmentRepository.name}`, () => {
 
 	describe(`${MongoSegmentRepository.prototype.save.name}`, () => {
 		it('has segment as not on air and saves the segment as on air', async () => {
-			const id: string = 'randomId'
+			const id: string = testDatabase.getValidObjectIdString('randomId')
 			const inactiveSegment: Segment = createSegment({ id: id, isOnAir: false })
 			const onAirSegment: Segment = createSegment({ id: id, isOnAir: true })
 
@@ -185,7 +185,7 @@ describe(`${MongoSegmentRepository.name}`, () => {
 		})
 
 		it('has segment as on air and saves the segment as not on air', async () => {
-			const id: string = 'randomId'
+			const id: string = testDatabase.getValidObjectIdString('randomId')
 			const onAirSegment: Segment = createSegment({ id: id, isOnAir: true })
 			const inactiveSegment: Segment = createSegment({ id: id, isOnAir: false })
 
@@ -221,7 +221,7 @@ describe(`${MongoSegmentRepository.name}`, () => {
 		})
 
 		it('does not have segment as next but saves the segment as next', async () => {
-			const id: string = 'randomId'
+			const id: string = testDatabase.getValidObjectIdString('randomId')
 			const nonQueuedSegment: Segment = createSegment({ id: id, isNext: false })
 			const nextSegment: Segment = createSegment({ id: id, isNext: true })
 
@@ -257,7 +257,7 @@ describe(`${MongoSegmentRepository.name}`, () => {
 		})
 
 		it('has segment as next and saves the segment as not next', async () => {
-			const id: string = 'randomId'
+			const id: string = testDatabase.getValidObjectIdString('randomId')
 			const nextSegment: Segment = createSegment({ id: id, isNext: true })
 			const nonQueuedSegment: Segment = createSegment({ id: id, isNext: false })
 

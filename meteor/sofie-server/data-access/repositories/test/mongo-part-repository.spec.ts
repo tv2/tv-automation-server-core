@@ -137,7 +137,7 @@ describe(`${MongoPartRepository.name}`, () => {
 
 	describe(`${MongoPartRepository.prototype.save.name}`, () => {
 		it('has part as not on air and saves the part as on air', async () => {
-			const id: string = 'randomId'
+			const id: string = testDatabase.getValidObjectIdString('randomId')
 			const inactivePart: Part = createPart({ id: id, isOnAir: false })
 			const onAirPart: Part = createPart({ id: id, isOnAir: true })
 
@@ -172,7 +172,7 @@ describe(`${MongoPartRepository.name}`, () => {
 		})
 
 		it('has part as on air and saves the part as not on air', async () => {
-			const id: string = 'randomId'
+			const id: string = testDatabase.getValidObjectIdString('randomId')
 			const onAirPart: Part = createPart({ id: id, isOnAir: true })
 			const inactivePart: Part = createPart({ id: id, isOnAir: false })
 
@@ -207,7 +207,7 @@ describe(`${MongoPartRepository.name}`, () => {
 		})
 
 		it('does not have part as next but saves the part as next', async () => {
-			const id: string = 'randomId'
+			const id: string = testDatabase.getValidObjectIdString('randomId')
 			const nonQueuedPart: Part = createPart({ id: id, isNext: false })
 			const nextPart: Part = createPart({ id: id, isNext: true })
 
@@ -241,7 +241,7 @@ describe(`${MongoPartRepository.name}`, () => {
 			expect(result.isNext).toBeTruthy()
 		})
 		it('has part as next and saves the part as not next', async () => {
-			const id: string = 'randomId'
+			const id: string = testDatabase.getValidObjectIdString('randomId')
 			const nextPart: Part = createPart({ id: id, isNext: true })
 			const nonQueuedPart: Part = createPart({ id: id, isNext: false })
 

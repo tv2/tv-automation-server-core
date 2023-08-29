@@ -38,7 +38,17 @@ export class MongoPartRepository extends BaseMongoRepository implements PartRepo
 
 	public async save(part: Part): Promise<void> {
 		const mongoPart: MongoPart = this.mongoEntityConverter.convertToMongoPart(part)
-		await this.getCollection().replaceOne({ _id: part.id }, mongoPart, { upsert: true })
+		await this.getCollection().replaceOne(
+			{ _id: part.id },
+			{
+				segmentId: mongoPart.segmentId,
+				title: mongoPart.title,
+				expectedDuration: mongoPart.expectedDuration,
+				isOnAir: mongoPart.isOnAir,
+				isNext: mongoPart.isNext,
+			},
+			{ upsert: true }
+		)
 	}
 
 	public async deletePartsForSegment(segmentId: string): Promise<void> {
