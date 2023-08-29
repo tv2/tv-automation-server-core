@@ -240,6 +240,7 @@ describe(`${MongoPartRepository.name}`, () => {
 
 			expect(result.isNext).toBeTruthy()
 		})
+
 		it('has part as next and saves the part as not next', async () => {
 			const id: string = testDatabase.getValidObjectIdString('randomId')
 			const nextPart: Part = createPart({ id: id, isNext: true })
