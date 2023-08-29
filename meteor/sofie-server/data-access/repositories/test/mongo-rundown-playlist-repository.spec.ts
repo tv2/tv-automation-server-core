@@ -62,7 +62,7 @@ describe('MongoRundownPlaylistRepository', () => {
 	// TODO: Extract to Helper Class in Model layer
 	function createActiveRundown(rundownId?: string): Rundown {
 		return new Rundown({
-			id: rundownId ?? 'id' + Math.random(),
+			id: rundownId ?? testDatabase.getValidObjectIdString('id'),
 			name: 'name' + Math.random(),
 			isRundownActive: true,
 		} as RundownInterface)
@@ -71,7 +71,7 @@ describe('MongoRundownPlaylistRepository', () => {
 	// TODO: Extract to Helper Class in Model layer
 	function createInactiveRundown(rundownId?: string): Rundown {
 		return new Rundown({
-			id: rundownId ?? 'id' + Math.random(),
+			id: rundownId ?? testDatabase.getValidObjectIdString('id'),
 			name: 'name' + Math.random(),
 			isRundownActive: false,
 		} as RundownInterface)

@@ -30,6 +30,35 @@ export class MongoTestDatabase {
 		}
 	}
 
+	public getValidObjectIdString(base: string): string {
+		const twelveChar = base.length >= 12 ? base.substring(0, 12) : this.fillTo12Chars(base).substring(0, 12)
+		return this.convertToHex(twelveChar)
+	}
+
+	private fillTo12Chars(base: string): string {
+		const missingLength = 12 - base.length + 2
+		const multiplier = this.replaceAll('1' + Array<number>(missingLength).fill(0).join(), ',')
+		return base + Math.floor(Math.random() * +multiplier)
+	}
+
+	// Can and should be replaced with 'string.replaceAll(...)', when the project is updated to target Es2021.
+	private replaceAll(target: string, searchFor: string, replaceWith: string = ''): string {
+		while (target.includes(searchFor)) {
+			target = target.replace(searchFor, replaceWith)
+		}
+		return target
+	}
+
+	private convertToHex(base: string): string {
+		let hex = ''
+		for (let i = 0; i < base.length; i++) {
+			const charCode = base.charCodeAt(i)
+			const hexValue = charCode.toString(16)
+			hex += hexValue.padStart(2, '0')
+		}
+		return hex
+	}
+
 	public getDatabase(): Db {
 		return this.client.db(this.mongoServer.instanceInfo!.dbName)
 	}

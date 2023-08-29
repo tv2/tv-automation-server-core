@@ -90,7 +90,7 @@ describe(`${MongoPieceRepository.name}`, () => {
 	// TODO: Extract to Helper Class in Model layer
 	function createPiece(params: { id?: string; name?: string; rank?: number; partId?: string }): Piece {
 		return new Piece({
-			id: params.id ?? 'id' + Math.random(),
+			id: params.id ?? testDatabase.getValidObjectIdString('id'),
 			name: params.name ?? 'name' + Math.random(),
 			partId: params.partId ?? 'partId' + Math.random(),
 		} as PieceInterface)

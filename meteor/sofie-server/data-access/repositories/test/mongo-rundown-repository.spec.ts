@@ -18,7 +18,7 @@ describe(`${MongoRundownRepository.name}`, () => {
 		it('deletes active rundown successfully', async () => {
 			const mongoConverter = mock(MongoEntityConverter)
 			const segmentRepository: SegmentRepository = mock<SegmentRepository>()
-			const rundownId: string = 'someRundownId'
+			const rundownId: string = testDatabase.getValidObjectIdString('someRundownId')
 			const activeRundown: Rundown = createRundown({ rundownId: rundownId, isRundownActive: true })
 			await testDatabase.populateDatabaseWithRundowns([activeRundown])
 			const db: Db = testDatabase.getDatabase()
@@ -37,7 +37,7 @@ describe(`${MongoRundownRepository.name}`, () => {
 		it('deletes inactive rundown successfully', async () => {
 			const mongoConverter = mock(MongoEntityConverter)
 			const segmentRepository: SegmentRepository = mock<SegmentRepository>()
-			const rundownId: string = 'someRundownId'
+			const rundownId: string = testDatabase.getValidObjectIdString('someRundownId')
 			const inactiveRundown: Rundown = createRundown({ rundownId: rundownId, isRundownActive: false })
 			await testDatabase.populateDatabaseWithRundowns([inactiveRundown])
 			const db: Db = testDatabase.getDatabase()
@@ -57,7 +57,7 @@ describe(`${MongoRundownRepository.name}`, () => {
 		it('calls deletion of segments', async () => {
 			const mongoConverter = mock(MongoEntityConverter)
 			const segmentRepository: SegmentRepository = mock<SegmentRepository>()
-			const rundownId: string = 'someRundownId'
+			const rundownId: string = testDatabase.getValidObjectIdString('someRundownId')
 			const rundown: Rundown = createRundown({ rundownId: rundownId })
 			await testDatabase.populateDatabaseWithRundowns([rundown])
 
@@ -73,7 +73,7 @@ describe(`${MongoRundownRepository.name}`, () => {
 		})
 
 		it('does not delete, when nonexistent rundownId is given', async () => {
-			const nonExistingId: string = 'nonExistingId'
+			const nonExistingId: string = testDatabase.getValidObjectIdString('nonExistingId')
 			const rundown: Rundown = createRundown({})
 			await testDatabase.populateDatabaseWithRundowns([rundown])
 			const db: Db = testDatabase.getDatabase()
@@ -87,7 +87,7 @@ describe(`${MongoRundownRepository.name}`, () => {
 
 		it('throws exception, when nonexistent rundownId is given', async () => {
 			const expectedErrorMessageFragment: string = 'Failed to find a rundown with id'
-			const nonExistingId: string = 'nonExistingId'
+			const nonExistingId: string = testDatabase.getValidObjectIdString('nonExistingId')
 			const rundown: Rundown = createRundown({})
 			await testDatabase.populateDatabaseWithRundowns([rundown])
 
@@ -103,7 +103,7 @@ describe(`${MongoRundownRepository.name}`, () => {
 			const mongoDb: MongoDatabase = mock(MongoDatabase)
 			const mongoConverter = mock(MongoEntityConverter)
 			const segmentRepository: SegmentRepository = mock<SegmentRepository>()
-			const rundownId: string = 'someRundownId'
+			const rundownId: string = testDatabase.getValidObjectIdString('someRundownId')
 			const rundown: Rundown = createRundown({ rundownId: rundownId })
 			await testDatabase.populateDatabaseWithRundowns([rundown])
 			const db: Db = testDatabase.getDatabase()
@@ -128,7 +128,7 @@ describe(`${MongoRundownRepository.name}`, () => {
 	// TODO: Extract to Helper Class in Model layer
 	function createRundown(params: { rundownId?: string; name?: string; isRundownActive?: boolean }): Rundown {
 		return new Rundown({
-			id: params.rundownId ?? 'id' + Math.random(),
+			id: params.rundownId ?? testDatabase.getValidObjectIdString('id'),
 			name: params.name ?? 'name' + Math.random(),
 			isRundownActive: params.isRundownActive ?? false,
 		} as RundownInterface)

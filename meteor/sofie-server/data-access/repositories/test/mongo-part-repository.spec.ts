@@ -138,7 +138,7 @@ describe(`${MongoPartRepository.name}`, () => {
 	// TODO: Extract to Helper Class in Model layer
 	function createPiece(params: { id?: string; name?: string; partId?: string }): Piece {
 		return new Piece({
-			id: params.id ?? 'id' + Math.random(),
+			id: params.id ?? testDatabase.getValidObjectIdString('id'),
 			name: params.name ?? 'name' + Math.random(),
 			partId: params.partId ?? 'segmentId' + Math.random(),
 		} as PieceInterface)
@@ -147,7 +147,7 @@ describe(`${MongoPartRepository.name}`, () => {
 	// TODO: Extract to Helper Class in Model layer
 	function createPart(params: { id?: string; name?: string; rank?: number; segmentId?: string }): Part {
 		return new Part({
-			id: params.id ?? 'id' + Math.random(),
+			id: params.id ?? testDatabase.getValidObjectIdString('id'),
 			name: params.name ?? 'name' + Math.random(),
 			rank: params.rank ?? Math.random(),
 			segmentId: params.segmentId ?? 'segmentId' + Math.random(),

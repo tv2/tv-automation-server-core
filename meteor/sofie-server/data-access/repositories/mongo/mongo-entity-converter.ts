@@ -8,6 +8,7 @@ import { Identifier } from '../../../model/interfaces/identifier'
 import { AdLibPiece } from '../../../model/entities/ad-lib-piece'
 import { PieceLifeSpan } from '../../../model/enums/piece-life-span'
 import { BasicRundown } from '../../../model/entities/basic-rundown'
+import { ObjectId } from 'mongodb'
 
 export interface MongoIdentifier {
 	_id: string
@@ -15,14 +16,14 @@ export interface MongoIdentifier {
 }
 
 export interface MongoRundownPlaylist {
-	_id: string
+	_id: ObjectId
 	externalId: string
 	name: string
 	activationId: string
 }
 
 export interface MongoRundown {
-	_id: any
+	_id: ObjectId
 	externalId: string
 	name: string
 	timing: {
@@ -44,7 +45,7 @@ export interface MongoRundown {
 }
 
 export interface MongoSegment {
-	_id: any
+	_id: ObjectId
 	name: string
 	_rank: number
 	rundownId: string
@@ -53,7 +54,7 @@ export interface MongoSegment {
 }
 
 export interface MongoPart {
-	_id: any
+	_id: ObjectId
 	segmentId: string
 	title: string
 	_rank: number
@@ -61,7 +62,7 @@ export interface MongoPart {
 }
 
 export interface MongoPiece {
-	_id: any
+	_id: ObjectId
 	startPartId: string
 	name: string
 	sourceLayerId: string
@@ -74,14 +75,14 @@ export interface MongoPiece {
 }
 
 export interface MongoTimeline {
-	_id: any
+	_id: ObjectId
 	timelineHash: string
 	generated: number
 	timelineBlob: string
 }
 
 export interface MongoAdLibPiece {
-	_id: string
+	_id: ObjectId
 	rundownId: string
 	name: string
 	expectedDuration: number
@@ -102,7 +103,7 @@ export class MongoEntityConverter {
 
 	public convertRundown(mongoRundown: MongoRundown): Rundown {
 		return new Rundown({
-			id: mongoRundown._id,
+			id: mongoRundown._id.toString(),
 			name: mongoRundown.name,
 			isRundownActive: false,
 			segments: [],
@@ -126,7 +127,7 @@ export class MongoEntityConverter {
 			showStyleVariantId: '', // Todo: figure out where the value for this attribute is
 			studioId: '', // Todo: figure out where the value for this attribute is
 			timing: { expectedDuration: 0, expectedEnd: 0, expectedStart: 0, type: '' }, // Todo: figure out where the value for this attribute is
-			_id: rundown.id,
+			_id: new ObjectId(rundown.id),
 			name: rundown.name,
 		}
 	}
@@ -136,7 +137,7 @@ export class MongoEntityConverter {
 	}
 
 	public convertBasicRundown(mongoRundown: MongoRundown): BasicRundown {
-		return new BasicRundown(mongoRundown._id, mongoRundown.name, false, mongoRundown.modified)
+		return new BasicRundown(mongoRundown._id.toString(), mongoRundown.name, false, mongoRundown.modified)
 	}
 
 	public convertBasicRundowns(mongoRundowns: MongoRundown[]): BasicRundown[] {
@@ -145,7 +146,7 @@ export class MongoEntityConverter {
 
 	public convertSegment(mongoSegment: MongoSegment): Segment {
 		return new Segment({
-			id: mongoSegment._id,
+			id: mongoSegment._id.toString(),
 			rundownId: mongoSegment.rundownId,
 			name: mongoSegment.name,
 			rank: mongoSegment._rank,
@@ -163,7 +164,7 @@ export class MongoEntityConverter {
 		return {
 			externalId: '', // Todo: figure out where the value for this attribute is
 			isHidden: false, // Todo: figure out where the value for this attribute is
-			_id: segment.id,
+			_id: new ObjectId(segment.id),
 			name: segment.name,
 			rundownId: segment.rundownId,
 			_rank: segment.rank,
@@ -176,7 +177,7 @@ export class MongoEntityConverter {
 
 	public convertPart(mongoPart: MongoPart): Part {
 		return new Part({
-			id: mongoPart._id,
+			id: mongoPart._id.toString(),
 			segmentId: mongoPart.segmentId,
 			name: mongoPart.title,
 			rank: mongoPart._rank,
@@ -195,7 +196,7 @@ export class MongoEntityConverter {
 		return {
 			expectedDuration: part.expectedDuration,
 			title: part.name,
-			_id: part.id,
+			_id: new ObjectId(part.id),
 			segmentId: part.segmentId,
 			_rank: part.rank,
 		}
@@ -207,7 +208,7 @@ export class MongoEntityConverter {
 
 	public convertPiece(mongoPiece: MongoPiece): Piece {
 		return new Piece({
-			id: mongoPiece._id,
+			id: mongoPiece._id.toString(),
 			partId: mongoPiece.startPartId,
 			name: mongoPiece.name,
 			layer: mongoPiece.sourceLayerId,
@@ -247,7 +248,7 @@ export class MongoEntityConverter {
 			lifespan: piece.pieceLifeSpan,
 			sourceLayerId: piece.layer,
 			timelineObjectsString: '',
-			_id: piece.id,
+			_id: new ObjectId(piece.id),
 			startPartId: piece.partId,
 			name: piece.name,
 		}
@@ -259,7 +260,7 @@ export class MongoEntityConverter {
 
 	public convertToMongoTimeline(timeline: Timeline): MongoTimeline {
 		return {
-			_id: 'studio0',
+			_id: new ObjectId('studio0'),
 			timelineHash: '',
 			generated: new Date().getTime(),
 			timelineBlob: JSON.stringify(timeline.timelineObjects),
@@ -268,7 +269,7 @@ export class MongoEntityConverter {
 
 	public convertMongoAdLibPieceToIdentifier(mongoAdLibPiece: MongoAdLibPiece): Identifier {
 		return {
-			id: mongoAdLibPiece._id,
+			id: mongoAdLibPiece._id.toString(),
 			name: mongoAdLibPiece.name,
 		}
 	}
@@ -279,7 +280,7 @@ export class MongoEntityConverter {
 
 	public convertAdLib(mongoAdLibPiece: MongoAdLibPiece): AdLibPiece {
 		return new AdLibPiece({
-			id: mongoAdLibPiece._id,
+			id: mongoAdLibPiece._id.toString(),
 			rundownId: mongoAdLibPiece.rundownId,
 			name: mongoAdLibPiece.name,
 			duration: mongoAdLibPiece.expectedDuration,
