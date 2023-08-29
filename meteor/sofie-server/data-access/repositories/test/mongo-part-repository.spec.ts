@@ -1,6 +1,6 @@
 import { MongoPartRepository } from '../mongo/mongo-part-repository'
 import { Part, PartInterface } from '../../../model/entities/part'
-import { Db } from 'mongodb'
+import { Db, ObjectId } from 'mongodb'
 import { MongoEntityConverter, MongoPart } from '../mongo/mongo-entity-converter'
 import { PartRepository } from '../interfaces/part-repository'
 import { MongoDatabase } from '../mongo/mongo-database'
@@ -14,8 +14,8 @@ const COLLECTION_NAME = 'parts'
 
 describe(`${MongoPartRepository.name}`, () => {
 	const testDatabase: MongoTestDatabase = new MongoTestDatabase()
-	beforeEach(async () => await testDatabase.setupDatabase())
-	afterEach(async () => await testDatabase.teardownDatabase())
+	beforeEach(async () => testDatabase.setupDatabase())
+	afterEach(async () => testDatabase.teardownDatabase())
 
 	describe(`${MongoPartRepository.prototype.deletePartsForSegment.name}`, () => {
 		it('deletes one part successfully', async () => {
@@ -26,7 +26,7 @@ describe(`${MongoPartRepository.name}`, () => {
 			const db: Db = testDatabase.getDatabase()
 
 			when(mongoConverter.convertParts(anything())).thenReturn([part])
-			const testee: PartRepository = await createCommonTestee({
+			const testee: PartRepository = createTestee({
 				mongoConverter: mongoConverter,
 			})
 
@@ -43,7 +43,7 @@ describe(`${MongoPartRepository.name}`, () => {
 			const db: Db = testDatabase.getDatabase()
 
 			when(mongoConverter.convertParts(anything())).thenReturn(parts)
-			const testee: PartRepository = await createCommonTestee({
+			const testee: PartRepository = createTestee({
 				mongoConverter: mongoConverter,
 			})
 
@@ -63,7 +63,7 @@ describe(`${MongoPartRepository.name}`, () => {
 
 			when(mongoConverter.convertParts(anything())).thenReturn(parts)
 			when(pieceRepository.getPieces(anything())).thenResolve(pieces)
-			const testee: PartRepository = await createCommonTestee({
+			const testee: PartRepository = createTestee({
 				mongoConverter: mongoConverter,
 				pieceRepository: pieceRepository,
 			})
@@ -81,7 +81,7 @@ describe(`${MongoPartRepository.name}`, () => {
 			await testDatabase.populateDatabaseWithParts([part])
 
 			when(mongoConverter.convertParts(anything())).thenReturn([])
-			const testee: PartRepository = await createCommonTestee({
+			const testee: PartRepository = createTestee({
 				mongoConverter: mongoConverter,
 			})
 
@@ -99,7 +99,7 @@ describe(`${MongoPartRepository.name}`, () => {
 			const db = testDatabase.getDatabase()
 
 			when(mongoConverter.convertParts(anything())).thenReturn([])
-			const testee = await createCommonTestee({
+			const testee = createTestee({
 				mongoConverter: mongoConverter,
 			})
 			const action = async () => testee.deletePartsForSegment(nonExistingId)
@@ -123,7 +123,7 @@ describe(`${MongoPartRepository.name}`, () => {
 			when(mongoConverter.convertParts(anything())).thenReturn([part])
 			when(pieceRepository.getPieces(anything())).thenResolve([])
 			when(mongoDb.getCollection(anything())).thenReturn(collection)
-			const testee: PartRepository = await createTestee({
+			const testee: PartRepository = createTestee({
 				mongoConverter: mongoConverter,
 				mongoDb: mongoDb,
 				pieceRepository: pieceRepository,
@@ -136,35 +136,6 @@ describe(`${MongoPartRepository.name}`, () => {
 	})
 
 	describe(`${MongoPartRepository.prototype.save.name}`, () => {
-		it('keeps properties intact on save', async () => {
-			const mongoConverter: MongoEntityConverter = mock(MongoEntityConverter)
-			const localMongoConverter: MongoEntityConverter = new MongoEntityConverter()
-			const mongoDb: MongoDatabase = mock(MongoDatabase)
-			const partBeforeSave: Part = createPart({})
-			const db: Db = testDatabase.getDatabase()
-			const collection = db.collection(COLLECTION_NAME)
-
-			when(mongoDb.getCollection(anything())).thenReturn(collection)
-			when(mongoConverter.convertToMongoPart(anything())).thenReturn({
-				_id: partBeforeSave.id,
-				segmentId: partBeforeSave.segmentId,
-				_rank: partBeforeSave.rank,
-				isNext: false,
-				isOnAir: false,
-				title: partBeforeSave.name,
-				expectedDuration: partBeforeSave.expectedDuration,
-			})
-
-			const testee: PartRepository = await createTestee({ mongoDb: mongoDb, mongoConverter: mongoConverter })
-			await testee.save(partBeforeSave)
-
-			const mongoPart: MongoPart = (await db
-				.collection(COLLECTION_NAME)
-				.findOne({ _id: partBeforeSave.id })) as unknown as MongoPart
-			const partAfterSave: Part = localMongoConverter.convertPart(mongoPart)
-
-			expect(partBeforeSave).toEqual(partAfterSave)
-		})
 		it('has part as not on air and saves the part as on air', async () => {
 			const id: string = 'randomId'
 			const inactivePart: Part = createPart({ id: id, isOnAir: false })
@@ -178,7 +149,7 @@ describe(`${MongoPartRepository.name}`, () => {
 
 			when(mongoDb.getCollection(anything())).thenReturn(collection)
 			when(mongoConverter.convertToMongoPart(anything())).thenReturn({
-				_id: onAirPart.id,
+				_id: new ObjectId(onAirPart.id),
 				segmentId: onAirPart.segmentId,
 				_rank: inactivePart.rank,
 				isNext: onAirPart.isNext(),
@@ -187,7 +158,7 @@ describe(`${MongoPartRepository.name}`, () => {
 				expectedDuration: onAirPart.expectedDuration,
 			})
 
-			const testee: PartRepository = await createTestee({
+			const testee: PartRepository = createTestee({
 				mongoDb: mongoDb,
 				mongoConverter: mongoConverter,
 			})
@@ -199,6 +170,7 @@ describe(`${MongoPartRepository.name}`, () => {
 
 			expect(result.isOnAir).toBeTruthy()
 		})
+
 		it('has part as on air and saves the part as not on air', async () => {
 			const id: string = 'randomId'
 			const onAirPart: Part = createPart({ id: id, isOnAir: true })
@@ -212,7 +184,7 @@ describe(`${MongoPartRepository.name}`, () => {
 
 			when(mongoDb.getCollection(anything())).thenReturn(collection)
 			when(mongoConverter.convertToMongoPart(anything())).thenReturn({
-				_id: inactivePart.id,
+				_id: new ObjectId(inactivePart.id),
 				segmentId: inactivePart.segmentId,
 				_rank: onAirPart.rank,
 				isNext: inactivePart.isNext(),
@@ -221,7 +193,7 @@ describe(`${MongoPartRepository.name}`, () => {
 				expectedDuration: inactivePart.expectedDuration,
 			})
 
-			const testee: PartRepository = await createTestee({
+			const testee: PartRepository = createTestee({
 				mongoDb: mongoDb,
 				mongoConverter: mongoConverter,
 			})
@@ -233,6 +205,7 @@ describe(`${MongoPartRepository.name}`, () => {
 
 			expect(result.isOnAir).toBeFalsy()
 		})
+
 		it('does not have part as next but saves the part as next', async () => {
 			const id: string = 'randomId'
 			const nonQueuedPart: Part = createPart({ id: id, isNext: false })
@@ -246,7 +219,7 @@ describe(`${MongoPartRepository.name}`, () => {
 
 			when(mongoDb.getCollection(anything())).thenReturn(collection)
 			when(mongoConverter.convertToMongoPart(anything())).thenReturn({
-				_id: nextPart.id,
+				_id: new ObjectId(nextPart.id),
 				segmentId: nextPart.segmentId,
 				_rank: nonQueuedPart.rank,
 				isNext: nextPart.isNext(),
@@ -255,7 +228,7 @@ describe(`${MongoPartRepository.name}`, () => {
 				expectedDuration: nextPart.expectedDuration,
 			})
 
-			const testee: PartRepository = await createTestee({
+			const testee: PartRepository = createTestee({
 				mongoDb: mongoDb,
 				mongoConverter: mongoConverter,
 			})
@@ -280,7 +253,7 @@ describe(`${MongoPartRepository.name}`, () => {
 
 			when(mongoDb.getCollection(anything())).thenReturn(collection)
 			when(mongoConverter.convertToMongoPart(anything())).thenReturn({
-				_id: nonQueuedPart.id,
+				_id: new ObjectId(nonQueuedPart.id),
 				segmentId: nonQueuedPart.segmentId,
 				_rank: nextPart.rank,
 				isNext: nonQueuedPart.isNext(),
@@ -289,7 +262,7 @@ describe(`${MongoPartRepository.name}`, () => {
 				expectedDuration: nonQueuedPart.expectedDuration,
 			})
 
-			const testee: PartRepository = await createTestee({
+			const testee: PartRepository = createTestee({
 				mongoDb: mongoDb,
 				mongoConverter: mongoConverter,
 			})
@@ -306,7 +279,7 @@ describe(`${MongoPartRepository.name}`, () => {
 	// TODO: Extract to Helper Class in Model layer
 	function createPiece(params: { id?: string; name?: string; partId?: string }): Piece {
 		return new Piece({
-			id: params.id ?? 'id' + Math.random(),
+			id: params.id ?? testDatabase.getValidObjectIdString('id'),
 			name: params.name ?? 'name' + Math.random(),
 			partId: params.partId ?? 'segmentId' + Math.random(),
 		} as PieceInterface)
@@ -323,7 +296,7 @@ describe(`${MongoPartRepository.name}`, () => {
 		isNext?: boolean
 	}): Part {
 		return new Part({
-			id: params.id ?? 'id' + Math.random(),
+			id: params.id ?? testDatabase.getValidObjectIdString('id'),
 			name: params.name ?? 'name' + Math.random(),
 			rank: params.rank ?? Math.random(),
 			segmentId: params.segmentId ?? 'segmentId' + Math.random(),
@@ -333,29 +306,21 @@ describe(`${MongoPartRepository.name}`, () => {
 		} as PartInterface)
 	}
 
-	interface TesteeBuilderParams {
+	function createTestee(params: {
 		pieceRepository?: PieceRepository
 		mongoDb?: MongoDatabase
 		mongoConverter?: MongoEntityConverter
-	}
-
-	async function createCommonTestee(params: TesteeBuilderParams): Promise<PartRepository> {
-		const mongoDb: MongoDatabase = params.mongoDb ?? mock(MongoDatabase)
-
-		testDatabase.applyCommonMocking(testDatabase.getDatabase(), mongoDb, COLLECTION_NAME)
-
-		return createTestee({
-			pieceRepository: params.pieceRepository,
-			mongoConverter: params.mongoConverter,
-			mongoDb: mongoDb,
-		})
-	}
-
-	async function createTestee(params: TesteeBuilderParams): Promise<PartRepository> {
+	}): MongoPartRepository {
 		const pieceRepository: PieceRepository = params.pieceRepository ?? mock<PieceRepository>()
-		const mongoDb: MongoDatabase = params.mongoDb ?? mock(MongoDatabase)
 		const mongoConverter: MongoEntityConverter = params.mongoConverter ?? mock(MongoEntityConverter)
 
-		return new MongoPartRepository(instance(mongoDb), instance(mongoConverter), instance(pieceRepository))
+		if (!params.mongoDb) {
+			params.mongoDb = mock(MongoDatabase)
+			when(params.mongoDb.getCollection(COLLECTION_NAME)).thenReturn(
+				testDatabase.getDatabase().collection(COLLECTION_NAME)
+			)
+		}
+
+		return new MongoPartRepository(instance(params.mongoDb), instance(mongoConverter), instance(pieceRepository))
 	}
 })

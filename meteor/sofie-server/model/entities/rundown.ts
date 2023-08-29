@@ -99,8 +99,9 @@ export class Rundown extends BasicRundown {
 
 	public deactivate(): void {
 		this.assertActive('deactivate')
-		this.activeSegment.takeOffAir()
-		this.activePart.takeOffAir()
+		//TODO: Remove the if-statements once we save the activeSegment and activePart to the database
+		if (this.activeSegment) this.activeSegment.takeOffAir()
+		if (this.activePart) this.activePart.takeOffAir()
 		this.unmarkNextSegmentAndPart()
 		this.infinitePieces = new Map()
 		this.isRundownActive = false

@@ -7,7 +7,7 @@ import { BaseMongoRepository } from './base-mongo-repository'
 import { BasicRundown } from '../../../model/entities/basic-rundown'
 import { DeletionFailedException } from '../../../model/exceptions/deletion-failed-exception'
 import { NotFoundException } from '../../../model/exceptions/not-found-exception'
-import { DeleteResult } from 'mongodb'
+import { DeleteResult, ObjectId } from 'mongodb'
 
 const RUNDOWN_COLLECTION_NAME: string = 'rundowns'
 
@@ -36,7 +36,7 @@ export class MongoRundownRepository extends BaseMongoRepository implements Rundo
 	public async getRundown(rundownId: string): Promise<Rundown> {
 		this.assertDatabaseConnection(this.getRundown.name)
 		const mongoRundown: MongoRundown = (await this.getCollection().findOne({
-			_id: rundownId,
+			_id: new ObjectId(rundownId),
 		})) as unknown as MongoRundown
 		if (!mongoRundown) {
 			throw new NotFoundException(`Failed to find a rundown with id: ${rundownId}`)
@@ -48,7 +48,8 @@ export class MongoRundownRepository extends BaseMongoRepository implements Rundo
 
 	public async saveRundown(rundown: Rundown): Promise<void> {
 		const mongoRundown: MongoRundown = this.mongoEntityConverter.convertToMongoRundown(rundown)
-		await this.getCollection().replaceOne({ _id: rundown.id }, mongoRundown, { upsert: true })
+		await this.getCollection().replaceOne({ _id: rundown.id }, { mongoRundown }, { upsert: true })
+		//await this.getCollection().updateOne({ _id: rundown.id }, [{ $set: mongoRundown }], { upsert: true })
 		for (const segment of rundown.getSegments()) {
 			await this.segmentRepository.save(segment)
 		}
@@ -60,10 +61,9 @@ export class MongoRundownRepository extends BaseMongoRepository implements Rundo
 		await this.segmentRepository.deleteSegmentsForRundown(rundownId)
 
 		const rundownDeletionResult: DeleteResult = await this.getCollection().deleteOne({
-			_id: rundown.id,
+			_id: new ObjectId(rundown.id),
 		})
 
-		// TODO: Figure out how to archive a 'false' acknowledgment, and add test case using that knowledge
 		if (!rundownDeletionResult.acknowledged) {
 			throw new DeletionFailedException(`Deletion of rundown was not acknowledged, for rundownId: ${rundownId}`)
 		}

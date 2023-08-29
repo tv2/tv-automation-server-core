@@ -12,7 +12,7 @@ const COLLECTION_NAME = 'pieces'
 
 describe(`${MongoPieceRepository.name}`, () => {
 	const testDatabase: MongoTestDatabase = new MongoTestDatabase()
-	beforeEach(async () => await testDatabase.setupDatabase())
+	beforeEach(async () => testDatabase.setupDatabase())
 	afterEach(async () => testDatabase.teardownDatabase())
 
 	describe(`${MongoPieceRepository.prototype.deletePiecesForPart.name}`, () => {
@@ -24,7 +24,7 @@ describe(`${MongoPieceRepository.name}`, () => {
 			const db: Db = testDatabase.getDatabase()
 
 			when(mongoConverter.convertPieces(anything())).thenReturn([piece])
-			const testee: PieceRepository = await createTestee(db, {
+			const testee: PieceRepository = createTestee({
 				mongoConverter: mongoConverter,
 			})
 
@@ -41,7 +41,7 @@ describe(`${MongoPieceRepository.name}`, () => {
 			const db: Db = testDatabase.getDatabase()
 
 			when(mongoConverter.convertPieces(anything())).thenReturn(pieces)
-			const testee: PieceRepository = await createTestee(db, {
+			const testee: PieceRepository = createTestee({
 				mongoConverter: mongoConverter,
 			})
 
@@ -57,10 +57,9 @@ describe(`${MongoPieceRepository.name}`, () => {
 			const partId: string = 'somePartId'
 			const piece: Piece = createPiece({ partId: partId })
 			await testDatabase.populateDatabaseWithPieces([piece])
-			const db: Db = testDatabase.getDatabase()
 
 			when(mongoConverter.convertPieces(anything())).thenReturn([])
-			const testee: PieceRepository = await createTestee(db, {
+			const testee: PieceRepository = createTestee({
 				mongoConverter: mongoConverter,
 			})
 			const action = async () => testee.deletePiecesForPart(nonExistingId)
@@ -78,7 +77,7 @@ describe(`${MongoPieceRepository.name}`, () => {
 			const db: Db = testDatabase.getDatabase()
 
 			when(mongoConverter.convertPieces(anything())).thenReturn([])
-			const testee: PieceRepository = await createTestee(db, {
+			const testee: PieceRepository = createTestee({
 				mongoConverter: mongoConverter,
 			})
 			const action = async () => testee.deletePiecesForPart(nonExistingId)
@@ -91,23 +90,20 @@ describe(`${MongoPieceRepository.name}`, () => {
 	// TODO: Extract to Helper Class in Model layer
 	function createPiece(params: { id?: string; name?: string; rank?: number; partId?: string }): Piece {
 		return new Piece({
-			id: params.id ?? 'id' + Math.random(),
+			id: params.id ?? testDatabase.getValidObjectIdString('id'),
 			name: params.name ?? 'name' + Math.random(),
 			partId: params.partId ?? 'partId' + Math.random(),
 		} as PieceInterface)
 	}
 
-	async function createTestee(
-		db: Db,
-		params: {
-			mongoDb?: MongoDatabase
-			mongoConverter?: MongoEntityConverter
-		}
-	): Promise<PieceRepository> {
+	function createTestee(params: {
+		mongoDb?: MongoDatabase
+		mongoConverter?: MongoEntityConverter
+	}): MongoPieceRepository {
 		const mongoDb: MongoDatabase = params.mongoDb ?? mock(MongoDatabase)
 		const mongoConverter: MongoEntityConverter = params.mongoConverter ?? mock(MongoEntityConverter)
 
-		when(mongoDb.getCollection(COLLECTION_NAME)).thenReturn(db.collection(COLLECTION_NAME))
+		when(mongoDb.getCollection(COLLECTION_NAME)).thenReturn(testDatabase.getDatabase().collection(COLLECTION_NAME))
 
 		return new MongoPieceRepository(instance(mongoDb), instance(mongoConverter))
 	}
