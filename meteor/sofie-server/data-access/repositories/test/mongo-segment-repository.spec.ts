@@ -14,8 +14,8 @@ const COLLECTION_NAME = 'segments'
 
 describe(`${MongoSegmentRepository.name}`, () => {
 	const testDatabase: MongoTestDatabase = new MongoTestDatabase()
-	beforeEach(async () => await testDatabase.setupDatabase())
-	afterEach(async () => await testDatabase.teardownDatabase())
+	beforeEach(async () => testDatabase.setupDatabase())
+	afterEach(async () => testDatabase.teardownDatabase())
 
 	describe(`${MongoSegmentRepository.prototype.deleteSegmentsForRundown.name}`, () => {
 		it('deletes one segment successfully', async () => {

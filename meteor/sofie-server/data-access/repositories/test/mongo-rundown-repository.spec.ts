@@ -11,8 +11,8 @@ import { Db } from 'mongodb'
 const COLLECTION_NAME = 'rundowns'
 describe(`${MongoRundownRepository.name}`, () => {
 	const testDatabase: MongoTestDatabase = new MongoTestDatabase()
-	beforeEach(async () => await testDatabase.setupDatabase())
-	afterEach(async () => await testDatabase.teardownDatabase())
+	beforeEach(async () => testDatabase.setupDatabase())
+	afterEach(async () => testDatabase.teardownDatabase())
 
 	describe(`${MongoRundownRepository.prototype.deleteRundown.name}`, () => {
 		it('deletes active rundown successfully', async () => {

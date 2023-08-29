@@ -14,8 +14,8 @@ const COLLECTION_NAME = 'parts'
 
 describe(`${MongoPartRepository.name}`, () => {
 	const testDatabase: MongoTestDatabase = new MongoTestDatabase()
-	beforeEach(async () => await testDatabase.setupDatabase())
-	afterEach(async () => await testDatabase.teardownDatabase())
+	beforeEach(async () => testDatabase.setupDatabase())
+	afterEach(async () => testDatabase.teardownDatabase())
 
 	describe(`${MongoPartRepository.prototype.deletePartsForSegment.name}`, () => {
 		it('deletes one part successfully', async () => {

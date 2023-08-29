@@ -12,7 +12,7 @@ const COLLECTION_NAME = 'pieces'
 
 describe(`${MongoPieceRepository.name}`, () => {
 	const testDatabase: MongoTestDatabase = new MongoTestDatabase()
-	beforeEach(async () => await testDatabase.setupDatabase())
+	beforeEach(async () => testDatabase.setupDatabase())
 	afterEach(async () => testDatabase.teardownDatabase())
 
 	describe(`${MongoPieceRepository.prototype.deletePiecesForPart.name}`, () => {

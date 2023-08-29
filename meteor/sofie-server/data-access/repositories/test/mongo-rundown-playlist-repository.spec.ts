@@ -11,8 +11,8 @@ const COLLECTION_NAME = 'rundownPlaylists'
 
 describe('MongoRundownPlaylistRepository', () => {
 	const testDatabase: MongoTestDatabase = new MongoTestDatabase()
-	beforeEach(async () => await testDatabase.setupDatabase())
-	afterEach(async () => await testDatabase.teardownDatabase())
+	beforeEach(async () => testDatabase.setupDatabase())
+	afterEach(async () => testDatabase.teardownDatabase())
 
 	describe('getRundown', () => {
 		it('has an activationId, return an active rundown', async () => {
