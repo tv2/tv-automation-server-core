@@ -37,7 +37,7 @@ describe(`${MongoRundownRepository.name}`, () => {
 				_id: rundownId as unknown as ObjectId,
 			})
 			await testDatabase.populateDatabaseWithInactiveRundowns([mongoRundown])
-			const testee = createTestee({})
+			const testee: MongoRundownRepository = createTestee({})
 
 			await expect(db.collection(COLLECTION_NAME).findOne({ _id: rundownId })).resolves.not.toBeNull()
 			await testee.deleteRundown(rundownId)
@@ -52,7 +52,7 @@ describe(`${MongoRundownRepository.name}`, () => {
 				_id: rundownId as unknown as ObjectId,
 			})
 			await testDatabase.populateDatabaseWithInactiveRundowns([mongoRundown])
-			const testee = createTestee({
+			const testee: MongoRundownRepository = createTestee({
 				segmentRepository: segmentRepository,
 			})
 
@@ -68,7 +68,7 @@ describe(`${MongoRundownRepository.name}`, () => {
 			await testDatabase.populateDatabaseWithInactiveRundowns([rundown])
 			const db: Db = testDatabase.getDatabase()
 
-			const testee = createTestee({})
+			const testee: MongoRundownRepository = createTestee({})
 			const action = async () => testee.deleteRundown(nonExistingId)
 
 			await expect(action).rejects.toThrow(NotFoundException)
@@ -83,7 +83,7 @@ describe(`${MongoRundownRepository.name}`, () => {
 			await testDatabase.populateDatabaseWithInactiveRundowns([rundown])
 			const db: Db = testDatabase.getDatabase()
 
-			const testee = createTestee({})
+			const testee: MongoRundownRepository = createTestee({})
 			const action = async () => testee.deleteRundown(nonExistingId)
 
 			await expect(action).rejects.toThrow(NotFoundException)
@@ -101,17 +101,19 @@ describe(`${MongoRundownRepository.name}`, () => {
 			await testDatabase.populateDatabaseWithInactiveRundowns([rundown])
 			const db: Db = testDatabase.getDatabase()
 			const collection = db.collection(COLLECTION_NAME)
-			const spied = spy(collection)
+			const spiedCollection = spy(collection)
 
 			when(mongoDb.getCollection(anything())).thenReturn(collection)
-			const testee = createTestee({
+			const testee: MongoRundownRepository = createTestee({
 				mongoDb: mongoDb,
 				segmentRepository: segmentRepository,
 			})
 
 			await testee.deleteRundown(rundownId)
 
-			verify(segmentRepository.deleteSegmentsForRundown(anything())).calledBefore(spied.deleteOne(anything()))
+			verify(segmentRepository.deleteSegmentsForRundown(anything())).calledBefore(
+				spiedCollection.deleteOne(anything())
+			)
 		})
 	})
 

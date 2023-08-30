@@ -67,11 +67,9 @@ describe(`${MongoPartRepository.name}`, () => {
 				EntityMockFactory.createPart({ segmentId: segmentId }),
 				EntityMockFactory.createPart({ segmentId: segmentId }),
 			]
-			// const pieces: MongoPiece[] = [createPiece({}), createPiece({}), createPiece({})]
 			await testDatabase.populateDatabaseWithParts(parts)
 
 			when(mongoConverter.convertParts(anything())).thenReturn(entityParts)
-			// when(pieceRepository.getPieces(anything())).thenResolve(pieces)
 			when(pieceRepository.getPieces(anything())).thenResolve([])
 			const testee: PartRepository = createTestee({
 				mongoConverter: mongoConverter,
@@ -145,14 +143,6 @@ describe(`${MongoPartRepository.name}`, () => {
 			verify(pieceRepository.deletePiecesForPart(anything())).calledBefore(spied.deleteMany(anything()))
 		})
 	})
-
-	// function createPiece(mongoPieceInterface?: Partial<MongoPiece>): MongoPiece {
-	// 	return {
-	// 		_id: mongoPieceInterface?._id ?? new ObjectId(),
-	// 		name: mongoPieceInterface?.name ?? 'name' + Math.random(),
-	// 		startPartId: mongoPieceInterface?.startPartId ?? 'partId' + Math.random() * 10,
-	// 	} as MongoPiece
-	// }
 
 	function createPart(mongoPartInterface?: Partial<MongoPart>): MongoPart {
 		return {

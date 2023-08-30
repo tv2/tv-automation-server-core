@@ -81,11 +81,9 @@ describe(`${MongoSegmentRepository.name}`, () => {
 				EntityMockFactory.createSegment({ rundownId: rundownId }),
 				EntityMockFactory.createSegment({ rundownId: rundownId }),
 			]
-			// const parts: MongoPart[] = [createPart({}), createPart({}), createPart({})]
 			await testDatabase.populateDatabaseWithSegments(segments)
 
 			when(mongoConverter.convertSegments(anything())).thenReturn(entitySegments)
-			// when(partRepository.getParts(anything())).thenResolve(parts)
 			when(partRepository.getParts(anything())).thenResolve([])
 			const testee: SegmentRepository = createTestee({
 				mongoConverter: mongoConverter,
@@ -136,7 +134,7 @@ describe(`${MongoSegmentRepository.name}`, () => {
 			const db: Db = testDatabase.getDatabase()
 			const mongoDb: MongoDatabase = mock(MongoDatabase)
 			const partRepository: PartRepository = mock<PartRepository>()
-			const mongoConverter = mock(MongoEntityConverter)
+			const mongoConverter: MongoEntityConverter = mock(MongoEntityConverter)
 			const rundownId: string = 'someRundownId'
 			const segment: MongoSegment = createSegment({ rundownId: rundownId })
 			const entitySegment: Segment = EntityMockFactory.createSegment({ rundownId: rundownId })
@@ -158,15 +156,6 @@ describe(`${MongoSegmentRepository.name}`, () => {
 			verify(partRepository.deletePartsForSegment(anything())).calledBefore(spied.deleteMany(anything()))
 		})
 	})
-
-	// function createPart(mongoPartInterface?: Partial<MongoPart>): MongoPart {
-	// 	return {
-	// 		_id: mongoPartInterface?._id ?? new ObjectId(),
-	// 		title: mongoPartInterface?.title ?? 'partTitle',
-	// 		_rank: mongoPartInterface?._rank ?? Math.random() * 100,
-	// 		segmentId: mongoPartInterface?.segmentId ?? 'segmentId' + Math.random() * 10,
-	// 	} as MongoPart
-	// }
 
 	function createSegment(mongoSegmentInterface?: Partial<MongoSegment>): MongoSegment {
 		return {
