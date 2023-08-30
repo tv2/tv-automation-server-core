@@ -1,5 +1,5 @@
 import { anything, instance, mock, verify, when } from 'ts-mockito'
-import { Rundown, RundownInterface } from '../../../model/entities/rundown'
+import { Rundown } from '../../../model/entities/rundown'
 import { RundownEventEmitter } from '../interfaces/rundown-event-emitter'
 import { RundownRepository } from '../../../data-access/repositories/interfaces/rundown-repository'
 import { TimelineRepository } from '../../../data-access/repositories/interfaces/timeline-repository'
@@ -10,6 +10,7 @@ import { ActiveRundownException } from '../../../model/exceptions/active-rundown
 import { RundownEventType } from '../../../model/enums/rundown-event-type'
 import { RundownTimelineService } from '../rundown-timeline-service'
 import { CallbackScheduler } from '../interfaces/callback-scheduler'
+import { EntityMockFactory } from '../../../model/entities/test/entity-mock-factory'
 
 describe(`${RundownTimelineService.name}`, () => {
 	describe(`${RundownTimelineService.prototype.deleteRundown.name}`, () => {
@@ -18,7 +19,7 @@ describe(`${RundownTimelineService.name}`, () => {
 			const mockRundownRepository: RundownRepository = mock<RundownRepository>()
 
 			const rundownId: string = 'randomRundownId'
-			const rundown: Rundown = createRundown({ rundownId: rundownId, isRundownActive: false })
+			const rundown: Rundown = EntityMockFactory.createRundown({ id: rundownId, isRundownActive: false })
 
 			when(mockRundownRepository.getRundown(rundownId)).thenResolve(rundown)
 
@@ -35,9 +36,9 @@ describe(`${RundownTimelineService.name}`, () => {
 			const mockRundownEventBuilder: RundownEventBuilder = mock<RundownEventBuilder>()
 
 			const rundownId: string = 'someRundownId'
-			const randomRundown: Rundown = createRundown({ rundownId: rundownId, isRundownActive: false })
+			const rundown: Rundown = EntityMockFactory.createRundown({ id: rundownId, isRundownActive: false })
 
-			when(mockRundownRepository.getRundown(rundownId)).thenResolve(randomRundown)
+			when(mockRundownRepository.getRundown(rundownId)).thenResolve(rundown)
 			when(mockRundownEventBuilder.buildDeletedEvent(anything())).thenReturn({
 				type: RundownEventType.DELETED,
 				rundownId: rundownId,
@@ -61,7 +62,7 @@ describe(`${RundownTimelineService.name}`, () => {
 			const mockRundownEventEmitter: RundownEventEmitter = mock<RundownEventEmitter>()
 
 			const rundownId: string = 'someRundownId'
-			const rundown: Rundown = createRundown({ rundownId: rundownId, isRundownActive: false })
+			const rundown: Rundown = EntityMockFactory.createRundown({ id: rundownId, isRundownActive: false })
 
 			when(mockRundownRepository.getRundown(rundownId)).thenResolve(rundown)
 
@@ -80,7 +81,7 @@ describe(`${RundownTimelineService.name}`, () => {
 			const mockRundownRepository: RundownRepository = mock<RundownRepository>()
 
 			const rundownId: string = 'someRundownId'
-			const rundown: Rundown = createRundown({ rundownId: rundownId, isRundownActive: true })
+			const rundown: Rundown = EntityMockFactory.createRundown({ id: rundownId, isRundownActive: true })
 
 			when(mockRundownRepository.getRundown(rundownId)).thenResolve(rundown)
 
@@ -91,15 +92,6 @@ describe(`${RundownTimelineService.name}`, () => {
 		})
 	})
 })
-
-// TODO: Extract to Helper Class in Model layer
-function createRundown(params: { rundownId?: string; name?: string; isRundownActive?: boolean }): Rundown {
-	return new Rundown({
-		id: params.rundownId ?? 'id' + Math.random(),
-		name: params.name ?? 'name' + Math.random(),
-		isRundownActive: params.isRundownActive ?? false,
-	} as RundownInterface)
-}
 
 function createTestee(params: {
 	rundownEventEmitter?: RundownEventEmitter
