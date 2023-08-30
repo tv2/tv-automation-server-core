@@ -1,20 +1,21 @@
-import { RundownService } from '../interfaces/rundown-service'
+import { RundownEventEmitter } from './interfaces/rundown-event-emitter'
+import { RundownRepository } from '../../data-access/repositories/interfaces/rundown-repository'
+import { Rundown } from '../../model/entities/rundown'
+import { TimelineRepository } from '../../data-access/repositories/interfaces/timeline-repository'
+import { TimelineBuilder } from './interfaces/timeline-builder'
+import { Timeline } from '../../model/entities/timeline'
+import { AdLibPieceRepository } from '../../data-access/repositories/interfaces/ad-lib-piece-repository'
+import { AdLibPiece } from '../../model/entities/ad-lib-piece'
+import { Piece } from '../../model/entities/piece'
+import { RundownEventBuilder } from './interfaces/rundown-event-builder'
+import { CallbackScheduler } from './interfaces/callback-scheduler'
+import { RundownService } from './interfaces/rundown-service'
 import {
 	AdLibPieceInsertedEvent,
 	InfiniteRundownPieceAddedEvent,
 	RundownEvent,
-} from '../../../model/interfaces/rundown-event'
-import { RundownEventEmitter } from '../interfaces/rundown-event-emitter'
-import { RundownRepository } from '../../../data-access/repositories/interfaces/rundown-repository'
-import { Rundown } from '../../../model/entities/rundown'
-import { TimelineRepository } from '../../../data-access/repositories/interfaces/timeline-repository'
-import { TimelineBuilder } from '../interfaces/timeline-builder'
-import { Timeline } from '../../../model/entities/timeline'
-import { AdLibPieceRepository } from '../../../data-access/repositories/interfaces/ad-lib-piece-repository'
-import { AdLibPiece } from '../../../model/entities/ad-lib-piece'
-import { Piece } from '../../../model/entities/piece'
-import { RundownEventBuilder } from '../interfaces/rundown-event-builder'
-import { ActiveRundownException } from '../../../model/exceptions/active-rundown-exception'
+} from '../../model/value-objects/rundown-event'
+import { ActiveRundownException } from '../../model/exceptions/active-rundown-exception'
 
 export class RundownTimelineService implements RundownService {
 	constructor(
@@ -23,7 +24,8 @@ export class RundownTimelineService implements RundownService {
 		private timelineRepository: TimelineRepository,
 		private adLibPieceRepository: AdLibPieceRepository,
 		private timelineBuilder: TimelineBuilder,
-		private rundownEventBuilder: RundownEventBuilder
+		private rundownEventBuilder: RundownEventBuilder,
+		private callbackScheduler: CallbackScheduler
 	) {}
 
 	public async activateRundown(rundownId: string): Promise<void> {
@@ -46,6 +48,8 @@ export class RundownTimelineService implements RundownService {
 	}
 
 	public async deactivateRundown(rundownId: string): Promise<void> {
+		this.callbackScheduler.stop()
+
 		const rundown: Rundown = await this.rundownRepository.getRundown(rundownId)
 
 		rundown.deactivate()
@@ -59,15 +63,24 @@ export class RundownTimelineService implements RundownService {
 	}
 
 	public async takeNext(rundownId: string): Promise<void> {
+		this.callbackScheduler.stop()
+
 		const rundown: Rundown = await this.rundownRepository.getRundown(rundownId)
 		const infinitePiecesBefore: Piece[] = rundown.getInfinitePieces()
 
 		rundown.takeNext()
 
 		const timeline: Timeline = this.timelineBuilder.buildTimeline(rundown)
+
+		if (timeline.autoNext) {
+			this.callbackScheduler.start(timeline.autoNext.epochTimeToTakeNext, async () => this.takeNext(rundownId))
+		}
+
 		this.timelineRepository.saveTimeline(timeline)
 
 		this.emitAddInfinitePieces(rundown, infinitePiecesBefore)
+		// TODO: Emit if any infinite Pieces no longer exist e.g. we had a Segment infinite Piece and we changed Segment
+		// TODO: Should we just emit a list of current infinite Pieces? That would be easy, but it then we would potentially emit the same pieces over and over again.
 
 		this.rundownRepository.saveRundown(rundown)
 
@@ -99,6 +112,8 @@ export class RundownTimelineService implements RundownService {
 	}
 
 	public async resetRundown(rundownId: string): Promise<void> {
+		this.callbackScheduler.stop()
+
 		const rundown: Rundown = await this.rundownRepository.getRundown(rundownId)
 		rundown.reset()
 
@@ -112,6 +127,10 @@ export class RundownTimelineService implements RundownService {
 	}
 
 	public async executeAdLibPiece(rundownId: string, adLibPieceId: string): Promise<void> {
+		// TODO: We don't need to recalculate the entire Rundown when an AdLib is added.
+		// TODO: E.g. it should be enough just to add an AdLibPiece to the "ActivePartGroup"
+		// TODO: An AdLibPart would require more, but the point still stand. We should aim to recalculate as little as possible.
+
 		const rundown: Rundown = await this.rundownRepository.getRundown(rundownId)
 		const adLibPiece: AdLibPiece = await this.adLibPieceRepository.getAdLibPiece(adLibPieceId)
 

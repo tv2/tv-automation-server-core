@@ -1,7 +1,11 @@
 import { Piece } from './piece'
-import { TimelineObject } from './timeline-object'
 import { AdLibPiece } from './ad-lib-piece'
-import { PieceLifeSpan } from '../enums/piece-life-span'
+import { PieceLifespan } from '../enums/piece-lifespan'
+import { PartTimings } from '../value-objects/part-timings'
+import { UnsupportedOperation } from '../exceptions/unsupported-operation'
+import { InTransition } from '../value-objects/in-transition'
+import { OutTransition } from '../value-objects/out-transition'
+import { AutoNext } from '../value-objects/auto-next'
 
 export interface PartInterface {
 	id: string
@@ -12,20 +16,37 @@ export interface PartInterface {
 	isOnAir: boolean
 	isNext: boolean
 	expectedDuration: number
+
+	inTransition: InTransition
+	outTransition: OutTransition
+
+	autoNext?: AutoNext
+	disableNextInTransition: boolean
 }
 
 export class Part {
 	readonly id: string
 	readonly segmentId: string
-	name: string
-	rank: number
-	pieces: Piece[]
-	expectedDuration: number
+	readonly name: string
+	readonly rank: number
+
+	readonly expectedDuration: number
+
+	readonly inTransition: InTransition
+	readonly outTransition: OutTransition
+
+	readonly autoNext?: AutoNext
+	readonly disableNextInTransition: boolean
+
+	private pieces: Piece[]
 
 	private isPartOnAir: boolean
 	private isPartNext: boolean
 
 	private adLibPieces: AdLibPiece[] = []
+
+	private executedAt: number
+	private timings?: PartTimings
 
 	constructor(part: PartInterface) {
 		this.id = part.id
@@ -36,10 +57,22 @@ export class Part {
 		this.isPartOnAir = part.isOnAir
 		this.isPartNext = part.isNext
 		this.expectedDuration = part.expectedDuration
+
+		this.inTransition = part.inTransition ?? { keepPreviousPartAliveDuration: 0, delayPiecesDuration: 0 }
+		this.outTransition = part.outTransition ?? { keepAliveDuration: 0 }
+
+		this.disableNextInTransition = part.disableNextInTransition
+		this.autoNext = part.autoNext
+
+		this.executedAt = 0
 	}
 
 	public putOnAir(): void {
 		this.isPartOnAir = true
+
+		const now: number = Date.now()
+		this.executedAt = now
+		this.pieces.forEach((piece) => piece.setExecutedAt(now))
 	}
 
 	public takeOffAir(): void {
@@ -62,32 +95,99 @@ export class Part {
 		return this.isPartNext
 	}
 
-	public getTimelineObjects(): TimelineObject[] {
-		const now: number = new Date().getTime()
-		const adLibTimelineObjects: TimelineObject[] = this.adLibPieces
-			.filter((piece) => this.shouldAdLibPieceBeShown(piece, now))
-			.flatMap((piece) => piece.timelineObjects)
-		const pieceTimelineObjects: TimelineObject[] = this.pieces.flatMap((piece) => piece.timelineObjects)
-		return adLibTimelineObjects.concat(pieceTimelineObjects)
+	public getPieces(): Piece[] {
+		return this.pieces
 	}
 
-	private shouldAdLibPieceBeShown(adLibPiece: AdLibPiece, executionTime: number): boolean {
-		return (
-			adLibPiece.getExecutedAt() > 0 &&
-			adLibPiece.getExecutedAt() <= executionTime &&
-			adLibPiece.getExecutedAt() + adLibPiece.duration > executionTime
-		)
+	public setPieces(pieces: Piece[]): void {
+		this.pieces = pieces
 	}
 
 	public addAdLibPiece(adLibPiece: AdLibPiece): void {
 		this.adLibPieces.push(adLibPiece)
 	}
 
-	public getInfiniteRundownPieces(): Piece[] {
-		return this.pieces.filter((piece) => piece.pieceLifeSpan === PieceLifeSpan.INFINITE_RUNDOWN)
+	public getPiecesWithLifespan(lifespanFilters: PieceLifespan[]): Piece[] {
+		return this.pieces.filter((piece) => lifespanFilters.includes(piece.pieceLifespan))
 	}
 
-	public getSegmentRundownPieces(): Piece[] {
-		return this.pieces.filter((piece) => piece.pieceLifeSpan === PieceLifeSpan.INFINITE_SEGMENT)
+	public getExecutedAt(): number {
+		return this.executedAt
+	}
+
+	// TODO: This implementation currently reflects how Core implemented it. It's in dire need of a refactor.
+	public calculateTimings(previousPart?: Part): void {
+		const maxPreRollDurationFromPieces: number = this.pieces
+			// Note: Core filters for !BlueprintPieceType.Normal and piece.enable.start !== 'now' - Will does Pieces ever have a PreRollDuration?
+			.reduce((preRollDuration: number, piece: Piece) => Math.max(preRollDuration, piece.preRollDuration ?? 0), 0)
+
+		const maxPostRollDurationForPieces: number = this.pieces
+			.filter((piece) => !!piece.postRollDuration && !piece.duration)
+			.reduce((postRollDuration: number, piece: Piece) => Math.max(postRollDuration, piece.postRollDuration), 0)
+
+		let inTransition: InTransition | undefined
+		let allowTransition: boolean = false
+
+		if (previousPart /* && notInHold */) {
+			if (previousPart.autoNext && previousPart.autoNext.overlap) {
+				// Having "autoNext" & "autoNextOverLap" overrides the InTransition of the next Part.
+				allowTransition = false
+				inTransition = {
+					keepPreviousPartAliveDuration: previousPart.autoNext.overlap,
+					delayPiecesDuration: 0,
+				}
+			} else if (!previousPart.disableNextInTransition) {
+				allowTransition = true
+				inTransition = {
+					keepPreviousPartAliveDuration: this.inTransition.keepPreviousPartAliveDuration ?? 0,
+					delayPiecesDuration: this.inTransition.delayPiecesDuration ?? 0,
+				}
+			}
+		}
+
+		if (!inTransition || !previousPart) {
+			const delayStartOfPiecesDuration: number = Math.max(
+				0,
+				previousPart?.outTransition.keepAliveDuration ?? 0,
+				maxPreRollDurationFromPieces
+			)
+
+			this.timings = {
+				inTransitionStart: undefined,
+				delayStartOfPiecesDuration,
+				postRollDuration: maxPostRollDurationForPieces,
+				previousPartContinueIntoPartDuration:
+					delayStartOfPiecesDuration + (previousPart?.getTimings().postRollDuration ?? 0),
+			}
+			return
+		}
+
+		const previousPartOutTransitionDuration: number = previousPart.outTransition.keepAliveDuration
+			? previousPart.outTransition.keepAliveDuration - inTransition.keepPreviousPartAliveDuration
+			: 0
+
+		const preRollDurationConsideringDelay: number = maxPreRollDurationFromPieces - inTransition.delayPiecesDuration
+		const delayStartOfPiecesDuration: number = Math.max(
+			0,
+			previousPartOutTransitionDuration,
+			preRollDurationConsideringDelay
+		)
+
+		this.timings = {
+			inTransitionStart: allowTransition ? delayStartOfPiecesDuration : undefined,
+			delayStartOfPiecesDuration: delayStartOfPiecesDuration + inTransition.delayPiecesDuration,
+			postRollDuration: maxPostRollDurationForPieces,
+			previousPartContinueIntoPartDuration:
+				delayStartOfPiecesDuration +
+				inTransition.keepPreviousPartAliveDuration +
+				previousPart.getTimings().postRollDuration,
+		}
+	}
+
+	public getTimings(): PartTimings {
+		if (!this.timings) {
+			throw new UnsupportedOperation(`No Timings has been calculated for Part: ${this.id}`)
+		}
+		return this.timings
 	}
 }

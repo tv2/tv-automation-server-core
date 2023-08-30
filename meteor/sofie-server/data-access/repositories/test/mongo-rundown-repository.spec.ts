@@ -7,6 +7,7 @@ import { anyString, anything, instance, mock, spy, verify, when } from 'ts-mocki
 import { MongoEntityConverter } from '../mongo/mongo-entity-converter'
 import { NotFoundException } from '../../../model/exceptions/not-found-exception'
 import { Db } from 'mongodb'
+import { RundownBaselineRepository } from '../interfaces/rundown-baseline-repository'
 
 const COLLECTION_NAME = 'rundowns'
 describe(`${MongoRundownRepository.name}`, () => {
@@ -152,6 +153,7 @@ describe(`${MongoRundownRepository.name}`, () => {
 		return new MongoRundownRepository(
 			instance(params.mongoDb),
 			instance(mongoConverter),
+			instance(mock<RundownBaselineRepository>()),
 			instance(segmentRepository)
 		)
 	}

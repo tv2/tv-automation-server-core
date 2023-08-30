@@ -1,7 +1,7 @@
 import WebSocket, { WebSocketServer } from 'ws'
 import express from 'express'
 import * as http from 'http'
-import { RundownEvent } from '../../model/interfaces/rundown-event'
+import { RundownEvent } from '../../model/value-objects/rundown-event'
 import { RundownEventServer } from './interfaces/rundown-event-server'
 import { RundownEventListener } from '../../business-logic/services/interfaces/rundown-event-listener'
 

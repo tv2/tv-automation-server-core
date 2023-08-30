@@ -1,6 +1,5 @@
 import { anything, instance, mock, verify, when } from 'ts-mockito'
 import { Rundown, RundownInterface } from '../../../model/entities/rundown'
-import { RundownTimelineService } from '../timeline-integration/rundown-timeline-service'
 import { RundownEventEmitter } from '../interfaces/rundown-event-emitter'
 import { RundownRepository } from '../../../data-access/repositories/interfaces/rundown-repository'
 import { TimelineRepository } from '../../../data-access/repositories/interfaces/timeline-repository'
@@ -9,6 +8,8 @@ import { TimelineBuilder } from '../interfaces/timeline-builder'
 import { RundownEventBuilder } from '../interfaces/rundown-event-builder'
 import { ActiveRundownException } from '../../../model/exceptions/active-rundown-exception'
 import { RundownEventType } from '../../../model/enums/rundown-event-type'
+import { RundownTimelineService } from '../rundown-timeline-service'
+import { CallbackScheduler } from '../interfaces/callback-scheduler'
 
 describe(`${RundownTimelineService.name}`, () => {
 	describe(`${RundownTimelineService.prototype.deleteRundown.name}`, () => {
@@ -107,6 +108,7 @@ function createTestee(params: {
 	adLibPieceRepository?: AdLibPieceRepository
 	timelineBuilder?: TimelineBuilder
 	rundownEventBuilder?: RundownEventBuilder
+	callbackScheduler?: CallbackScheduler
 }): RundownTimelineService {
 	return new RundownTimelineService(
 		params.rundownEventEmitter ?? instance(mock<RundownEventEmitter>()),
@@ -114,6 +116,7 @@ function createTestee(params: {
 		params.timelineRepository ?? instance(mock<TimelineRepository>()),
 		params.adLibPieceRepository ?? instance(mock<AdLibPieceRepository>()),
 		params.timelineBuilder ?? instance(mock<TimelineBuilder>()),
-		params.rundownEventBuilder ?? instance(mock<RundownEventBuilder>())
+		params.rundownEventBuilder ?? instance(mock<RundownEventBuilder>()),
+		params.callbackScheduler ?? instance(mock<CallbackScheduler>())
 	)
 }

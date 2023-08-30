@@ -78,6 +78,7 @@
 		"moment": "^2.29.2",
 		"mos-connection": "^2.0.1",
 		"nanoid": "^3.3.4",
+		"nodemon": "^3.0.1",
 		"ntp-client": "^0.5.3",
 		"object-path": "^0.11.8",
 		"p-lazy": "^3.1.0",
@@ -164,6 +165,7 @@
 		"standard-version": "^9.5.0",
 		"ts-jest": "^26.5.6",
 		"ts-mockito": "2.6.1",
+		"ts-node": "10.9.1",
 		"typescript": "~4.5",
 		"xml2js": "^0.4.23",
 		"yargs": "^17.5.1"

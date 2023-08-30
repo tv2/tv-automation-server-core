@@ -8,6 +8,8 @@ import { BasicRundown } from '../../../model/entities/basic-rundown'
 import { DeletionFailedException } from '../../../model/exceptions/deletion-failed-exception'
 import { NotFoundException } from '../../../model/exceptions/not-found-exception'
 import { DeleteResult, ObjectId } from 'mongodb'
+import { RundownBaselineRepository } from '../interfaces/rundown-baseline-repository'
+import { TimelineObject } from '../../../model/entities/timeline-object'
 
 const RUNDOWN_COLLECTION_NAME: string = 'rundowns'
 
@@ -15,6 +17,7 @@ export class MongoRundownRepository extends BaseMongoRepository implements Rundo
 	constructor(
 		mongoDatabase: MongoDatabase,
 		mongoEntityConverter: MongoEntityConverter,
+		private rundownBaselineRepository: RundownBaselineRepository,
 		private segmentRepository: SegmentRepository
 	) {
 		super(mongoDatabase, mongoEntityConverter)
@@ -41,7 +44,10 @@ export class MongoRundownRepository extends BaseMongoRepository implements Rundo
 		if (!mongoRundown) {
 			throw new NotFoundException(`Failed to find a rundown with id: ${rundownId}`)
 		}
-		const rundown: Rundown = this.mongoEntityConverter.convertRundown(mongoRundown)
+		const baselineTimelineObjects: TimelineObject[] = await this.rundownBaselineRepository.getRundownBaseline(
+			rundownId
+		)
+		const rundown: Rundown = this.mongoEntityConverter.convertRundown(mongoRundown, baselineTimelineObjects)
 		rundown.setSegments(await this.segmentRepository.getSegments(rundown.id))
 		return rundown
 	}

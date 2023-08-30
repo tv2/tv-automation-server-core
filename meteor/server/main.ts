@@ -70,6 +70,3 @@ import './email'
 // Setup publications and security:
 import './publications/_publications'
 import './security/_security'
-
-// Import SofieServer backend
-import '../sofie-server/presentation/index'
