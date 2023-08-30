@@ -40,9 +40,8 @@ export class MongoPartRepository extends BaseMongoRepository implements PartRepo
 		this.assertDatabaseConnection(this.deletePartsForSegment.name)
 		const parts: Part[] = await this.getParts(segmentId)
 
-		for (const part of parts) {
-			await this.pieceRepository.deletePiecesForPart(part.id)
-		}
+		await Promise.all(parts.map(async (part) => this.pieceRepository.deletePiecesForPart(part.id)))
+
 		const partsDeletedResult: DeleteResult = await this.getCollection().deleteMany({ segmentId: segmentId })
 
 		if (!partsDeletedResult.acknowledged) {
