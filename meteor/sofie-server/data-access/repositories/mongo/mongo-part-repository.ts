@@ -28,7 +28,7 @@ export class MongoPartRepository extends BaseMongoRepository implements PartRepo
 		const parts: Part[] = this.mongoEntityConverter.convertParts(mongoParts)
 		return Promise.all(
 			parts.map(async (part) => {
-				part.pieces = await this.pieceRepository.getPieces(part.id)
+				part.setPieces(await this.pieceRepository.getPieces(part.id))
 				return part
 			})
 		)

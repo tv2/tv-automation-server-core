@@ -4,10 +4,12 @@ import { Part } from '../../../model/entities/part'
 import { Piece } from '../../../model/entities/piece'
 import { PieceType } from '../../../model/enums/piece-type'
 import { Timeline } from '../../../model/entities/timeline'
-import { Identifier } from '../../../model/interfaces/identifier'
+import { Identifier } from '../../../model/value-objects/identifier'
 import { AdLibPiece } from '../../../model/entities/ad-lib-piece'
-import { PieceLifeSpan } from '../../../model/enums/piece-life-span'
+import { PieceLifespan } from '../../../model/enums/piece-lifespan'
+import { TransitionType } from '../../../model/enums/transition-type'
 import { BasicRundown } from '../../../model/entities/basic-rundown'
+import { TimelineObject } from '../../../model/entities/timeline-object'
 
 export interface MongoIdentifier {
 	_id: string
@@ -58,6 +60,16 @@ export interface MongoPart {
 	title: string
 	_rank: number
 	expectedDuration: number
+	inTransition?: {
+		previousPartKeepaliveDuration: number
+		partContentDelayDuration: number
+	}
+	outTransition?: {
+		duration: number
+	}
+	autoNext: boolean
+	autoNextOverlap: number
+	disableNextInTransition: boolean
 }
 
 export interface MongoPiece {
@@ -66,11 +78,14 @@ export interface MongoPiece {
 	name: string
 	sourceLayerId: string
 	enable: {
-		start: number
+		start: number | string
 		duration: number
 	}
+	prerollDuration: number
+	postrollDuration: number
 	timelineObjectsString: string
 	lifespan: string
+	pieceType: string
 }
 
 export interface MongoTimeline {
@@ -89,29 +104,15 @@ export interface MongoAdLibPiece {
 }
 
 export class MongoEntityConverter {
-	public convertIdentifier(mongoIdentifier: MongoIdentifier): Identifier {
-		return {
-			id: mongoIdentifier._id,
-			name: mongoIdentifier.name,
-		}
-	}
-
-	public convertIdentifiers(mongoIdentifiers: MongoIdentifier[]): Identifier[] {
-		return mongoIdentifiers.map(this.convertIdentifier)
-	}
-
-	public convertRundown(mongoRundown: MongoRundown): Rundown {
+	public convertRundown(mongoRundown: MongoRundown, baselineTimelineObjects?: TimelineObject[]): Rundown {
 		return new Rundown({
 			id: mongoRundown._id,
 			name: mongoRundown.name,
+			baselineTimelineObjects: baselineTimelineObjects ?? [],
 			isRundownActive: false,
 			segments: [],
 			modifiedAt: mongoRundown.modified,
 		})
-	}
-
-	public convertRundowns(mongoRundowns: MongoRundown[]): Rundown[] {
-		return mongoRundowns.map(this.convertRundown)
 	}
 
 	public convertBasicRundown(mongoRundown: MongoRundown): BasicRundown {
@@ -148,6 +149,15 @@ export class MongoEntityConverter {
 			isOnAir: false,
 			isNext: false,
 			pieces: [],
+			inTransition: {
+				keepPreviousPartAliveDuration: mongoPart.inTransition?.previousPartKeepaliveDuration ?? 0,
+				delayPiecesDuration: mongoPart.inTransition?.partContentDelayDuration ?? 0,
+			},
+			outTransition: {
+				keepAliveDuration: mongoPart.outTransition?.duration ?? 0,
+			},
+			autoNext: mongoPart.autoNext ? { overlap: mongoPart.autoNextOverlap } : undefined,
+			disableNextInTransition: mongoPart.disableNextInTransition,
 		})
 	}
 
@@ -162,28 +172,50 @@ export class MongoEntityConverter {
 			name: mongoPiece.name,
 			layer: mongoPiece.sourceLayerId,
 			type: PieceType.UNKNOWN,
-			pieceLifeSpan: this.mapMongoPieceLifeSpan(mongoPiece.lifespan),
-			start: mongoPiece.enable.start,
+			pieceLifespan: this.mapMongoPieceLifeSpan(mongoPiece.lifespan),
+			start: typeof mongoPiece.enable.start === 'number' ? mongoPiece.enable.start : 0,
 			duration: mongoPiece.enable.duration,
+			preRollDuration: mongoPiece.prerollDuration,
+			postRollDuration: mongoPiece.prerollDuration,
+			transitionType: this.mapMongoPieceTypeToTransitionType(mongoPiece.pieceType),
 			timelineObjects: JSON.parse(mongoPiece.timelineObjectsString),
 		})
 	}
 
-	private mapMongoPieceLifeSpan(mongoPieceLifeSpan: string): PieceLifeSpan {
+	private mapMongoPieceLifeSpan(mongoPieceLifeSpan: string): PieceLifespan {
 		switch (mongoPieceLifeSpan) {
 			case 'showstyle-end':
-			case 'rundown-end':
 			case 'rundown-change': {
-				return PieceLifeSpan.INFINITE_RUNDOWN
+				return PieceLifespan.STICKY_UNTIL_RUNDOWN_CHANGE
 			}
-			case 'segment-end':
+			case 'rundown-end': {
+				return PieceLifespan.SPANNING_UNTIL_RUNDOWN_END
+			}
 			case 'segment-change': {
-				return PieceLifeSpan.INFINITE_SEGMENT
+				return PieceLifespan.STICKY_UNTIL_SEGMENT_CHANGE
+			}
+			case 'segment-end': {
+				return PieceLifespan.SPANNING_UNTIL_SEGMENT_END
+			}
+			case 'rundown-change-segment-lookback': {
+				return PieceLifespan.START_SPANNING_SEGMENT_THEN_STICKY_RUNDOWN
 			}
 			case 'part-only':
 			default: {
-				return PieceLifeSpan.WITHIN_PART
+				return PieceLifespan.WITHIN_PART
 			}
+		}
+	}
+
+	private mapMongoPieceTypeToTransitionType(type: string): TransitionType {
+		switch (type) {
+			case 'in-transition':
+				return TransitionType.IN_TRANSITION
+			case 'out-transition':
+				return TransitionType.OUT_TRANSITION
+			case 'normal':
+			default:
+				return TransitionType.NO_TRANSITION
 		}
 	}
 
@@ -196,7 +228,7 @@ export class MongoEntityConverter {
 			_id: 'studio0',
 			timelineHash: '',
 			generated: new Date().getTime(),
-			timelineBlob: JSON.stringify(timeline.timelineObjects),
+			timelineBlob: JSON.stringify(timeline.timelineGroups),
 		}
 	}
 

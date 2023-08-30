@@ -1,6 +1,6 @@
 import { BaseController, GetRequest, PutRequest, RestController } from './base-controller'
 import { Request, Response } from 'express'
-import { Identifier } from '../../model/interfaces/identifier'
+import { Identifier } from '../../model/value-objects/identifier'
 import { Exception } from '../../model/exceptions/exception'
 import { AdLibPieceRepository } from '../../data-access/repositories/interfaces/ad-lib-piece-repository'
 import { HttpErrorHandler } from '../interfaces/http-error-handler'

@@ -2,6 +2,7 @@ import { Part } from './part'
 import { LastPartInSegmentException } from '../exceptions/last-part-in-segment-exception'
 import { NotFoundException } from '../exceptions/not-found-exception'
 import { Piece } from './piece'
+import { PieceLifespan } from '../enums/piece-lifespan'
 
 export interface SegmentInterface {
 	id: string
@@ -22,8 +23,6 @@ export class Segment {
 	private isSegmentOnAir: boolean
 	private isSegmentNext: boolean
 	private parts: Part[]
-
-	private infinitePieces: Map<string, Piece> = new Map()
 
 	constructor(segment: SegmentInterface) {
 		this.id = segment.id
@@ -91,11 +90,46 @@ export class Segment {
 		return this.parts
 	}
 
-	public addInfinitePieces(infinitePieces: Piece[]): void {
-		infinitePieces.forEach((piece: Piece) => this.infinitePieces.set(piece.layer, piece))
+	public getFirstSpanningPieceForEachLayerBeforePart(part: Part, layersToIgnore: Set<string>): Piece[] {
+		const indexOfPart: number = this.parts.findIndex((p) => p.id === part.id)
+		return this.getPiecesOnUnusedLayersFromIndexToStart(indexOfPart - 1, layersToIgnore, [
+			PieceLifespan.SPANNING_UNTIL_RUNDOWN_END,
+			PieceLifespan.SPANNING_UNTIL_SEGMENT_END,
+			PieceLifespan.START_SPANNING_SEGMENT_THEN_STICKY_RUNDOWN,
+		])
 	}
 
-	public getInfinitePieces(): Piece[] {
-		return Array.from(this.infinitePieces.values())
+	private getPiecesOnUnusedLayersFromIndexToStart(
+		startIndex: number,
+		usedLayers: Set<string>,
+		lifespans: PieceLifespan[]
+	): Piece[] {
+		return this.parts
+			.slice(0, startIndex + 1)
+			.flatMap((part) => part.getPiecesWithLifespan(lifespans))
+			.reduceRight(this.createGetPiecesOnUnusedLayersReducer(usedLayers), [])
+	}
+
+	private createGetPiecesOnUnusedLayersReducer(
+		originalUsedLayers: Set<string>
+	): (pieces: Piece[], piece: Piece) => Piece[] {
+		const usedLayers: Set<string> = new Set(originalUsedLayers)
+		return (pieces: Piece[], piece: Piece) => {
+			if (!usedLayers.has(piece.layer)) {
+				pieces.push(piece)
+				usedLayers.add(piece.layer)
+			}
+			return pieces
+		}
+	}
+
+	public getFirstSpanningRundownPieceForEachLayerForAllParts(layersToIgnore: Set<string>): Piece[] {
+		return this.getPiecesOnUnusedLayersFromIndexToStart(this.parts.length - 1, layersToIgnore, [
+			PieceLifespan.SPANNING_UNTIL_RUNDOWN_END,
+		])
+	}
+
+	public doesPieceBelongToSegment(piece: Piece): boolean {
+		return this.parts.some((part) => part.id === piece.partId)
 	}
 }
