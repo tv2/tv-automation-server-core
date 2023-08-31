@@ -64,8 +64,8 @@ describe(`${MongoRundownRepository.name}`, () => {
 		it('does not delete, when nonexistent rundownId is given', async () => {
 			const nonExistingId: string = 'nonExistingId'
 			const rundownName: string = 'someName'
-			const rundown: MongoRundown = createMongoRundown({ name: rundownName })
-			await testDatabase.populateDatabaseWithInactiveRundowns([rundown])
+			const mongoRundown: MongoRundown = createMongoRundown({ name: rundownName })
+			await testDatabase.populateDatabaseWithInactiveRundowns([mongoRundown])
 			const db: Db = testDatabase.getDatabase()
 
 			const testee: MongoRundownRepository = createTestee({})
@@ -79,8 +79,8 @@ describe(`${MongoRundownRepository.name}`, () => {
 		it('throws exception, when nonexistent rundownId is given', async () => {
 			const nonExistingId: string = 'nonExistingId'
 			const rundownName: string = 'someName'
-			const rundown: MongoRundown = createMongoRundown({ name: rundownName })
-			await testDatabase.populateDatabaseWithInactiveRundowns([rundown])
+			const mongoRundown: MongoRundown = createMongoRundown({ name: rundownName })
+			await testDatabase.populateDatabaseWithInactiveRundowns([mongoRundown])
 			const db: Db = testDatabase.getDatabase()
 
 			const testee: MongoRundownRepository = createTestee({})
@@ -95,10 +95,10 @@ describe(`${MongoRundownRepository.name}`, () => {
 			const segmentRepository: SegmentRepository = mock<SegmentRepository>()
 			const mongoDb: MongoDatabase = mock(MongoDatabase)
 			const rundownId: string = 'someRundownId'
-			const rundown: MongoRundown = createMongoRundown({
+			const mongoRundown: MongoRundown = createMongoRundown({
 				_id: rundownId as unknown as ObjectId,
 			})
-			await testDatabase.populateDatabaseWithInactiveRundowns([rundown])
+			await testDatabase.populateDatabaseWithInactiveRundowns([mongoRundown])
 			const db: Db = testDatabase.getDatabase()
 			const collection = db.collection(COLLECTION_NAME)
 			const spiedCollection = spy(collection)
