@@ -17,31 +17,27 @@ describe(`${RundownTimelineService.name}`, () => {
 		// eslint-disable-next-line jest/expect-expect
 		it('deletes a rundown, when it receives a valid RundownId', async () => {
 			const mockRundownRepository: RundownRepository = mock<RundownRepository>()
+			const rundown: Rundown = EntityMockFactory.createRundown({ isRundownActive: false })
 
-			const rundownId: string = 'randomRundownId'
-			const rundown: Rundown = EntityMockFactory.createRundown({ id: rundownId, isRundownActive: false })
-
-			when(mockRundownRepository.getRundown(rundownId)).thenResolve(rundown)
+			when(mockRundownRepository.getRundown(rundown.id)).thenResolve(rundown)
 
 			const testee: RundownTimelineService = createTestee({ rundownRepository: instance(mockRundownRepository) })
 
-			await testee.deleteRundown(rundownId)
+			await testee.deleteRundown(rundown.id)
 
-			verify(mockRundownRepository.deleteRundown(rundownId)).once()
+			verify(mockRundownRepository.deleteRundown(rundown.id)).once()
 		})
 
 		// eslint-disable-next-line jest/expect-expect
 		it('builds a rundown deleted event, when it receives a valid RundownId', async () => {
 			const mockRundownRepository: RundownRepository = mock<RundownRepository>()
 			const mockRundownEventBuilder: RundownEventBuilder = mock<RundownEventBuilder>()
+			const rundown: Rundown = EntityMockFactory.createRundown({ isRundownActive: false })
 
-			const rundownId: string = 'someRundownId'
-			const rundown: Rundown = EntityMockFactory.createRundown({ id: rundownId, isRundownActive: false })
-
-			when(mockRundownRepository.getRundown(rundownId)).thenResolve(rundown)
+			when(mockRundownRepository.getRundown(rundown.id)).thenResolve(rundown)
 			when(mockRundownEventBuilder.buildDeletedEvent(anything())).thenReturn({
 				type: RundownEventType.DELETED,
-				rundownId: rundownId,
+				rundownId: rundown.id,
 				segmentId: '',
 				partId: '',
 			})
@@ -51,7 +47,7 @@ describe(`${RundownTimelineService.name}`, () => {
 				rundownEventBuilder: instance(mockRundownEventBuilder),
 			})
 
-			await testee.deleteRundown(rundownId)
+			await testee.deleteRundown(rundown.id)
 
 			verify(mockRundownEventBuilder.buildDeletedEvent(anything())).once()
 		})
@@ -61,17 +57,16 @@ describe(`${RundownTimelineService.name}`, () => {
 			const mockRundownRepository: RundownRepository = mock<RundownRepository>()
 			const mockRundownEventEmitter: RundownEventEmitter = mock<RundownEventEmitter>()
 
-			const rundownId: string = 'someRundownId'
-			const rundown: Rundown = EntityMockFactory.createRundown({ id: rundownId, isRundownActive: false })
+			const rundown: Rundown = EntityMockFactory.createRundown({ isRundownActive: false })
 
-			when(mockRundownRepository.getRundown(rundownId)).thenResolve(rundown)
+			when(mockRundownRepository.getRundown(rundown.id)).thenResolve(rundown)
 
 			const testee: RundownTimelineService = createTestee({
 				rundownRepository: instance(mockRundownRepository),
 				rundownEventEmitter: instance(mockRundownEventEmitter),
 			})
 
-			await testee.deleteRundown(rundownId)
+			await testee.deleteRundown(rundown.id)
 
 			//Todo: Improve verify to ensure it is of correct event type.
 			verify(mockRundownEventEmitter.emitRundownEvent(anything())).once()
@@ -80,13 +75,12 @@ describe(`${RundownTimelineService.name}`, () => {
 		it('throws an exception, when it receives a RundownId of an active rundown', async () => {
 			const mockRundownRepository: RundownRepository = mock<RundownRepository>()
 
-			const rundownId: string = 'someRundownId'
-			const rundown: Rundown = EntityMockFactory.createRundown({ id: rundownId, isRundownActive: true })
+			const rundown: Rundown = EntityMockFactory.createRundown({ isRundownActive: true })
 
-			when(mockRundownRepository.getRundown(rundownId)).thenResolve(rundown)
+			when(mockRundownRepository.getRundown(rundown.id)).thenResolve(rundown)
 
 			const testee: RundownTimelineService = createTestee({ rundownRepository: instance(mockRundownRepository) })
-			const action = async () => testee.deleteRundown(rundownId)
+			const action = async () => testee.deleteRundown(rundown.id)
 
 			await expect(action).rejects.toThrow(ActiveRundownException)
 		})
