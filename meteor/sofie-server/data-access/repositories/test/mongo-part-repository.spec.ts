@@ -133,7 +133,7 @@ describe(`${MongoPartRepository.name}`, () => {
 			await testDatabase.populateDatabaseWithParts([mongoPart])
 			const db: Db = testDatabase.getDatabase()
 			const collection = db.collection(COLLECTION_NAME)
-			const spied = spy(collection)
+			const spiedCollection = spy(collection)
 
 			when(mongoConverter.convertParts(anything())).thenReturn([part])
 			when(pieceRepository.getPieces(anything())).thenResolve([])
@@ -146,7 +146,7 @@ describe(`${MongoPartRepository.name}`, () => {
 
 			await testee.deletePartsForSegment(segmentId)
 
-			verify(pieceRepository.deletePiecesForPart(anything())).calledBefore(spied.deleteMany(anything()))
+			verify(pieceRepository.deletePiecesForPart(anything())).calledBefore(spiedCollection.deleteMany(anything()))
 		})
 	})
 

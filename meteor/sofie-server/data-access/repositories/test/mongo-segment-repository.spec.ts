@@ -140,7 +140,7 @@ describe(`${MongoSegmentRepository.name}`, () => {
 			const segment: Segment = EntityMockFactory.createSegment({ rundownId: rundownId })
 			await testDatabase.populateDatabaseWithSegments([mongoSegment])
 			const collection = db.collection(COLLECTION_NAME)
-			const spied = spy(collection)
+			const spiedCollection = spy(collection)
 
 			when(mongoConverter.convertSegments(anything())).thenReturn([segment])
 			when(partRepository.getParts(anything())).thenResolve([])
@@ -153,7 +153,9 @@ describe(`${MongoSegmentRepository.name}`, () => {
 
 			await testee.deleteSegmentsForRundown(rundownId)
 
-			verify(partRepository.deletePartsForSegment(anything())).calledBefore(spied.deleteMany(anything()))
+			verify(partRepository.deletePartsForSegment(anything())).calledBefore(
+				spiedCollection.deleteMany(anything())
+			)
 		})
 	})
 

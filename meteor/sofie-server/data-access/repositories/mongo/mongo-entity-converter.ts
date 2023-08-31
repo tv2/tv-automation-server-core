@@ -128,9 +128,9 @@ export class MongoEntityConverter {
 			showStyleVariantId: '', // Todo: figure out where the value for this attribute is
 			studioId: '', // Todo: figure out where the value for this attribute is
 			timing: { expectedDuration: 0, expectedEnd: 0, expectedStart: 0, type: '' }, // Todo: figure out where the value for this attribute is
-			// _id: new ObjectId(rundown.id),
+			_id: new ObjectId(rundown.id),
 			name: rundown.name,
-		} as unknown as MongoRundown
+		}
 	}
 
 	public convertToMongoRundowns(rundowns: Rundown[]): MongoRundown[] {
