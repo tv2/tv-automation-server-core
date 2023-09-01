@@ -1,6 +1,7 @@
 import { RundownRepository } from '../interfaces/rundown-repository'
 import { Rundown } from '../../../model/entities/rundown'
 import { BasicRundown } from '../../../model/entities/basic-rundown'
+import { DeletionFailedException } from '../../../model/exceptions/deletion-failed-exception'
 
 export class CachedRundownRepository implements RundownRepository {
 	private static instance: RundownRepository
@@ -34,5 +35,13 @@ export class CachedRundownRepository implements RundownRepository {
 		if (this.cachedRundowns.has(rundown.id)) {
 			this.cachedRundowns.set(rundown.id, rundown)
 		}
+	}
+
+	public async deleteRundown(rundownId: string): Promise<void> {
+		const wasDeleted: boolean = this.cachedRundowns.delete(rundownId)
+		if (!wasDeleted) {
+			throw new DeletionFailedException(`Failed to delete rundown from cache, with rundownId: ${rundownId}`)
+		}
+		await this.rundownRepository.deleteRundown(rundownId)
 	}
 }

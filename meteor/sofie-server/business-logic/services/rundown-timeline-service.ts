@@ -1,9 +1,3 @@
-import { RundownService } from './interfaces/rundown-service'
-import {
-	AdLibPieceInsertedEvent,
-	InfiniteRundownPieceAddedEvent,
-	RundownEvent,
-} from '../../model/value-objects/rundown-event'
 import { RundownEventEmitter } from './interfaces/rundown-event-emitter'
 import { RundownRepository } from '../../data-access/repositories/interfaces/rundown-repository'
 import { Rundown } from '../../model/entities/rundown'
@@ -15,6 +9,13 @@ import { AdLibPiece } from '../../model/entities/ad-lib-piece'
 import { Piece } from '../../model/entities/piece'
 import { RundownEventBuilder } from './interfaces/rundown-event-builder'
 import { CallbackScheduler } from './interfaces/callback-scheduler'
+import { RundownService } from './interfaces/rundown-service'
+import {
+	AdLibPieceInsertedEvent,
+	InfiniteRundownPieceAddedEvent,
+	RundownEvent,
+} from '../../model/value-objects/rundown-event'
+import { ActiveRundownException } from '../../model/exceptions/active-rundown-exception'
 
 export class RundownTimelineService implements RundownService {
 	constructor(
@@ -145,5 +146,18 @@ export class RundownTimelineService implements RundownService {
 			adLibPiece
 		)
 		this.rundownEventEmitter.emitRundownEvent(adLibPieceInsertedEvent)
+	}
+
+	public async deleteRundown(rundownId: string): Promise<void> {
+		const rundown: Rundown = await this.rundownRepository.getRundown(rundownId)
+
+		if (rundown.isActive()) {
+			throw new ActiveRundownException('Attempted to delete an active rundown')
+		}
+
+		await this.rundownRepository.deleteRundown(rundownId)
+
+		const deletedEvent: RundownEvent = this.rundownEventBuilder.buildDeletedEvent(rundown)
+		this.rundownEventEmitter.emitRundownEvent(deletedEvent)
 	}
 }

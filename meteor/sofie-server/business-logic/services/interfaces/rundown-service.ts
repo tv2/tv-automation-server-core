@@ -1,4 +1,5 @@
 export interface RundownService {
+	deleteRundown(rundownId: string): Promise<void>
 	activateRundown(rundownId: string): Promise<void>
 	deactivateRundown(rundownId: string): Promise<void>
 	takeNext(rundownId: string): Promise<void>

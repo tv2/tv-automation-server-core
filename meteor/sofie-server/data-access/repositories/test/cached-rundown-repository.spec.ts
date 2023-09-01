@@ -19,6 +19,7 @@ describe('cached-rundown-repository', () => {
 			expect(result).toBe(randomRundown)
 		})
 
+		// eslint-disable-next-line jest/expect-expect
 		it('receives two request to fetch the same Rundown, only call the database once', async () => {
 			const mockRepo: RundownRepository = mock<RundownRepository>()
 

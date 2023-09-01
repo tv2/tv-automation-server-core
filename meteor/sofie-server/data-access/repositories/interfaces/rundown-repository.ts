@@ -5,4 +5,5 @@ export interface RundownRepository {
 	getBasicRundowns(): Promise<BasicRundown[]>
 	getRundown(rundownId: string): Promise<Rundown>
 	saveRundown(rundown: Rundown): void
+	deleteRundown(rundownId: string): Promise<void>
 }

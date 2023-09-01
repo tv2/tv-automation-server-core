@@ -16,6 +16,10 @@ export class MongoRundownPlaylistRepository extends BaseMongoRepository implemen
 		super(mongoDatabase, mongoEntityConverter)
 	}
 
+	public async deleteRundown(rundownId: string): Promise<void> {
+		return this.rundownRepository.deleteRundown(rundownId)
+	}
+
 	protected getCollectionName(): string {
 		return RUNDOWN_PLAYLIST_COLLECTION_NAME
 	}
@@ -70,7 +74,7 @@ export class MongoRundownPlaylistRepository extends BaseMongoRepository implemen
 		return Object.entries(activationStatus).length > 0
 	}
 
-	saveRundown(_rundown: Rundown): void {
-		throw new Error('Not implemented')
+	public saveRundown(rundown: Rundown): void {
+		return this.rundownRepository.saveRundown(rundown)
 	}
 }
