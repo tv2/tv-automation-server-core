@@ -157,7 +157,7 @@ export class RundownTimelineService implements RundownService {
 
 		await this.rundownRepository.deleteRundown(rundownId)
 
-		const deletedEvent = this.rundownEventBuilder.buildDeletedEvent(rundown)
+		const deletedEvent: RundownEvent = this.rundownEventBuilder.buildDeletedEvent(rundown)
 		this.rundownEventEmitter.emitRundownEvent(deletedEvent)
 	}
 }

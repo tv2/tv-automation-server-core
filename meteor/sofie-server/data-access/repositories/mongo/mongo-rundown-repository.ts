@@ -72,13 +72,8 @@ export class MongoRundownRepository extends BaseMongoRepository implements Rundo
 		}
 	}
 	private async assertRundownExist(rundownId: string): Promise<void> {
-		const findCursor = this.getCollection().find({
-			_id: rundownId,
-		})
-		const mongoRundown: MongoRundown = (
-			await findCursor.project({ _id: 1 }).toArray()
-		)[0] as unknown as MongoRundown
-		if (!mongoRundown) {
+		const doesRundownExist: boolean = (await this.getCollection().countDocuments({ _id: rundownId })) === 1
+		if (!doesRundownExist) {
 			throw new NotFoundException(`Failed to find a rundown with id: ${rundownId}`)
 		}
 	}
