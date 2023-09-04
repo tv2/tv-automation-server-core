@@ -19,7 +19,7 @@ describe(`${MongoRundownRepository.name}`, () => {
 	describe(`${MongoRundownRepository.prototype.deleteRundown.name}`, () => {
 		it('deletes active rundown successfully', async () => {
 			const db: Db = testDatabase.getDatabase()
-			const rundownId: string = 'rundownId'
+			const rundownId: string = 'someRundownId'
 			const mongoRundown: MongoRundown = createMongoRundown({
 				_id: rundownId,
 			})
