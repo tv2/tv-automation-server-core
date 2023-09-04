@@ -143,12 +143,7 @@ export class MongoEntityConverter {
 	}
 
 	public convertToBasicRundown(mongoRundown: MongoRundown): BasicRundown {
-		return new BasicRundown(
-			mongoRundown._id,
-			mongoRundown.name,
-			mongoRundown.isActive,
-			mongoRundown.modified
-		)
+		return new BasicRundown(mongoRundown._id, mongoRundown.name, mongoRundown.isActive, mongoRundown.modified)
 	}
 
 	public convertToBasicRundowns(mongoRundowns: MongoRundown[]): BasicRundown[] {
