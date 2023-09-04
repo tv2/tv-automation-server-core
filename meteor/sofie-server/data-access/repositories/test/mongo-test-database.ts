@@ -33,13 +33,13 @@ export class MongoTestDatabase {
 	public async populateDatabaseWithActiveRundowns(rundowns: MongoRundown[]): Promise<void> {
 		const db: Db = this.getDatabase()
 		const rundownsCollection = db.collection('rundowns')
-		await Promise.all(rundowns.map(async (rundown) => await rundownsCollection.insertOne(rundown)))
+		await Promise.all(rundowns.map(async (rundown) => rundownsCollection.insertOne(rundown as object)))
 	}
 
 	public async populateDatabaseWithInactiveRundowns(rundowns: MongoRundown[]): Promise<void> {
 		const db: Db = this.getDatabase()
 		for (const rundown of rundowns) {
-			await db.collection('rundowns').insertOne(rundown)
+			await db.collection('rundowns').insertOne(rundown as object)
 			await db.collection('rundownPlaylists').insertOne({
 				externalId: rundown.name,
 			})
@@ -49,18 +49,18 @@ export class MongoTestDatabase {
 	public async populateDatabaseWithSegments(segments: MongoSegment[]): Promise<void> {
 		const db: Db = this.getDatabase()
 		const segmentsCollection = db.collection('segments')
-		await Promise.all(segments.map(async (segment) => segmentsCollection.insertOne(segment)))
+		await Promise.all(segments.map(async (segment) => segmentsCollection.insertOne(segment as object)))
 	}
 
 	public async populateDatabaseWithParts(parts: MongoPart[]): Promise<void> {
 		const db: Db = this.getDatabase()
 		const partsCollection = db.collection('parts')
-		await Promise.all(parts.map(async (part) => partsCollection.insertOne(part)))
+		await Promise.all(parts.map(async (part) => partsCollection.insertOne(part as object)))
 	}
 
 	public async populateDatabaseWithPieces(pieces: MongoPiece[]): Promise<void> {
 		const db: Db = this.getDatabase()
 		const piecesCollection = db.collection('pieces')
-		await Promise.all(pieces.map(async (piece) => piecesCollection.insertOne(piece)))
+		await Promise.all(pieces.map(async (piece) => piecesCollection.insertOne(piece as object)))
 	}
 }

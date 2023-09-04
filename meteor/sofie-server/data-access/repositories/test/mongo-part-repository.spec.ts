@@ -1,6 +1,6 @@
 import { MongoPartRepository } from '../mongo/mongo-part-repository'
 import { Part, PartInterface } from '../../../model/entities/part'
-import { Db, ObjectId } from 'mongodb'
+import { Db } from 'mongodb'
 import { MongoEntityConverter, MongoPart } from '../mongo/mongo-entity-converter'
 import { PartRepository } from '../interfaces/part-repository'
 import { MongoDatabase } from '../mongo/mongo-database'
@@ -153,7 +153,7 @@ describe(`${MongoPartRepository.name}`, () => {
 	describe(`${MongoPartRepository.prototype.save.name}`, () => {
 		it('has part as not on air and saves the part as on air', async () => {
 			const id: string = 'randomId'
-			const inactivePart: MongoPart = createMongoPart({ _id: id as unknown as ObjectId, isOnAir: false })
+			const inactivePart: MongoPart = createMongoPart({ _id: id, isOnAir: false })
 			const onAirPart: Part = createPart({ id: id, isOnAir: true })
 
 			await testDatabase.populateDatabaseWithParts([inactivePart])
@@ -167,7 +167,7 @@ describe(`${MongoPartRepository.name}`, () => {
 				autoNext: false,
 				autoNextOverlap: 0,
 				disableNextInTransition: false,
-				_id: onAirPart.id as unknown as ObjectId,
+				_id: onAirPart.id,
 				segmentId: onAirPart.segmentId,
 				_rank: onAirPart.rank,
 				isNext: onAirPart.isNext(),
@@ -191,7 +191,7 @@ describe(`${MongoPartRepository.name}`, () => {
 
 		it('has part as on air and saves the part as not on air', async () => {
 			const id: string = 'randomId'
-			const onAirPart: MongoPart = createMongoPart({ _id: id as unknown as ObjectId, isOnAir: true })
+			const onAirPart: MongoPart = createMongoPart({ _id: id, isOnAir: true })
 			const inactivePart: Part = createPart({ id: id, isOnAir: false })
 
 			await testDatabase.populateDatabaseWithParts([onAirPart])
@@ -205,7 +205,7 @@ describe(`${MongoPartRepository.name}`, () => {
 				autoNext: false,
 				autoNextOverlap: 0,
 				disableNextInTransition: false,
-				_id: inactivePart.id as unknown as ObjectId,
+				_id: inactivePart.id,
 				segmentId: inactivePart.segmentId,
 				_rank: inactivePart.rank,
 				isNext: inactivePart.isNext(),
@@ -229,7 +229,7 @@ describe(`${MongoPartRepository.name}`, () => {
 
 		it('does not have part as next but saves the part as next', async () => {
 			const id: string = 'randomId'
-			const nonQueuedPart: MongoPart = createMongoPart({ _id: id as unknown as ObjectId, isNext: false })
+			const nonQueuedPart: MongoPart = createMongoPart({ _id: id, isNext: false })
 			const nextPart: Part = createPart({ id: id, isNext: true })
 
 			await testDatabase.populateDatabaseWithParts([nonQueuedPart])
@@ -243,7 +243,7 @@ describe(`${MongoPartRepository.name}`, () => {
 				autoNext: false,
 				autoNextOverlap: 0,
 				disableNextInTransition: false,
-				_id: nextPart.id as unknown as ObjectId,
+				_id: nextPart.id,
 				segmentId: nextPart.segmentId,
 				_rank: nextPart.rank,
 				isNext: nextPart.isNext(),
@@ -267,7 +267,7 @@ describe(`${MongoPartRepository.name}`, () => {
 
 		it('has part as next and saves the part as not next', async () => {
 			const id: string = 'randomId'
-			const nextPart: MongoPart = createMongoPart({ _id: id as unknown as ObjectId, isNext: true })
+			const nextPart: MongoPart = createMongoPart({ _id: id, isNext: true })
 			const nonQueuedPart: Part = createPart({ id: id, isNext: false })
 
 			await testDatabase.populateDatabaseWithParts([nextPart])
@@ -281,7 +281,7 @@ describe(`${MongoPartRepository.name}`, () => {
 				autoNext: false,
 				autoNextOverlap: 0,
 				disableNextInTransition: false,
-				_id: nonQueuedPart.id as unknown as ObjectId,
+				_id: nonQueuedPart.id,
 				segmentId: nonQueuedPart.segmentId,
 				_rank: nonQueuedPart.rank,
 				isNext: nonQueuedPart.isNext(),
@@ -327,7 +327,7 @@ describe(`${MongoPartRepository.name}`, () => {
 
 	function createMongoPart(mongoPartInterface?: Partial<MongoPart>): MongoPart {
 		return {
-			_id: mongoPartInterface?._id ?? new ObjectId(),
+			_id: mongoPartInterface?._id ?? 'id' + Math.random(),
 			title: mongoPartInterface?.title ?? 'partTitle',
 			_rank: mongoPartInterface?._rank ?? Math.random() * 100,
 			segmentId: mongoPartInterface?.segmentId ?? 'segmentId' + Math.random() * 10,

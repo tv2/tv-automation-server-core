@@ -1,7 +1,7 @@
 import { MongoSegmentRepository } from '../mongo/mongo-segment-repository'
 import { MongoDatabase } from '../mongo/mongo-database'
 import { MongoEntityConverter, MongoSegment } from '../mongo/mongo-entity-converter'
-import { Db, ObjectId } from 'mongodb'
+import { Db } from 'mongodb'
 import { anyString, anything, instance, mock, spy, verify, when } from 'ts-mockito'
 import { PartRepository } from '../interfaces/part-repository'
 import { SegmentRepository } from '../interfaces/segment-repository'
@@ -163,7 +163,7 @@ describe(`${MongoSegmentRepository.name}`, () => {
 	describe(`${MongoSegmentRepository.prototype.save.name}`, () => {
 		it('has segment as not on air and saves the segment as on air', async () => {
 			const id: string = 'randomId'
-			const inactiveSegment: MongoSegment = createMongoSegment({ _id: id as unknown as ObjectId, isOnAir: false })
+			const inactiveSegment: MongoSegment = createMongoSegment({ _id: id, isOnAir: false })
 			const onAirSegment: Segment = createSegment({ id: id, isOnAir: true })
 
 			await testDatabase.populateDatabaseWithSegments([inactiveSegment])
@@ -174,7 +174,7 @@ describe(`${MongoSegmentRepository.name}`, () => {
 
 			when(mongoDb.getCollection(anything())).thenReturn(collection)
 			when(mongoConverter.convertToMongoSegment(anything())).thenReturn({
-				_id: onAirSegment.id as unknown as ObjectId,
+				_id: onAirSegment.id,
 				_rank: onAirSegment.rank,
 				externalId: '',
 				isHidden: false,
@@ -199,7 +199,7 @@ describe(`${MongoSegmentRepository.name}`, () => {
 
 		it('has segment as on air and saves the segment as not on air', async () => {
 			const id: string = 'randomId'
-			const onAirSegment: MongoSegment = createMongoSegment({ _id: id as unknown as ObjectId, isOnAir: true })
+			const onAirSegment: MongoSegment = createMongoSegment({ _id: id, isOnAir: true })
 			const inactiveSegment: Segment = createSegment({ id: id, isOnAir: false })
 
 			await testDatabase.populateDatabaseWithSegments([onAirSegment])
@@ -210,7 +210,7 @@ describe(`${MongoSegmentRepository.name}`, () => {
 
 			when(mongoDb.getCollection(anything())).thenReturn(collection)
 			when(mongoConverter.convertToMongoSegment(anything())).thenReturn({
-				_id: inactiveSegment.id as unknown as ObjectId,
+				_id: inactiveSegment.id,
 				_rank: inactiveSegment.rank,
 				externalId: '',
 				isHidden: false,
@@ -235,7 +235,7 @@ describe(`${MongoSegmentRepository.name}`, () => {
 
 		it('does not have segment as next but saves the segment as next', async () => {
 			const id: string = 'randomId'
-			const nonQueuedSegment: MongoSegment = createMongoSegment({ _id: id as unknown as ObjectId, isNext: false })
+			const nonQueuedSegment: MongoSegment = createMongoSegment({ _id: id, isNext: false })
 			const nextSegment: Segment = createSegment({ id: id, isNext: true })
 
 			await testDatabase.populateDatabaseWithSegments([nonQueuedSegment])
@@ -246,7 +246,7 @@ describe(`${MongoSegmentRepository.name}`, () => {
 
 			when(mongoDb.getCollection(anything())).thenReturn(collection)
 			when(mongoConverter.convertToMongoSegment(anything())).thenReturn({
-				_id: nextSegment.id as unknown as ObjectId,
+				_id: nextSegment.id,
 				_rank: nextSegment.rank,
 				externalId: '',
 				isHidden: false,
@@ -271,7 +271,7 @@ describe(`${MongoSegmentRepository.name}`, () => {
 
 		it('has segment as next and saves the segment as not next', async () => {
 			const id: string = 'randomId'
-			const nextSegment: MongoSegment = createMongoSegment({ _id: id as unknown as ObjectId, isNext: true })
+			const nextSegment: MongoSegment = createMongoSegment({ _id: id, isNext: true })
 			const nonQueuedSegment: Segment = createSegment({ id: id, isNext: false })
 
 			await testDatabase.populateDatabaseWithSegments([nextSegment])
@@ -282,7 +282,7 @@ describe(`${MongoSegmentRepository.name}`, () => {
 
 			when(mongoDb.getCollection(anything())).thenReturn(collection)
 			when(mongoConverter.convertToMongoSegment(anything())).thenReturn({
-				_id: nonQueuedSegment.id as unknown as ObjectId,
+				_id: nonQueuedSegment.id,
 				_rank: nonQueuedSegment.rank,
 				externalId: '',
 				isHidden: false,
@@ -329,7 +329,7 @@ describe(`${MongoSegmentRepository.name}`, () => {
 
 	function createMongoSegment(mongoSegmentInterface?: Partial<MongoSegment>): MongoSegment {
 		return {
-			_id: mongoSegmentInterface?._id ?? new ObjectId(),
+			_id: mongoSegmentInterface?._id ?? 'id' + Math.random(),
 			name: mongoSegmentInterface?.name ?? 'segmentName',
 			rundownId: mongoSegmentInterface?.rundownId ?? 'rundownId' + Math.random() * 10,
 		} as MongoSegment
