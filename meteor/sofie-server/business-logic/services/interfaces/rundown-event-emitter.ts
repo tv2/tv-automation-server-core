@@ -1,4 +1,4 @@
-import { RundownEvent } from '../../../model/interfaces/rundown-event'
+import { RundownEvent } from '../../../model/value-objects/rundown-event'
 
 export interface RundownEventEmitter {
 	emitRundownEvent(rundownEvent: RundownEvent)

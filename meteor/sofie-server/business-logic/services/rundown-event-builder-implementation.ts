@@ -4,7 +4,7 @@ import {
 	AdLibPieceInsertedEvent,
 	InfiniteRundownPieceAddedEvent,
 	RundownEvent,
-} from '../../model/interfaces/rundown-event'
+} from '../../model/value-objects/rundown-event'
 import { RundownEventType } from '../../model/enums/rundown-event-type'
 import { AdLibPiece } from '../../model/entities/ad-lib-piece'
 import { Piece } from '../../model/entities/piece'

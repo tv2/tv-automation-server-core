@@ -57,9 +57,8 @@ export class MongoSegmentRepository extends BaseMongoRepository implements Segme
 		this.assertDatabaseConnection(this.deleteSegmentsForRundown.name)
 		const segments: Segment[] = await this.getSegments(rundownId)
 
-		for (const segment of segments) {
-			await this.partRepository.deletePartsForSegment(segment.id)
-		}
+		await Promise.all(segments.map(async (segment) => this.partRepository.deletePartsForSegment(segment.id)))
+
 		const segmentDeleteResult: DeleteResult = await this.getCollection().deleteMany({ rundownId: rundownId })
 
 		if (!segmentDeleteResult.acknowledged) {

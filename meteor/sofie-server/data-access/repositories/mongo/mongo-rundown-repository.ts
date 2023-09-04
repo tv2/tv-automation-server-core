@@ -5,9 +5,11 @@ import { MongoDatabase } from './mongo-database'
 import { SegmentRepository } from '../interfaces/segment-repository'
 import { BaseMongoRepository } from './base-mongo-repository'
 import { BasicRundown } from '../../../model/entities/basic-rundown'
-import { DeletionFailedException } from '../../../model/exceptions/deletion-failed-exception'
 import { NotFoundException } from '../../../model/exceptions/not-found-exception'
-import { DeleteResult, ObjectId } from 'mongodb'
+import { DeleteResult } from 'mongodb'
+import { DeletionFailedException } from '../../../model/exceptions/deletion-failed-exception'
+import { RundownBaselineRepository } from '../interfaces/rundown-baseline-repository'
+import { TimelineObject } from '../../../model/entities/timeline-object'
 
 const RUNDOWN_COLLECTION_NAME: string = 'rundowns'
 
@@ -15,6 +17,7 @@ export class MongoRundownRepository extends BaseMongoRepository implements Rundo
 	constructor(
 		mongoDatabase: MongoDatabase,
 		mongoEntityConverter: MongoEntityConverter,
+		private rundownBaselineRepository: RundownBaselineRepository,
 		private segmentRepository: SegmentRepository
 	) {
 		super(mongoDatabase, mongoEntityConverter)
@@ -35,13 +38,14 @@ export class MongoRundownRepository extends BaseMongoRepository implements Rundo
 
 	public async getRundown(rundownId: string): Promise<Rundown> {
 		this.assertDatabaseConnection(this.getRundown.name)
+		await this.assertRundownExist(rundownId)
 		const mongoRundown: MongoRundown = (await this.getCollection().findOne({
-			_id: new ObjectId(rundownId),
+			_id: rundownId,
 		})) as unknown as MongoRundown
-		if (!mongoRundown) {
-			throw new NotFoundException(`Failed to find a rundown with id: ${rundownId}`)
-		}
-		const rundown: Rundown = this.mongoEntityConverter.convertRundown(mongoRundown)
+		const baselineTimelineObjects: TimelineObject[] = await this.rundownBaselineRepository.getRundownBaseline(
+			rundownId
+		)
+		const rundown: Rundown = this.mongoEntityConverter.convertRundown(mongoRundown, baselineTimelineObjects)
 		rundown.setSegments(await this.segmentRepository.getSegments(rundown.id))
 		return rundown
 	}
@@ -60,13 +64,12 @@ export class MongoRundownRepository extends BaseMongoRepository implements Rundo
 
 	public async deleteRundown(rundownId: string): Promise<void> {
 		this.assertDatabaseConnection(this.deleteRundown.name)
-		const rundown: Rundown = await this.getRundown(rundownId)
+		await this.assertRundownExist(rundownId)
 		await this.segmentRepository.deleteSegmentsForRundown(rundownId)
 
 		const rundownDeletionResult: DeleteResult = await this.getCollection().deleteOne({
-			_id: new ObjectId(rundown.id),
+			_id: rundownId,
 		})
-
 		if (!rundownDeletionResult.acknowledged) {
 			throw new DeletionFailedException(`Deletion of rundown was not acknowledged, for rundownId: ${rundownId}`)
 		}
@@ -74,6 +77,12 @@ export class MongoRundownRepository extends BaseMongoRepository implements Rundo
 			throw new DeletionFailedException(
 				`Expected to delete one rundown, but none was deleted, for rundownId: ${rundownId}`
 			)
+		}
+	}
+	private async assertRundownExist(rundownId: string): Promise<void> {
+		const doesRundownExist: boolean = (await this.getCollection().countDocuments({ _id: rundownId })) === 1
+		if (!doesRundownExist) {
+			throw new NotFoundException(`Failed to find a rundown with id: ${rundownId}`)
 		}
 	}
 }

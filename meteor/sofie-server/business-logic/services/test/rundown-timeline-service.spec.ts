@@ -1,6 +1,5 @@
-import { anything, instance, mock, verify, when } from 'ts-mockito'
-import { Rundown, RundownInterface } from '../../../model/entities/rundown'
-import { RundownTimelineService } from '../timeline-integration/rundown-timeline-service'
+import { anything, capture, instance, mock, verify, when } from 'ts-mockito'
+import { Rundown } from '../../../model/entities/rundown'
 import { RundownEventEmitter } from '../interfaces/rundown-event-emitter'
 import { RundownRepository } from '../../../data-access/repositories/interfaces/rundown-repository'
 import { TimelineRepository } from '../../../data-access/repositories/interfaces/timeline-repository'
@@ -9,47 +8,44 @@ import { TimelineBuilder } from '../interfaces/timeline-builder'
 import { RundownEventBuilder } from '../interfaces/rundown-event-builder'
 import { ActiveRundownException } from '../../../model/exceptions/active-rundown-exception'
 import { RundownEventType } from '../../../model/enums/rundown-event-type'
+import { RundownTimelineService } from '../rundown-timeline-service'
+import { CallbackScheduler } from '../interfaces/callback-scheduler'
+import { EntityMockFactory } from '../../../model/entities/test/entity-mock-factory'
+import { RundownEvent } from '../../../model/value-objects/rundown-event'
 
 describe(`${RundownTimelineService.name}`, () => {
 	describe(`${RundownTimelineService.prototype.deleteRundown.name}`, () => {
 		// eslint-disable-next-line jest/expect-expect
 		it('deletes a rundown, when it receives a valid RundownId', async () => {
 			const mockRundownRepository: RundownRepository = mock<RundownRepository>()
+			const rundown: Rundown = EntityMockFactory.createRundown({ isRundownActive: false })
 
-			const rundownId: string = 'randomRundownId'
-			const rundown: Rundown = createRundown({ rundownId: rundownId, isRundownActive: false })
-
-			when(mockRundownRepository.getRundown(rundownId)).thenResolve(rundown)
+			when(mockRundownRepository.getRundown(rundown.id)).thenResolve(rundown)
 
 			const testee: RundownTimelineService = createTestee({ rundownRepository: instance(mockRundownRepository) })
 
-			await testee.deleteRundown(rundownId)
+			await testee.deleteRundown(rundown.id)
 
-			verify(mockRundownRepository.deleteRundown(rundownId)).once()
+			verify(mockRundownRepository.deleteRundown(rundown.id)).once()
 		})
 
 		// eslint-disable-next-line jest/expect-expect
 		it('builds a rundown deleted event, when it receives a valid RundownId', async () => {
 			const mockRundownRepository: RundownRepository = mock<RundownRepository>()
 			const mockRundownEventBuilder: RundownEventBuilder = mock<RundownEventBuilder>()
+			const rundown: Rundown = EntityMockFactory.createRundown({ isRundownActive: false })
 
-			const rundownId: string = 'someRundownId'
-			const randomRundown: Rundown = createRundown({ rundownId: rundownId, isRundownActive: false })
-
-			when(mockRundownRepository.getRundown(rundownId)).thenResolve(randomRundown)
-			when(mockRundownEventBuilder.buildDeletedEvent(anything())).thenReturn({
-				type: RundownEventType.DELETED,
-				rundownId: rundownId,
-				segmentId: '',
-				partId: '',
-			})
+			when(mockRundownRepository.getRundown(rundown.id)).thenResolve(rundown)
+			when(mockRundownEventBuilder.buildDeletedEvent(anything())).thenReturn(
+				createDeletedRundownEvent(rundown.id)
+			)
 
 			const testee: RundownTimelineService = createTestee({
 				rundownRepository: instance(mockRundownRepository),
 				rundownEventBuilder: instance(mockRundownEventBuilder),
 			})
 
-			await testee.deleteRundown(rundownId)
+			await testee.deleteRundown(rundown.id)
 
 			verify(mockRundownEventBuilder.buildDeletedEvent(anything())).once()
 		})
@@ -57,47 +53,47 @@ describe(`${RundownTimelineService.name}`, () => {
 		// eslint-disable-next-line jest/expect-expect
 		it('emits a rundown deleted event, when it receives a valid RundownId', async () => {
 			const mockRundownRepository: RundownRepository = mock<RundownRepository>()
+			const mockRundownEventBuilder: RundownEventBuilder = mock<RundownEventBuilder>()
 			const mockRundownEventEmitter: RundownEventEmitter = mock<RundownEventEmitter>()
 
-			const rundownId: string = 'someRundownId'
-			const rundown: Rundown = createRundown({ rundownId: rundownId, isRundownActive: false })
+			const rundown: Rundown = EntityMockFactory.createRundown({ isRundownActive: false })
 
-			when(mockRundownRepository.getRundown(rundownId)).thenResolve(rundown)
+			when(mockRundownRepository.getRundown(rundown.id)).thenResolve(rundown)
+			when(mockRundownEventBuilder.buildDeletedEvent(anything())).thenReturn(
+				createDeletedRundownEvent(rundown.id)
+			)
 
 			const testee: RundownTimelineService = createTestee({
 				rundownRepository: instance(mockRundownRepository),
 				rundownEventEmitter: instance(mockRundownEventEmitter),
+				rundownEventBuilder: instance(mockRundownEventBuilder),
 			})
 
-			await testee.deleteRundown(rundownId)
-
-			//Todo: Improve verify to ensure it is of correct event type.
-			verify(mockRundownEventEmitter.emitRundownEvent(anything())).once()
+			await testee.deleteRundown(rundown.id)
+			const [rundownEvent] = capture(mockRundownEventEmitter.emitRundownEvent).last()
+			expect(rundownEvent.type).toBe(RundownEventType.DELETED)
 		})
 
 		it('throws an exception, when it receives a RundownId of an active rundown', async () => {
 			const mockRundownRepository: RundownRepository = mock<RundownRepository>()
 
-			const rundownId: string = 'someRundownId'
-			const rundown: Rundown = createRundown({ rundownId: rundownId, isRundownActive: true })
+			const rundown: Rundown = EntityMockFactory.createRundown({ isRundownActive: true })
 
-			when(mockRundownRepository.getRundown(rundownId)).thenResolve(rundown)
+			when(mockRundownRepository.getRundown(rundown.id)).thenResolve(rundown)
 
 			const testee: RundownTimelineService = createTestee({ rundownRepository: instance(mockRundownRepository) })
-			const action = async () => testee.deleteRundown(rundownId)
+			const action = async () => testee.deleteRundown(rundown.id)
 
 			await expect(action).rejects.toThrow(ActiveRundownException)
 		})
 	})
 })
 
-// TODO: Extract to Helper Class in Model layer
-function createRundown(params: { rundownId?: string; name?: string; isRundownActive?: boolean }): Rundown {
-	return new Rundown({
-		id: params.rundownId ?? 'id' + Math.random(),
-		name: params.name ?? 'name' + Math.random(),
-		isRundownActive: params.isRundownActive ?? false,
-	} as RundownInterface)
+function createDeletedRundownEvent(rundownId: string): RundownEvent {
+	return {
+		type: RundownEventType.DELETED,
+		rundownId: rundownId,
+	} as RundownEvent
 }
 
 function createTestee(params: {
@@ -107,6 +103,7 @@ function createTestee(params: {
 	adLibPieceRepository?: AdLibPieceRepository
 	timelineBuilder?: TimelineBuilder
 	rundownEventBuilder?: RundownEventBuilder
+	callbackScheduler?: CallbackScheduler
 }): RundownTimelineService {
 	return new RundownTimelineService(
 		params.rundownEventEmitter ?? instance(mock<RundownEventEmitter>()),
@@ -114,6 +111,7 @@ function createTestee(params: {
 		params.timelineRepository ?? instance(mock<TimelineRepository>()),
 		params.adLibPieceRepository ?? instance(mock<AdLibPieceRepository>()),
 		params.timelineBuilder ?? instance(mock<TimelineBuilder>()),
-		params.rundownEventBuilder ?? instance(mock<RundownEventBuilder>())
+		params.rundownEventBuilder ?? instance(mock<RundownEventBuilder>()),
+		params.callbackScheduler ?? instance(mock<CallbackScheduler>())
 	)
 }

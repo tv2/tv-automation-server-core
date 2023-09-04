@@ -1,12 +1,13 @@
 import { MongoPieceRepository } from '../mongo/mongo-piece-repository'
 import { MongoTestDatabase } from './mongo-test-database'
-import { Piece, PieceInterface } from '../../../model/entities/piece'
-import { MongoEntityConverter } from '../mongo/mongo-entity-converter'
+import { MongoEntityConverter, MongoPiece } from '../mongo/mongo-entity-converter'
 import { anything, instance, mock, when } from 'ts-mockito'
-import { Db } from 'mongodb'
+import { Db, ObjectId } from 'mongodb'
 import { PieceRepository } from '../interfaces/piece-repository'
 import { MongoDatabase } from '../mongo/mongo-database'
 import { DeletionFailedException } from '../../../model/exceptions/deletion-failed-exception'
+import { EntityMockFactory } from '../../../model/entities/test/entity-mock-factory'
+import { Piece } from '../../../model/entities/piece'
 
 const COLLECTION_NAME = 'pieces'
 
@@ -17,11 +18,12 @@ describe(`${MongoPieceRepository.name}`, () => {
 
 	describe(`${MongoPieceRepository.prototype.deletePiecesForPart.name}`, () => {
 		it('deletes one pieces successfully', async () => {
+			const db: Db = testDatabase.getDatabase()
 			const mongoConverter: MongoEntityConverter = mock(MongoEntityConverter)
 			const partId: string = 'somePartId'
-			const piece: Piece = createPiece({ partId: partId })
-			await testDatabase.populateDatabaseWithPieces([piece])
-			const db: Db = testDatabase.getDatabase()
+			const mongoPiece: MongoPiece = createMongoPiece({ partId: partId })
+			const piece: Piece = EntityMockFactory.createPiece({ partId: partId })
+			await testDatabase.populateDatabaseWithPieces([mongoPiece])
 
 			when(mongoConverter.convertPieces(anything())).thenReturn([piece])
 			const testee: PieceRepository = createTestee({
@@ -34,11 +36,18 @@ describe(`${MongoPieceRepository.name}`, () => {
 		})
 
 		it('deletes multiple pieces successfully', async () => {
+			const db: Db = testDatabase.getDatabase()
 			const mongoConverter: MongoEntityConverter = mock(MongoEntityConverter)
 			const partId: string = 'somePartId'
-			const pieces: Piece[] = [createPiece({ partId: partId }), createPiece({ partId: partId })]
-			await testDatabase.populateDatabaseWithPieces(pieces)
-			const db: Db = testDatabase.getDatabase()
+			const mongoPieces: MongoPiece[] = [
+				createMongoPiece({ partId: partId }),
+				createMongoPiece({ partId: partId }),
+			]
+			const pieces: Piece[] = [
+				EntityMockFactory.createPiece({ partId: partId }),
+				EntityMockFactory.createPiece({ partId: partId }),
+			]
+			await testDatabase.populateDatabaseWithPieces(mongoPieces)
 
 			when(mongoConverter.convertPieces(anything())).thenReturn(pieces)
 			const testee: PieceRepository = createTestee({
@@ -55,8 +64,8 @@ describe(`${MongoPieceRepository.name}`, () => {
 			const mongoConverter: MongoEntityConverter = mock(MongoEntityConverter)
 			const nonExistingId: string = 'nonExistingId'
 			const partId: string = 'somePartId'
-			const piece: Piece = createPiece({ partId: partId })
-			await testDatabase.populateDatabaseWithPieces([piece])
+			const mongoPiece: MongoPiece = createMongoPiece({ partId: partId })
+			await testDatabase.populateDatabaseWithPieces([mongoPiece])
 
 			when(mongoConverter.convertPieces(anything())).thenReturn([])
 			const testee: PieceRepository = createTestee({
@@ -72,8 +81,8 @@ describe(`${MongoPieceRepository.name}`, () => {
 			const mongoConverter: MongoEntityConverter = mock(MongoEntityConverter)
 			const nonExistingId: string = 'nonExistingId'
 			const partId: string = 'somePartId'
-			const piece: Piece = createPiece({ partId: partId })
-			await testDatabase.populateDatabaseWithPieces([piece])
+			const mongoPiece: MongoPiece = createMongoPiece({ partId: partId })
+			await testDatabase.populateDatabaseWithPieces([mongoPiece])
 			const db: Db = testDatabase.getDatabase()
 
 			when(mongoConverter.convertPieces(anything())).thenReturn([])
@@ -87,13 +96,12 @@ describe(`${MongoPieceRepository.name}`, () => {
 		})
 	})
 
-	// TODO: Extract to Helper Class in Model layer
-	function createPiece(params: { id?: string; name?: string; rank?: number; partId?: string }): Piece {
-		return new Piece({
-			id: params.id ?? testDatabase.getValidObjectIdString('id'),
+	function createMongoPiece(params: { id?: string; name?: string; partId?: string }): MongoPiece {
+		return {
+			_id: (params.id as unknown as ObjectId) ?? new ObjectId(),
 			name: params.name ?? 'name' + Math.random(),
-			partId: params.partId ?? 'partId' + Math.random(),
-		} as PieceInterface)
+			startPartId: params.partId ?? 'segmentId' + Math.random(),
+		} as MongoPiece
 	}
 
 	function createTestee(params: {
