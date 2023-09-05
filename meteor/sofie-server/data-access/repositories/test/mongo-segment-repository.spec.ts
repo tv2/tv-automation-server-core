@@ -5,11 +5,10 @@ import { Db } from 'mongodb'
 import { anyString, anything, instance, mock, spy, verify, when } from 'ts-mockito'
 import { PartRepository } from '../interfaces/part-repository'
 import { SegmentRepository } from '../interfaces/segment-repository'
-import { Segment, SegmentInterface } from '../../../model/entities/segment'
+import { Segment } from '../../../model/entities/segment'
 import { MongoTestDatabase } from './mongo-test-database'
 import { DeletionFailedException } from '../../../model/exceptions/deletion-failed-exception'
 import { EntityMockFactory } from '../../../model/entities/test/entity-mock-factory'
-import { Part } from '../../../model/entities/part'
 
 const COLLECTION_NAME = 'segments'
 
@@ -162,11 +161,13 @@ describe(`${MongoSegmentRepository.name}`, () => {
 
 	describe(`${MongoSegmentRepository.prototype.save.name}`, () => {
 		it('has segment as not on air and saves the segment as on air', async () => {
-			const id: string = 'randomId'
-			const inactiveSegment: MongoSegment = createMongoSegment({ _id: id, isOnAir: false })
-			const onAirSegment: Segment = createSegment({ id: id, isOnAir: true })
+			const inactiveMongoSegment: MongoSegment = createMongoSegment({ _id: 'randomId', isOnAir: false })
+			const onAirSegment: Segment = EntityMockFactory.createSegment({
+				id: inactiveMongoSegment._id,
+				isOnAir: true,
+			})
 
-			await testDatabase.populateDatabaseWithSegments([inactiveSegment])
+			await testDatabase.populateDatabaseWithSegments([inactiveMongoSegment])
 			const mongoConverter: MongoEntityConverter = mock(MongoEntityConverter)
 			const mongoDb: MongoDatabase = mock(MongoDatabase)
 			const db: Db = testDatabase.getDatabase()
@@ -175,14 +176,8 @@ describe(`${MongoSegmentRepository.name}`, () => {
 			when(mongoDb.getCollection(anything())).thenReturn(collection)
 			when(mongoConverter.convertToMongoSegment(anything())).thenReturn({
 				_id: onAirSegment.id,
-				_rank: onAirSegment.rank,
-				externalId: '',
-				isHidden: false,
-				isNext: onAirSegment.isNext(),
 				isOnAir: onAirSegment.isOnAir(),
-				name: onAirSegment.name,
-				rundownId: onAirSegment.rundownId,
-			})
+			} as MongoSegment)
 
 			const testee: SegmentRepository = createTestee({
 				mongoDb: mongoDb,
@@ -192,17 +187,19 @@ describe(`${MongoSegmentRepository.name}`, () => {
 
 			const result: MongoSegment = (await db
 				.collection(COLLECTION_NAME)
-				.findOne({ _id: id })) as unknown as MongoSegment
+				.findOne({ _id: onAirSegment.id })) as unknown as MongoSegment
 
 			expect(result.isOnAir).toBeTruthy()
 		})
 
 		it('has segment as on air and saves the segment as not on air', async () => {
-			const id: string = 'randomId'
-			const onAirSegment: MongoSegment = createMongoSegment({ _id: id, isOnAir: true })
-			const inactiveSegment: Segment = createSegment({ id: id, isOnAir: false })
+			const onAirMongoSegment: MongoSegment = createMongoSegment({ _id: 'randomId', isOnAir: true })
+			const inactiveSegment: Segment = EntityMockFactory.createSegment({
+				id: onAirMongoSegment._id,
+				isOnAir: false,
+			})
 
-			await testDatabase.populateDatabaseWithSegments([onAirSegment])
+			await testDatabase.populateDatabaseWithSegments([onAirMongoSegment])
 			const mongoConverter: MongoEntityConverter = mock(MongoEntityConverter)
 			const mongoDb: MongoDatabase = mock(MongoDatabase)
 			const db: Db = testDatabase.getDatabase()
@@ -211,14 +208,8 @@ describe(`${MongoSegmentRepository.name}`, () => {
 			when(mongoDb.getCollection(anything())).thenReturn(collection)
 			when(mongoConverter.convertToMongoSegment(anything())).thenReturn({
 				_id: inactiveSegment.id,
-				_rank: inactiveSegment.rank,
-				externalId: '',
-				isHidden: false,
-				isNext: inactiveSegment.isNext(),
 				isOnAir: inactiveSegment.isOnAir(),
-				name: inactiveSegment.name,
-				rundownId: inactiveSegment.rundownId,
-			})
+			} as MongoSegment)
 
 			const testee: SegmentRepository = createTestee({
 				mongoDb: mongoDb,
@@ -228,17 +219,19 @@ describe(`${MongoSegmentRepository.name}`, () => {
 
 			const result: MongoSegment = (await db
 				.collection(COLLECTION_NAME)
-				.findOne({ _id: id })) as unknown as MongoSegment
+				.findOne({ _id: inactiveSegment.id })) as unknown as MongoSegment
 
 			expect(result.isOnAir).toBeFalsy()
 		})
 
 		it('does not have segment as next but saves the segment as next', async () => {
-			const id: string = 'randomId'
-			const nonQueuedSegment: MongoSegment = createMongoSegment({ _id: id, isNext: false })
-			const nextSegment: Segment = createSegment({ id: id, isNext: true })
+			const nonQueuedMongoSegment: MongoSegment = createMongoSegment({ _id: 'randomId', isNext: false })
+			const nextSegment: Segment = EntityMockFactory.createSegment({
+				id: nonQueuedMongoSegment._id,
+				isNext: true,
+			})
 
-			await testDatabase.populateDatabaseWithSegments([nonQueuedSegment])
+			await testDatabase.populateDatabaseWithSegments([nonQueuedMongoSegment])
 			const mongoConverter: MongoEntityConverter = mock(MongoEntityConverter)
 			const mongoDb: MongoDatabase = mock(MongoDatabase)
 			const db: Db = testDatabase.getDatabase()
@@ -247,14 +240,8 @@ describe(`${MongoSegmentRepository.name}`, () => {
 			when(mongoDb.getCollection(anything())).thenReturn(collection)
 			when(mongoConverter.convertToMongoSegment(anything())).thenReturn({
 				_id: nextSegment.id,
-				_rank: nextSegment.rank,
-				externalId: '',
-				isHidden: false,
 				isNext: nextSegment.isNext(),
-				isOnAir: nextSegment.isOnAir(),
-				name: nextSegment.name,
-				rundownId: nextSegment.rundownId,
-			})
+			} as MongoSegment)
 
 			const testee: SegmentRepository = createTestee({
 				mongoDb: mongoDb,
@@ -264,17 +251,19 @@ describe(`${MongoSegmentRepository.name}`, () => {
 
 			const result: MongoSegment = (await db
 				.collection(COLLECTION_NAME)
-				.findOne({ _id: id })) as unknown as MongoSegment
+				.findOne({ _id: nextSegment.id })) as unknown as MongoSegment
 
 			expect(result.isNext).toBeTruthy()
 		})
 
-		it('has segment as next and saves the segment as not next', async () => {
-			const id: string = 'randomId'
-			const nextSegment: MongoSegment = createMongoSegment({ _id: id, isNext: true })
-			const nonQueuedSegment: Segment = createSegment({ id: id, isNext: false })
+		it('has segment as next and saves the segment as no longer next', async () => {
+			const nextMongoSegment: MongoSegment = createMongoSegment({ _id: 'randomId', isNext: true })
+			const nonQueuedSegment: Segment = EntityMockFactory.createSegment({
+				id: nextMongoSegment._id,
+				isNext: false,
+			})
 
-			await testDatabase.populateDatabaseWithSegments([nextSegment])
+			await testDatabase.populateDatabaseWithSegments([nextMongoSegment])
 			const mongoConverter: MongoEntityConverter = mock(MongoEntityConverter)
 			const mongoDb: MongoDatabase = mock(MongoDatabase)
 			const db: Db = testDatabase.getDatabase()
@@ -283,14 +272,8 @@ describe(`${MongoSegmentRepository.name}`, () => {
 			when(mongoDb.getCollection(anything())).thenReturn(collection)
 			when(mongoConverter.convertToMongoSegment(anything())).thenReturn({
 				_id: nonQueuedSegment.id,
-				_rank: nonQueuedSegment.rank,
-				externalId: '',
-				isHidden: false,
 				isNext: nonQueuedSegment.isNext(),
-				isOnAir: nonQueuedSegment.isOnAir(),
-				name: nonQueuedSegment.name,
-				rundownId: nonQueuedSegment.rundownId,
-			})
+			} as MongoSegment)
 
 			const testee: SegmentRepository = createTestee({
 				mongoDb: mongoDb,
@@ -300,32 +283,11 @@ describe(`${MongoSegmentRepository.name}`, () => {
 
 			const result: MongoSegment = (await db
 				.collection(COLLECTION_NAME)
-				.findOne({ _id: id })) as unknown as MongoSegment
+				.findOne({ _id: nonQueuedSegment.id })) as unknown as MongoSegment
 
 			expect(result.isNext).toBeFalsy()
 		})
 	})
-
-	// TODO: Extract to Helper Class in Model layer
-	function createSegment(params: {
-		id?: string
-		name?: string
-		rundownId?: string
-		rank?: number
-		isNext?: boolean
-		isOnAir?: boolean
-		parts?: Part[]
-	}): Segment {
-		return new Segment({
-			id: params.id ?? 'id' + Math.random(),
-			name: params.name ?? 'name' + Math.random(),
-			rundownId: params.rundownId ?? 'rundownId' + Math.random(),
-			rank: params.rank ?? Math.random(),
-			isNext: params.isNext ?? false,
-			isOnAir: params.isOnAir ?? false,
-			parts: params.parts ?? [],
-		} as SegmentInterface)
-	}
 
 	function createMongoSegment(mongoSegmentInterface?: Partial<MongoSegment>): MongoSegment {
 		return {

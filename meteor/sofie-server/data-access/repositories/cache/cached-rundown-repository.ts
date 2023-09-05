@@ -31,8 +31,8 @@ export class CachedRundownRepository implements RundownRepository {
 	}
 
 	public async saveRundown(rundown: Rundown): Promise<void> {
-		await this.rundownRepository.saveRundown(rundown)
 		this.cachedRundowns.set(rundown.id, rundown)
+		await this.rundownRepository.saveRundown(rundown)
 	}
 
 	public async deleteRundown(rundownId: string): Promise<void> {
