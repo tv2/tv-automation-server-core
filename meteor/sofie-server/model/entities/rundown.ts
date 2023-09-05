@@ -139,7 +139,7 @@ export class Rundown extends BasicRundown {
 	}
 
 	public deactivate(): void {
-		this.assertActive('deactivate')
+		this.assertActive(this.deactivate.name)
 		this.activeSegment.takeOffAir()
 		this.activePart.takeOffAir()
 		this.unmarkNextSegmentAndPart()
