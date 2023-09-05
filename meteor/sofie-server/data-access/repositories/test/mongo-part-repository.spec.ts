@@ -150,7 +150,7 @@ describe(`${MongoPartRepository.name}`, () => {
 		})
 	})
 
-	describe(`${MongoPartRepository.prototype.save.name}`, () => {
+	describe(`${MongoPartRepository.prototype.savePart.name}`, () => {
 		it('has part as not on air and saves the part as on air', async () => {
 			const inactiveMongoPart: MongoPart = createMongoPart({ _id: 'randomId', isOnAir: false })
 			const onAirPart: Part = EntityMockFactory.createPart({ id: inactiveMongoPart._id, isOnAir: true })
@@ -171,7 +171,7 @@ describe(`${MongoPartRepository.name}`, () => {
 				mongoDb: mongoDb,
 				mongoConverter: mongoConverter,
 			})
-			await testee.save(onAirPart)
+			await testee.savePart(onAirPart)
 
 			const result: MongoPart = (await db
 				.collection(COLLECTION_NAME)
@@ -199,7 +199,7 @@ describe(`${MongoPartRepository.name}`, () => {
 				mongoDb: mongoDb,
 				mongoConverter: mongoConverter,
 			})
-			await testee.save(inactivePart)
+			await testee.savePart(inactivePart)
 
 			const result: MongoPart = (await db
 				.collection(COLLECTION_NAME)
@@ -227,7 +227,7 @@ describe(`${MongoPartRepository.name}`, () => {
 				mongoDb: mongoDb,
 				mongoConverter: mongoConverter,
 			})
-			await testee.save(nextPart)
+			await testee.savePart(nextPart)
 
 			const result: MongoPart = (await db
 				.collection(COLLECTION_NAME)
@@ -255,7 +255,7 @@ describe(`${MongoPartRepository.name}`, () => {
 				mongoDb: mongoDb,
 				mongoConverter: mongoConverter,
 			})
-			await testee.save(nonQueuedPart)
+			await testee.savePart(nonQueuedPart)
 
 			const result: MongoPart = (await db
 				.collection(COLLECTION_NAME)

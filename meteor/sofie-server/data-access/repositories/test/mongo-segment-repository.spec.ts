@@ -159,7 +159,7 @@ describe(`${MongoSegmentRepository.name}`, () => {
 		})
 	})
 
-	describe(`${MongoSegmentRepository.prototype.save.name}`, () => {
+	describe(`${MongoSegmentRepository.prototype.saveSegment.name}`, () => {
 		it('has segment as not on air and saves the segment as on air', async () => {
 			const inactiveMongoSegment: MongoSegment = createMongoSegment({ _id: 'randomId', isOnAir: false })
 			const onAirSegment: Segment = EntityMockFactory.createSegment({
@@ -183,7 +183,7 @@ describe(`${MongoSegmentRepository.name}`, () => {
 				mongoDb: mongoDb,
 				mongoConverter: mongoConverter,
 			})
-			await testee.save(onAirSegment)
+			await testee.saveSegment(onAirSegment)
 
 			const result: MongoSegment = (await db
 				.collection(COLLECTION_NAME)
@@ -215,7 +215,7 @@ describe(`${MongoSegmentRepository.name}`, () => {
 				mongoDb: mongoDb,
 				mongoConverter: mongoConverter,
 			})
-			await testee.save(inactiveSegment)
+			await testee.saveSegment(inactiveSegment)
 
 			const result: MongoSegment = (await db
 				.collection(COLLECTION_NAME)
@@ -247,7 +247,7 @@ describe(`${MongoSegmentRepository.name}`, () => {
 				mongoDb: mongoDb,
 				mongoConverter: mongoConverter,
 			})
-			await testee.save(nextSegment)
+			await testee.saveSegment(nextSegment)
 
 			const result: MongoSegment = (await db
 				.collection(COLLECTION_NAME)
@@ -279,7 +279,7 @@ describe(`${MongoSegmentRepository.name}`, () => {
 				mongoDb: mongoDb,
 				mongoConverter: mongoConverter,
 			})
-			await testee.save(nonQueuedSegment)
+			await testee.saveSegment(nonQueuedSegment)
 
 			const result: MongoSegment = (await db
 				.collection(COLLECTION_NAME)
