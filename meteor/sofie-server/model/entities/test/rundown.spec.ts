@@ -4,7 +4,11 @@ import { Part } from '../part'
 import { Piece } from '../piece'
 import { PieceLifespan } from '../../enums/piece-lifespan'
 import { EntityMockFactory } from './entity-mock-factory'
-import { capture, instance, verify, when } from 'ts-mockito'
+import { capture, instance, mock, verify, when } from 'ts-mockito'
+import { NotActivatedException } from '../../exceptions/not-activated-exception'
+import { NotFoundException } from '../../exceptions/not-found-exception'
+import { LastPartInSegmentException } from '../../exceptions/last-part-in-segment-exception'
+import { LastPartInRundownException } from '../../exceptions/last-part-in-rundown-exception'
 
 describe('Rundown', () => {
 	describe('instantiate already active Rundown', () => {
@@ -2024,6 +2028,105 @@ describe('Rundown', () => {
 
 						const result: Piece[] = testee.getInfinitePieces()
 						expect(result).toContainEqual(lastPiece)
+					})
+				})
+			})
+		})
+	})
+
+	describe('getPartAfter', () => {
+		describe('rundown is not active', () => {
+			it('throws NotActivatedException', () => {
+				const testee: Rundown = new Rundown({ isRundownActive: false } as RundownInterface)
+				expect(() => testee.getPartAfter(instance(mock(Part)))).toThrow(NotActivatedException)
+			})
+		})
+
+		describe('rundown is active', () => {
+			describe('Part does not belong to any Segments of the Rundown', () => {
+				it('throws error', () => {
+					const partNotInAnySegments: Part = EntityMockFactory.createPart({
+						segmentId: 'nonExistingSegmentId',
+					})
+					const segments: Segment[] = [
+						EntityMockFactory.createSegment({ id: 'segmentOne' }),
+						EntityMockFactory.createSegment({ id: 'segmentTwo' }),
+					]
+
+					const testee: Rundown = new Rundown({ isRundownActive: true, segments } as RundownInterface)
+
+					expect(() => testee.getPartAfter(partNotInAnySegments)).toThrow(NotFoundException)
+				})
+			})
+
+			describe('Segment of Part still have Parts after the Part', () => {
+				it('returns the next Part in the Segment', () => {
+					const segmentId: string = 'segmentId'
+					const part: Part = EntityMockFactory.createPart({ segmentId })
+					const nextPartInSegment: Part = EntityMockFactory.createPart({})
+					const segment: Segment = EntityMockFactory.createSegment(
+						{ id: segmentId, parts: [part, nextPartInSegment] },
+						{ nextPart: nextPartInSegment }
+					)
+
+					const testee: Rundown = new Rundown({
+						isRundownActive: true,
+						segments: [segment],
+					} as RundownInterface)
+
+					const result: Part = testee.getPartAfter(part)
+					expect(result).toBe(nextPartInSegment)
+				})
+			})
+
+			describe('Segment does not have any Parts after the Part', () => {
+				describe('Rundown has another Segment following the Segment of the Part', () => {
+					it('returns the first Part of the following Segment', () => {
+						const firstSegmentId: string = 'firstSegmentId'
+						const part: Part = EntityMockFactory.createPart({ segmentId: firstSegmentId })
+						const firstSegmentMock: Segment = EntityMockFactory.createSegmentMockInstance({
+							id: firstSegmentId,
+							parts: [part],
+						})
+						when(firstSegmentMock.findNextPart(part)).thenThrow(new LastPartInSegmentException())
+						const firstSegment: Segment = instance(firstSegmentMock)
+
+						const secondSegmentId: string = 'secondSegmentId'
+						const firstPartInSecondSegment: Part = EntityMockFactory.createPart({
+							segmentId: secondSegmentId,
+						})
+						const secondSegment: Segment = EntityMockFactory.createSegment(
+							{ id: firstSegmentId, parts: [firstPartInSecondSegment] },
+							{ firstPart: firstPartInSecondSegment }
+						)
+
+						const testee: Rundown = new Rundown({
+							isRundownActive: true,
+							segments: [firstSegment, secondSegment],
+						} as RundownInterface)
+
+						const result: Part = testee.getPartAfter(part)
+						expect(result).toBe(firstPartInSecondSegment)
+					})
+				})
+
+				describe('Segment is the last Segment of the Rundown', () => {
+					it('throws error', () => {
+						const firstSegmentId: string = 'firstSegmentId'
+						const part: Part = EntityMockFactory.createPart({ segmentId: firstSegmentId })
+						const firstSegmentMock: Segment = EntityMockFactory.createSegmentMockInstance({
+							id: firstSegmentId,
+							parts: [part],
+						})
+						when(firstSegmentMock.findNextPart(part)).thenThrow(new LastPartInSegmentException())
+						const firstSegment: Segment = instance(firstSegmentMock)
+
+						const testee: Rundown = new Rundown({
+							isRundownActive: true,
+							segments: [firstSegment],
+						} as RundownInterface)
+
+						expect(() => testee.getPartAfter(part)).toThrow(LastPartInRundownException)
 					})
 				})
 			})

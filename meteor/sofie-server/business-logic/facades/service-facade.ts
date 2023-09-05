@@ -16,6 +16,7 @@ export class ServiceFacade {
 			RepositoryFacade.createRundownRepository(),
 			RepositoryFacade.createTimelineRepository(),
 			RepositoryFacade.createAdLibRepository(),
+			RepositoryFacade.createStudioRepository(),
 			ServiceFacade.createTimelineBuilder(),
 			ServiceFacade.createRundownEventBuilder(),
 			TimeoutCallbackScheduler.getInstance()

@@ -16,6 +16,9 @@ import { CachedRundownRepository } from '../repositories/cache/cached-rundown-re
 import { MongoRundownPlaylistRepository } from '../repositories/mongo/mongo-rundown-playlist-repository'
 import { RundownBaselineRepository } from '../repositories/interfaces/rundown-baseline-repository'
 import { MongoRundownBaselineRepository } from '../repositories/mongo/mongo-rundown-baseline-repository'
+import { StudioRepository } from '../repositories/interfaces/studio-repository'
+import { CachedStudioRepository } from '../repositories/cache/cached-studio-repository'
+import { MongoStudioRepository } from '../repositories/mongo/mongo-studio-repository'
 
 export class RepositoryFacade {
 	public static createRundownRepository(): RundownRepository {
@@ -64,5 +67,13 @@ export class RepositoryFacade {
 
 	public static createAdLibRepository(): AdLibPieceRepository {
 		return new MongoAdLibPieceRepository(MongoDatabase.getInstance(), new MongoEntityConverter())
+	}
+
+	public static createStudioRepository(): StudioRepository {
+		const studioRepository: StudioRepository = new MongoStudioRepository(
+			MongoDatabase.getInstance(),
+			new MongoEntityConverter()
+		)
+		return CachedStudioRepository.getInstance(studioRepository)
 	}
 }

@@ -3,6 +3,7 @@ import { Rundown } from '../../model/entities/rundown'
 import {
 	ActivePartTimelineObjectGroup,
 	DeviceType,
+	LookAheadTimelineObject,
 	Timeline,
 	TimelineObjectControl,
 	TimelineObjectGroup,
@@ -18,8 +19,14 @@ import { PieceLifespan } from '../../model/enums/piece-lifespan'
 import { UnsupportedOperation } from '../../model/exceptions/unsupported-operation'
 import { ExhaustiveCaseChecker } from '../exhaustive-case-checker'
 import { ObjectCloner } from './interfaces/object-cloner'
+import { Studio } from '../../model/entities/studio'
+import { StudioLayer } from '../../model/value-objects/studio-layer'
+import { LookAheadMode } from '../../model/enums/look-ahead-mode'
+import { Exception } from '../../model/exceptions/exception'
+import { ErrorCode } from '../../model/enums/error-code'
 
 const BASELINE_GROUP_ID: string = 'baseline_group'
+const LOOK_AHEAD_GROUP_ID: string = 'look_ahead_group'
 
 const ACTIVE_GROUP_PREFIX: string = 'active_group_'
 const PREVIOUS_GROUP_PREFIX: string = 'previous_group_'
@@ -33,6 +40,7 @@ const PIECE_GROUP_INFIX: string = '_piece_group_'
 // These priority values are the same values used by Core
 const HIGH_PRIORITY: number = 5
 const MEDIUM_PRIORITY: number = 1
+const LOOK_AHEAD_PRIORITY: number = 0.1
 const BASELINE_PRIORITY: number = 0
 const LOW_PRIORITY: number = -1
 
@@ -43,59 +51,24 @@ export class SuperflyTimelineBuilder implements TimelineBuilder {
 		return { timelineGroups: [] }
 	}
 
-	public buildTimeline(rundown: Rundown): Timeline {
-		const timeline: Timeline = {
-			timelineGroups: [],
-		}
+	public buildTimeline(rundown: Rundown, studio: Studio): Timeline {
+		let timeline: Timeline = this.createTimelineWithBaseline(rundown)
 
-		// TODO: Find LookAhead
-
-		const baselineGroup: TimelineObjectGroup = this.createBaselineGroup(rundown)
-		timeline.timelineGroups.push(baselineGroup)
-
-		const activePartTimelineGroup: ActivePartTimelineObjectGroup =
-			this.createTimelineObjectGroupForActivePart(rundown)
+		// TODO: Support that there might not be an active Part.
+		const activePartTimelineGroup: ActivePartTimelineObjectGroup = this.createActivePartGroup(rundown)
 		timeline.timelineGroups.push(activePartTimelineGroup)
 
-		const previousPart: Part | undefined = rundown.getPreviousPart()
-		if (previousPart) {
-			const previousPartTimelineGroup: TimelineObjectGroup = this.createTimelineObjectGroupForPreviousPart(
-				previousPart,
-				rundown.getActivePart(),
-				activePartTimelineGroup
-			)
-			timeline.timelineGroups.push(previousPartTimelineGroup)
-		}
-
-		const infinitePiecesTimelineGroups: TimelineObjectGroup[] =
-			this.createTimelineObjectGroupsForInfinitePieces(rundown)
-		timeline.timelineGroups.push(...infinitePiecesTimelineGroups)
-
-		if (activePartTimelineGroup.autoNextEpochTime > 0) {
-			const nextPartTimeline: TimelineObjectGroup = this.createTimelineForNextPart(
-				rundown,
-				activePartTimelineGroup
-			)
-			timeline.timelineGroups.push(nextPartTimeline)
-
-			if (Number.isNaN(activePartTimelineGroup.enable.duration)) {
-				throw new UnsupportedOperation(
-					`Duration of activePartTimelineGroup must be a number! Got: ${activePartTimelineGroup.enable.duration}`
-				)
-			}
-			timeline.autoNext = {
-				epochTimeToTakeNext:
-					activePartTimelineGroup.autoNextEpochTime -
-					rundown.getNextPart().getTimings().previousPartContinueIntoPartDuration,
-			}
-		}
+		timeline = this.createTimelineWithPreviousPartGroup(rundown, activePartTimelineGroup, timeline)
+		timeline = this.createTimelineWithNextPartGroup(rundown, activePartTimelineGroup, timeline)
+		timeline = this.createTimelineWithLookAheadGroup(rundown, studio, activePartTimelineGroup, timeline)
+		timeline = this.createTimelineWithInfiniteGroups(rundown, timeline)
 
 		// TODO: Call Blueprint "onTimelineGenerate". This will most likely need some tweaks.
 
 		return timeline
 	}
 
-	private createBaselineGroup(rundown: Rundown) {
+	private createTimelineWithBaseline(rundown: Rundown): Timeline {
 		const baselineGroup: TimelineObjectGroup = {
 			id: BASELINE_GROUP_ID,
 			isGroup: true,
@@ -110,10 +83,13 @@ export class SuperflyTimelineBuilder implements TimelineBuilder {
 				deviceType: DeviceType.ABSTRACT,
 			},
 		}
-		return baselineGroup
+
+		return {
+			timelineGroups: [baselineGroup],
+		}
 	}
 
-	private createTimelineObjectGroupForActivePart(rundown: Rundown): ActivePartTimelineObjectGroup {
+	private createActivePartGroup(rundown: Rundown): ActivePartTimelineObjectGroup {
 		const now: number = Date.now()
 
 		const activePart: Part = rundown.getActivePart()
@@ -352,11 +328,147 @@ export class SuperflyTimelineBuilder implements TimelineBuilder {
 		return timelineObjectCopy
 	}
 
-	private createTimelineObjectGroupForPreviousPart(
-		previousPart: Part,
-		activePart: Part,
+	private createTimelineWithLookAheadGroup(
+		rundown: Rundown,
+		studio: Studio,
+		activeGroup: TimelineObjectGroup,
+		timeline: Timeline
+	): Timeline {
+		const lookAheadLayers: StudioLayer[] = studio.layers.filter(
+			(layer) => layer.lookAheadMode !== LookAheadMode.NONE
+		)
+
+		const futureLookAheadObjects: TimelineObject[] = lookAheadLayers.flatMap((layer) => {
+			const lookAheadObjects: LookAheadTimelineObject[] = this.findLookAheadTimelineObjectsForFutureParts(
+				rundown,
+				layer,
+				activeGroup
+			)
+
+			const activePartLookAheadObjects: LookAheadTimelineObject[] =
+				this.findLookAheadTimelineObjectsForActivePart(rundown, layer, activeGroup)
+			lookAheadObjects.push(...activePartLookAheadObjects)
+
+			return lookAheadObjects
+		})
+
+		// TODO: Test server with in-transition to see if we need to do something about it with lookAhead
+
+		const lookAheadTimelineObjectGroup: TimelineObjectGroup = {
+			id: LOOK_AHEAD_GROUP_ID,
+			isGroup: true,
+			children: futureLookAheadObjects,
+			enable: {
+				while: '1',
+			},
+			priority: LOOK_AHEAD_PRIORITY,
+			layer: '',
+			content: {
+				type: TimelineObjectType.GROUP,
+				deviceType: DeviceType.ABSTRACT,
+			},
+		}
+
+		timeline.timelineGroups.push(lookAheadTimelineObjectGroup)
+		return timeline
+	}
+
+	private findLookAheadTimelineObjectsForFutureParts(
+		rundown: Rundown,
+		layer: StudioLayer,
 		activeGroup: TimelineObjectGroup
-	): TimelineObjectGroup {
+	): LookAheadTimelineObject[] {
+		const lookAheadEnable: TimelineEnable = {
+			while: `#${activeGroup.id}`,
+		}
+		const lookAheadObjects: LookAheadTimelineObject[] = []
+		let partToGetLookAheadObjectsFrom: Part = rundown.getNextPart()
+
+		for (let i = 0; i < layer.maximumLookAheadSearchDistance; i++) {
+			if (lookAheadObjects.length >= layer.amountOfLookAheadObjectsToFind) {
+				return lookAheadObjects
+			}
+
+			lookAheadObjects.push(
+				...this.createLookAheadTimelineObjectsForPart(partToGetLookAheadObjectsFrom, layer, lookAheadEnable)
+			)
+			try {
+				partToGetLookAheadObjectsFrom = rundown.getPartAfter(partToGetLookAheadObjectsFrom)
+			} catch (exception) {
+				if ((exception as Exception).errorCode !== ErrorCode.LAST_PART_IN_RUNDOWN) {
+					throw exception
+				}
+				return lookAheadObjects
+			}
+		}
+		return lookAheadObjects
+	}
+
+	private createLookAheadTimelineObjectsForPart(
+		part: Part,
+		layer: StudioLayer,
+		enable: TimelineEnable
+	): LookAheadTimelineObject[] {
+		return part
+			.getPieces()
+			.filter((piece) => piece.pieceLifespan === PieceLifespan.WITHIN_PART)
+			.flatMap((piece) => piece.timelineObjects)
+			.filter((timelineObject) => timelineObject.layer === layer.name)
+			.map((timelineObject) => this.mapTimelineObjectToLookAheadTimelineObject(timelineObject, enable, layer))
+	}
+
+	/*
+	 * Since the active Part might be delayed slightly, from when the Take happens to when the active Part is actually OnAir (i.e. Pre- and PostRoll etc),
+	 * we need to show the lookAhead objects from the "previous next" Part which is now the active Part.
+	 * We only need to show these lookAhead objects until the active Part starts playing. Once that happens, the actual
+	 * lookAhead objects will take over.
+	 */
+	private findLookAheadTimelineObjectsForActivePart(
+		rundown: Rundown,
+		layer: StudioLayer,
+		activeGroup: TimelineObjectGroup
+	): LookAheadTimelineObject[] {
+		const activePartTimelineObjectEnable: TimelineEnable = {
+			start: 0,
+			end: `$${activeGroup.id}.start`,
+		}
+		return this.createLookAheadTimelineObjectsForPart(
+			rundown.getActivePart(),
+			layer,
+			activePartTimelineObjectEnable
+		)
+	}
+
+	private mapTimelineObjectToLookAheadTimelineObject(
+		timelineObject: TimelineObject,
+		enable: TimelineEnable,
+		studioLayer: StudioLayer
+	): LookAheadTimelineObject {
+		const lookAheadTimelineObject: LookAheadTimelineObject = {
+			...this.objectCloner.clone(timelineObject),
+			id: `${LOOK_AHEAD_GROUP_ID}_${timelineObject.id}`,
+			priority: LOOK_AHEAD_PRIORITY,
+			isLookahead: true,
+			enable,
+			inGroup: LOOK_AHEAD_GROUP_ID,
+		}
+		if (studioLayer.lookAheadMode === LookAheadMode.PRELOAD) {
+			lookAheadTimelineObject.lookaheadForLayer = lookAheadTimelineObject.layer
+			lookAheadTimelineObject.layer = `${lookAheadTimelineObject.layer}_lookahead`
+		}
+		return lookAheadTimelineObject
+	}
+
+	private createTimelineWithPreviousPartGroup(
+		rundown: Rundown,
+		activeGroup: TimelineObjectGroup,
+		timeline: Timeline
+	): Timeline {
+		const previousPart: Part | undefined = rundown.getPreviousPart()
+		if (!previousPart) {
+			return timeline
+		}
+
 		// TODO: This if-statement shouldn't be necessary in production
 		if (previousPart.getExecutedAt() <= 0) {
 			throw new Error(
@@ -371,8 +483,9 @@ export class SuperflyTimelineBuilder implements TimelineBuilder {
 			children: [],
 			enable: {
 				start: previousPart.getExecutedAt(),
-				// end: `#${activeGroup.id}.start`
-				end: `#${activeGroup.id}.start + ${activePart.getTimings().previousPartContinueIntoPartDuration}`,
+				end: `#${activeGroup.id}.start + ${
+					rundown.getActivePart().getTimings().previousPartContinueIntoPartDuration
+				}`,
 			},
 			layer: '',
 			content: {
@@ -385,10 +498,11 @@ export class SuperflyTimelineBuilder implements TimelineBuilder {
 			.getPiecesWithLifespan([PieceLifespan.WITHIN_PART])
 			.flatMap((piece) => this.generateGroupsAndTimelineObjectsForPiece(piece, previousPart, previousGroup))
 
-		return previousGroup
+		timeline.timelineGroups.push(previousGroup)
+		return timeline
 	}
 
-	private createTimelineObjectGroupsForInfinitePieces(rundown: Rundown): TimelineObjectGroup[] {
+	private createTimelineWithInfiniteGroups(rundown: Rundown, timeline: Timeline): Timeline {
 		const activePart: Part = rundown.getActivePart()
 		const infinitePieceTimelineObjectGroups: TimelineObjectGroup[] = []
 		rundown
@@ -449,10 +563,19 @@ export class SuperflyTimelineBuilder implements TimelineBuilder {
 				infinitePieceTimelineObjectGroups.push(infiniteGroup)
 			})
 
-		return infinitePieceTimelineObjectGroups
+		timeline.timelineGroups.push(...infinitePieceTimelineObjectGroups)
+		return timeline
 	}
 
-	private createTimelineForNextPart(rundown: Rundown, activeGroup: TimelineObjectGroup): TimelineObjectGroup {
+	private createTimelineWithNextPartGroup(
+		rundown: Rundown,
+		activeGroup: ActivePartTimelineObjectGroup,
+		timeline: Timeline
+	): Timeline {
+		if (activeGroup.autoNextEpochTime === 0) {
+			return timeline
+		}
+
 		const activePart: Part = rundown.getActivePart()
 		const nextPart: Part = rundown.getNextPart()
 
@@ -479,6 +602,17 @@ export class SuperflyTimelineBuilder implements TimelineBuilder {
 			.getPiecesWithLifespan([PieceLifespan.WITHIN_PART])
 			.flatMap((piece) => this.generateGroupsAndTimelineObjectsForPiece(piece, nextPart, nextGroup))
 
-		return nextGroup
+		if (Number.isNaN(activeGroup.enable.duration)) {
+			throw new UnsupportedOperation(
+				`Duration of activeGroup must be a number! Got: ${activeGroup.enable.duration}`
+			)
+		}
+		timeline.autoNext = {
+			epochTimeToTakeNext:
+				activeGroup.autoNextEpochTime - rundown.getNextPart().getTimings().previousPartContinueIntoPartDuration,
+		}
+
+		timeline.timelineGroups.push(nextGroup)
+		return timeline
 	}
 }

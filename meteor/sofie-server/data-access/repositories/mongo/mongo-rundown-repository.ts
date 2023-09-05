@@ -5,8 +5,8 @@ import { MongoDatabase } from './mongo-database'
 import { SegmentRepository } from '../interfaces/segment-repository'
 import { BaseMongoRepository } from './base-mongo-repository'
 import { BasicRundown } from '../../../model/entities/basic-rundown'
-import { RundownBaselineRepository } from '../interfaces/rundown-baseline-repository'
 import { TimelineObject } from '../../../model/entities/timeline-object'
+import { RundownBaselineRepository } from '../interfaces/rundown-baseline-repository'
 
 const RUNDOWN_COLLECTION_NAME: string = 'rundowns'
 

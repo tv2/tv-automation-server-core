@@ -27,11 +27,27 @@ export class EntityMockFactory {
 		when(mockedRundown.getLastTimeModified()).thenReturn(rundownInterface.modifiedAt ?? 0)
 
 		when(mockedRundown.getBaseline()).thenReturn(rundownInterface.baselineTimelineObjects ?? [])
+		when(mockedRundown.getPartAfter(anything())).thenReturn(this.createPart())
 
 		return mockedRundown
 	}
 
 	public static createActiveRundown(
+		activeRundownProperties: {
+			activePart?: Part
+			nextPart?: Part
+			previousPart?: Part
+			activeSegment?: Segment
+			nextSegment?: Segment
+			infinitePieces?: Piece[]
+		} = {},
+		rundownInterface?: Partial<RundownInterface>
+	): Rundown {
+		const mockedRundown: Rundown = this.createActiveRundownMockInstance(activeRundownProperties, rundownInterface)
+		return instance(mockedRundown)
+	}
+
+	public static createActiveRundownMockInstance(
 		activeRundownProperties: {
 			activePart?: Part
 			nextPart?: Part
@@ -50,7 +66,7 @@ export class EntityMockFactory {
 		when(mockedRundown.getNextSegment()).thenReturn(activeRundownProperties.nextSegment ?? this.createSegment())
 		when(mockedRundown.getInfinitePieces()).thenReturn(activeRundownProperties.infinitePieces ?? [])
 
-		return instance(mockedRundown)
+		return mockedRundown
 	}
 
 	public static createSegment(

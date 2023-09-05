@@ -13,6 +13,7 @@ import { PieceLifespan } from '../enums/piece-lifespan'
 import { MisconfigurationException } from '../exceptions/misconfiguration-exception'
 import { ExhaustiveCaseChecker } from '../../business-logic/exhaustive-case-checker'
 import { TimelineObject } from './timeline-object'
+import { LastPartInRundownException } from '../exceptions/last-part-in-rundown-exception'
 
 export interface RundownInterface {
 	id: string
@@ -172,6 +173,31 @@ export class Rundown extends BasicRundown {
 	public getNextPart(): Part {
 		this.assertActive(this.getNextPart.name)
 		return this.nextPart
+	}
+
+	public getPartAfter(part: Part): Part {
+		this.assertActive(this.getPartAfter.name)
+		let nextPartAfterPart: Part
+		let segmentIndexForPart: number = 0
+		try {
+			segmentIndexForPart = this.segments.findIndex((segment) => segment.id === part.segmentId)
+			if (segmentIndexForPart < 0) {
+				throw new NotFoundException(
+					`Part: "${part.id}" does not belong to any Segments on Rundown: "${this.id}"`
+				)
+			}
+			nextPartAfterPart = this.segments[segmentIndexForPart].findNextPart(part)
+		} catch (exception) {
+			if ((exception as Exception).errorCode !== ErrorCode.LAST_PART_IN_SEGMENT) {
+				throw exception
+			}
+			if (segmentIndexForPart + 1 === this.segments.length) {
+				throw new LastPartInRundownException()
+			}
+			nextPartAfterPart = this.segments[segmentIndexForPart + 1].findFirstPart()
+		}
+
+		return nextPartAfterPart
 	}
 
 	public getPreviousPart(): Part | undefined {

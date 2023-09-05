@@ -3,15 +3,20 @@ import { SuperflyTimelineBuilder } from '../superfly-timeline-builder'
 import { EntityMockFactory } from '../../../model/entities/test/entity-mock-factory'
 import { Part } from '../../../model/entities/part'
 import { Rundown } from '../../../model/entities/rundown'
-import { Timeline, TimelineObjectGroup } from '../../../model/entities/timeline'
+import { LookAheadTimelineObject, Timeline, TimelineObjectGroup } from '../../../model/entities/timeline'
 import { Piece } from '../../../model/entities/piece'
 import { TimelineObject } from '../../../model/entities/timeline-object'
 import { TransitionType } from '../../../model/enums/transition-type'
 import { PieceLifespan } from '../../../model/enums/piece-lifespan'
 import { ObjectCloner } from '../interfaces/object-cloner'
 import { anything, instance, mock, when } from 'ts-mockito'
+import { Studio } from '../../../model/entities/studio'
+import { StudioLayer } from '../../../model/value-objects/studio-layer'
+import { LookAheadMode } from '../../../model/enums/look-ahead-mode'
+import { LastPartInRundownException } from '../../../model/exceptions/last-part-in-rundown-exception'
 
 const BASELINE_GROUP_ID: string = 'baseline_group'
+const LOOK_AHEAD_GROUP_ID: string = 'look_ahead_group'
 
 const ACTIVE_GROUP_PREFIX: string = 'active_group_'
 const PREVIOUS_GROUP_PREFIX: string = 'previous_group_'
@@ -24,6 +29,7 @@ const PIECE_GROUP_INFIX: string = '_piece_group_'
 
 const HIGH_PRIORITY: number = 5
 const MEDIUM_PRIORITY: number = 1
+const LOOK_AHEAD_PRIORITY: number = 0.1
 const BASELINE_PRIORITY: number = 0
 const LOW_PRIORITY: number = -1
 
@@ -35,7 +41,7 @@ describe('superfly-timeline-builder', () => {
 					const rundown: Rundown = EntityMockFactory.createActiveRundown()
 
 					const testee: TimelineBuilder = createTestee()
-					const timeline: Timeline = testee.buildTimeline(rundown)
+					const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 					const baselineGroup: TimelineObjectGroup | undefined = timeline.timelineGroups.find(
 						(group) => group.id === BASELINE_GROUP_ID
@@ -47,7 +53,7 @@ describe('superfly-timeline-builder', () => {
 					const rundown: Rundown = EntityMockFactory.createActiveRundown()
 
 					const testee: TimelineBuilder = createTestee()
-					const timeline: Timeline = testee.buildTimeline(rundown)
+					const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 					const baselineGroup: TimelineObjectGroup = timeline.timelineGroups.find(
 						(group) => group.id === BASELINE_GROUP_ID
@@ -59,7 +65,7 @@ describe('superfly-timeline-builder', () => {
 					const rundown: Rundown = EntityMockFactory.createActiveRundown()
 
 					const testee: TimelineBuilder = createTestee()
-					const timeline: Timeline = testee.buildTimeline(rundown)
+					const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 					const baselineGroup: TimelineObjectGroup = timeline.timelineGroups.find(
 						(group) => group.id === BASELINE_GROUP_ID
@@ -71,7 +77,7 @@ describe('superfly-timeline-builder', () => {
 					const rundown: Rundown = EntityMockFactory.createActiveRundown()
 
 					const testee: TimelineBuilder = createTestee()
-					const timeline: Timeline = testee.buildTimeline(rundown)
+					const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 					const baselineGroup: TimelineObjectGroup = timeline.timelineGroups.find(
 						(group) => group.id === BASELINE_GROUP_ID
@@ -89,7 +95,7 @@ describe('superfly-timeline-builder', () => {
 					const rundown: Rundown = EntityMockFactory.createActiveRundown({}, { baselineTimelineObjects })
 
 					const testee: TimelineBuilder = createTestee()
-					const timeline: Timeline = testee.buildTimeline(rundown)
+					const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 					const baselineGroup: TimelineObjectGroup = timeline.timelineGroups.find(
 						(group) => group.id === BASELINE_GROUP_ID
@@ -111,7 +117,7 @@ describe('superfly-timeline-builder', () => {
 					const rundown: Rundown = EntityMockFactory.createActiveRundown()
 
 					const testee: TimelineBuilder = createTestee()
-					const timeline: Timeline = testee.buildTimeline(rundown)
+					const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 					const expectedGroupIdForPart = `${ACTIVE_GROUP_PREFIX}${rundown.getActivePart().id}`
 					const result: TimelineObjectGroup | undefined = timeline.timelineGroups.find(
@@ -129,7 +135,7 @@ describe('superfly-timeline-builder', () => {
 					const rundown: Rundown = EntityMockFactory.createActiveRundown()
 
 					const testee: TimelineBuilder = createTestee()
-					const timeline: Timeline = testee.buildTimeline(rundown)
+					const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 					const result: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 						group.id.includes(ACTIVE_GROUP_PREFIX)
@@ -142,7 +148,7 @@ describe('superfly-timeline-builder', () => {
 					const rundown: Rundown = EntityMockFactory.createActiveRundown()
 
 					const testee: TimelineBuilder = createTestee()
-					const timeline: Timeline = testee.buildTimeline(rundown)
+					const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 					const result: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 						group.id.includes(ACTIVE_GROUP_PREFIX)
@@ -155,7 +161,7 @@ describe('superfly-timeline-builder', () => {
 					const rundown: Rundown = EntityMockFactory.createActiveRundown()
 
 					const testee: TimelineBuilder = createTestee()
-					const timeline: Timeline = testee.buildTimeline(rundown)
+					const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 					const result: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 						group.id.includes(ACTIVE_GROUP_PREFIX)
@@ -170,7 +176,7 @@ describe('superfly-timeline-builder', () => {
 					const rundown: Rundown = EntityMockFactory.createActiveRundown()
 
 					const testee: TimelineBuilder = createTestee()
-					const timeline: Timeline = testee.buildTimeline(rundown)
+					const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 					const result: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 						group.id.includes(ACTIVE_GROUP_PREFIX)
@@ -190,7 +196,7 @@ describe('superfly-timeline-builder', () => {
 						const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
 
 						const testee: TimelineBuilder = createTestee()
-						const timeline: Timeline = testee.buildTimeline(rundown)
+						const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 						const activeGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 							group.id.includes(ACTIVE_GROUP_PREFIX)
@@ -211,7 +217,7 @@ describe('superfly-timeline-builder', () => {
 						const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
 
 						const testee: TimelineBuilder = createTestee()
-						const timeline: Timeline = testee.buildTimeline(rundown)
+						const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 						const activeGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 							group.id.includes(ACTIVE_GROUP_PREFIX)
@@ -233,7 +239,7 @@ describe('superfly-timeline-builder', () => {
 						const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
 
 						const testee: TimelineBuilder = createTestee()
-						const timeline: Timeline = testee.buildTimeline(rundown)
+						const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 						const activeGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 							group.id.includes(ACTIVE_GROUP_PREFIX)
@@ -253,7 +259,7 @@ describe('superfly-timeline-builder', () => {
 						const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
 
 						const testee: TimelineBuilder = createTestee()
-						const timeline: Timeline = testee.buildTimeline(rundown)
+						const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 						const activeGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 							group.id.includes(ACTIVE_GROUP_PREFIX)
@@ -281,7 +287,7 @@ describe('superfly-timeline-builder', () => {
 								const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
 
 								const testee: TimelineBuilder = createTestee()
-								const timeline: Timeline = testee.buildTimeline(rundown)
+								const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 								const activeGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 									group.id.includes(ACTIVE_GROUP_PREFIX)
@@ -305,7 +311,7 @@ describe('superfly-timeline-builder', () => {
 								const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
 
 								const testee: TimelineBuilder = createTestee()
-								const timeline: Timeline = testee.buildTimeline(rundown)
+								const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 								const activeGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 									group.id.includes(ACTIVE_GROUP_PREFIX)
@@ -329,7 +335,7 @@ describe('superfly-timeline-builder', () => {
 								const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
 
 								const testee: TimelineBuilder = createTestee()
-								const timeline: Timeline = testee.buildTimeline(rundown)
+								const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 								const activeGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 									group.id.includes(ACTIVE_GROUP_PREFIX)
@@ -365,7 +371,7 @@ describe('superfly-timeline-builder', () => {
 									const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
 
 									const testee: TimelineBuilder = createTestee()
-									const timeline: Timeline = testee.buildTimeline(rundown)
+									const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 									const activeGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 										group.id.includes(ACTIVE_GROUP_PREFIX)
@@ -395,7 +401,7 @@ describe('superfly-timeline-builder', () => {
 									const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
 
 									const testee: TimelineBuilder = createTestee()
-									const timeline: Timeline = testee.buildTimeline(rundown)
+									const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 									const activeGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 										group.id.includes(ACTIVE_GROUP_PREFIX)
@@ -422,7 +428,7 @@ describe('superfly-timeline-builder', () => {
 								const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
 
 								const testee: TimelineBuilder = createTestee()
-								const timeline: Timeline = testee.buildTimeline(rundown)
+								const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 								const activeGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 									group.id.includes(ACTIVE_GROUP_PREFIX)
@@ -446,7 +452,7 @@ describe('superfly-timeline-builder', () => {
 							const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
 
 							const testee: TimelineBuilder = createTestee()
-							const timeline: Timeline = testee.buildTimeline(rundown)
+							const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 							const activeGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 								group.id.includes(ACTIVE_GROUP_PREFIX)
@@ -470,7 +476,7 @@ describe('superfly-timeline-builder', () => {
 								const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
 
 								const testee: TimelineBuilder = createTestee()
-								const timeline: Timeline = testee.buildTimeline(rundown)
+								const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 								const activeGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 									group.id.includes(ACTIVE_GROUP_PREFIX)
@@ -499,7 +505,7 @@ describe('superfly-timeline-builder', () => {
 									const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
 
 									const testee: TimelineBuilder = createTestee()
-									const timeline: Timeline = testee.buildTimeline(rundown)
+									const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 									const activeGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 										group.id.includes(ACTIVE_GROUP_PREFIX)
@@ -525,7 +531,7 @@ describe('superfly-timeline-builder', () => {
 									const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
 
 									const testee: TimelineBuilder = createTestee()
-									const timeline: Timeline = testee.buildTimeline(rundown)
+									const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 									const activeGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 										group.id.includes(ACTIVE_GROUP_PREFIX)
@@ -554,7 +560,7 @@ describe('superfly-timeline-builder', () => {
 								const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
 
 								const testee: TimelineBuilder = createTestee()
-								const timeline: Timeline = testee.buildTimeline(rundown)
+								const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 								const activeGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 									group.id.includes(ACTIVE_GROUP_PREFIX)
@@ -582,7 +588,7 @@ describe('superfly-timeline-builder', () => {
 								const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
 
 								const testee: TimelineBuilder = createTestee()
-								const timeline: Timeline = testee.buildTimeline(rundown)
+								const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 								const activeGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 									group.id.includes(ACTIVE_GROUP_PREFIX)
@@ -606,7 +612,7 @@ describe('superfly-timeline-builder', () => {
 								const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
 
 								const testee: TimelineBuilder = createTestee()
-								const timeline: Timeline = testee.buildTimeline(rundown)
+								const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 								const activeGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 									group.id.includes(ACTIVE_GROUP_PREFIX)
@@ -630,7 +636,7 @@ describe('superfly-timeline-builder', () => {
 								const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
 
 								const testee: TimelineBuilder = createTestee()
-								const timeline: Timeline = testee.buildTimeline(rundown)
+								const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 								const activeGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 									group.id.includes(ACTIVE_GROUP_PREFIX)
@@ -659,7 +665,7 @@ describe('superfly-timeline-builder', () => {
 						const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
 
 						const testee: TimelineBuilder = createTestee()
-						const timeline: Timeline = testee.buildTimeline(rundown)
+						const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 						const activeGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 							group.id.includes(ACTIVE_GROUP_PREFIX)
@@ -680,7 +686,7 @@ describe('superfly-timeline-builder', () => {
 						const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
 
 						const testee: TimelineBuilder = createTestee()
-						const timeline: Timeline = testee.buildTimeline(rundown)
+						const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 						const activeGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 							group.id.includes(ACTIVE_GROUP_PREFIX)
@@ -700,7 +706,7 @@ describe('superfly-timeline-builder', () => {
 						const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
 
 						const testee: TimelineBuilder = createTestee()
-						const timeline: Timeline = testee.buildTimeline(rundown)
+						const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 						const activeGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 							group.id.includes(ACTIVE_GROUP_PREFIX)
@@ -722,7 +728,7 @@ describe('superfly-timeline-builder', () => {
 							const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
 
 							const testee: TimelineBuilder = createTestee()
-							const timeline: Timeline = testee.buildTimeline(rundown)
+							const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 							const activeGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 								group.id.includes(ACTIVE_GROUP_PREFIX)
@@ -749,7 +755,7 @@ describe('superfly-timeline-builder', () => {
 							const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
 
 							const testee: TimelineBuilder = createTestee()
-							const timeline: Timeline = testee.buildTimeline(rundown)
+							const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 							const activeGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 								group.id.includes(ACTIVE_GROUP_PREFIX)
@@ -775,7 +781,7 @@ describe('superfly-timeline-builder', () => {
 							const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
 
 							const testee: TimelineBuilder = createTestee()
-							const timeline: Timeline = testee.buildTimeline(rundown)
+							const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 							const activeGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 								group.id.includes(ACTIVE_GROUP_PREFIX)
@@ -800,7 +806,7 @@ describe('superfly-timeline-builder', () => {
 							const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
 
 							const testee: TimelineBuilder = createTestee()
-							const timeline: Timeline = testee.buildTimeline(rundown)
+							const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 							const activeGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 								group.id.includes(ACTIVE_GROUP_PREFIX)
@@ -827,7 +833,7 @@ describe('superfly-timeline-builder', () => {
 							const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
 
 							const testee: TimelineBuilder = createTestee()
-							const timeline: Timeline = testee.buildTimeline(rundown)
+							const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 							const activeGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 								group.id.includes(ACTIVE_GROUP_PREFIX)
@@ -850,7 +856,7 @@ describe('superfly-timeline-builder', () => {
 							const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
 
 							const testee: TimelineBuilder = createTestee()
-							const timeline: Timeline = testee.buildTimeline(rundown)
+							const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 							const activeGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 								group.id.includes(ACTIVE_GROUP_PREFIX)
@@ -879,7 +885,7 @@ describe('superfly-timeline-builder', () => {
 							)
 
 							const testee: TimelineBuilder = createTestee(instance(objectCloner))
-							const timeline: Timeline = testee.buildTimeline(rundown)
+							const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 							const activeGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 								group.id.includes(ACTIVE_GROUP_PREFIX)
@@ -917,7 +923,7 @@ describe('superfly-timeline-builder', () => {
 							)
 
 							const testee: TimelineBuilder = createTestee(instance(objectCloner))
-							const timeline: Timeline = testee.buildTimeline(rundown)
+							const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 							const activeGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 								group.id.includes(ACTIVE_GROUP_PREFIX)
@@ -967,7 +973,7 @@ describe('superfly-timeline-builder', () => {
 					const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
 
 					const testee: TimelineBuilder = createTestee()
-					const timeline: Timeline = testee.buildTimeline(rundown)
+					const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 					const activeGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 						group.id.includes(ACTIVE_GROUP_PREFIX)
@@ -1008,7 +1014,7 @@ describe('superfly-timeline-builder', () => {
 					const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
 
 					const testee: TimelineBuilder = createTestee()
-					const timeline: Timeline = testee.buildTimeline(rundown)
+					const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 					const activeGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 						group.id.includes(ACTIVE_GROUP_PREFIX)
@@ -1055,7 +1061,7 @@ describe('superfly-timeline-builder', () => {
 						const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
 
 						const testee: TimelineBuilder = createTestee()
-						const timeline: Timeline = testee.buildTimeline(rundown)
+						const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 						const activeGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 							group.id.includes(ACTIVE_GROUP_PREFIX)
@@ -1081,7 +1087,7 @@ describe('superfly-timeline-builder', () => {
 
 					const testee: TimelineBuilder = createTestee()
 
-					expect(() => testee.buildTimeline(rundown)).toThrow()
+					expect(() => testee.buildTimeline(rundown, createBasicStudioMock())).toThrow()
 				})
 			})
 
@@ -1097,7 +1103,7 @@ describe('superfly-timeline-builder', () => {
 					const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, previousPart })
 
 					const testee: TimelineBuilder = createTestee()
-					const timeline: Timeline = testee.buildTimeline(rundown)
+					const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 					const expectedGroupIdForPart: string = `${PREVIOUS_GROUP_PREFIX}${previousPart.id}`
 					const result: TimelineObjectGroup | undefined = timeline.timelineGroups.find(
@@ -1118,7 +1124,7 @@ describe('superfly-timeline-builder', () => {
 					const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, previousPart })
 
 					const testee: TimelineBuilder = createTestee()
-					const timeline: Timeline = testee.buildTimeline(rundown)
+					const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 					const result: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 						group.id.includes(PREVIOUS_GROUP_PREFIX)
@@ -1138,7 +1144,7 @@ describe('superfly-timeline-builder', () => {
 					const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, previousPart })
 
 					const testee: TimelineBuilder = createTestee()
-					const timeline: Timeline = testee.buildTimeline(rundown)
+					const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 					const result: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 						group.id.includes(PREVIOUS_GROUP_PREFIX)
@@ -1158,7 +1164,7 @@ describe('superfly-timeline-builder', () => {
 					const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, previousPart })
 
 					const testee: TimelineBuilder = createTestee()
-					const timeline: Timeline = testee.buildTimeline(rundown)
+					const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 					const result: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 						group.id.includes(PREVIOUS_GROUP_PREFIX)
@@ -1186,7 +1192,7 @@ describe('superfly-timeline-builder', () => {
 						const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, previousPart })
 
 						const testee: TimelineBuilder = createTestee()
-						const timeline: Timeline = testee.buildTimeline(rundown)
+						const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 						const activeGroupId: string = `${ACTIVE_GROUP_PREFIX}${activePart.id}`
 						const result: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
@@ -1211,7 +1217,7 @@ describe('superfly-timeline-builder', () => {
 						const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, previousPart })
 
 						const testee: TimelineBuilder = createTestee()
-						const timeline: Timeline = testee.buildTimeline(rundown)
+						const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 						const activeGroupId: string = `${ACTIVE_GROUP_PREFIX}${activePart.id}`
 						const result: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
@@ -1236,7 +1242,7 @@ describe('superfly-timeline-builder', () => {
 							const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, previousPart })
 
 							const testee: TimelineBuilder = createTestee()
-							const timeline: Timeline = testee.buildTimeline(rundown)
+							const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 							const previousGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 								group.id.includes(PREVIOUS_GROUP_PREFIX)
@@ -1261,7 +1267,7 @@ describe('superfly-timeline-builder', () => {
 							const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, previousPart })
 
 							const testee: TimelineBuilder = createTestee()
-							const timeline: Timeline = testee.buildTimeline(rundown)
+							const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 							const previousGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 								group.id.includes(PREVIOUS_GROUP_PREFIX)
@@ -1287,7 +1293,7 @@ describe('superfly-timeline-builder', () => {
 							const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, previousPart })
 
 							const testee: TimelineBuilder = createTestee()
-							const timeline: Timeline = testee.buildTimeline(rundown)
+							const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 							const previousGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 								group.id.includes(PREVIOUS_GROUP_PREFIX)
@@ -1311,7 +1317,7 @@ describe('superfly-timeline-builder', () => {
 							const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, previousPart })
 
 							const testee: TimelineBuilder = createTestee()
-							const timeline: Timeline = testee.buildTimeline(rundown)
+							const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 							const previousGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 								group.id.includes(PREVIOUS_GROUP_PREFIX)
@@ -1348,7 +1354,7 @@ describe('superfly-timeline-builder', () => {
 									})
 
 									const testee: TimelineBuilder = createTestee()
-									const timeline: Timeline = testee.buildTimeline(rundown)
+									const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 									const previousGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 										group.id.includes(PREVIOUS_GROUP_PREFIX)
@@ -1383,7 +1389,7 @@ describe('superfly-timeline-builder', () => {
 									})
 
 									const testee: TimelineBuilder = createTestee()
-									const timeline: Timeline = testee.buildTimeline(rundown)
+									const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 									const previousGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 										group.id.includes(PREVIOUS_GROUP_PREFIX)
@@ -1414,7 +1420,7 @@ describe('superfly-timeline-builder', () => {
 									})
 
 									const testee: TimelineBuilder = createTestee()
-									const timeline: Timeline = testee.buildTimeline(rundown)
+									const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 									const previousGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 										group.id.includes(PREVIOUS_GROUP_PREFIX)
@@ -1459,7 +1465,10 @@ describe('superfly-timeline-builder', () => {
 										})
 
 										const testee: TimelineBuilder = createTestee()
-										const timeline: Timeline = testee.buildTimeline(rundown)
+										const timeline: Timeline = testee.buildTimeline(
+											rundown,
+											createBasicStudioMock()
+										)
 
 										const previousGroup: TimelineObjectGroup = timeline.timelineGroups.find(
 											(group) => group.id.includes(PREVIOUS_GROUP_PREFIX)
@@ -1498,7 +1507,10 @@ describe('superfly-timeline-builder', () => {
 										})
 
 										const testee: TimelineBuilder = createTestee()
-										const timeline: Timeline = testee.buildTimeline(rundown)
+										const timeline: Timeline = testee.buildTimeline(
+											rundown,
+											createBasicStudioMock()
+										)
 
 										const previousGroup: TimelineObjectGroup = timeline.timelineGroups.find(
 											(group) => group.id.includes(PREVIOUS_GROUP_PREFIX)
@@ -1532,7 +1544,7 @@ describe('superfly-timeline-builder', () => {
 									})
 
 									const testee: TimelineBuilder = createTestee()
-									const timeline: Timeline = testee.buildTimeline(rundown)
+									const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 									const previousGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 										group.id.includes(PREVIOUS_GROUP_PREFIX)
@@ -1565,7 +1577,7 @@ describe('superfly-timeline-builder', () => {
 								})
 
 								const testee: TimelineBuilder = createTestee()
-								const timeline: Timeline = testee.buildTimeline(rundown)
+								const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 								const previousGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 									group.id.includes(PREVIOUS_GROUP_PREFIX)
@@ -1596,7 +1608,7 @@ describe('superfly-timeline-builder', () => {
 									})
 
 									const testee: TimelineBuilder = createTestee()
-									const timeline: Timeline = testee.buildTimeline(rundown)
+									const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 									const previousGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 										group.id.includes(PREVIOUS_GROUP_PREFIX)
@@ -1634,7 +1646,10 @@ describe('superfly-timeline-builder', () => {
 										})
 
 										const testee: TimelineBuilder = createTestee()
-										const timeline: Timeline = testee.buildTimeline(rundown)
+										const timeline: Timeline = testee.buildTimeline(
+											rundown,
+											createBasicStudioMock()
+										)
 
 										const previousGroup: TimelineObjectGroup = timeline.timelineGroups.find(
 											(group) => group.id.includes(PREVIOUS_GROUP_PREFIX)
@@ -1667,7 +1682,10 @@ describe('superfly-timeline-builder', () => {
 										})
 
 										const testee: TimelineBuilder = createTestee()
-										const timeline: Timeline = testee.buildTimeline(rundown)
+										const timeline: Timeline = testee.buildTimeline(
+											rundown,
+											createBasicStudioMock()
+										)
 
 										const previousGroup: TimelineObjectGroup = timeline.timelineGroups.find(
 											(group) => group.id.includes(PREVIOUS_GROUP_PREFIX)
@@ -1703,7 +1721,7 @@ describe('superfly-timeline-builder', () => {
 									})
 
 									const testee: TimelineBuilder = createTestee()
-									const timeline: Timeline = testee.buildTimeline(rundown)
+									const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 									const previousGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 										group.id.includes(PREVIOUS_GROUP_PREFIX)
@@ -1738,7 +1756,7 @@ describe('superfly-timeline-builder', () => {
 									})
 
 									const testee: TimelineBuilder = createTestee()
-									const timeline: Timeline = testee.buildTimeline(rundown)
+									const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 									const previousGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 										group.id.includes(PREVIOUS_GROUP_PREFIX)
@@ -1769,7 +1787,7 @@ describe('superfly-timeline-builder', () => {
 									})
 
 									const testee: TimelineBuilder = createTestee()
-									const timeline: Timeline = testee.buildTimeline(rundown)
+									const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 									const previousGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 										group.id.includes(PREVIOUS_GROUP_PREFIX)
@@ -1800,7 +1818,7 @@ describe('superfly-timeline-builder', () => {
 									})
 
 									const testee: TimelineBuilder = createTestee()
-									const timeline: Timeline = testee.buildTimeline(rundown)
+									const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 									const previousGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 										group.id.includes(PREVIOUS_GROUP_PREFIX)
@@ -1833,7 +1851,7 @@ describe('superfly-timeline-builder', () => {
 							const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, previousPart })
 
 							const testee: TimelineBuilder = createTestee()
-							const timeline: Timeline = testee.buildTimeline(rundown)
+							const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 							const previousGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 								group.id.includes(PREVIOUS_GROUP_PREFIX)
@@ -1858,7 +1876,7 @@ describe('superfly-timeline-builder', () => {
 							const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, previousPart })
 
 							const testee: TimelineBuilder = createTestee()
-							const timeline: Timeline = testee.buildTimeline(rundown)
+							const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 							const previousGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 								group.id.includes(PREVIOUS_GROUP_PREFIX)
@@ -1882,7 +1900,7 @@ describe('superfly-timeline-builder', () => {
 							const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, previousPart })
 
 							const testee: TimelineBuilder = createTestee()
-							const timeline: Timeline = testee.buildTimeline(rundown)
+							const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 							const previousGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 								group.id.includes(PREVIOUS_GROUP_PREFIX)
@@ -1913,7 +1931,7 @@ describe('superfly-timeline-builder', () => {
 								})
 
 								const testee: TimelineBuilder = createTestee()
-								const timeline: Timeline = testee.buildTimeline(rundown)
+								const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 								const previousGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 									group.id.includes(PREVIOUS_GROUP_PREFIX)
@@ -1949,7 +1967,7 @@ describe('superfly-timeline-builder', () => {
 								})
 
 								const testee: TimelineBuilder = createTestee()
-								const timeline: Timeline = testee.buildTimeline(rundown)
+								const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 								const previousGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 									group.id.includes(PREVIOUS_GROUP_PREFIX)
@@ -1984,7 +2002,7 @@ describe('superfly-timeline-builder', () => {
 								})
 
 								const testee: TimelineBuilder = createTestee()
-								const timeline: Timeline = testee.buildTimeline(rundown)
+								const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 								const previousGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 									group.id.includes(PREVIOUS_GROUP_PREFIX)
@@ -2020,7 +2038,7 @@ describe('superfly-timeline-builder', () => {
 								})
 
 								const testee: TimelineBuilder = createTestee()
-								const timeline: Timeline = testee.buildTimeline(rundown)
+								const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 								const previousGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 									group.id.includes(PREVIOUS_GROUP_PREFIX)
@@ -2056,7 +2074,7 @@ describe('superfly-timeline-builder', () => {
 								})
 
 								const testee: TimelineBuilder = createTestee()
-								const timeline: Timeline = testee.buildTimeline(rundown)
+								const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 								const previousGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 									group.id.includes(PREVIOUS_GROUP_PREFIX)
@@ -2088,7 +2106,7 @@ describe('superfly-timeline-builder', () => {
 								})
 
 								const testee: TimelineBuilder = createTestee()
-								const timeline: Timeline = testee.buildTimeline(rundown)
+								const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 								const previousGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 									group.id.includes(PREVIOUS_GROUP_PREFIX)
@@ -2129,7 +2147,7 @@ describe('superfly-timeline-builder', () => {
 								)
 
 								const testee: TimelineBuilder = createTestee(instance(objectCloner))
-								const timeline: Timeline = testee.buildTimeline(rundown)
+								const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 								const previousGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 									group.id.includes(PREVIOUS_GROUP_PREFIX)
@@ -2176,7 +2194,7 @@ describe('superfly-timeline-builder', () => {
 								)
 
 								const testee: TimelineBuilder = createTestee(instance(objectCloner))
-								const timeline: Timeline = testee.buildTimeline(rundown)
+								const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 								const previousGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 									group.id.includes(PREVIOUS_GROUP_PREFIX)
@@ -2211,7 +2229,7 @@ describe('superfly-timeline-builder', () => {
 					const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, previousPart })
 
 					const testee: TimelineBuilder = createTestee()
-					const timeline: Timeline = testee.buildTimeline(rundown)
+					const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 					const previousGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 						group.id.includes(PREVIOUS_GROUP_PREFIX)
@@ -2257,7 +2275,7 @@ describe('superfly-timeline-builder', () => {
 						const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, previousPart })
 
 						const testee: TimelineBuilder = createTestee()
-						const timeline: Timeline = testee.buildTimeline(rundown)
+						const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 						const previousGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 							group.id.includes(PREVIOUS_GROUP_PREFIX)
@@ -2302,7 +2320,7 @@ describe('superfly-timeline-builder', () => {
 						const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, previousPart })
 
 						const testee: TimelineBuilder = createTestee()
-						const timeline: Timeline = testee.buildTimeline(rundown)
+						const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 						const previousGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 							group.id.includes(PREVIOUS_GROUP_PREFIX)
@@ -2323,7 +2341,7 @@ describe('superfly-timeline-builder', () => {
 				const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, previousPart: undefined })
 
 				const testee: TimelineBuilder = createTestee()
-				const timeline: Timeline = testee.buildTimeline(rundown)
+				const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 				const previousGroup: TimelineObjectGroup | undefined = timeline.timelineGroups.find((group) =>
 					group.id.includes(PREVIOUS_GROUP_PREFIX)
@@ -2347,7 +2365,7 @@ describe('superfly-timeline-builder', () => {
 						const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
 
 						const testee: TimelineBuilder = createTestee()
-						const timeline: Timeline = testee.buildTimeline(rundown)
+						const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 						const activeGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 							group.id.includes(ACTIVE_GROUP_PREFIX)
@@ -2370,7 +2388,7 @@ describe('superfly-timeline-builder', () => {
 						const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
 
 						const testee: TimelineBuilder = createTestee()
-						const timeline: Timeline = testee.buildTimeline(rundown)
+						const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 						const activeGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 							group.id.includes(ACTIVE_GROUP_PREFIX)
@@ -2400,7 +2418,7 @@ describe('superfly-timeline-builder', () => {
 					const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
 
 					const testee: TimelineBuilder = createTestee()
-					const timeline: Timeline = testee.buildTimeline(rundown)
+					const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 					expect(timeline.autoNext).not.toBeUndefined()
 					const expectedEpochTimeToTakeNext: number =
@@ -2419,7 +2437,7 @@ describe('superfly-timeline-builder', () => {
 						const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
 
 						const testee: TimelineBuilder = createTestee()
-						const timeline: Timeline = testee.buildTimeline(rundown)
+						const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 						const expectNextGroupId: string = `${NEXT_GROUP_PREFIX}${nextPart.id}`
 						const nextGroup: TimelineObjectGroup | undefined = timeline.timelineGroups.find(
@@ -2439,7 +2457,7 @@ describe('superfly-timeline-builder', () => {
 						const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
 
 						const testee: TimelineBuilder = createTestee()
-						const timeline: Timeline = testee.buildTimeline(rundown)
+						const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 						const nextGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 							group.id.includes(NEXT_GROUP_PREFIX)
@@ -2458,7 +2476,7 @@ describe('superfly-timeline-builder', () => {
 						const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
 
 						const testee: TimelineBuilder = createTestee()
-						const timeline: Timeline = testee.buildTimeline(rundown)
+						const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 						const nextGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 							group.id.includes(NEXT_GROUP_PREFIX)
@@ -2485,7 +2503,7 @@ describe('superfly-timeline-builder', () => {
 							const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
 
 							const testee: TimelineBuilder = createTestee()
-							const timeline: Timeline = testee.buildTimeline(rundown)
+							const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 							const activeGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 								group.id.includes(ACTIVE_GROUP_PREFIX)
@@ -2511,7 +2529,7 @@ describe('superfly-timeline-builder', () => {
 							const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
 
 							const testee: TimelineBuilder = createTestee()
-							const timeline: Timeline = testee.buildTimeline(rundown)
+							const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 							const activeGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 								group.id.includes(ACTIVE_GROUP_PREFIX)
@@ -2542,7 +2560,7 @@ describe('superfly-timeline-builder', () => {
 								const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
 
 								const testee: TimelineBuilder = createTestee()
-								const timeline: Timeline = testee.buildTimeline(rundown)
+								const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 								const nextGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 									group.id.includes(NEXT_GROUP_PREFIX)
@@ -2571,7 +2589,7 @@ describe('superfly-timeline-builder', () => {
 								const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
 
 								const testee: TimelineBuilder = createTestee()
-								const timeline: Timeline = testee.buildTimeline(rundown)
+								const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 								const nextGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 									group.id.includes(NEXT_GROUP_PREFIX)
@@ -2601,7 +2619,7 @@ describe('superfly-timeline-builder', () => {
 								const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
 
 								const testee: TimelineBuilder = createTestee()
-								const timeline: Timeline = testee.buildTimeline(rundown)
+								const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 								const nextGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 									group.id.includes(NEXT_GROUP_PREFIX)
@@ -2629,7 +2647,7 @@ describe('superfly-timeline-builder', () => {
 								const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
 
 								const testee: TimelineBuilder = createTestee()
-								const timeline: Timeline = testee.buildTimeline(rundown)
+								const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 								const nextGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 									group.id.includes(NEXT_GROUP_PREFIX)
@@ -2668,7 +2686,10 @@ describe('superfly-timeline-builder', () => {
 										})
 
 										const testee: TimelineBuilder = createTestee()
-										const timeline: Timeline = testee.buildTimeline(rundown)
+										const timeline: Timeline = testee.buildTimeline(
+											rundown,
+											createBasicStudioMock()
+										)
 
 										const nextGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 											group.id.includes(NEXT_GROUP_PREFIX)
@@ -2704,7 +2725,10 @@ describe('superfly-timeline-builder', () => {
 										})
 
 										const testee: TimelineBuilder = createTestee()
-										const timeline: Timeline = testee.buildTimeline(rundown)
+										const timeline: Timeline = testee.buildTimeline(
+											rundown,
+											createBasicStudioMock()
+										)
 
 										const nextGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 											group.id.includes(NEXT_GROUP_PREFIX)
@@ -2737,7 +2761,10 @@ describe('superfly-timeline-builder', () => {
 										})
 
 										const testee: TimelineBuilder = createTestee()
-										const timeline: Timeline = testee.buildTimeline(rundown)
+										const timeline: Timeline = testee.buildTimeline(
+											rundown,
+											createBasicStudioMock()
+										)
 
 										const nextGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 											group.id.includes(NEXT_GROUP_PREFIX)
@@ -2784,7 +2811,10 @@ describe('superfly-timeline-builder', () => {
 											})
 
 											const testee: TimelineBuilder = createTestee()
-											const timeline: Timeline = testee.buildTimeline(rundown)
+											const timeline: Timeline = testee.buildTimeline(
+												rundown,
+												createBasicStudioMock()
+											)
 
 											const nextGroup: TimelineObjectGroup = timeline.timelineGroups.find(
 												(group) => group.id.includes(NEXT_GROUP_PREFIX)
@@ -2826,7 +2856,10 @@ describe('superfly-timeline-builder', () => {
 											})
 
 											const testee: TimelineBuilder = createTestee()
-											const timeline: Timeline = testee.buildTimeline(rundown)
+											const timeline: Timeline = testee.buildTimeline(
+												rundown,
+												createBasicStudioMock()
+											)
 
 											const nextGroup: TimelineObjectGroup = timeline.timelineGroups.find(
 												(group) => group.id.includes(NEXT_GROUP_PREFIX)
@@ -2863,7 +2896,10 @@ describe('superfly-timeline-builder', () => {
 										})
 
 										const testee: TimelineBuilder = createTestee()
-										const timeline: Timeline = testee.buildTimeline(rundown)
+										const timeline: Timeline = testee.buildTimeline(
+											rundown,
+											createBasicStudioMock()
+										)
 
 										const nextGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 											group.id.includes(NEXT_GROUP_PREFIX)
@@ -2898,7 +2934,7 @@ describe('superfly-timeline-builder', () => {
 									})
 
 									const testee: TimelineBuilder = createTestee()
-									const timeline: Timeline = testee.buildTimeline(rundown)
+									const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 									const nextGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 										group.id.includes(NEXT_GROUP_PREFIX)
@@ -2931,7 +2967,10 @@ describe('superfly-timeline-builder', () => {
 										})
 
 										const testee: TimelineBuilder = createTestee()
-										const timeline: Timeline = testee.buildTimeline(rundown)
+										const timeline: Timeline = testee.buildTimeline(
+											rundown,
+											createBasicStudioMock()
+										)
 
 										const nextGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 											group.id.includes(NEXT_GROUP_PREFIX)
@@ -2970,7 +3009,10 @@ describe('superfly-timeline-builder', () => {
 											})
 
 											const testee: TimelineBuilder = createTestee()
-											const timeline: Timeline = testee.buildTimeline(rundown)
+											const timeline: Timeline = testee.buildTimeline(
+												rundown,
+												createBasicStudioMock()
+											)
 
 											const nextGroup: TimelineObjectGroup = timeline.timelineGroups.find(
 												(group) => group.id.includes(NEXT_GROUP_PREFIX)
@@ -3005,7 +3047,10 @@ describe('superfly-timeline-builder', () => {
 											})
 
 											const testee: TimelineBuilder = createTestee()
-											const timeline: Timeline = testee.buildTimeline(rundown)
+											const timeline: Timeline = testee.buildTimeline(
+												rundown,
+												createBasicStudioMock()
+											)
 
 											const nextGroup: TimelineObjectGroup = timeline.timelineGroups.find(
 												(group) => group.id.includes(NEXT_GROUP_PREFIX)
@@ -3043,7 +3088,10 @@ describe('superfly-timeline-builder', () => {
 										})
 
 										const testee: TimelineBuilder = createTestee()
-										const timeline: Timeline = testee.buildTimeline(rundown)
+										const timeline: Timeline = testee.buildTimeline(
+											rundown,
+											createBasicStudioMock()
+										)
 
 										const nextGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 											group.id.includes(NEXT_GROUP_PREFIX)
@@ -3080,7 +3128,10 @@ describe('superfly-timeline-builder', () => {
 										})
 
 										const testee: TimelineBuilder = createTestee()
-										const timeline: Timeline = testee.buildTimeline(rundown)
+										const timeline: Timeline = testee.buildTimeline(
+											rundown,
+											createBasicStudioMock()
+										)
 
 										const nextGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 											group.id.includes(NEXT_GROUP_PREFIX)
@@ -3113,7 +3164,10 @@ describe('superfly-timeline-builder', () => {
 										})
 
 										const testee: TimelineBuilder = createTestee()
-										const timeline: Timeline = testee.buildTimeline(rundown)
+										const timeline: Timeline = testee.buildTimeline(
+											rundown,
+											createBasicStudioMock()
+										)
 
 										const nextGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 											group.id.includes(NEXT_GROUP_PREFIX)
@@ -3146,7 +3200,10 @@ describe('superfly-timeline-builder', () => {
 										})
 
 										const testee: TimelineBuilder = createTestee()
-										const timeline: Timeline = testee.buildTimeline(rundown)
+										const timeline: Timeline = testee.buildTimeline(
+											rundown,
+											createBasicStudioMock()
+										)
 
 										const nextGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 											group.id.includes(NEXT_GROUP_PREFIX)
@@ -3183,7 +3240,7 @@ describe('superfly-timeline-builder', () => {
 								const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
 
 								const testee: TimelineBuilder = createTestee()
-								const timeline: Timeline = testee.buildTimeline(rundown)
+								const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 								const nextGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 									group.id.includes(NEXT_GROUP_PREFIX)
@@ -3212,7 +3269,7 @@ describe('superfly-timeline-builder', () => {
 								const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
 
 								const testee: TimelineBuilder = createTestee()
-								const timeline: Timeline = testee.buildTimeline(rundown)
+								const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 								const nextGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 									group.id.includes(NEXT_GROUP_PREFIX)
@@ -3240,7 +3297,7 @@ describe('superfly-timeline-builder', () => {
 								const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
 
 								const testee: TimelineBuilder = createTestee()
-								const timeline: Timeline = testee.buildTimeline(rundown)
+								const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 								const nextGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 									group.id.includes(NEXT_GROUP_PREFIX)
@@ -3273,7 +3330,7 @@ describe('superfly-timeline-builder', () => {
 									})
 
 									const testee: TimelineBuilder = createTestee()
-									const timeline: Timeline = testee.buildTimeline(rundown)
+									const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 									const nextGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 										group.id.includes(NEXT_GROUP_PREFIX)
@@ -3311,7 +3368,7 @@ describe('superfly-timeline-builder', () => {
 									})
 
 									const testee: TimelineBuilder = createTestee()
-									const timeline: Timeline = testee.buildTimeline(rundown)
+									const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 									const nextGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 										group.id.includes(NEXT_GROUP_PREFIX)
@@ -3348,7 +3405,7 @@ describe('superfly-timeline-builder', () => {
 									})
 
 									const testee: TimelineBuilder = createTestee()
-									const timeline: Timeline = testee.buildTimeline(rundown)
+									const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 									const nextGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 										group.id.includes(NEXT_GROUP_PREFIX)
@@ -3386,7 +3443,7 @@ describe('superfly-timeline-builder', () => {
 									})
 
 									const testee: TimelineBuilder = createTestee()
-									const timeline: Timeline = testee.buildTimeline(rundown)
+									const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 									const nextGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 										group.id.includes(NEXT_GROUP_PREFIX)
@@ -3424,7 +3481,7 @@ describe('superfly-timeline-builder', () => {
 									})
 
 									const testee: TimelineBuilder = createTestee()
-									const timeline: Timeline = testee.buildTimeline(rundown)
+									const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 									const nextGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 										group.id.includes(NEXT_GROUP_PREFIX)
@@ -3458,7 +3515,7 @@ describe('superfly-timeline-builder', () => {
 									})
 
 									const testee: TimelineBuilder = createTestee()
-									const timeline: Timeline = testee.buildTimeline(rundown)
+									const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 									const nextGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 										group.id.includes(NEXT_GROUP_PREFIX)
@@ -3501,7 +3558,7 @@ describe('superfly-timeline-builder', () => {
 									)
 
 									const testee: TimelineBuilder = createTestee(instance(objectCloner))
-									const timeline: Timeline = testee.buildTimeline(rundown)
+									const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 									const nextGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 										group.id.includes(NEXT_GROUP_PREFIX)
@@ -3550,7 +3607,7 @@ describe('superfly-timeline-builder', () => {
 									)
 
 									const testee: TimelineBuilder = createTestee(instance(objectCloner))
-									const timeline: Timeline = testee.buildTimeline(rundown)
+									const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 									const nextGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 										group.id.includes(NEXT_GROUP_PREFIX)
@@ -3583,7 +3640,7 @@ describe('superfly-timeline-builder', () => {
 							const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
 
 							const testee: TimelineBuilder = createTestee()
-							const timeline: Timeline = testee.buildTimeline(rundown)
+							const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 							const nextGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 								group.id.includes(NEXT_GROUP_PREFIX)
@@ -3633,7 +3690,7 @@ describe('superfly-timeline-builder', () => {
 								const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
 
 								const testee: TimelineBuilder = createTestee()
-								const timeline: Timeline = testee.buildTimeline(rundown)
+								const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 								const nextGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 									group.id.includes(NEXT_GROUP_PREFIX)
@@ -3682,7 +3739,7 @@ describe('superfly-timeline-builder', () => {
 								const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
 
 								const testee: TimelineBuilder = createTestee()
-								const timeline: Timeline = testee.buildTimeline(rundown)
+								const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 								const nextGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 									group.id.includes(NEXT_GROUP_PREFIX)
@@ -3708,7 +3765,7 @@ describe('superfly-timeline-builder', () => {
 					const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
 
 					const testee: TimelineBuilder = createTestee()
-					const timeline: Timeline = testee.buildTimeline(rundown)
+					const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 					const nextGroup: TimelineObjectGroup | undefined = timeline.timelineGroups.find((group) =>
 						group.id.includes(NEXT_GROUP_PREFIX)
@@ -3726,7 +3783,7 @@ describe('superfly-timeline-builder', () => {
 					const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
 
 					const testee: TimelineBuilder = createTestee()
-					const timeline: Timeline = testee.buildTimeline(rundown)
+					const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 					expect(timeline.autoNext).toBeUndefined()
 				})
@@ -3740,7 +3797,7 @@ describe('superfly-timeline-builder', () => {
 				const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
 
 				const testee: TimelineBuilder = createTestee()
-				const timeline: Timeline = testee.buildTimeline(rundown)
+				const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 				const nextGroup: TimelineObjectGroup | undefined = timeline.timelineGroups.find((group) =>
 					group.id.includes(NEXT_GROUP_PREFIX)
@@ -3755,7 +3812,7 @@ describe('superfly-timeline-builder', () => {
 				const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
 
 				const testee: TimelineBuilder = createTestee()
-				const timeline: Timeline = testee.buildTimeline(rundown)
+				const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 				expect(timeline.autoNext).toBeUndefined()
 			})
@@ -3771,7 +3828,7 @@ describe('superfly-timeline-builder', () => {
 					const rundown: Rundown = EntityMockFactory.createActiveRundown({ infinitePieces: [infinitePiece] })
 
 					const testee: TimelineBuilder = createTestee()
-					const timeline: Timeline = testee.buildTimeline(rundown)
+					const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 					const infiniteGroup: TimelineObjectGroup | undefined = timeline.timelineGroups.find((group) =>
 						group.id.includes(INFINITE_GROUP_PREFIX)
@@ -3790,7 +3847,7 @@ describe('superfly-timeline-builder', () => {
 					const rundown: Rundown = EntityMockFactory.createActiveRundown({ infinitePieces: [infinitePiece] })
 
 					const testee: TimelineBuilder = createTestee()
-					const timeline: Timeline = testee.buildTimeline(rundown)
+					const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 					const infiniteGroup: TimelineObjectGroup | undefined = timeline.timelineGroups.find((group) =>
 						group.id.includes(INFINITE_GROUP_PREFIX)
@@ -3816,7 +3873,7 @@ describe('superfly-timeline-builder', () => {
 						})
 
 						const testee: TimelineBuilder = createTestee()
-						const timeline: Timeline = testee.buildTimeline(rundown)
+						const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 						const infiniteGroup: TimelineObjectGroup | undefined = timeline.timelineGroups.find((group) =>
 							group.id.includes(INFINITE_GROUP_PREFIX)
@@ -3842,7 +3899,7 @@ describe('superfly-timeline-builder', () => {
 
 							const testee: TimelineBuilder = createTestee()
 
-							expect(() => testee.buildTimeline(rundown)).toThrow()
+							expect(() => testee.buildTimeline(rundown, createBasicStudioMock())).toThrow()
 						})
 					})
 
@@ -3866,7 +3923,7 @@ describe('superfly-timeline-builder', () => {
 								})
 
 								const testee: TimelineBuilder = createTestee()
-								const timeline: Timeline = testee.buildTimeline(rundown)
+								const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 								const expectedInfinitePieceGroupId: string = `${INFINITE_GROUP_PREFIX}${activePart.id}_${infinitePiece.id}`
 								const infiniteGroup: TimelineObjectGroup | undefined = timeline.timelineGroups.find(
@@ -3894,7 +3951,7 @@ describe('superfly-timeline-builder', () => {
 								})
 
 								const testee: TimelineBuilder = createTestee()
-								const timeline: Timeline = testee.buildTimeline(rundown)
+								const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 								const infiniteGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 									group.id.includes(INFINITE_GROUP_PREFIX)
@@ -3922,7 +3979,7 @@ describe('superfly-timeline-builder', () => {
 								})
 
 								const testee: TimelineBuilder = createTestee()
-								const timeline: Timeline = testee.buildTimeline(rundown)
+								const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 								const infiniteGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 									group.id.includes(INFINITE_GROUP_PREFIX)
@@ -3951,7 +4008,7 @@ describe('superfly-timeline-builder', () => {
 								})
 
 								const testee: TimelineBuilder = createTestee()
-								const timeline: Timeline = testee.buildTimeline(rundown)
+								const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 								const infiniteGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 									group.id.includes(INFINITE_GROUP_PREFIX)
@@ -3970,7 +4027,7 @@ describe('superfly-timeline-builder', () => {
 							//             const rundown: Rundown = EntityDefaultFactory.createActiveRundown([segment])
 							//
 							//             const testee: TimelineBuilder = createTestee()
-							//             const timeline: Timeline = testee.buildTimeline(rundown)
+							//             const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 							//
 							//             const infiniteGroup: TimelineObjectGroup = timeline.timelineGroups.find(group => group.id === `${INFINITE_GROUP_PREFIX}${segment.getParts()[0].id}_${infinitePiece.id}`)!
 							// 			const expectedPreRollGroupId: string = `${PIECE_PRE_ROLL_PREFIX}${infiniteGroup.id}`
@@ -3986,7 +4043,7 @@ describe('superfly-timeline-builder', () => {
 							//             const rundown: Rundown = EntityDefaultFactory.createActiveRundown([segment])
 							//
 							//             const testee: TimelineBuilder = createTestee()
-							//             const timeline: Timeline = testee.buildTimeline(rundown)
+							//             const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 							//
 							//             const preRollGroup: TimelineObject = timeline.timelineGroups.find(group => group.id.includes(PIECE_PRE_ROLL_PREFIX))!
 							//
@@ -4000,7 +4057,7 @@ describe('superfly-timeline-builder', () => {
 							//             const rundown: Rundown = EntityDefaultFactory.createActiveRundown([segment])
 							//
 							//             const testee: TimelineBuilder = createTestee()
-							//             const timeline: Timeline = testee.buildTimeline(rundown)
+							//             const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 							//
 							//             const preRollGroup: TimelineObject = timeline.timelineGroups.find(group => group.id.includes(PIECE_PRE_ROLL_PREFIX))!
 							//
@@ -4014,7 +4071,7 @@ describe('superfly-timeline-builder', () => {
 							//             const rundown: Rundown = EntityDefaultFactory.createActiveRundown([segment])
 							//
 							//             const testee: TimelineBuilder = createTestee()
-							//             const timeline: Timeline = testee.buildTimeline(rundown)
+							//             const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 							//
 							//             const infiniteGroup: TimelineObjectGroup = timeline.timelineGroups.find(group => group.id === `${INFINITE_GROUP_PREFIX}${segment.getParts()[0].id}_${infinitePiece.id}`)!
 							//             const preRollGroup: TimelineObject = timeline.timelineGroups.find(group => group.id.includes(PIECE_PRE_ROLL_PREFIX))!
@@ -4045,7 +4102,7 @@ describe('superfly-timeline-builder', () => {
 									})
 
 									const testee: TimelineBuilder = createTestee()
-									const timeline: Timeline = testee.buildTimeline(rundown)
+									const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 									const infiniteGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 										group.id.includes(INFINITE_GROUP_PREFIX)
@@ -4078,7 +4135,7 @@ describe('superfly-timeline-builder', () => {
 									})
 
 									const testee: TimelineBuilder = createTestee()
-									const timeline: Timeline = testee.buildTimeline(rundown)
+									const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 									const infiniteGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 										group.id.includes(INFINITE_GROUP_PREFIX)
@@ -4120,7 +4177,7 @@ describe('superfly-timeline-builder', () => {
 									)
 
 									const testee: TimelineBuilder = createTestee(instance(objectCloner))
-									const timeline: Timeline = testee.buildTimeline(rundown)
+									const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 									const infiniteGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 										group.id.includes(INFINITE_GROUP_PREFIX)
@@ -4168,7 +4225,7 @@ describe('superfly-timeline-builder', () => {
 									)
 
 									const testee: TimelineBuilder = createTestee(instance(objectCloner))
-									const timeline: Timeline = testee.buildTimeline(rundown)
+									const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 									const infiniteGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
 										group.id.includes(INFINITE_GROUP_PREFIX)
@@ -4234,7 +4291,7 @@ describe('superfly-timeline-builder', () => {
 				const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, infinitePieces })
 
 				const testee: TimelineBuilder = createTestee()
-				const timeline: Timeline = testee.buildTimeline(rundown)
+				const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 				const infiniteGroups: TimelineObjectGroup[] = timeline.timelineGroups.filter((group) =>
 					group.id.includes(INFINITE_GROUP_PREFIX)
@@ -4249,13 +4306,1267 @@ describe('superfly-timeline-builder', () => {
 				const rundown: Rundown = EntityMockFactory.createActiveRundown()
 
 				const testee: TimelineBuilder = createTestee()
-				const timeline: Timeline = testee.buildTimeline(rundown)
+				const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
 
 				const infiniteGroups: TimelineObjectGroup[] = timeline.timelineGroups.filter((group) =>
 					group.id.includes(INFINITE_GROUP_PREFIX)
 				)
 
 				expect(infiniteGroups).toHaveLength(0)
+			})
+		})
+
+		describe('it builds lookahead group', () => {
+			it('sets the correct lookahead group id', () => {
+				const rundown: Rundown = EntityMockFactory.createActiveRundown()
+
+				const testee: TimelineBuilder = createTestee()
+				const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
+
+				const lookAheadGroup: TimelineObjectGroup | undefined = timeline.timelineGroups.find(
+					(group) => group.id === LOOK_AHEAD_GROUP_ID
+				)
+				expect(lookAheadGroup).not.toBeUndefined()
+			})
+
+			it('sets the enable to while="1"', () => {
+				const rundown: Rundown = EntityMockFactory.createActiveRundown()
+
+				const testee: TimelineBuilder = createTestee()
+				const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
+
+				const lookAheadGroup: TimelineObjectGroup = timeline.timelineGroups.find(
+					(group) => group.id === LOOK_AHEAD_GROUP_ID
+				)!
+				expect(lookAheadGroup.enable.while).toBe('1')
+			})
+
+			it('sets the layer to be empty', () => {
+				const rundown: Rundown = EntityMockFactory.createActiveRundown()
+
+				const testee: TimelineBuilder = createTestee()
+				const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
+
+				const lookAheadGroup: TimelineObjectGroup = timeline.timelineGroups.find(
+					(group) => group.id === LOOK_AHEAD_GROUP_ID
+				)!
+				expect(lookAheadGroup.layer).toBe('')
+			})
+
+			it('sets the priority to LookAhead priority', () => {
+				const rundown: Rundown = EntityMockFactory.createActiveRundown()
+
+				const testee: TimelineBuilder = createTestee()
+				const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
+
+				const lookAheadGroup: TimelineObjectGroup = timeline.timelineGroups.find(
+					(group) => group.id === LOOK_AHEAD_GROUP_ID
+				)!
+				expect(lookAheadGroup.priority).toBe(LOOK_AHEAD_PRIORITY)
+			})
+
+			describe('there are no layers with LookAhead', () => {
+				it('does not add any children to the lookAhead group', () => {
+					const timelineObject: TimelineObject = {
+						id: 'timelineObject',
+						layer: 'someLayer',
+					} as TimelineObject
+					const piece: Piece = EntityMockFactory.createPiece({ timelineObjects: [timelineObject] })
+					const nextPart: Part = EntityMockFactory.createPart({ pieces: [piece] })
+					const rundown: Rundown = EntityMockFactory.createActiveRundown({ nextPart })
+
+					const studioLayers: StudioLayer[] = []
+
+					const testee: TimelineBuilder = createTestee()
+					const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock(studioLayers))
+
+					const lookAheadGroup: TimelineObjectGroup = timeline.timelineGroups.find(
+						(group) => group.id === LOOK_AHEAD_GROUP_ID
+					)!
+					expect(lookAheadGroup.children).toHaveLength(0)
+				})
+
+				describe('there are layers without lookAhead', () => {
+					it('does not add any children to the lookAhead group', () => {
+						const timelineObject: TimelineObject = {
+							id: 'timelineObject',
+							layer: 'someLayer',
+						} as TimelineObject
+						const piece: Piece = EntityMockFactory.createPiece({ timelineObjects: [timelineObject] })
+						const nextPart: Part = EntityMockFactory.createPart({ pieces: [piece] })
+						const rundown: Rundown = EntityMockFactory.createActiveRundown({ nextPart })
+						const studioLayers: StudioLayer[] = [
+							createStudioLayer({ name: timelineObject.layer, lookAheadMode: LookAheadMode.NONE }),
+						]
+
+						const testee: TimelineBuilder = createTestee()
+						const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock(studioLayers))
+
+						const lookAheadGroup: TimelineObjectGroup = timeline.timelineGroups.find(
+							(group) => group.id === LOOK_AHEAD_GROUP_ID
+						)!
+						expect(lookAheadGroup.children).toHaveLength(0)
+					})
+				})
+			})
+
+			describe('there is one layer with LookAhead', () => {
+				describe('it gets the Pieces of the active Part', () => {
+					describe('active Part only have infinite Pieces', () => {
+						it('does not add any children to the lookAhead group', () => {
+							const timelineObject: TimelineObject = {
+								id: 'timelineObject',
+								layer: 'someLayer',
+							} as TimelineObject
+							const piece: Piece = EntityMockFactory.createPiece({
+								pieceLifespan: PieceLifespan.SPANNING_UNTIL_RUNDOWN_END,
+								timelineObjects: [timelineObject],
+							})
+							const activePart: Part = EntityMockFactory.createPart({ pieces: [piece] })
+							const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
+							const studioLayers: StudioLayer[] = [
+								createStudioLayer({
+									name: timelineObject.layer,
+									lookAheadMode: LookAheadMode.WHEN_CLEAR,
+								}),
+							]
+
+							const testee: TimelineBuilder = createTestee()
+							const timeline: Timeline = testee.buildTimeline(
+								rundown,
+								createBasicStudioMock(studioLayers)
+							)
+
+							const lookAheadGroup: TimelineObjectGroup = timeline.timelineGroups.find(
+								(group) => group.id === LOOK_AHEAD_GROUP_ID
+							)!
+							expect(lookAheadGroup.children).toHaveLength(0)
+						})
+					})
+
+					describe('active Part does not have any Pieces with TimelineObjects on a LookAhead layer', () => {
+						it('does not add any children to the lookAhead group', () => {
+							const timelineObject: TimelineObject = {
+								id: 'timelineObject',
+								layer: 'completelyRandomLayer',
+							} as TimelineObject
+							const piece: Piece = EntityMockFactory.createPiece({ timelineObjects: [timelineObject] })
+							const activePart: Part = EntityMockFactory.createPart({ pieces: [piece] })
+							const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
+							const studioLayers: StudioLayer[] = [
+								createStudioLayer({ lookAheadMode: LookAheadMode.WHEN_CLEAR }),
+							]
+
+							const testee: TimelineBuilder = createTestee()
+							const timeline: Timeline = testee.buildTimeline(
+								rundown,
+								createBasicStudioMock(studioLayers)
+							)
+
+							const lookAheadGroup: TimelineObjectGroup = timeline.timelineGroups.find(
+								(group) => group.id === LOOK_AHEAD_GROUP_ID
+							)!
+							expect(lookAheadGroup.children).toHaveLength(0)
+						})
+					})
+
+					describe('active Part has one TimelineObject for the lookAhead layer', () => {
+						describe('it adds the TimelineObject to the children of the lookAhead group', () => {
+							it('sets the id to be "lookAheadGroupId_timelineObject.id"', () => {
+								const timelineObject: TimelineObject = {
+									id: 'timelineObject',
+									layer: 'layerName',
+								} as TimelineObject
+								const piece: Piece = EntityMockFactory.createPiece({
+									timelineObjects: [timelineObject],
+								})
+								const activePart: Part = EntityMockFactory.createPart({ pieces: [piece] })
+								const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
+								const studioLayers: StudioLayer[] = [
+									createStudioLayer({
+										name: timelineObject.layer,
+										lookAheadMode: LookAheadMode.WHEN_CLEAR,
+									}),
+								]
+
+								const testee: TimelineBuilder = createTestee()
+								const timeline: Timeline = testee.buildTimeline(
+									rundown,
+									createBasicStudioMock(studioLayers)
+								)
+
+								const lookAheadGroup: TimelineObjectGroup = timeline.timelineGroups.find(
+									(group) => group.id === LOOK_AHEAD_GROUP_ID
+								)!
+								const lookAheadTimelineObject: TimelineObject | undefined =
+									lookAheadGroup.children.find(
+										(o) => o.id === `${LOOK_AHEAD_GROUP_ID}_${timelineObject.id}`
+									)
+								expect(lookAheadTimelineObject).not.toBeUndefined()
+							})
+
+							it('sets the priority to be the lookAhead priority', () => {
+								const timelineObject: TimelineObject = {
+									id: 'timelineObject',
+									layer: 'layerName',
+								} as TimelineObject
+								const piece: Piece = EntityMockFactory.createPiece({
+									timelineObjects: [timelineObject],
+								})
+								const activePart: Part = EntityMockFactory.createPart({ pieces: [piece] })
+								const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
+								const studioLayers: StudioLayer[] = [
+									createStudioLayer({
+										name: timelineObject.layer,
+										lookAheadMode: LookAheadMode.WHEN_CLEAR,
+									}),
+								]
+
+								const testee: TimelineBuilder = createTestee()
+								const timeline: Timeline = testee.buildTimeline(
+									rundown,
+									createBasicStudioMock(studioLayers)
+								)
+
+								const lookAheadGroup: TimelineObjectGroup = timeline.timelineGroups.find(
+									(group) => group.id === LOOK_AHEAD_GROUP_ID
+								)!
+								const lookAheadTimelineObject: TimelineObject = lookAheadGroup.children.find(
+									(o) => o.id === `${LOOK_AHEAD_GROUP_ID}_${timelineObject.id}`
+								)!
+								expect(lookAheadTimelineObject.priority).toBe(LOOK_AHEAD_PRIORITY)
+							})
+
+							it('sets lookAhead to be true', () => {
+								const timelineObject: TimelineObject = {
+									id: 'timelineObject',
+									layer: 'layerName',
+								} as TimelineObject
+								const piece: Piece = EntityMockFactory.createPiece({
+									timelineObjects: [timelineObject],
+								})
+								const activePart: Part = EntityMockFactory.createPart({ pieces: [piece] })
+								const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
+								const studioLayers: StudioLayer[] = [
+									createStudioLayer({
+										name: timelineObject.layer,
+										lookAheadMode: LookAheadMode.WHEN_CLEAR,
+									}),
+								]
+
+								const testee: TimelineBuilder = createTestee()
+								const timeline: Timeline = testee.buildTimeline(
+									rundown,
+									createBasicStudioMock(studioLayers)
+								)
+
+								const lookAheadGroup: TimelineObjectGroup = timeline.timelineGroups.find(
+									(group) => group.id === LOOK_AHEAD_GROUP_ID
+								)!
+								const lookAheadTimelineObject: LookAheadTimelineObject = lookAheadGroup.children.find(
+									(o) => o.id === `${LOOK_AHEAD_GROUP_ID}_${timelineObject.id}`
+								)! as LookAheadTimelineObject
+								expect(lookAheadTimelineObject.isLookahead).toBe(true)
+							})
+
+							it('sets the start to be 0', () => {
+								const timelineObject: TimelineObject = {
+									id: 'timelineObject',
+									layer: 'layerName',
+								} as TimelineObject
+								const piece: Piece = EntityMockFactory.createPiece({
+									timelineObjects: [timelineObject],
+								})
+								const activePart: Part = EntityMockFactory.createPart({ pieces: [piece] })
+								const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
+								const studioLayers: StudioLayer[] = [
+									createStudioLayer({
+										name: timelineObject.layer,
+										lookAheadMode: LookAheadMode.WHEN_CLEAR,
+									}),
+								]
+
+								const testee: TimelineBuilder = createTestee()
+								const timeline: Timeline = testee.buildTimeline(
+									rundown,
+									createBasicStudioMock(studioLayers)
+								)
+
+								const lookAheadGroup: TimelineObjectGroup = timeline.timelineGroups.find(
+									(group) => group.id === LOOK_AHEAD_GROUP_ID
+								)!
+								const lookAheadTimelineObject: TimelineObject = lookAheadGroup.children.find(
+									(o) => o.id === `${LOOK_AHEAD_GROUP_ID}_${timelineObject.id}`
+								)!
+								expect(lookAheadTimelineObject.enable.start).toBe(0)
+							})
+
+							it('sets the end to be when the active group starts', () => {
+								const timelineObject: TimelineObject = {
+									id: 'timelineObject',
+									layer: 'layerName',
+								} as TimelineObject
+								const piece: Piece = EntityMockFactory.createPiece({
+									timelineObjects: [timelineObject],
+								})
+								const activePart: Part = EntityMockFactory.createPart({ pieces: [piece] })
+								const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
+								const studioLayers: StudioLayer[] = [
+									createStudioLayer({
+										name: timelineObject.layer,
+										lookAheadMode: LookAheadMode.WHEN_CLEAR,
+									}),
+								]
+
+								const testee: TimelineBuilder = createTestee()
+								const timeline: Timeline = testee.buildTimeline(
+									rundown,
+									createBasicStudioMock(studioLayers)
+								)
+
+								const lookAheadGroup: TimelineObjectGroup = timeline.timelineGroups.find(
+									(group) => group.id === LOOK_AHEAD_GROUP_ID
+								)!
+								const lookAheadTimelineObject: TimelineObject = lookAheadGroup.children.find(
+									(o) => o.id === `${LOOK_AHEAD_GROUP_ID}_${timelineObject.id}`
+								)!
+								expect(lookAheadTimelineObject.enable.end).toBe(
+									`$${ACTIVE_GROUP_PREFIX}${activePart.id}.start`
+								)
+							})
+
+							it('sets the group id to be the LookAhead group id', () => {
+								const timelineObject: TimelineObject = {
+									id: 'timelineObject',
+									layer: 'layerName',
+								} as TimelineObject
+								const piece: Piece = EntityMockFactory.createPiece({
+									timelineObjects: [timelineObject],
+								})
+								const activePart: Part = EntityMockFactory.createPart({ pieces: [piece] })
+								const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
+								const studioLayers: StudioLayer[] = [
+									createStudioLayer({
+										name: timelineObject.layer,
+										lookAheadMode: LookAheadMode.WHEN_CLEAR,
+									}),
+								]
+
+								const testee: TimelineBuilder = createTestee()
+								const timeline: Timeline = testee.buildTimeline(
+									rundown,
+									createBasicStudioMock(studioLayers)
+								)
+
+								const lookAheadGroup: TimelineObjectGroup = timeline.timelineGroups.find(
+									(group) => group.id === LOOK_AHEAD_GROUP_ID
+								)!
+								const lookAheadTimelineObject: TimelineObject = lookAheadGroup.children.find(
+									(o) => o.id === `${LOOK_AHEAD_GROUP_ID}_${timelineObject.id}`
+								)!
+								expect(lookAheadTimelineObject.inGroup).toBe(LOOK_AHEAD_GROUP_ID)
+							})
+
+							it('sets the content to be the content of the TimelineObject', () => {
+								const content: any = {
+									someContent: 'doesntMatterWhat',
+								}
+								const timelineObject: TimelineObject = {
+									id: 'timelineObject',
+									layer: 'layerName',
+									content,
+								} as TimelineObject
+								const piece: Piece = EntityMockFactory.createPiece({
+									timelineObjects: [timelineObject],
+								})
+								const activePart: Part = EntityMockFactory.createPart({ pieces: [piece] })
+								const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
+								const studioLayers: StudioLayer[] = [
+									createStudioLayer({
+										name: timelineObject.layer,
+										lookAheadMode: LookAheadMode.WHEN_CLEAR,
+									}),
+								]
+
+								const objectCloner: ObjectCloner = mock<ObjectCloner>()
+								when(objectCloner.clone(timelineObject)).thenReturn(timelineObject)
+
+								const testee: TimelineBuilder = createTestee(instance(objectCloner))
+								const timeline: Timeline = testee.buildTimeline(
+									rundown,
+									createBasicStudioMock(studioLayers)
+								)
+
+								const lookAheadGroup: TimelineObjectGroup = timeline.timelineGroups.find(
+									(group) => group.id === LOOK_AHEAD_GROUP_ID
+								)!
+								const lookAheadTimelineObject: TimelineObject = lookAheadGroup.children.find(
+									(o) => o.id === `${LOOK_AHEAD_GROUP_ID}_${timelineObject.id}`
+								)!
+								expect(lookAheadTimelineObject.content).toBe(content)
+							})
+
+							describe('the layer is a WHEN_CLEAR lookAhead layer', () => {
+								it('sets the layer to be the layer of the TimelineObject', () => {
+									const timelineObject: TimelineObject = {
+										id: 'timelineObject',
+										layer: 'layerName',
+									} as TimelineObject
+									const piece: Piece = EntityMockFactory.createPiece({
+										timelineObjects: [timelineObject],
+									})
+									const activePart: Part = EntityMockFactory.createPart({ pieces: [piece] })
+									const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
+									const studioLayers: StudioLayer[] = [
+										createStudioLayer({
+											name: timelineObject.layer,
+											lookAheadMode: LookAheadMode.WHEN_CLEAR,
+										}),
+									]
+
+									const objectCloner: ObjectCloner = mock<ObjectCloner>()
+									when(objectCloner.clone(timelineObject)).thenReturn(timelineObject)
+
+									const testee: TimelineBuilder = createTestee(instance(objectCloner))
+									const timeline: Timeline = testee.buildTimeline(
+										rundown,
+										createBasicStudioMock(studioLayers)
+									)
+
+									const lookAheadGroup: TimelineObjectGroup = timeline.timelineGroups.find(
+										(group) => group.id === LOOK_AHEAD_GROUP_ID
+									)!
+									const lookAheadTimelineObject: TimelineObject = lookAheadGroup.children.find(
+										(o) => o.id === `${LOOK_AHEAD_GROUP_ID}_${timelineObject.id}`
+									)!
+									expect(lookAheadTimelineObject.layer).toBe(timelineObject.layer)
+								})
+							})
+
+							describe('the layer is a PRELOAD lookAhead layer', () => {
+								it('sets the "lookAheadForLayer" to be the same as the layer of the timelineObject', () => {
+									const timelineObject: TimelineObject = {
+										id: 'timelineObject',
+										layer: 'layerName',
+									} as TimelineObject
+									const piece: Piece = EntityMockFactory.createPiece({
+										timelineObjects: [timelineObject],
+									})
+									const activePart: Part = EntityMockFactory.createPart({ pieces: [piece] })
+									const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
+									const studioLayers: StudioLayer[] = [
+										createStudioLayer({
+											name: timelineObject.layer,
+											lookAheadMode: LookAheadMode.PRELOAD,
+										}),
+									]
+
+									const objectCloner: ObjectCloner = mock<ObjectCloner>()
+									when(objectCloner.clone(timelineObject)).thenReturn(timelineObject)
+
+									const testee: TimelineBuilder = createTestee(instance(objectCloner))
+									const timeline: Timeline = testee.buildTimeline(
+										rundown,
+										createBasicStudioMock(studioLayers)
+									)
+
+									const lookAheadGroup: TimelineObjectGroup = timeline.timelineGroups.find(
+										(group) => group.id === LOOK_AHEAD_GROUP_ID
+									)!
+									const lookAheadTimelineObject: LookAheadTimelineObject =
+										lookAheadGroup.children.find(
+											(o) => o.id === `${LOOK_AHEAD_GROUP_ID}_${timelineObject.id}`
+										)! as LookAheadTimelineObject
+									expect(lookAheadTimelineObject.layer).toBe(`${timelineObject.layer}_lookahead`)
+								})
+
+								it('sets the "layer" to be the layer of the TimelineObject post-fixed with "_lookahead"', () => {
+									const timelineObject: TimelineObject = {
+										id: 'timelineObject',
+										layer: 'layerName',
+									} as TimelineObject
+									const piece: Piece = EntityMockFactory.createPiece({
+										timelineObjects: [timelineObject],
+									})
+									const activePart: Part = EntityMockFactory.createPart({ pieces: [piece] })
+									const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
+									const studioLayers: StudioLayer[] = [
+										createStudioLayer({
+											name: timelineObject.layer,
+											lookAheadMode: LookAheadMode.PRELOAD,
+										}),
+									]
+
+									const objectCloner: ObjectCloner = mock<ObjectCloner>()
+									when(objectCloner.clone(timelineObject)).thenReturn(timelineObject)
+
+									const testee: TimelineBuilder = createTestee(instance(objectCloner))
+									const timeline: Timeline = testee.buildTimeline(
+										rundown,
+										createBasicStudioMock(studioLayers)
+									)
+
+									const lookAheadGroup: TimelineObjectGroup = timeline.timelineGroups.find(
+										(group) => group.id === LOOK_AHEAD_GROUP_ID
+									)!
+									const lookAheadTimelineObject: LookAheadTimelineObject =
+										lookAheadGroup.children.find(
+											(o) => o.id === `${LOOK_AHEAD_GROUP_ID}_${timelineObject.id}`
+										)! as LookAheadTimelineObject
+									expect(lookAheadTimelineObject.lookaheadForLayer).toBe(timelineObject.layer)
+								})
+							})
+						})
+					})
+
+					describe('active Part has two TimelineObjects for the lookAhead layer', () => {
+						it('adds them both to the children of the lookAhead group', () => {
+							const timelineObjectOne: TimelineObject = {
+								id: 'timelineObjectOne',
+								layer: 'layerName',
+							} as TimelineObject
+							const timelineObjectTwo: TimelineObject = {
+								id: 'timelineObjectTwo',
+								layer: 'someOtherLayerName',
+							} as TimelineObject
+							const piece: Piece = EntityMockFactory.createPiece({
+								timelineObjects: [timelineObjectOne, timelineObjectTwo],
+							})
+							const activePart: Part = EntityMockFactory.createPart({ pieces: [piece] })
+							const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
+							const studioLayers: StudioLayer[] = [
+								createStudioLayer({
+									name: timelineObjectOne.layer,
+									lookAheadMode: LookAheadMode.WHEN_CLEAR,
+								}),
+								createStudioLayer({
+									name: timelineObjectTwo.layer,
+									lookAheadMode: LookAheadMode.WHEN_CLEAR,
+								}),
+							]
+
+							const testee: TimelineBuilder = createTestee()
+							const timeline: Timeline = testee.buildTimeline(
+								rundown,
+								createBasicStudioMock(studioLayers)
+							)
+
+							const lookAheadGroup: TimelineObjectGroup = timeline.timelineGroups.find(
+								(group) => group.id === LOOK_AHEAD_GROUP_ID
+							)!
+							const childrenIds: string[] = lookAheadGroup.children.map((o) => o.id)
+							expect(childrenIds).toContain(`${LOOK_AHEAD_GROUP_ID}_${timelineObjectOne.id}`)
+							expect(childrenIds).toContain(`${LOOK_AHEAD_GROUP_ID}_${timelineObjectTwo.id}`)
+						})
+					})
+				})
+
+				describe('it gets the Pieces from the next Part', () => {
+					describe('next Part only have infinite Pieces', () => {
+						it('does not add any children to the lookAhead group', () => {
+							const timelineObject: TimelineObject = {
+								id: 'timelineObject',
+								layer: 'someLayer',
+							} as TimelineObject
+							const piece: Piece = EntityMockFactory.createPiece({
+								pieceLifespan: PieceLifespan.SPANNING_UNTIL_RUNDOWN_END,
+								timelineObjects: [timelineObject],
+							})
+							const nextPart: Part = EntityMockFactory.createPart({ pieces: [piece] })
+							const rundown: Rundown = EntityMockFactory.createActiveRundown({ nextPart })
+							const studioLayers: StudioLayer[] = [
+								createStudioLayer({
+									name: timelineObject.layer,
+									lookAheadMode: LookAheadMode.WHEN_CLEAR,
+								}),
+							]
+
+							const testee: TimelineBuilder = createTestee()
+							const timeline: Timeline = testee.buildTimeline(
+								rundown,
+								createBasicStudioMock(studioLayers)
+							)
+
+							const lookAheadGroup: TimelineObjectGroup = timeline.timelineGroups.find(
+								(group) => group.id === LOOK_AHEAD_GROUP_ID
+							)!
+							expect(lookAheadGroup.children).toHaveLength(0)
+						})
+					})
+
+					describe('next Part does not have any Pieces with TimelineObjects on a LookAhead layer', () => {
+						it('does not add any children to the lookAhead group', () => {
+							const timelineObject: TimelineObject = {
+								id: 'timelineObject',
+								layer: 'someLayerWithNoLookAhead',
+							} as TimelineObject
+							const piece: Piece = EntityMockFactory.createPiece({ timelineObjects: [timelineObject] })
+							const nextPart: Part = EntityMockFactory.createPart({ pieces: [piece] })
+							const rundown: Rundown = EntityMockFactory.createActiveRundown({ nextPart })
+							const studioLayers: StudioLayer[] = [
+								createStudioLayer({ lookAheadMode: LookAheadMode.WHEN_CLEAR }),
+							]
+
+							const testee: TimelineBuilder = createTestee()
+							const timeline: Timeline = testee.buildTimeline(
+								rundown,
+								createBasicStudioMock(studioLayers)
+							)
+
+							const lookAheadGroup: TimelineObjectGroup = timeline.timelineGroups.find(
+								(group) => group.id === LOOK_AHEAD_GROUP_ID
+							)!
+							expect(lookAheadGroup.children).toHaveLength(0)
+						})
+					})
+
+					describe('next Part has one TimelineObject for the lookAhead layer', () => {
+						describe('it adds the TimelineObject to the children of the lookAhead group', () => {
+							it('sets the id to be "lookAheadGroupId_timelineObject.id"', () => {
+								const timelineObject: TimelineObject = {
+									id: 'timelineObject',
+									layer: 'someLayer',
+								} as TimelineObject
+								const piece: Piece = EntityMockFactory.createPiece({
+									timelineObjects: [timelineObject],
+								})
+								const nextPart: Part = EntityMockFactory.createPart({ pieces: [piece] })
+								const rundown: Rundown = EntityMockFactory.createActiveRundown({ nextPart })
+								const studioLayers: StudioLayer[] = [
+									createStudioLayer({
+										name: timelineObject.layer,
+										lookAheadMode: LookAheadMode.WHEN_CLEAR,
+									}),
+								]
+
+								const testee: TimelineBuilder = createTestee()
+								const timeline: Timeline = testee.buildTimeline(
+									rundown,
+									createBasicStudioMock(studioLayers)
+								)
+
+								const lookAheadGroup: TimelineObjectGroup = timeline.timelineGroups.find(
+									(group) => group.id === LOOK_AHEAD_GROUP_ID
+								)!
+								const lookAheadTimelineObject: TimelineObject | undefined =
+									lookAheadGroup.children.find(
+										(o) => o.id === `${LOOK_AHEAD_GROUP_ID}_${timelineObject.id}`
+									)
+								expect(lookAheadTimelineObject).not.toBeUndefined()
+							})
+
+							it('sets the priority to be the lookAhead priority', () => {
+								const timelineObject: TimelineObject = {
+									id: 'timelineObject',
+									layer: 'someLayer',
+								} as TimelineObject
+								const piece: Piece = EntityMockFactory.createPiece({
+									timelineObjects: [timelineObject],
+								})
+								const nextPart: Part = EntityMockFactory.createPart({ pieces: [piece] })
+								const rundown: Rundown = EntityMockFactory.createActiveRundown({ nextPart })
+								const studioLayers: StudioLayer[] = [
+									createStudioLayer({
+										name: timelineObject.layer,
+										lookAheadMode: LookAheadMode.WHEN_CLEAR,
+									}),
+								]
+
+								const testee: TimelineBuilder = createTestee()
+								const timeline: Timeline = testee.buildTimeline(
+									rundown,
+									createBasicStudioMock(studioLayers)
+								)
+
+								const lookAheadGroup: TimelineObjectGroup = timeline.timelineGroups.find(
+									(group) => group.id === LOOK_AHEAD_GROUP_ID
+								)!
+								const lookAheadTimelineObject: TimelineObject = lookAheadGroup.children.find(
+									(o) => o.id === `${LOOK_AHEAD_GROUP_ID}_${timelineObject.id}`
+								)!
+								expect(lookAheadTimelineObject.priority).toBe(LOOK_AHEAD_PRIORITY)
+							})
+
+							it('sets lookAhead to be true', () => {
+								const timelineObject: TimelineObject = {
+									id: 'timelineObject',
+									layer: 'someLayer',
+								} as TimelineObject
+								const piece: Piece = EntityMockFactory.createPiece({
+									timelineObjects: [timelineObject],
+								})
+								const nextPart: Part = EntityMockFactory.createPart({ pieces: [piece] })
+								const rundown: Rundown = EntityMockFactory.createActiveRundown({ nextPart })
+								const studioLayers: StudioLayer[] = [
+									createStudioLayer({
+										name: timelineObject.layer,
+										lookAheadMode: LookAheadMode.WHEN_CLEAR,
+									}),
+								]
+
+								const testee: TimelineBuilder = createTestee()
+								const timeline: Timeline = testee.buildTimeline(
+									rundown,
+									createBasicStudioMock(studioLayers)
+								)
+
+								const lookAheadGroup: TimelineObjectGroup = timeline.timelineGroups.find(
+									(group) => group.id === LOOK_AHEAD_GROUP_ID
+								)!
+								const lookAheadTimelineObject: LookAheadTimelineObject = lookAheadGroup.children.find(
+									(o) => o.id === `${LOOK_AHEAD_GROUP_ID}_${timelineObject.id}`
+								)! as LookAheadTimelineObject
+								expect(lookAheadTimelineObject.isLookahead).toBe(true)
+							})
+
+							it('sets the enable to be while active group is present', () => {
+								const timelineObject: TimelineObject = {
+									id: 'timelineObject',
+									layer: 'someLayer',
+								} as TimelineObject
+								const piece: Piece = EntityMockFactory.createPiece({
+									timelineObjects: [timelineObject],
+								})
+								const nextPart: Part = EntityMockFactory.createPart({ pieces: [piece] })
+								const activePart: Part = EntityMockFactory.createPart({ id: 'activePartId' })
+								const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart, nextPart })
+								const studioLayers: StudioLayer[] = [
+									createStudioLayer({
+										name: timelineObject.layer,
+										lookAheadMode: LookAheadMode.WHEN_CLEAR,
+									}),
+								]
+
+								const testee: TimelineBuilder = createTestee()
+								const timeline: Timeline = testee.buildTimeline(
+									rundown,
+									createBasicStudioMock(studioLayers)
+								)
+
+								const lookAheadGroup: TimelineObjectGroup = timeline.timelineGroups.find(
+									(group) => group.id === LOOK_AHEAD_GROUP_ID
+								)!
+								const lookAheadTimelineObject: TimelineObject = lookAheadGroup.children.find(
+									(o) => o.id === `${LOOK_AHEAD_GROUP_ID}_${timelineObject.id}`
+								)!
+								expect(lookAheadTimelineObject.enable.while).toBe(
+									`#${ACTIVE_GROUP_PREFIX}${activePart.id}`
+								)
+							})
+
+							it('sets the group id to be the LookAhead group id', () => {
+								const timelineObject: TimelineObject = {
+									id: 'timelineObject',
+									layer: 'someLayer',
+								} as TimelineObject
+								const piece: Piece = EntityMockFactory.createPiece({
+									timelineObjects: [timelineObject],
+								})
+								const nextPart: Part = EntityMockFactory.createPart({ pieces: [piece] })
+								const rundown: Rundown = EntityMockFactory.createActiveRundown({ nextPart })
+								const studioLayers: StudioLayer[] = [
+									createStudioLayer({
+										name: timelineObject.layer,
+										lookAheadMode: LookAheadMode.WHEN_CLEAR,
+									}),
+								]
+
+								const testee: TimelineBuilder = createTestee()
+								const timeline: Timeline = testee.buildTimeline(
+									rundown,
+									createBasicStudioMock(studioLayers)
+								)
+
+								const lookAheadGroup: TimelineObjectGroup = timeline.timelineGroups.find(
+									(group) => group.id === LOOK_AHEAD_GROUP_ID
+								)!
+								const lookAheadTimelineObject: TimelineObject = lookAheadGroup.children.find(
+									(o) => o.id === `${LOOK_AHEAD_GROUP_ID}_${timelineObject.id}`
+								)!
+								expect(lookAheadTimelineObject.inGroup).toBe(LOOK_AHEAD_GROUP_ID)
+							})
+
+							it('sets the content to be the content of the TimelineObject', () => {
+								const content: any = {
+									someContent: 'couldBeAnything',
+								}
+								const timelineObject: TimelineObject = {
+									id: 'timelineObject',
+									layer: 'someLayer',
+									content,
+								} as TimelineObject
+								const piece: Piece = EntityMockFactory.createPiece({
+									timelineObjects: [timelineObject],
+								})
+								const nextPart: Part = EntityMockFactory.createPart({ pieces: [piece] })
+								const rundown: Rundown = EntityMockFactory.createActiveRundown({ nextPart })
+								const studioLayers: StudioLayer[] = [
+									createStudioLayer({
+										name: timelineObject.layer,
+										lookAheadMode: LookAheadMode.WHEN_CLEAR,
+									}),
+								]
+
+								const objectCloner: ObjectCloner = mock<ObjectCloner>()
+								when(objectCloner.clone(timelineObject)).thenReturn(timelineObject)
+
+								const testee: TimelineBuilder = createTestee(instance(objectCloner))
+								const timeline: Timeline = testee.buildTimeline(
+									rundown,
+									createBasicStudioMock(studioLayers)
+								)
+
+								const lookAheadGroup: TimelineObjectGroup = timeline.timelineGroups.find(
+									(group) => group.id === LOOK_AHEAD_GROUP_ID
+								)!
+								const lookAheadTimelineObject: TimelineObject = lookAheadGroup.children.find(
+									(o) => o.id === `${LOOK_AHEAD_GROUP_ID}_${timelineObject.id}`
+								)!
+								expect(lookAheadTimelineObject.content).toBe(content)
+							})
+
+							describe('the layer is a WHEN_CLEAR lookAhead layer', () => {
+								it('sets the layer to be the layer of the TimelineObject', () => {
+									const timelineObject: TimelineObject = {
+										id: 'timelineObject',
+										layer: 'someLayer',
+									} as TimelineObject
+									const piece: Piece = EntityMockFactory.createPiece({
+										timelineObjects: [timelineObject],
+									})
+									const nextPart: Part = EntityMockFactory.createPart({ pieces: [piece] })
+									const rundown: Rundown = EntityMockFactory.createActiveRundown({ nextPart })
+									const studioLayers: StudioLayer[] = [
+										createStudioLayer({
+											name: timelineObject.layer,
+											lookAheadMode: LookAheadMode.WHEN_CLEAR,
+										}),
+									]
+
+									const objectCloner: ObjectCloner = mock<ObjectCloner>()
+									when(objectCloner.clone(timelineObject)).thenReturn(timelineObject)
+
+									const testee: TimelineBuilder = createTestee(instance(objectCloner))
+									const timeline: Timeline = testee.buildTimeline(
+										rundown,
+										createBasicStudioMock(studioLayers)
+									)
+
+									const lookAheadGroup: TimelineObjectGroup = timeline.timelineGroups.find(
+										(group) => group.id === LOOK_AHEAD_GROUP_ID
+									)!
+									const lookAheadTimelineObject: TimelineObject = lookAheadGroup.children.find(
+										(o) => o.id === `${LOOK_AHEAD_GROUP_ID}_${timelineObject.id}`
+									)!
+									expect(lookAheadTimelineObject.layer).toBe(timelineObject.layer)
+								})
+							})
+
+							describe('the layer is a PRELOAD lookAhead layer', () => {
+								it('sets the "lookAheadForLayer" to be the same as the layer of the timelineObject', () => {
+									const timelineObject: TimelineObject = {
+										id: 'timelineObject',
+										layer: 'someLayer',
+									} as TimelineObject
+									const piece: Piece = EntityMockFactory.createPiece({
+										timelineObjects: [timelineObject],
+									})
+									const nextPart: Part = EntityMockFactory.createPart({ pieces: [piece] })
+									const rundown: Rundown = EntityMockFactory.createActiveRundown({ nextPart })
+									const studioLayers: StudioLayer[] = [
+										createStudioLayer({
+											name: timelineObject.layer,
+											lookAheadMode: LookAheadMode.PRELOAD,
+										}),
+									]
+
+									const objectCloner: ObjectCloner = mock<ObjectCloner>()
+									when(objectCloner.clone(timelineObject)).thenReturn(timelineObject)
+
+									const testee: TimelineBuilder = createTestee(instance(objectCloner))
+									const timeline: Timeline = testee.buildTimeline(
+										rundown,
+										createBasicStudioMock(studioLayers)
+									)
+
+									const lookAheadGroup: TimelineObjectGroup = timeline.timelineGroups.find(
+										(group) => group.id === LOOK_AHEAD_GROUP_ID
+									)!
+									const lookAheadTimelineObject: LookAheadTimelineObject =
+										lookAheadGroup.children.find(
+											(o) => o.id === `${LOOK_AHEAD_GROUP_ID}_${timelineObject.id}`
+										)! as LookAheadTimelineObject
+									expect(lookAheadTimelineObject.lookaheadForLayer).toBe(timelineObject.layer)
+								})
+
+								it('sets the "layer" to be the layer of the TimelineObject post-fixed with "_lookahead"', () => {
+									const timelineObject: TimelineObject = {
+										id: 'timelineObject',
+										layer: 'someLayer',
+									} as TimelineObject
+									const piece: Piece = EntityMockFactory.createPiece({
+										timelineObjects: [timelineObject],
+									})
+									const nextPart: Part = EntityMockFactory.createPart({ pieces: [piece] })
+									const rundown: Rundown = EntityMockFactory.createActiveRundown({ nextPart })
+									const studioLayers: StudioLayer[] = [
+										createStudioLayer({
+											name: timelineObject.layer,
+											lookAheadMode: LookAheadMode.PRELOAD,
+										}),
+									]
+
+									const objectCloner: ObjectCloner = mock<ObjectCloner>()
+									when(objectCloner.clone(timelineObject)).thenReturn(timelineObject)
+
+									const testee: TimelineBuilder = createTestee(instance(objectCloner))
+									const timeline: Timeline = testee.buildTimeline(
+										rundown,
+										createBasicStudioMock(studioLayers)
+									)
+
+									const lookAheadGroup: TimelineObjectGroup = timeline.timelineGroups.find(
+										(group) => group.id === LOOK_AHEAD_GROUP_ID
+									)!
+									const lookAheadTimelineObject: LookAheadTimelineObject =
+										lookAheadGroup.children.find(
+											(o) => o.id === `${LOOK_AHEAD_GROUP_ID}_${timelineObject.id}`
+										)! as LookAheadTimelineObject
+									expect(lookAheadTimelineObject.layer).toBe(`${timelineObject.layer}_lookahead`)
+								})
+							})
+						})
+					})
+
+					describe('next Part has two TimelineObjects with lookAhead layer', () => {
+						it('adds them both to the children of the lookAhead group', () => {
+							const timelineObjectOne: TimelineObject = {
+								id: 'timelineObjectOne',
+								layer: 'someLayer',
+							} as TimelineObject
+							const timelineObjectTwo: TimelineObject = {
+								id: 'timelineObjectTwo',
+								layer: 'someOtherLayer',
+							} as TimelineObject
+							const piece: Piece = EntityMockFactory.createPiece({
+								timelineObjects: [timelineObjectOne, timelineObjectTwo],
+							})
+							const nextPart: Part = EntityMockFactory.createPart({ pieces: [piece] })
+							const rundown: Rundown = EntityMockFactory.createActiveRundown({ nextPart })
+							const studioLayers: StudioLayer[] = [
+								createStudioLayer({
+									name: timelineObjectOne.layer,
+									lookAheadMode: LookAheadMode.WHEN_CLEAR,
+								}),
+								createStudioLayer({
+									name: timelineObjectTwo.layer,
+									lookAheadMode: LookAheadMode.WHEN_CLEAR,
+								}),
+							]
+
+							const objectCloner: ObjectCloner = mock<ObjectCloner>()
+							when(objectCloner.clone(timelineObjectOne)).thenReturn(timelineObjectOne)
+
+							const testee: TimelineBuilder = createTestee(instance(objectCloner))
+							const timeline: Timeline = testee.buildTimeline(
+								rundown,
+								createBasicStudioMock(studioLayers)
+							)
+
+							const lookAheadGroup: TimelineObjectGroup = timeline.timelineGroups.find(
+								(group) => group.id === LOOK_AHEAD_GROUP_ID
+							)!
+							const childrenIds: string[] = lookAheadGroup.children.map((o) => o.id)
+							expect(childrenIds).toContain(`${LOOK_AHEAD_GROUP_ID}_${timelineObjectOne.id}`)
+							expect(childrenIds).toContain(`${LOOK_AHEAD_GROUP_ID}_${timelineObjectTwo.id}`)
+						})
+					})
+
+					describe('layer has a minimumLookAhead set to one', () => {
+						describe('it has two TimelineObjects for layer', () => {
+							it('only adds the first TimelineObject to the children of the lookAhead group', () => {
+								const firstTimelineObject: TimelineObject = {
+									id: 'firstTimelineObject',
+									layer: 'someLayer',
+								} as TimelineObject
+								const firstPiece: Piece = EntityMockFactory.createPiece({
+									timelineObjects: [firstTimelineObject],
+								})
+								const firstPart: Part = EntityMockFactory.createPart({ pieces: [firstPiece] })
+
+								const secondTimelineObject: TimelineObject = {
+									id: 'secondTimelineObject',
+									layer: firstTimelineObject.layer,
+								} as TimelineObject
+								const secondPiece: Piece = EntityMockFactory.createPiece({
+									timelineObjects: [secondTimelineObject],
+								})
+								const secondPart: Part = EntityMockFactory.createPart({ pieces: [secondPiece] })
+
+								const rundown: Rundown = EntityMockFactory.createActiveRundownMockInstance({
+									nextPart: firstPart,
+								})
+								when(rundown.getPartAfter(firstPart)).thenReturn(secondPart)
+
+								const studioLayers: StudioLayer[] = [
+									createStudioLayer({
+										name: firstTimelineObject.layer,
+										amountOfLookAheadObjectsToFind: 1,
+										lookAheadMode: LookAheadMode.WHEN_CLEAR,
+									}),
+								]
+
+								const testee: TimelineBuilder = createTestee()
+								const timeline: Timeline = testee.buildTimeline(
+									instance(rundown),
+									createBasicStudioMock(studioLayers)
+								)
+
+								const lookAheadGroup: TimelineObjectGroup = timeline.timelineGroups.find(
+									(group) => group.id === LOOK_AHEAD_GROUP_ID
+								)!
+								expect(lookAheadGroup.children).toHaveLength(1)
+								expect(lookAheadGroup.children[0].id).toBe(
+									`${LOOK_AHEAD_GROUP_ID}_${firstTimelineObject.id}`
+								)
+							})
+						})
+
+						describe('it has the first TimelineObject for the layer on just before the maximumSearchDistance', () => {
+							it('adds the TimelineObject to the children of the lookAhead group', () => {
+								const firstPiece: Piece = EntityMockFactory.createPiece()
+								const firstPart: Part = EntityMockFactory.createPart({ pieces: [firstPiece] })
+
+								const secondPiece: Piece = EntityMockFactory.createPiece()
+								const secondPart: Part = EntityMockFactory.createPart({ pieces: [secondPiece] })
+
+								const thirdPiece: Piece = EntityMockFactory.createPiece()
+								const thirdPart: Part = EntityMockFactory.createPart({ pieces: [thirdPiece] })
+
+								const timelineObject: TimelineObject = {
+									id: 'timelineObject',
+									layer: 'someLayer',
+								} as TimelineObject
+								const lastPiece: Piece = EntityMockFactory.createPiece({
+									timelineObjects: [timelineObject],
+								})
+								const lastPart: Part = EntityMockFactory.createPart({ pieces: [lastPiece] })
+
+								const rundown: Rundown = EntityMockFactory.createActiveRundownMockInstance({
+									nextPart: firstPart,
+								})
+								when(rundown.getPartAfter(firstPart)).thenReturn(secondPart)
+								when(rundown.getPartAfter(secondPart)).thenReturn(thirdPart)
+								when(rundown.getPartAfter(thirdPart)).thenReturn(lastPart)
+
+								const studioLayers: StudioLayer[] = [
+									createStudioLayer({
+										name: timelineObject.layer,
+										maximumLookAheadSearchDistance: 4,
+										lookAheadMode: LookAheadMode.WHEN_CLEAR,
+									}),
+								]
+
+								const testee: TimelineBuilder = createTestee()
+								const timeline: Timeline = testee.buildTimeline(
+									instance(rundown),
+									createBasicStudioMock(studioLayers)
+								)
+
+								const lookAheadGroup: TimelineObjectGroup = timeline.timelineGroups.find(
+									(group) => group.id === LOOK_AHEAD_GROUP_ID
+								)!
+								expect(lookAheadGroup.children).toHaveLength(1)
+								expect(lookAheadGroup.children[0].id).toBe(
+									`${LOOK_AHEAD_GROUP_ID}_${timelineObject.id}`
+								)
+							})
+						})
+
+						describe('it has no TimelineObject for layer within the maximumSearchDistance', () => {
+							it('does not add any children to the lookAhead group', () => {
+								const firstPiece: Piece = EntityMockFactory.createPiece()
+								const firstPart: Part = EntityMockFactory.createPart({ pieces: [firstPiece] })
+
+								const secondPiece: Piece = EntityMockFactory.createPiece()
+								const secondPart: Part = EntityMockFactory.createPart({ pieces: [secondPiece] })
+
+								const thirdPiece: Piece = EntityMockFactory.createPiece()
+								const thirdPart: Part = EntityMockFactory.createPart({ pieces: [thirdPiece] })
+
+								const timelineObjectOutsideSearchDistance: TimelineObject = {
+									id: 'timelineObjectOutsideSearchDistance',
+									layer: 'someLayer',
+								} as TimelineObject
+								const pieceOutsideSearchDistance: Piece = EntityMockFactory.createPiece({
+									timelineObjects: [timelineObjectOutsideSearchDistance],
+								})
+								const partOutsideSearchDistance: Part = EntityMockFactory.createPart({
+									pieces: [pieceOutsideSearchDistance],
+								})
+
+								const rundown: Rundown = EntityMockFactory.createActiveRundownMockInstance({
+									nextPart: firstPart,
+								})
+								when(rundown.getPartAfter(firstPart)).thenReturn(secondPart)
+								when(rundown.getPartAfter(secondPart)).thenReturn(thirdPart)
+								when(rundown.getPartAfter(thirdPart)).thenReturn(partOutsideSearchDistance)
+
+								const studioLayers: StudioLayer[] = [
+									createStudioLayer({
+										name: timelineObjectOutsideSearchDistance.layer,
+										maximumLookAheadSearchDistance: 1,
+										lookAheadMode: LookAheadMode.WHEN_CLEAR,
+									}),
+								]
+
+								const testee: TimelineBuilder = createTestee()
+								const timeline: Timeline = testee.buildTimeline(
+									instance(rundown),
+									createBasicStudioMock(studioLayers)
+								)
+
+								const lookAheadGroup: TimelineObjectGroup = timeline.timelineGroups.find(
+									(group) => group.id === LOOK_AHEAD_GROUP_ID
+								)!
+								expect(lookAheadGroup.children).toHaveLength(0)
+							})
+						})
+
+						it('does not count TimelineObjects from the active Part among mimimumLookAheadObjects', () => {
+							const activePartTimelineObject: TimelineObject = {
+								id: 'activePartTimelineObject',
+								layer: 'someLayer',
+							} as TimelineObject
+							const activePiece: Piece = EntityMockFactory.createPiece({
+								timelineObjects: [activePartTimelineObject],
+							})
+							const activePart: Part = EntityMockFactory.createPart({ pieces: [activePiece] })
+
+							const lookAheadTimelineObject: TimelineObject = {
+								id: 'lookAheadTimelineObject',
+								layer: activePartTimelineObject.layer,
+							} as TimelineObject
+							const lookAheadPiece: Piece = EntityMockFactory.createPiece({
+								timelineObjects: [lookAheadTimelineObject],
+							})
+							const lookAheadPart: Part = EntityMockFactory.createPart({ pieces: [lookAheadPiece] })
+
+							const rundown: Rundown = EntityMockFactory.createActiveRundownMockInstance({
+								activePart,
+								nextPart: lookAheadPart,
+							})
+							when(rundown.getPartAfter(activePart)).thenReturn(lookAheadPart)
+
+							const studioLayers: StudioLayer[] = [
+								createStudioLayer({
+									name: activePartTimelineObject.layer,
+									amountOfLookAheadObjectsToFind: 1,
+									lookAheadMode: LookAheadMode.WHEN_CLEAR,
+								}),
+							]
+
+							const testee: TimelineBuilder = createTestee()
+							const timeline: Timeline = testee.buildTimeline(
+								instance(rundown),
+								createBasicStudioMock(studioLayers)
+							)
+
+							const lookAheadGroup: TimelineObjectGroup = timeline.timelineGroups.find(
+								(group) => group.id === LOOK_AHEAD_GROUP_ID
+							)!
+							expect(lookAheadGroup.children).toHaveLength(2)
+							const childrenIds: string[] = lookAheadGroup.children.map((child) => child.id)
+							expect(childrenIds).toContain(`${LOOK_AHEAD_GROUP_ID}_${activePartTimelineObject.id}`)
+							expect(childrenIds).toContain(`${LOOK_AHEAD_GROUP_ID}_${lookAheadTimelineObject.id}`)
+						})
+					})
+
+					describe('layer has a minimumLookAhead set to two', () => {
+						it('returns both TimelineObjects', () => {
+							const firstTimelineObject: TimelineObject = {
+								id: 'firstTimelineObject',
+								layer: 'someLayer',
+							} as TimelineObject
+							const firstPiece: Piece = EntityMockFactory.createPiece({
+								timelineObjects: [firstTimelineObject],
+							})
+							const firstPart: Part = EntityMockFactory.createPart({ pieces: [firstPiece] })
+
+							const secondTimelineObject: TimelineObject = {
+								id: 'secondTimelineObject',
+								layer: firstTimelineObject.layer,
+							} as TimelineObject
+							const secondPiece: Piece = EntityMockFactory.createPiece({
+								timelineObjects: [secondTimelineObject],
+							})
+							const secondPart: Part = EntityMockFactory.createPart({ pieces: [secondPiece] })
+
+							const rundown: Rundown = EntityMockFactory.createActiveRundownMockInstance({
+								nextPart: firstPart,
+							})
+							when(rundown.getPartAfter(firstPart)).thenReturn(secondPart)
+
+							const studioLayers: StudioLayer[] = [
+								createStudioLayer({
+									name: firstTimelineObject.layer,
+									amountOfLookAheadObjectsToFind: 2,
+									lookAheadMode: LookAheadMode.WHEN_CLEAR,
+								}),
+							]
+
+							const testee: TimelineBuilder = createTestee()
+							const timeline: Timeline = testee.buildTimeline(
+								instance(rundown),
+								createBasicStudioMock(studioLayers)
+							)
+
+							const lookAheadGroup: TimelineObjectGroup = timeline.timelineGroups.find(
+								(group) => group.id === LOOK_AHEAD_GROUP_ID
+							)!
+							expect(lookAheadGroup.children).toHaveLength(2)
+							const childrenIds: string[] = lookAheadGroup.children.map((child) => child.id)
+							expect(childrenIds).toContain(`${LOOK_AHEAD_GROUP_ID}_${firstTimelineObject.id}`)
+							expect(childrenIds).toContain(`${LOOK_AHEAD_GROUP_ID}_${secondTimelineObject.id}`)
+						})
+					})
+
+					describe('Rundown runs out of Parts before maximum search distance is reached', () => {
+						it('does not add any children to the lookAhead group', () => {
+							const parts: Part[] = [
+								EntityMockFactory.createPart({ id: 'firstPartId' }),
+								EntityMockFactory.createPart({ id: 'secondPartId' }),
+								EntityMockFactory.createPart({ id: 'thirdPartId' }),
+							]
+
+							const rundown: Rundown = EntityMockFactory.createActiveRundownMockInstance({
+								nextPart: parts[0],
+							})
+							when(rundown.getPartAfter(parts[0])).thenReturn(parts[1])
+							when(rundown.getPartAfter(parts[1])).thenReturn(parts[2])
+							when(rundown.getPartAfter(parts[2])).thenThrow(new LastPartInRundownException())
+
+							const studioLayers: StudioLayer[] = [
+								createStudioLayer({
+									name: 'someLayer',
+									maximumLookAheadSearchDistance: 10,
+									lookAheadMode: LookAheadMode.WHEN_CLEAR,
+								}),
+							]
+
+							const testee: TimelineBuilder = createTestee()
+							const timeline: Timeline = testee.buildTimeline(
+								instance(rundown),
+								createBasicStudioMock(studioLayers)
+							)
+
+							const lookAheadGroup: TimelineObjectGroup = timeline.timelineGroups.find(
+								(group) => group.id === LOOK_AHEAD_GROUP_ID
+							)!
+							expect(lookAheadGroup.children).toHaveLength(0)
+						})
+					})
+				})
 			})
 		})
 	})
@@ -4269,4 +5580,19 @@ function createTestee(objectCloner?: ObjectCloner): SuperflyTimelineBuilder {
 	}
 
 	return new SuperflyTimelineBuilder(objectCloner)
+}
+
+function createBasicStudioMock(layers?: StudioLayer[]): Studio {
+	const studioMock: Studio = mock<Studio>()
+	when(studioMock.layers).thenReturn(layers ?? [])
+	return instance(studioMock)
+}
+
+function createStudioLayer(layer: Partial<StudioLayer>): StudioLayer {
+	return {
+		name: layer?.name ?? 'layerName',
+		amountOfLookAheadObjectsToFind: layer?.amountOfLookAheadObjectsToFind ?? 1,
+		maximumLookAheadSearchDistance: layer?.maximumLookAheadSearchDistance ?? 10,
+		lookAheadMode: layer?.lookAheadMode ?? LookAheadMode.NONE,
+	}
 }

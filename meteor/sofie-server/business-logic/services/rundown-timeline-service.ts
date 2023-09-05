@@ -15,6 +15,11 @@ import { AdLibPiece } from '../../model/entities/ad-lib-piece'
 import { Piece } from '../../model/entities/piece'
 import { RundownEventBuilder } from './interfaces/rundown-event-builder'
 import { CallbackScheduler } from './interfaces/callback-scheduler'
+import { StudioRepository } from '../../data-access/repositories/interfaces/studio-repository'
+import { Studio } from '../../model/entities/studio'
+
+// Sofie currently only uses one hardcoded studio.
+const STUDIO_ID: string = 'studio0'
 
 export class RundownTimelineService implements RundownService {
 	constructor(
@@ -22,6 +27,7 @@ export class RundownTimelineService implements RundownService {
 		private rundownRepository: RundownRepository,
 		private timelineRepository: TimelineRepository,
 		private adLibPieceRepository: AdLibPieceRepository,
+		private studioRepository: StudioRepository,
 		private timelineBuilder: TimelineBuilder,
 		private rundownEventBuilder: RundownEventBuilder,
 		private callbackScheduler: CallbackScheduler
@@ -32,7 +38,9 @@ export class RundownTimelineService implements RundownService {
 
 		rundown.activate()
 
-		const timeline: Timeline = this.timelineBuilder.buildTimeline(rundown)
+		const studio: Studio = await this.studioRepository.getStudio(STUDIO_ID)
+
+		const timeline: Timeline = this.timelineBuilder.buildTimeline(rundown, studio)
 		this.timelineRepository.saveTimeline(timeline)
 
 		this.emitAddInfinitePieces(rundown, [])
@@ -69,7 +77,9 @@ export class RundownTimelineService implements RundownService {
 
 		rundown.takeNext()
 
-		const timeline: Timeline = this.timelineBuilder.buildTimeline(rundown)
+		const studio: Studio = await this.studioRepository.getStudio(STUDIO_ID)
+
+		const timeline: Timeline = this.timelineBuilder.buildTimeline(rundown, studio)
 
 		if (timeline.autoNext) {
 			this.callbackScheduler.start(timeline.autoNext.epochTimeToTakeNext, async () => this.takeNext(rundownId))
@@ -116,7 +126,9 @@ export class RundownTimelineService implements RundownService {
 		const rundown: Rundown = await this.rundownRepository.getRundown(rundownId)
 		rundown.reset()
 
-		const timeline: Timeline = this.timelineBuilder.buildTimeline(rundown)
+		const studio: Studio = await this.studioRepository.getStudio(STUDIO_ID)
+
+		const timeline: Timeline = this.timelineBuilder.buildTimeline(rundown, studio)
 
 		this.timelineRepository.saveTimeline(timeline)
 		this.rundownRepository.saveRundown(rundown)
@@ -135,7 +147,10 @@ export class RundownTimelineService implements RundownService {
 
 		adLibPiece.setExecutedAt(new Date().getTime())
 		rundown.adAdLibPiece(adLibPiece)
-		const timeline: Timeline = this.timelineBuilder.buildTimeline(rundown)
+
+		const studio: Studio = await this.studioRepository.getStudio(STUDIO_ID)
+
+		const timeline: Timeline = this.timelineBuilder.buildTimeline(rundown, studio)
 
 		this.timelineRepository.saveTimeline(timeline)
 		this.rundownRepository.saveRundown(rundown)

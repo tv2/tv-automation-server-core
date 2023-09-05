@@ -34,6 +34,11 @@ export enum TimelineObjectType {
 	GROUP = 'group',
 }
 
+export interface LookAheadTimelineObject extends TimelineObject {
+	isLookahead: boolean
+	lookaheadForLayer?: string
+}
+
 // TODO: This is currently copied from BlueprintIntegrations TSR in node_module. Get the info some other way.
 export enum DeviceType {
 	ABSTRACT = 0,

@@ -4,12 +4,15 @@ import { Part } from '../../../model/entities/part'
 import { Piece } from '../../../model/entities/piece'
 import { PieceType } from '../../../model/enums/piece-type'
 import { Timeline } from '../../../model/entities/timeline'
-import { Identifier } from '../../../model/value-objects/identifier'
 import { AdLibPiece } from '../../../model/entities/ad-lib-piece'
-import { PieceLifespan } from '../../../model/enums/piece-lifespan'
-import { TransitionType } from '../../../model/enums/transition-type'
 import { BasicRundown } from '../../../model/entities/basic-rundown'
 import { TimelineObject } from '../../../model/entities/timeline-object'
+import { Studio } from '../../../model/entities/studio'
+import { StudioLayer } from '../../../model/value-objects/studio-layer'
+import { LookAheadMode } from '../../../model/enums/look-ahead-mode'
+import { PieceLifespan } from '../../../model/enums/piece-lifespan'
+import { TransitionType } from '../../../model/enums/transition-type'
+import { Identifier } from '../../../model/value-objects/identifier'
 
 export interface MongoIdentifier {
 	_id: string
@@ -101,6 +104,23 @@ export interface MongoAdLibPiece {
 	name: string
 	expectedDuration: number
 	timelineObjectsString: string
+}
+
+export interface MongoStudio {
+	mappings: MongoLayerMappings
+}
+
+interface MongoLayerMappings {
+	[layerName: string]: MongoLayerMapping
+}
+
+interface MongoLayerMapping {
+	// Which LookAhead "mode" we are in.
+	lookahead: number
+	// The minimum number of lookAhead objects to find.
+	lookaheadDepth: number
+	// The maximum distance to search for lookAhead
+	lookaheadMaxSearchDistance: number
 }
 
 export class MongoEntityConverter {
@@ -255,5 +275,42 @@ export class MongoEntityConverter {
 
 	public convertAdLibs(mongoAdLibPieces: MongoAdLibPiece[]): AdLibPiece[] {
 		return mongoAdLibPieces.map((piece) => this.convertAdLib(piece))
+	}
+
+	public convertStudio(mongoStudio: MongoStudio): Studio {
+		const defaultNumberOfObjects: number = 1
+		const defaultLookAheadDistance: number = 10
+		const layers: StudioLayer[] = []
+		for (const mapping in mongoStudio.mappings) {
+			layers.push({
+				name: mapping,
+				lookAheadMode: this.mapLookAheadNumberToEnum(mongoStudio.mappings[mapping].lookahead),
+				amountOfLookAheadObjectsToFind: mongoStudio.mappings[mapping].lookaheadDepth ?? defaultNumberOfObjects,
+				maximumLookAheadSearchDistance:
+					mongoStudio.mappings[mapping].lookaheadMaxSearchDistance ?? defaultLookAheadDistance,
+			})
+		}
+		return { layers }
+	}
+
+	private mapLookAheadNumberToEnum(lookAheadNumber: number): LookAheadMode {
+		// These numbers are based on the "LookaheadMode" enum from BlueprintsIntegration
+		switch (lookAheadNumber) {
+			case 0: {
+				return LookAheadMode.NONE
+			}
+			case 1: {
+				return LookAheadMode.PRELOAD
+			}
+			case 3: {
+				return LookAheadMode.WHEN_CLEAR
+			}
+			default: {
+				console.log(`### Warning: Found unknown number for LookAhead: ${lookAheadNumber}`)
+				// TODO: Throw error. Currently we have some misconfiguration that uses an outdated lookAhead mode
+				// throw new UnsupportedOperation(`Found unknown number for LookAhead: ${lookAheadNumber}`)
+				return LookAheadMode.NONE
+			}
+		}
 	}
 }
