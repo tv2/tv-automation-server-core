@@ -163,17 +163,9 @@ describe(`${MongoPartRepository.name}`, () => {
 
 			when(mongoDb.getCollection(anything())).thenReturn(collection)
 			when(mongoConverter.convertToMongoPart(anything())).thenReturn({
-				autoNext: false,
-				autoNextOverlap: 0,
-				disableNextInTransition: false,
 				_id: onAirPart.id,
-				segmentId: onAirPart.segmentId,
-				_rank: onAirPart.rank,
-				isNext: onAirPart.isNext(),
 				isOnAir: onAirPart.isOnAir(),
-				title: onAirPart.name,
-				expectedDuration: onAirPart.expectedDuration,
-			})
+			} as MongoPart)
 
 			const testee: PartRepository = createTestee({
 				mongoDb: mongoDb,
@@ -199,17 +191,9 @@ describe(`${MongoPartRepository.name}`, () => {
 
 			when(mongoDb.getCollection(anything())).thenReturn(collection)
 			when(mongoConverter.convertToMongoPart(anything())).thenReturn({
-				autoNext: false,
-				autoNextOverlap: 0,
-				disableNextInTransition: false,
 				_id: inactivePart.id,
-				segmentId: inactivePart.segmentId,
-				_rank: inactivePart.rank,
-				isNext: inactivePart.isNext(),
 				isOnAir: inactivePart.isOnAir(),
-				title: inactivePart.name,
-				expectedDuration: inactivePart.expectedDuration,
-			})
+			} as MongoPart)
 
 			const testee: PartRepository = createTestee({
 				mongoDb: mongoDb,
@@ -235,17 +219,9 @@ describe(`${MongoPartRepository.name}`, () => {
 
 			when(mongoDb.getCollection(anything())).thenReturn(collection)
 			when(mongoConverter.convertToMongoPart(anything())).thenReturn({
-				autoNext: false,
-				autoNextOverlap: 0,
-				disableNextInTransition: false,
 				_id: nextPart.id,
-				segmentId: nextPart.segmentId,
-				_rank: nextPart.rank,
 				isNext: nextPart.isNext(),
-				isOnAir: nextPart.isOnAir(),
-				title: nextPart.name,
-				expectedDuration: nextPart.expectedDuration,
-			})
+			} as MongoPart)
 
 			const testee: PartRepository = createTestee({
 				mongoDb: mongoDb,
@@ -271,17 +247,9 @@ describe(`${MongoPartRepository.name}`, () => {
 
 			when(mongoDb.getCollection(anything())).thenReturn(collection)
 			when(mongoConverter.convertToMongoPart(anything())).thenReturn({
-				autoNext: false,
-				autoNextOverlap: 0,
-				disableNextInTransition: false,
 				_id: nonQueuedPart.id,
-				segmentId: nonQueuedPart.segmentId,
-				_rank: nonQueuedPart.rank,
 				isNext: nonQueuedPart.isNext(),
-				isOnAir: nonQueuedPart.isOnAir(),
-				title: nonQueuedPart.name,
-				expectedDuration: nonQueuedPart.expectedDuration,
-			})
+			} as MongoPart)
 
 			const testee: PartRepository = createTestee({
 				mongoDb: mongoDb,
