@@ -15,6 +15,11 @@ export class MongoTimelineRepository extends BaseMongoRepository implements Time
 		return TIMELINE_COLLECTION_NAME
 	}
 
+	public async getTimeline(): Promise<Timeline> {
+		const mongoTimeline: MongoTimeline = (await this.getCollection().findOne()) as unknown as MongoTimeline
+		return this.mongoEntityConverter.convertToTimeline(mongoTimeline)
+	}
+
 	public async saveTimeline(timeline: Timeline): Promise<void> {
 		this.assertDatabaseConnection(this.saveTimeline.name)
 		const mongoTimeline: MongoTimeline = this.mongoEntityConverter.convertToMongoTimeline(timeline)

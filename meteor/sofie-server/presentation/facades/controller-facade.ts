@@ -4,10 +4,11 @@ import { RepositoryFacade } from '../../data-access/facades/repository-facade'
 import { ExpressErrorHandler } from '../express-error-handler'
 import { AdLibPieceController } from '../controllers/ad-lib-piece-controller'
 import { BaseController } from '../controllers/base-controller'
+import { TimelineController } from '../controllers/timeline-controller'
 
 export class ControllerFacade {
 	public static getControllers(): BaseController[] {
-		return [this.createRundownController(), this.createAdLibPieceController()]
+		return [this.createRundownController(), this.createAdLibPieceController(), this.createTimelineController()]
 	}
 
 	private static createRundownController(): RundownController {
@@ -24,5 +25,9 @@ export class ControllerFacade {
 			RepositoryFacade.createAdLibRepository(),
 			new ExpressErrorHandler()
 		)
+	}
+
+	private static createTimelineController(): TimelineController {
+		return new TimelineController(RepositoryFacade.createTimelineRepository(), new ExpressErrorHandler())
 	}
 }

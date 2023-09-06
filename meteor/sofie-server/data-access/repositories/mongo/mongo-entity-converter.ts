@@ -252,6 +252,12 @@ export class MongoEntityConverter {
 		}
 	}
 
+	public convertToTimeline(mongoTimeline: MongoTimeline): Timeline {
+		return {
+			timelineGroups: JSON.parse(mongoTimeline.timelineBlob),
+		}
+	}
+
 	public convertMongoAdLibPieceToIdentifier(mongoAdLibPiece: MongoAdLibPiece): Identifier {
 		return {
 			id: mongoAdLibPiece._id,
