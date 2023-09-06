@@ -123,19 +123,9 @@ export class MongoEntityConverter {
 	public convertToMongoRundown(rundown: Rundown): MongoRundown {
 		return {
 			isActive: rundown.isActive(),
-			externalId: '', // Todo: figure out where the value for this attribute is
-			metaData: { rank: 0 }, // Todo: figure out where the value for this attribute is
-			modified: rundown.getLastTimeModified(),
-			notes: [], // Todo: figure out where the value for this attribute is
-			organizationId: '', // Todo: figure out where the value for this attribute is
-			playlistExternalId: '', // Todo: figure out where the value for this attribute is
-			showStyleBaseId: '', // Todo: figure out where the value for this attribute is
-			showStyleVariantId: '', // Todo: figure out where the value for this attribute is
-			studioId: '', // Todo: figure out where the value for this attribute is
-			timing: { expectedDuration: 0, expectedEnd: 0, expectedStart: 0, type: '' }, // Todo: figure out where the value for this attribute is
 			_id: rundown.id,
 			name: rundown.name,
-		}
+		} as MongoRundown
 	}
 
 	public convertToMongoRundowns(rundowns: Rundown[]): MongoRundown[] {
