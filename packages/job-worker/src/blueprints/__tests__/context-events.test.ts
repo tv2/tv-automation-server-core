@@ -84,7 +84,7 @@ describe('Test blueprint api context', () => {
 			)) as DBRundownPlaylist
 			expect(playlist).toBeTruthy()
 
-			const showStyleConfig = jobContext.getShowStyleBlueprintConfig(showStyle)
+			const showStyleConfig = await jobContext.getShowStyleBlueprintConfig(showStyle)
 
 			const mockPart = {
 				_id: protectString('not-a-real-part'),
@@ -120,7 +120,8 @@ describe('Test blueprint api context', () => {
 					identifier: unprotectString(rundown._id),
 				},
 				showStyle,
-				rundown
+				rundown,
+				await jobContext.getShowStyleBlueprintConfig(showStyle)
 			)
 		}
 
@@ -170,7 +171,8 @@ describe('Test blueprint api context', () => {
 				rundown,
 				previousPartInstance,
 				partInstance,
-				nextPartInstance
+				nextPartInstance,
+				await jobContext.getShowStyleBlueprintConfig(showStyle)
 			)
 		}
 
@@ -391,7 +393,7 @@ describe('Test blueprint api context', () => {
 				jobContext.studio,
 				jobContext.getStudioBlueprintConfig(),
 				showStyle,
-				jobContext.getShowStyleBlueprintConfig(showStyle),
+				await jobContext.getShowStyleBlueprintConfig(showStyle),
 				playlist,
 				rundown,
 				previousPartInstance,

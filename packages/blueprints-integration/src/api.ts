@@ -164,8 +164,6 @@ export interface ShowStyleBlueprintManifest extends BlueprintManifestBase {
 		playoutStatus: 'previous' | 'current' | 'next'
 	) => void
 
-	setNext?: (context: ISetNextContext, existingPartInstance: BlueprintSyncIngestPartInstance) => void
-
 	/** Execute an action defined by an IBlueprintActionManifest */
 	executeAction?: (
 		context: IActionExecutionContext,
@@ -192,6 +190,9 @@ export interface ShowStyleBlueprintManifest extends BlueprintManifestBase {
 	onRundownActivate?: (context: IRundownContext) => Promise<void>
 	onRundownFirstTake?: (context: IPartEventContext) => Promise<void>
 	onRundownDeActivate?: (context: IRundownContext) => Promise<void>
+
+	/** Called when the Part selected as next changes, allowing to validate or manipulate the part */
+	onSetNext?: (context: ISetNextContext, nextPartInstance: BlueprintSyncIngestPartInstance) => void
 
 	/** Called after a Take action */
 	onPreTake?: (context: IPartEventContext) => Promise<void>

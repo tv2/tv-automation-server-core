@@ -190,7 +190,7 @@ export async function syncPlayheadInfinitesForNextPartInstance(
 			nextPartInstance.part
 		)
 		const playingPieceInstances = cache.PieceInstances.findFetch(
-			(p) => p.partInstanceId === currentPartInstance._id
+			(p) => p.partInstanceId === currentPartInstance._id && !p.disabled
 		)
 
 		const nowInPart = getCurrentTime() - (currentPartInstance.timings?.startedPlayback ?? 0)
@@ -251,7 +251,7 @@ export function getPieceInstancesForPart(
 
 	const orderedPartsAndSegments = getOrderedSegmentsAndPartsFromPlayoutCache(cache)
 	const playingPieceInstances = playingPartInstance
-		? cache.PieceInstances.findFetch((p) => p.partInstanceId === playingPartInstance._id)
+		? cache.PieceInstances.findFetch((p) => p.partInstanceId === playingPartInstance._id && !p.disabled)
 		: []
 
 	const canContinueAdlibOnEnds = canContinueAdlibOnEndInfinites(

@@ -252,16 +252,14 @@ export interface ISyncIngestUpdateToPartInstanceContext extends IRundownUserCont
 	/** Remove the partInstance. This is only valid when `playstatus: 'next'` */
 	removePartInstance(): void
 }
-export interface ISetNextContext extends IRundownUserContext {
-	/** Insert a pieceInstance. Returns id of new PieceInstance. Any timelineObjects will have their ids changed, so are not safe to reference from another piece */
-	insertPieceInstance(piece: IBlueprintPiece): IBlueprintPieceInstance
-	/** Update a pieceInstance */
-	updatePieceInstance(pieceInstanceId: string, piece: Partial<IBlueprintPiece>): IBlueprintPieceInstance
-	/** Remove a pieceInstance */
-	removePieceInstances(...pieceInstanceIds: string[]): string[]
 
-	/** Update a partInstance */
-	updatePartInstance(props: Partial<IBlueprintMutatablePart>): IBlueprintPartInstance
+export interface ISetNextContext extends IRundownUserContext {
+	/** Enable a PieceInstance from the PartInstance set as next */
+	enablePieceInstance(pieceInstanceId: string): void
+	/** Disable a PieceInstance from the PartInstance set as next */
+	disablePieceInstance(pieceInstanceId: string): void
+	/** Get the resolved PieceInstances for the PartInstance set as next */
+	getResolvedPieceInstances(): IBlueprintResolvedPieceInstance[]
 }
 
 /** Events */

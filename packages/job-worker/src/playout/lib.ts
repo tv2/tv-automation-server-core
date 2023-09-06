@@ -38,6 +38,7 @@ import { MongoQuery } from '../db'
 import _ = require('underscore')
 import { SetNextContext } from '../blueprints/context/setNext'
 import { convertPartInstanceToBlueprints, convertPieceInstanceToBlueprints } from '../blueprints/context/lib'
+import { PartNote, SegmentNote } from '@sofie-automation/corelib/dist/dataModel/Notes'
 
 /**
  * Reset the rundownPlaylist (all of the rundowns within the playlist):
@@ -368,18 +369,17 @@ export async function setNextPart(
 
 		const showStyle = await context.getShowStyleCompound(rundown.showStyleVariantId, rundown.showStyleBaseId)
 
-		const pieceInstancesInPart = cache.PieceInstances.findFetch({ partInstanceId: newInstanceId })
-
 		const blueprint = await context.getShowStyleBlueprint(showStyle._id)
 
-		if (blueprint?.blueprint.setNext) {
+		if (blueprint?.blueprint.onSetNext) {
+			const pieceInstancesInPart = cache.PieceInstances.findFetch({ partInstanceId: newInstanceId })
 			const syncContext = new SetNextContext(
 				context,
+				cache,
 				{
-					name: `Update to ${nextPartInstance2.part.externalId}`,
+					name: `Next set to ${nextPartInstance2.part.externalId}`,
 					identifier: `rundownId=${nextPartInstance2.part.rundownId},segmentId=${nextPartInstance2.part.segmentId}`,
 				},
-				cache.Playlist.doc.activationId,
 				context.studio,
 				showStyle,
 				rundown,
@@ -389,7 +389,7 @@ export async function setNextPart(
 			)
 			try {
 				// The blueprint handles what in the updated part is going to be synced into the partInstance:
-				blueprint.blueprint.setNext(syncContext, {
+				blueprint.blueprint.onSetNext(syncContext, {
 					partInstance: convertPartInstanceToBlueprints(nextPartInstance2),
 					pieceInstances: pieceInstancesInPart.map(convertPieceInstanceToBlueprints),
 				})
@@ -397,6 +397,29 @@ export async function setNextPart(
 				// If the blueprint function throws, no changes will be synced to the cache:
 				syncContext.applyChangesToCache(cache)
 				updateExpectedDurationWithPrerollForPartInstance(cache, nextPartInstance2._id)
+
+				if (!nextPartInstance2.part.notes) nextPartInstance2.part.notes = []
+				const notes: PartNote[] = nextPartInstance2.part.notes
+				let changed = false
+				for (const note of syncContext.notes) {
+					changed = true
+					notes.push(
+						literal<SegmentNote>({
+							type: note.type,
+							message: note.message,
+							origin: {
+								name: '', // TODO
+							},
+						})
+					)
+				}
+				if (changed) {
+					cache.PartInstances.update(nextPartInstance2._id, {
+						$set: {
+							'part.notes': notes,
+						},
+					})
+				}
 			} catch (err) {
 				logger.error(`Error in showStyleBlueprint.setNext: ${stringifyError(err)}`)
 			}

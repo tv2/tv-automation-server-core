@@ -50,6 +50,7 @@ import { protectString } from '@sofie-automation/corelib/dist/protectedString'
 // import _ = require('underscore')
 import { defaultStudio } from './defaultCollectionObjects'
 import { TimelineComplete } from '@sofie-automation/corelib/dist/dataModel/Timeline'
+import { convertShowStyleVariantToBlueprints } from '../blueprints/context/lib'
 
 export function setupDefaultJobEnvironment(studioId?: StudioId): MockJobContext {
 	const collections = getMockCollections()
@@ -181,8 +182,12 @@ export class MockJobContext implements JobContext {
 			blueprint: this.#showStyleBlueprint,
 		}
 	}
-	getShowStyleBlueprintConfig(showStyle: ReadonlyDeep<ShowStyleCompound>): ProcessedShowStyleConfig {
-		return preprocessShowStyleConfig(showStyle, this.#showStyleBlueprint)
+	async getShowStyleBlueprintConfig(showStyle: ReadonlyDeep<ShowStyleCompound>): Promise<ProcessedShowStyleConfig> {
+		return preprocessShowStyleConfig(
+			showStyle,
+			this.#showStyleBlueprint,
+			(await this.getShowStyleVariants(showStyle._id)).map(convertShowStyleVariantToBlueprints)
+		)
 	}
 
 	hackPublishTimelineToFastTrack(_newTimeline: TimelineComplete): void {

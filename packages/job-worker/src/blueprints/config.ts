@@ -73,7 +73,7 @@ async function retrieveBlueprintConfigRef(
 
 			const showStyleCompound = await context.getShowStyleCompound(showStyleVariantId).catch(() => undefined)
 			if (showStyleCompound) {
-				const showStyleConfig = context.getShowStyleBlueprintConfig(showStyleCompound)
+				const showStyleConfig = await context.getShowStyleBlueprintConfig(showStyleCompound)
 				return objectPathGet(showStyleConfig, configId)
 			} else if (bailOnError) {
 				throw new Error(`Ref "${reference}": Showstyle variant "${showStyleVariantId}" not found`)

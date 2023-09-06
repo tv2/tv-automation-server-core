@@ -123,7 +123,10 @@ export function getPlayheadTrackingInfinitesForPart(
 		rundown
 	)
 
-	const groupedPlayingPieceInstances = _.groupBy(currentPartPieceInstances, (p) => p.piece.sourceLayerId)
+	const groupedPlayingPieceInstances = _.groupBy(
+		currentPartPieceInstances.filter((p) => !p.disabled),
+		(p) => p.piece.sourceLayerId
+	)
 	for (const [sourceLayerId, pieceInstances] of Object.entries(groupedPlayingPieceInstances)) {
 		// Find the ones that starts last. Note: any piece will stop an onChange
 		const lastPiecesByStart = _.groupBy(pieceInstances, (p) => p.piece.enable.start)
