@@ -2,7 +2,7 @@ import { MongoPieceRepository } from '../mongo/mongo-piece-repository'
 import { MongoTestDatabase } from './mongo-test-database'
 import { MongoEntityConverter, MongoPiece } from '../mongo/mongo-entity-converter'
 import { anything, instance, mock, when } from 'ts-mockito'
-import { Db, ObjectId } from 'mongodb'
+import { Db } from 'mongodb'
 import { PieceRepository } from '../interfaces/piece-repository'
 import { MongoDatabase } from '../mongo/mongo-database'
 import { DeletionFailedException } from '../../../model/exceptions/deletion-failed-exception'
@@ -98,7 +98,7 @@ describe(`${MongoPieceRepository.name}`, () => {
 
 	function createMongoPiece(params: { id?: string; name?: string; partId?: string }): MongoPiece {
 		return {
-			_id: (params.id as unknown as ObjectId) ?? new ObjectId(),
+			_id: params.id ?? 'id' + Math.random(),
 			name: params.name ?? 'name' + Math.random(),
 			startPartId: params.partId ?? 'segmentId' + Math.random(),
 		} as MongoPiece

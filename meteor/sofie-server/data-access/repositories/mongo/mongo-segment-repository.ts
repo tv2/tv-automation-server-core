@@ -36,6 +36,14 @@ export class MongoSegmentRepository extends BaseMongoRepository implements Segme
 		)
 	}
 
+	public async saveSegment(segment: Segment): Promise<void> {
+		const mongoSegment: MongoSegment = this.mongoEntityConverter.convertToMongoSegment(segment)
+		await this.getCollection().updateOne({ _id: segment.id }, { $set: mongoSegment }, { upsert: true })
+		for (const part of segment.getParts()) {
+			await this.partRepository.savePart(part)
+		}
+	}
+
 	public async deleteSegmentsForRundown(rundownId: string): Promise<void> {
 		this.assertDatabaseConnection(this.deleteSegmentsForRundown.name)
 		const segments: Segment[] = await this.getSegments(rundownId)

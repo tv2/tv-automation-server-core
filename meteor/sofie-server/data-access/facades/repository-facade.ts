@@ -13,7 +13,6 @@ import { MongoTimelineRepository } from '../repositories/mongo/mongo-timeline-re
 import { AdLibPieceRepository } from '../repositories/interfaces/ad-lib-piece-repository'
 import { MongoAdLibPieceRepository } from '../repositories/mongo/mongo-ad-lib-piece-repository'
 import { CachedRundownRepository } from '../repositories/cache/cached-rundown-repository'
-import { MongoRundownPlaylistRepository } from '../repositories/mongo/mongo-rundown-playlist-repository'
 import { RundownBaselineRepository } from '../repositories/interfaces/rundown-baseline-repository'
 import { MongoRundownBaselineRepository } from '../repositories/mongo/mongo-rundown-baseline-repository'
 
@@ -26,12 +25,7 @@ export class RepositoryFacade {
 			this.createSegmentRepository()
 		)
 
-		const mongoRundownPlaylistRepository: RundownRepository = new MongoRundownPlaylistRepository(
-			MongoDatabase.getInstance(),
-			new MongoEntityConverter(),
-			mongoRundownRepository
-		)
-		return CachedRundownRepository.getInstance(mongoRundownPlaylistRepository)
+		return CachedRundownRepository.getInstance(mongoRundownRepository)
 	}
 
 	public static createRundownBaselineRepository(): RundownBaselineRepository {

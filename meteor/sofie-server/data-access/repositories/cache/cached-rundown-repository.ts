@@ -30,11 +30,9 @@ export class CachedRundownRepository implements RundownRepository {
 		return await this.rundownRepository.getBasicRundowns()
 	}
 
-	// Only save in memory for now
-	public saveRundown(rundown: Rundown): void {
-		if (this.cachedRundowns.has(rundown.id)) {
-			this.cachedRundowns.set(rundown.id, rundown)
-		}
+	public async saveRundown(rundown: Rundown): Promise<void> {
+		this.cachedRundowns.set(rundown.id, rundown)
+		await this.rundownRepository.saveRundown(rundown)
 	}
 
 	public async deleteRundown(rundownId: string): Promise<void> {

@@ -38,7 +38,7 @@ export class RundownTimelineService implements RundownService {
 
 		this.emitAddInfinitePieces(rundown, [])
 
-		this.rundownRepository.saveRundown(rundown)
+		await this.rundownRepository.saveRundown(rundown)
 
 		const activateEvent: RundownEvent = this.rundownEventBuilder.buildActivateEvent(rundown)
 		this.rundownEventEmitter.emitRundownEvent(activateEvent)
@@ -56,7 +56,7 @@ export class RundownTimelineService implements RundownService {
 		const timeline: Timeline = this.timelineBuilder.getBaseTimeline()
 
 		this.timelineRepository.saveTimeline(timeline)
-		this.rundownRepository.saveRundown(rundown)
+		await this.rundownRepository.saveRundown(rundown)
 
 		const deactivateEvent: RundownEvent = this.rundownEventBuilder.buildDeactivateEvent(rundown)
 		this.rundownEventEmitter.emitRundownEvent(deactivateEvent)
@@ -82,7 +82,7 @@ export class RundownTimelineService implements RundownService {
 		// TODO: Emit if any infinite Pieces no longer exist e.g. we had a Segment infinite Piece and we changed Segment
 		// TODO: Should we just emit a list of current infinite Pieces? That would be easy, but it then we would potentially emit the same pieces over and over again.
 
-		this.rundownRepository.saveRundown(rundown)
+		await this.rundownRepository.saveRundown(rundown)
 
 		const takeEvent: RundownEvent = this.rundownEventBuilder.buildTakeEvent(rundown)
 		this.rundownEventEmitter.emitRundownEvent(takeEvent)
@@ -105,7 +105,7 @@ export class RundownTimelineService implements RundownService {
 	public async setNext(rundownId: string, segmentId: string, partId: string): Promise<void> {
 		const rundown: Rundown = await this.rundownRepository.getRundown(rundownId)
 		rundown.setNext(segmentId, partId)
-		this.rundownRepository.saveRundown(rundown)
+		await this.rundownRepository.saveRundown(rundown)
 
 		const setNextEvent: RundownEvent = this.rundownEventBuilder.buildSetNextEvent(rundown)
 		this.rundownEventEmitter.emitRundownEvent(setNextEvent)
@@ -120,7 +120,7 @@ export class RundownTimelineService implements RundownService {
 		const timeline: Timeline = this.timelineBuilder.buildTimeline(rundown)
 
 		this.timelineRepository.saveTimeline(timeline)
-		this.rundownRepository.saveRundown(rundown)
+		await this.rundownRepository.saveRundown(rundown)
 
 		const resetEvent: RundownEvent = this.rundownEventBuilder.buildResetEvent(rundown)
 		this.rundownEventEmitter.emitRundownEvent(resetEvent)
@@ -139,7 +139,7 @@ export class RundownTimelineService implements RundownService {
 		const timeline: Timeline = this.timelineBuilder.buildTimeline(rundown)
 
 		this.timelineRepository.saveTimeline(timeline)
-		this.rundownRepository.saveRundown(rundown)
+		await this.rundownRepository.saveRundown(rundown)
 
 		const adLibPieceInsertedEvent: AdLibPieceInsertedEvent = this.rundownEventBuilder.buildAdLibPieceInsertedEvent(
 			rundown,
