@@ -43,7 +43,7 @@ export interface MongoRundown {
 	showStyleVariantId: string
 	showStyleBaseId: string
 	modified: number
-	isActive: boolean
+	isActive?: boolean // TODO: Remove optionality when we have control over data structure.
 }
 
 export interface MongoSegment {
@@ -113,7 +113,7 @@ export class MongoEntityConverter {
 		return new Rundown({
 			id: mongoRundown._id,
 			name: mongoRundown.name,
-			isRundownActive: mongoRundown.isActive,
+			isRundownActive: mongoRundown.isActive ?? false,
 			baselineTimelineObjects: baselineTimelineObjects ?? [],
 			segments: [],
 			modifiedAt: mongoRundown.modified,
@@ -143,7 +143,7 @@ export class MongoEntityConverter {
 	}
 
 	public convertToBasicRundown(mongoRundown: MongoRundown): BasicRundown {
-		return new BasicRundown(mongoRundown._id, mongoRundown.name, mongoRundown.isActive, mongoRundown.modified)
+		return new BasicRundown(mongoRundown._id, mongoRundown.name, mongoRundown.isActive ?? false, mongoRundown.modified)
 	}
 
 	public convertToBasicRundowns(mongoRundowns: MongoRundown[]): BasicRundown[] {
