@@ -25,6 +25,7 @@ export class EntityMockFactory {
 		when(mockedRundown.name).thenReturn(rundownInterface.name ?? 'rundownName')
 		when(mockedRundown.isActive()).thenReturn(rundownInterface.isRundownActive ?? false)
 		when(mockedRundown.getLastTimeModified()).thenReturn(rundownInterface.modifiedAt ?? 0)
+		when(mockedRundown.getSegments()).thenReturn(rundownInterface.segments ?? [])
 
 		when(mockedRundown.getBaseline()).thenReturn(rundownInterface.baselineTimelineObjects ?? [])
 

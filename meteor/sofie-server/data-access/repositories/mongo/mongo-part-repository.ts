@@ -36,7 +36,7 @@ export class MongoPartRepository extends BaseMongoRepository implements PartRepo
 		)
 	}
 
-	public async save(part: Part): Promise<void> {
+	public async savePart(part: Part): Promise<void> {
 		const mongoPart: MongoPart = this.mongoEntityConverter.convertToMongoPart(part)
 		await this.getCollection().updateOne({ _id: part.id }, { $set: mongoPart }, { upsert: true })
 	}
