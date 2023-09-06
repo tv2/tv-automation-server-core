@@ -23,7 +23,7 @@ export class RundownController extends BaseController {
 	public async getBasicRundowns(_reg: Request, res: Response): Promise<void> {
 		try {
 			const basicRundowns: BasicRundown[] = await this.rundownRepository.getBasicRundowns()
-			res.send(basicRundowns.map(basicRundown => new BasicRundownDto(basicRundown)))
+			res.send(basicRundowns.map((basicRundown) => new BasicRundownDto(basicRundown)))
 		} catch (error) {
 			this.httpErrorHandler.handleError(res, error as Exception)
 		}
