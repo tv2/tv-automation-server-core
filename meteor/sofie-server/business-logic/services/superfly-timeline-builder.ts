@@ -204,7 +204,7 @@ export class SuperflyTimelineBuilder implements TimelineBuilder {
 		partCalculatedTimings: PartTimings,
 		piece: Piece
 	): TimelineEnable | undefined {
-		if (!partCalculatedTimings.inTransitionStart || partCalculatedTimings.inTransitionStart <= 0) {
+		if (partCalculatedTimings.inTransitionStart === undefined) {
 			return
 		}
 
@@ -237,18 +237,16 @@ export class SuperflyTimelineBuilder implements TimelineBuilder {
 		piece: Piece,
 		parentGroup: TimelineObjectGroup
 	): TimelineEnable | undefined {
-		// TODO: Check for dynamically inserted and if the Piece.duration is a number (which it should be).
-		// TODO: If it is, set enable.start += partCalculatedTimings.toPartDelay-
-		// TODO: This is something Core does. Might just be used for AdLibs, if used at all?
-
-		// TODO: This hurts...
 		const duration: string | number =
 			partCalculatedTimings.postRollDuration && !piece.duration
 				? `#${parentGroup.id} - ${partCalculatedTimings.postRollDuration}`
 				: piece.duration
 
 		return {
-			start: piece.start,
+			// TODO: Core only adds "delayStartOfPiecesDuration" if it's not an adLib or if it is an adLib then only if it has been adLibbed into next Part
+			// TODO: Since handling AdLibs is no longer Part of building the Timeline, we should be safe to always add this? It should evaluate to zero in most cases.
+			// TODO: Verify when we implement adLibs.
+			start: piece.start + partCalculatedTimings.delayStartOfPiecesDuration,
 			duration: duration,
 		}
 	}
@@ -430,7 +428,7 @@ export class SuperflyTimelineBuilder implements TimelineBuilder {
 	): LookAheadTimelineObject[] {
 		const activePartTimelineObjectEnable: TimelineEnable = {
 			start: 0,
-			end: `$${activeGroup.id}.start`,
+			end: `#${activeGroup.id}.start`,
 		}
 		return this.createLookAheadTimelineObjectsForPart(
 			rundown.getActivePart(),

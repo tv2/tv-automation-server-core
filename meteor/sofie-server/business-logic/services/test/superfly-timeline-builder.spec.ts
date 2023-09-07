@@ -464,6 +464,34 @@ describe('superfly-timeline-builder', () => {
 							expect(controlObject.enable.start).toBe(piece.start)
 						})
 
+						describe('active Part has a delayStartOfPiecesDuration', () => {
+							it('sets the TimelineEnable.start to Piece.start + delayStartOfPiecesDuration', () => {
+								const piece: Piece = EntityMockFactory.createPiece({
+									transitionType: TransitionType.NO_TRANSITION,
+									start: 10,
+								})
+								const activePart: Part = EntityMockFactory.createPart(
+									{ pieces: [piece] },
+									{ partTimings: { delayStartOfPiecesDuration: 50 } }
+								)
+								const rundown: Rundown = EntityMockFactory.createActiveRundown({ activePart })
+
+								const testee: TimelineBuilder = createTestee()
+								const timeline: Timeline = testee.buildTimeline(rundown, createBasicStudioMock())
+
+								const activeGroup: TimelineObjectGroup = timeline.timelineGroups.find((group) =>
+									group.id.includes(ACTIVE_GROUP_PREFIX)
+								)!
+								const controlObject: TimelineObject = activeGroup.children.find((child) =>
+									child.id.includes(PIECE_CONTROL_INFIX)
+								)!
+
+								expect(controlObject.enable.start).toBe(
+									piece.start + activePart.getTimings().delayStartOfPiecesDuration
+								)
+							})
+						})
+
 						describe('Piece has a duration', () => {
 							it('sets TimelineEnable.duration to Piece.duration', () => {
 								const piece: Piece = EntityMockFactory.createPiece({
@@ -4631,7 +4659,7 @@ describe('superfly-timeline-builder', () => {
 									(o) => o.id === `${LOOK_AHEAD_GROUP_ID}_${timelineObject.id}`
 								)!
 								expect(lookAheadTimelineObject.enable.end).toBe(
-									`$${ACTIVE_GROUP_PREFIX}${activePart.id}.start`
+									`#${ACTIVE_GROUP_PREFIX}${activePart.id}.start`
 								)
 							})
 
