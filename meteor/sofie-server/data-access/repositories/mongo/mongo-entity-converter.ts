@@ -122,9 +122,9 @@ export class MongoEntityConverter {
 
 	public convertToMongoRundown(rundown: Rundown): MongoRundown {
 		return {
-			isActive: rundown.isActive(),
 			_id: rundown.id,
 			name: rundown.name,
+			isActive: rundown.isActive(),
 		} as MongoRundown
 	}
 
@@ -158,15 +158,13 @@ export class MongoEntityConverter {
 
 	public convertToMongoSegment(segment: Segment): MongoSegment {
 		return {
-			externalId: '', // Todo: figure out where the value for this attribute is
-			isHidden: false, // Todo: figure out where the value for this attribute is
 			_id: segment.id,
 			name: segment.name,
 			rundownId: segment.rundownId,
 			_rank: segment.rank,
 			isOnAir: segment.isOnAir(),
 			isNext: segment.isNext(),
-		}
+		} as MongoSegment
 	}
 
 	public convertToMongoSegments(segments: Segment[]): MongoSegment[] {
@@ -201,9 +199,9 @@ export class MongoEntityConverter {
 
 	public convertToMongoPart(part: Part): MongoPart {
 		return {
+			_id: part.id,
 			expectedDuration: part.expectedDuration,
 			title: part.name,
-			_id: part.id,
 			segmentId: part.segmentId,
 			_rank: part.rank,
 			isOnAir: part.isOnAir(),
@@ -278,7 +276,6 @@ export class MongoEntityConverter {
 			enable: { duration: piece.duration, start: piece.start },
 			lifespan: piece.pieceLifespan,
 			sourceLayerId: piece.layer,
-			timelineObjectsString: '',
 			_id: piece.id,
 			startPartId: piece.partId,
 			name: piece.name,
