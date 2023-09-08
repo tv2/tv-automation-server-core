@@ -31,9 +31,9 @@ export class MongoRundownRepository extends BaseMongoRepository implements Rundo
 		this.assertDatabaseConnection(this.getBasicRundowns.name)
 		const basicRundowns: MongoRundown[] = (await this.getCollection()
 			.find({})
-			.project({ _id: 1, name: 1, modified: 1 })
+			.project({ _id: 1, name: 1, modified: 1, isActive: 1 })
 			.toArray()) as unknown as MongoRundown[]
-		return this.mongoEntityConverter.convertBasicRundowns(basicRundowns)
+		return this.mongoEntityConverter.convertToBasicRundowns(basicRundowns)
 	}
 
 	public async getRundown(rundownId: string): Promise<Rundown> {
@@ -50,8 +50,12 @@ export class MongoRundownRepository extends BaseMongoRepository implements Rundo
 		return rundown
 	}
 
-	public saveRundown(_rundown: Rundown): void {
-		throw new Error('Not implemented')
+	public async saveRundown(rundown: Rundown): Promise<void> {
+		const mongoRundown: MongoRundown = this.mongoEntityConverter.convertToMongoRundown(rundown)
+		await this.getCollection().updateOne({ _id: rundown.id }, { $set: mongoRundown })
+		for (const segment of rundown.getSegments()) {
+			await this.segmentRepository.saveSegment(segment)
+		}
 	}
 
 	public async deleteRundown(rundownId: string): Promise<void> {

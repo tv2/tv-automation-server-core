@@ -7,6 +7,7 @@ import { RundownDto } from '../dtos/rundown-dto'
 import { Exception } from '../../model/exceptions/exception'
 import { HttpErrorHandler } from '../interfaces/http-error-handler'
 import { BasicRundown } from '../../model/entities/basic-rundown'
+import { BasicRundownDto } from '../dtos/basic-rundown-dto'
 
 @RestController('/rundowns')
 export class RundownController extends BaseController {
@@ -22,7 +23,7 @@ export class RundownController extends BaseController {
 	public async getBasicRundowns(_reg: Request, res: Response): Promise<void> {
 		try {
 			const basicRundowns: BasicRundown[] = await this.rundownRepository.getBasicRundowns()
-			res.send(basicRundowns)
+			res.send(basicRundowns.map((basicRundown) => new BasicRundownDto(basicRundown)))
 		} catch (error) {
 			this.httpErrorHandler.handleError(res, error as Exception)
 		}
