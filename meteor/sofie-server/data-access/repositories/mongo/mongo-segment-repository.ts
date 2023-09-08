@@ -4,6 +4,8 @@ import { MongoDatabase } from './mongo-database'
 import { MongoEntityConverter, MongoSegment } from './mongo-entity-converter'
 import { BaseMongoRepository } from './base-mongo-repository'
 import { PartRepository } from '../interfaces/part-repository'
+import { DeletionFailedException } from '../../../model/exceptions/deletion-failed-exception'
+import { DeleteResult } from 'mongodb'
 
 const SEGMENT_COLLECTION_NAME: string = 'segments'
 
@@ -32,5 +34,23 @@ export class MongoSegmentRepository extends BaseMongoRepository implements Segme
 				return segment
 			})
 		)
+	}
+
+	public async deleteSegmentsForRundown(rundownId: string): Promise<void> {
+		this.assertDatabaseConnection(this.deleteSegmentsForRundown.name)
+		const segments: Segment[] = await this.getSegments(rundownId)
+
+		await Promise.all(segments.map(async (segment) => this.partRepository.deletePartsForSegment(segment.id)))
+
+		const segmentDeleteResult: DeleteResult = await this.getCollection().deleteMany({ rundownId: rundownId })
+
+		if (!segmentDeleteResult.acknowledged) {
+			throw new DeletionFailedException(`Deletion of segments was not acknowledged, for rundownId: ${rundownId}`)
+		}
+		if (segmentDeleteResult.deletedCount === 0) {
+			throw new DeletionFailedException(
+				`Expected to delete one or more segments, but none was deleted, for rundownId: ${rundownId}`
+			)
+		}
 	}
 }

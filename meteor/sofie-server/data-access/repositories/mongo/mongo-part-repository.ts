@@ -4,6 +4,8 @@ import { Part } from '../../../model/entities/part'
 import { MongoDatabase } from './mongo-database'
 import { MongoEntityConverter, MongoPart } from './mongo-entity-converter'
 import { PieceRepository } from '../interfaces/piece-repository'
+import { DeletionFailedException } from '../../../model/exceptions/deletion-failed-exception'
+import { DeleteResult } from 'mongodb'
 
 const PART_COLLECTION_NAME: string = 'parts'
 
@@ -32,5 +34,23 @@ export class MongoPartRepository extends BaseMongoRepository implements PartRepo
 				return part
 			})
 		)
+	}
+
+	public async deletePartsForSegment(segmentId: string): Promise<void> {
+		this.assertDatabaseConnection(this.deletePartsForSegment.name)
+		const parts: Part[] = await this.getParts(segmentId)
+
+		await Promise.all(parts.map(async (part) => this.pieceRepository.deletePiecesForPart(part.id)))
+
+		const partsDeletedResult: DeleteResult = await this.getCollection().deleteMany({ segmentId: segmentId })
+
+		if (!partsDeletedResult.acknowledged) {
+			throw new DeletionFailedException(`Deletion of parts was not acknowledged, for segmentId: ${segmentId}`)
+		}
+		if (partsDeletedResult.deletedCount === 0) {
+			throw new DeletionFailedException(
+				`Expected to delete one or more parts, but none was deleted, for segmentId: ${segmentId}`
+			)
+		}
 	}
 }

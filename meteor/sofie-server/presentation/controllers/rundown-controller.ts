@@ -1,5 +1,5 @@
 import { Request, Response } from 'express'
-import { BaseController, GetRequest, PutRequest, RestController } from './base-controller'
+import { BaseController, DeleteRequest, GetRequest, PutRequest, RestController } from './base-controller'
 import { RundownService } from '../../business-logic/services/interfaces/rundown-service'
 import { RundownRepository } from '../../data-access/repositories/interfaces/rundown-repository'
 import { Rundown } from '../../model/entities/rundown'
@@ -91,6 +91,17 @@ export class RundownController extends BaseController {
 			const rundownId: string = reg.params.rundownId
 			await this.rundownService.resetRundown(rundownId)
 			res.send(`Rundown "${rundownId}" has been reset`)
+		} catch (error) {
+			this.httpErrorHandler.handleError(res, error as Exception)
+		}
+	}
+
+	@DeleteRequest('/:rundownId')
+	public async deleteRundown(reg: Request, res: Response): Promise<void> {
+		try {
+			const rundownId: string = reg.params.rundownId
+			await this.rundownService.deleteRundown(rundownId)
+			res.send(`Rundown "${rundownId}" has been deleted`)
 		} catch (error) {
 			this.httpErrorHandler.handleError(res, error as Exception)
 		}
