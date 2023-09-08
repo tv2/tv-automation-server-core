@@ -69,12 +69,8 @@ export class MongoRundownRepository extends BaseMongoRepository implements Rundo
 		if (!rundownDeletionResult.acknowledged) {
 			throw new DeletionFailedException(`Deletion of rundown was not acknowledged, for rundownId: ${rundownId}`)
 		}
-		if (rundownDeletionResult.deletedCount === 0) {
-			throw new DeletionFailedException(
-				`Expected to delete one rundown, but none was deleted, for rundownId: ${rundownId}`
-			)
-		}
 	}
+
 	private async assertRundownExist(rundownId: string): Promise<void> {
 		const doesRundownExist: boolean = (await this.getCollection().countDocuments({ _id: rundownId })) === 1
 		if (!doesRundownExist) {

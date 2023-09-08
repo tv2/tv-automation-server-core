@@ -7,7 +7,6 @@ import { MongoDatabase } from '../mongo/mongo-database'
 import { anyString, anything, instance, mock, spy, verify, when } from 'ts-mockito'
 import { MongoTestDatabase } from './mongo-test-database'
 import { PieceRepository } from '../interfaces/piece-repository'
-import { DeletionFailedException } from '../../../model/exceptions/deletion-failed-exception'
 import { EntityMockFactory } from '../../../model/entities/test/entity-mock-factory'
 
 const COLLECTION_NAME = 'parts'
@@ -87,24 +86,6 @@ describe(`${MongoPartRepository.name}`, () => {
 			verify(pieceRepository.deletePiecesForPart(anyString())).times(mongoParts.length)
 		})
 
-		it('throws exception, when nonexistent segmentId is given', async () => {
-			const expectedErrorMessageFragment: string = 'Expected to delete one or more parts'
-			const mongoConverter: MongoEntityConverter = mock(MongoEntityConverter)
-			const nonExistingId: string = 'nonExistingId'
-			const mongoPart: MongoPart = createMongoPart({})
-			await testDatabase.populateDatabaseWithParts([mongoPart])
-
-			when(mongoConverter.convertParts(anything())).thenReturn([])
-			const testee: PartRepository = createTestee({
-				mongoConverter: mongoConverter,
-			})
-
-			const action = async () => testee.deletePartsForSegment(nonExistingId)
-
-			await expect(action).rejects.toThrow(DeletionFailedException)
-			await expect(action).rejects.toThrow(expectedErrorMessageFragment)
-		})
-
 		it('does not deletes any pieces, when nonexistent segmentId is given', async () => {
 			const mongoConverter: MongoEntityConverter = mock(MongoEntityConverter)
 			const nonExistingId: string = 'nonExistingId'
@@ -116,9 +97,8 @@ describe(`${MongoPartRepository.name}`, () => {
 			const testee = createTestee({
 				mongoConverter: mongoConverter,
 			})
-			const action = async () => testee.deletePartsForSegment(nonExistingId)
+			await testee.deletePartsForSegment(nonExistingId)
 
-			await expect(action).rejects.toThrow(DeletionFailedException)
 			await expect(db.collection(COLLECTION_NAME).countDocuments()).resolves.toBe(1)
 		})
 

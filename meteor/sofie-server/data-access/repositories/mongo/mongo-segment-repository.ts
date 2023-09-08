@@ -55,10 +55,5 @@ export class MongoSegmentRepository extends BaseMongoRepository implements Segme
 		if (!segmentDeleteResult.acknowledged) {
 			throw new DeletionFailedException(`Deletion of segments was not acknowledged, for rundownId: ${rundownId}`)
 		}
-		if (segmentDeleteResult.deletedCount === 0) {
-			throw new DeletionFailedException(
-				`Expected to delete one or more segments, but none was deleted, for rundownId: ${rundownId}`
-			)
-		}
 	}
 }

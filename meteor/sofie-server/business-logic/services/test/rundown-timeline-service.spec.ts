@@ -102,7 +102,7 @@ function createTestee(params: {
 	rundownRepository?: RundownRepository
 	timelineRepository?: TimelineRepository
 	adLibPieceRepository?: AdLibPieceRepository
-	studioRepository?: StudioRepository,
+	studioRepository?: StudioRepository
 	timelineBuilder?: TimelineBuilder
 	rundownEventBuilder?: RundownEventBuilder
 	callbackScheduler?: CallbackScheduler

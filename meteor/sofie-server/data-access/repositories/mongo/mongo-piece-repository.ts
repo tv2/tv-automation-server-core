@@ -32,10 +32,5 @@ export class MongoPieceRepository extends BaseMongoRepository implements PieceRe
 		if (!piecesDeletionResult.acknowledged) {
 			throw new DeletionFailedException(`Deletion of pieces was not acknowledged, for partId: ${partId}`)
 		}
-		if (piecesDeletionResult.deletedCount === 0) {
-			throw new DeletionFailedException(
-				`Expected to delete one or more pieces, but none was deleted, for partId: ${partId}`
-			)
-		}
 	}
 }
