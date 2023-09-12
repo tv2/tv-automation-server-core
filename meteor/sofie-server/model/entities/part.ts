@@ -6,6 +6,7 @@ import { UnsupportedOperation } from '../exceptions/unsupported-operation'
 import { InTransition } from '../value-objects/in-transition'
 import { OutTransition } from '../value-objects/out-transition'
 import { AutoNext } from '../value-objects/auto-next'
+import { PartEndState } from '../value-objects/part-end-state'
 
 export interface PartInterface {
 	id: string
@@ -22,6 +23,8 @@ export interface PartInterface {
 
 	autoNext?: AutoNext
 	disableNextInTransition: boolean
+
+	endState?: PartEndState
 }
 
 export class Part {
@@ -48,6 +51,13 @@ export class Part {
 	private executedAt: number
 	private timings?: PartTimings
 
+	/*
+	 * The EndState of the Part
+	 * This should be set when the Part becomes the Previous Part.
+	 * // TODO: Should we reset it when it becomes the active?
+	 */
+	private endState?: PartEndState
+
 	constructor(part: PartInterface) {
 		this.id = part.id
 		this.segmentId = part.segmentId
@@ -65,6 +75,8 @@ export class Part {
 		this.autoNext = part.autoNext
 
 		this.executedAt = 0
+
+		this.endState = part.endState
 	}
 
 	public putOnAir(): void {
@@ -189,5 +201,13 @@ export class Part {
 			throw new UnsupportedOperation(`No Timings has been calculated for Part: ${this.id}`)
 		}
 		return this.timings
+	}
+
+	public getEndState(): PartEndState | undefined {
+		return this.endState
+	}
+
+	public setEndState(endState: PartEndState): void {
+		this.endState = endState
 	}
 }

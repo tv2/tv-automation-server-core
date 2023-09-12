@@ -14,6 +14,7 @@ import { MisconfigurationException } from '../exceptions/misconfiguration-except
 import { ExhaustiveCaseChecker } from '../../business-logic/exhaustive-case-checker'
 import { TimelineObject } from './timeline-object'
 import { LastPartInRundownException } from '../exceptions/last-part-in-rundown-exception'
+import { RundownPersistentState } from '../value-objects/rundown-persistent-state'
 
 export interface RundownInterface {
 	id: string
@@ -45,6 +46,8 @@ export class Rundown extends BasicRundown {
 	private previousPart?: Part
 
 	private infinitePieces: Map<string, Piece> = new Map()
+
+	private persistentState?: RundownPersistentState
 
 	constructor(rundown: RundownInterface) {
 		super(rundown.id, rundown.name, rundown.isRundownActive, rundown.modifiedAt)
@@ -394,5 +397,13 @@ export class Rundown extends BasicRundown {
 	public reset(): void {
 		this.deactivate()
 		this.activate()
+	}
+
+	public getPersistentState(): RundownPersistentState {
+		return this.persistentState
+	}
+
+	public setPersistentState(rundownPersistentState: RundownPersistentState): void {
+		this.persistentState = rundownPersistentState
 	}
 }

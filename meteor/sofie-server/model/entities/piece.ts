@@ -16,6 +16,10 @@ export interface PieceInterface {
 	postRollDuration: number
 	transitionType: TransitionType
 	timelineObjects: TimelineObject[]
+
+	metaData?: unknown
+	content?: unknown
+	tags: string[]
 }
 
 export class Piece {
@@ -32,6 +36,10 @@ export class Piece {
 	transitionType: TransitionType
 	timelineObjects: TimelineObject[]
 
+	readonly metaData?: unknown
+	content?: unknown
+	tags: string[]
+
 	private executedAt: number
 
 	constructor(piece: PieceInterface) {
@@ -47,6 +55,10 @@ export class Piece {
 		this.postRollDuration = piece.postRollDuration
 		this.transitionType = piece.transitionType
 		this.timelineObjects = piece.timelineObjects
+
+		this.metaData = piece.metaData
+		this.content = piece.content
+		this.tags = piece.tags
 	}
 
 	public setExecutedAt(executedAt: number): void {

@@ -5,4 +5,5 @@ export type TimelineObject = SuperFlyTimelineObject & {
 	enable: TimelineEnable
 	layer: string
 	inGroup?: string
+	children?: TimelineObject[]
 }

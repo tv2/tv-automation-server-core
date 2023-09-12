@@ -13,6 +13,7 @@ import { LookAheadMode } from '../../../model/enums/look-ahead-mode'
 import { PieceLifespan } from '../../../model/enums/piece-lifespan'
 import { TransitionType } from '../../../model/enums/transition-type'
 import { Identifier } from '../../../model/value-objects/identifier'
+import { ShowStyle } from '../../../model/entities/show-style'
 
 export interface MongoIdentifier {
 	_id: string
@@ -78,6 +79,7 @@ export interface MongoPart {
 	autoNext: boolean
 	autoNextOverlap: number
 	disableNextInTransition: boolean
+	endState?: unknown
 }
 
 export interface MongoPiece {
@@ -94,6 +96,9 @@ export interface MongoPiece {
 	timelineObjectsString: string
 	lifespan: string
 	pieceType: string
+	metaData?: unknown
+	content?: unknown
+	tags?: string[]
 }
 
 export interface MongoTimeline {
@@ -113,10 +118,15 @@ export interface MongoAdLibPiece {
 
 export interface MongoStudio {
 	mappings: MongoLayerMappings
+	blueprintConfig: unknown
 }
 
 interface MongoLayerMappings {
 	[layerName: string]: MongoLayerMapping
+}
+
+export interface MongoShowStyle {
+	blueprintConfig: unknown
 }
 
 interface MongoLayerMapping {
@@ -215,6 +225,7 @@ export class MongoEntityConverter {
 			},
 			autoNext: mongoPart.autoNext ? { overlap: mongoPart.autoNextOverlap } : undefined,
 			disableNextInTransition: mongoPart.disableNextInTransition,
+			endState: mongoPart.endState,
 		})
 	}
 
@@ -231,6 +242,7 @@ export class MongoEntityConverter {
 			_rank: part.rank,
 			isOnAir: part.isOnAir(),
 			isNext: part.isNext(),
+			endState: part.getEndState() ?? undefined,
 		} as MongoPart
 	}
 
@@ -252,6 +264,9 @@ export class MongoEntityConverter {
 			postRollDuration: mongoPiece.prerollDuration,
 			transitionType: this.mapMongoPieceTypeToTransitionType(mongoPiece.pieceType),
 			timelineObjects: JSON.parse(mongoPiece.timelineObjectsString),
+			metaData: mongoPiece.metaData,
+			content: mongoPiece.content,
+			tags: mongoPiece.tags ?? [],
 		})
 	}
 
@@ -364,7 +379,7 @@ export class MongoEntityConverter {
 					mongoStudio.mappings[mapping].lookaheadMaxSearchDistance ?? defaultLookAheadDistance,
 			})
 		}
-		return { layers }
+		return { layers, blueprintConfiguration: mongoStudio.blueprintConfig }
 	}
 
 	private mapLookAheadNumberToEnum(lookAheadNumber: number): LookAheadMode {
@@ -385,6 +400,12 @@ export class MongoEntityConverter {
 				// throw new UnsupportedOperation(`Found unknown number for LookAhead: ${lookAheadNumber}`)
 				return LookAheadMode.NONE
 			}
+		}
+	}
+
+	public convertShowStyle(mongoShowStyle: MongoShowStyle): ShowStyle {
+		return {
+			blueprintConfiguration: mongoShowStyle.blueprintConfig,
 		}
 	}
 }

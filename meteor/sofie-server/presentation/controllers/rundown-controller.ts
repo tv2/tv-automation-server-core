@@ -2,12 +2,12 @@ import { Request, Response } from 'express'
 import { BaseController, DeleteRequest, GetRequest, PutRequest, RestController } from './base-controller'
 import { RundownService } from '../../business-logic/services/interfaces/rundown-service'
 import { RundownRepository } from '../../data-access/repositories/interfaces/rundown-repository'
-import { Rundown } from '../../model/entities/rundown'
-import { RundownDto } from '../dtos/rundown-dto'
 import { Exception } from '../../model/exceptions/exception'
 import { HttpErrorHandler } from '../interfaces/http-error-handler'
 import { BasicRundown } from '../../model/entities/basic-rundown'
 import { BasicRundownDto } from '../dtos/basic-rundown-dto'
+import { Rundown } from '../../model/entities/rundown'
+import { RundownDto } from '../dtos/rundown-dto'
 
 @RestController('/rundowns')
 export class RundownController extends BaseController {
