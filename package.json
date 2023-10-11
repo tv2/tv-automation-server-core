@@ -11,6 +11,7 @@
 		"install:meteor": "cd meteor && meteor --version && meteor npm install -g yarn && node ../scripts/fix-windows-yarn.js && meteor yarn install",
 		"install:packages": "cd packages && yarn install",
 		"start": "yarn install && yarn dev",
+		"watch": "cross-env MONGO_URL=mongodb://localhost:3002/sofie?directConnection=true MONGO_OPLOG_URL=mongodb://localhost:3002/local?directConnection=true yarn dev",
 		"dev": "node ./scripts/run.js",
 		"restart:meteor": "node ./scripts/meteor-force-restart.js",
 		"build:packages": "cd packages && yarn build",
@@ -34,6 +35,7 @@
 	},
 	"devDependencies": {
 		"concurrently": "^7.4.0",
+		"cross-env": "^7.0.3",
 		"rimraf": "^3.0.2",
 		"semver": "^7.3.7",
 		"snyk-nodejs-lockfile-parser": "^1.43.1",
