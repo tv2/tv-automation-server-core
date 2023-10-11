@@ -239,7 +239,7 @@ Meteor.startup(() => {
 
 	// Meteor wants the dbname as the path of the mongo url, but the mongodb driver needs it separate
 	const rawUrl = new URL(process.env.MONGO_URL)
-	const dbName = rawUrl.pathname.substring(1) // Trim off first '/'
+	const dbName = rawUrl.pathname.substring(1).replace(/\?.+$/, '') // Trim off first '/'
 	rawUrl.pathname = ''
 	const mongoUri = rawUrl.toString()
 
