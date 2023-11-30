@@ -736,7 +736,7 @@ describe('Timeline', () => {
 							// No delay applied as it started before this part, so should be left untouched
 							partGroup: { start: `#part_group_${currentPartInstance?._id}.start` },
 							pieceGroup: {
-								controlObj: { start: 0 },
+								controlObj: { start: 500 },
 								childGroup: { preroll: 0, postroll: 0 },
 							},
 						},
@@ -1140,7 +1140,7 @@ describe('Timeline', () => {
 							piece000: {
 								controlObj: {
 									start: 500, // This one gave the preroll
-									end: pieceOffset, // This is expected to match the start of the adlib
+									end: `#${getPartGroupId(currentPartInstance!)}.start + ${pieceOffset}`, // This is expected to match the start of the adlib
 								},
 								childGroup: {
 									preroll: 500,
@@ -1303,7 +1303,7 @@ describe('Timeline', () => {
 							piece000: {
 								controlObj: {
 									start: 500, // This one gave the preroll
-									end: pieceOffset,
+									end: `#${getPartGroupId(currentPartInstance!)}.start + ${pieceOffset}`,
 								},
 								childGroup: {
 									preroll: 500,
@@ -1439,7 +1439,10 @@ describe('Timeline', () => {
 						previousPart: { end: `#${getPartGroupId(currentPartInstance!)}.start + 1000` },
 						currentPieces: {
 							piece010: {
-								controlObj: { start: 500, end: 12560 },
+								controlObj: {
+									start: 500,
+									end: `#${getPartGroupId(currentPartInstance!)}.start + ${pieceOffset}`,
+								},
 								childGroup: { preroll: 0, postroll: 0 },
 							},
 							// transition piece

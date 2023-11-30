@@ -240,18 +240,32 @@ function generateCurrentInfinitePieceObjects(
 	if (previousPartInfinites.get(pieceInstance.infinite.infiniteInstanceId)) {
 		groupClasses.push('continues_infinite')
 	}
+	const pieceEnable = getPieceEnableInsidePart(pieceInstance, currentPartInstanceTimings, currentPartGroup.id)
 
 	let nowInParent = currentPartInfo.nowInPart
-	let isAbsoluteInfinitePartGroup = false
 	if (pieceInstance.startedPlayback) {
 		// Make the start time stick
 		infiniteGroup.enable = { start: pieceInstance.startedPlayback }
-		nowInParent = currentTime - pieceInstance.startedPlayback
-		isAbsoluteInfinitePartGroup = true
+		let infiniteGroupStart = pieceInstance.startedPlayback
+
+		// infiniteGroupStart had an actual timestamp inside and pieceEnable.start being a number
+		// means that it expects an offset from it's parent
+		// The infiniteGroupStart is a timestamp of the actual start of the piece controlObj,
+		// which includes the value of `pieceEnable.start` so we need to offset by that value and avoid trimming
+		// the start of the piece group
+		if (typeof pieceEnable.start === 'number') {
+			infiniteGroupStart -= pieceEnable.start
+		} else {
+			// We should never hit this, but in case pieceEnable.start is "now"
+			pieceEnable.start = 0
+		}
+
+		infiniteGroup.enable = { start: infiniteGroupStart }
 
 		// If an absolute time has been set by a hotkey, then update the duration to be correct
 		if (pieceInstance.userDuration && pieceInstance.piece.enable.start !== 'now') {
 			infiniteGroup.enable.duration = pieceInstance.userDuration.end - pieceInstance.piece.enable.start
+			nowInParent = currentTime - pieceInstance.startedPlayback
 		}
 	}
 
@@ -287,24 +301,6 @@ function generateCurrentInfinitePieceObjects(
 		}
 	}
 
-	const isInfiniteContinuation =
-		pieceInstance.infinite && pieceInstance.piece.startPartId !== currentPartInfo.partInstance.part._id
-
-	let pieceEnable: TSR.Timeline.TimelineEnable
-	let pieceStartOffset = 0
-	if (isAbsoluteInfinitePartGroup || isInfiniteContinuation) {
-		pieceEnable = { start: 0 }
-
-		if (pieceInstance.piece.enable.start !== 'now') pieceStartOffset = pieceInstance.piece.enable.start
-	} else {
-		pieceEnable = getPieceEnableInsidePart(pieceInstance, currentPartInstanceTimings, currentPartGroup.id)
-	}
-
-	if (pieceInstance.userDuration) {
-		pieceEnable.end = pieceInstance.userDuration.end
-		delete pieceEnable.duration
-	}
-
 	// Still show objects flagged as 'HoldMode.EXCEPT' if this is a infinite continuation as they belong to the previous too
 	const isOriginOfInfinite = pieceInstance.piece.startPartId !== currentPartInfo.partInstance.part._id
 	const isInHold = activePlaylist.holdState === RundownHoldState.ACTIVE
@@ -313,11 +309,12 @@ function generateCurrentInfinitePieceObjects(
 		infiniteGroup,
 		...transformPieceGroupAndObjects(
 			activePlaylist._id,
+			currentPartGroup,
 			infiniteGroup,
 			nowInParent,
 			pieceInstance,
 			pieceEnable,
-			pieceStartOffset,
+			0,
 			groupClasses,
 			isInHold,
 			isOriginOfInfinite

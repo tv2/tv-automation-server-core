@@ -18,7 +18,11 @@ import { MethodContext, MethodContextAPI } from '../../lib/api/methods'
 import { UserId } from '../../lib/collections/Users'
 import { ShowStyleContentWriteAccess } from '../security/showStyle'
 import { PickerPOST, PickerGET } from './http'
-import { fetchShowStyleBaseLight } from '../../lib/collections/optimizations'
+import {
+	fetchShowStyleBaseLight,
+	fetchShowStyleBasesLight,
+	ShowStyleBaseLight,
+} from '../../lib/collections/optimizations'
 
 export async function createRundownLayout(
 	name: string,
@@ -61,22 +65,10 @@ PickerPOST.route('/shelfLayouts/upload/:showStyleBaseId', async (params, req: In
 
 	let content = ''
 	try {
-		if (!showStyleBase) throw new Meteor.Error(404, `ShowStylebase "${showStyleBaseId}" not found`)
+		if (!showStyleBase) throw new Meteor.Error(404, `Show Style Base "${showStyleBaseId}" not found`)
 
-		const body = req.body
-		if (!body) throw new Meteor.Error(400, 'Restore Shelf Layout: Missing request body')
-
-		if (typeof body !== 'string' || body.length < 10)
-			throw new Meteor.Error(400, 'Restore Shelf Layout: Invalid request body')
-
-		const layout = JSON.parse(body) as RundownLayoutBase
-		check(layout._id, Match.Optional(String))
-		check(layout.name, String)
-		check(layout.type, String)
-
-		layout.showStyleBaseId = showStyleBase._id
-
-		await RundownLayouts.upsertAsync(layout._id, layout)
+		const rundownLayoutBase = validateAndGetRestoredLayoutBody(req)
+		await upsertLayout(rundownLayoutBase, showStyleBase)
 
 		res.statusCode = 200
 	} catch (e) {
@@ -87,6 +79,39 @@ PickerPOST.route('/shelfLayouts/upload/:showStyleBaseId', async (params, req: In
 
 	res.end(content)
 })
+
+/**
+ * Uploads the layout to the first Show Style Base that uses the given blueprint id
+ */
+PickerPOST.route(
+	'/shelfLayouts/uploadByShowStyleBlueprintId/:showStyleBlueprintId',
+	async (params, req: IncomingMessage, res: ServerResponse) => {
+		res.setHeader('Content-Type', 'text/plain')
+
+		const showStyleBlueprintId: BlueprintId = protectString(params.showStyleBlueprintId)
+
+		check(showStyleBlueprintId, String)
+
+		const showStyleBases = await fetchShowStyleBasesLight({ blueprintId: showStyleBlueprintId })
+
+		let content = ''
+		try {
+			if (!showStyleBases.length)
+				throw new Meteor.Error(404, `Show Style Base not found for blueprint "${showStyleBlueprintId}"`)
+
+			const rundownLayoutBase = validateAndGetRestoredLayoutBody(req)
+			await upsertLayout(rundownLayoutBase, showStyleBases[0])
+
+			res.statusCode = 200
+		} catch (e) {
+			res.statusCode = 500
+			content = e + ''
+			logger.error('Shelf Layout restore failed: ' + e)
+		}
+
+		res.end(content)
+	}
+)
 
 PickerGET.route('/shelfLayouts/download/:id', async (params, _req: IncomingMessage, res: ServerResponse) => {
 	const layoutId: RundownLayoutId = protectString(params.id)
@@ -115,6 +140,26 @@ PickerGET.route('/shelfLayouts/download/:id', async (params, _req: IncomingMessa
 
 	res.end(content)
 })
+
+function validateAndGetRestoredLayoutBody(req: IncomingMessage): RundownLayoutBase {
+	if (!req.body) throw new Meteor.Error(400, 'Restore Shelf Layout: Missing request body')
+
+	if (typeof req.body !== 'object') throw new Meteor.Error(400, 'Restore Shelf Layout: Invalid request body')
+
+	const layout: Partial<RundownLayoutBase> = req.body
+
+	check(layout._id, Match.Optional(String))
+	check(layout.name, String)
+	check(layout.type, String)
+
+	return layout as RundownLayoutBase
+}
+
+async function upsertLayout(layout: RundownLayoutBase, showStyleBase: ShowStyleBaseLight) {
+	layout.showStyleBaseId = showStyleBase._id
+
+	await RundownLayouts.upsertAsync(layout._id, layout)
+}
 
 /** Add RundownLayout into showStyleBase */
 async function apiCreateRundownLayout(

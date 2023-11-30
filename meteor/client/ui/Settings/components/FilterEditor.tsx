@@ -22,8 +22,8 @@ import { ShowStyleBase } from '../../../../lib/collections/ShowStyleBases'
 import { SourceLayerType } from '@sofie-automation/blueprints-integration'
 import { withTranslation } from 'react-i18next'
 import { defaultColorPickerPalette } from '../../../lib/colorPicker'
-import { EditAttributeMultiSelect } from '../../../lib/editAttribute/edit-attribute-multi-select'
-import { EditAttributeEnumMultiSelect } from '../../../lib/editAttribute/edit-attribute-enum-multi-select'
+import { EditAttributeMultiSelect } from '../../../lib/editAttribute/EditAttributeMultiSelect'
+import { EditAttributeEnumMultiSelect } from '../../../lib/editAttribute/EditAttributeEnumMultiSelect'
 
 interface IProps {
 	item: RundownLayoutBase
@@ -1464,7 +1464,7 @@ export default withTranslation()(
 									type="dropdown"
 									collection={RundownLayouts}
 									className="input text-input"
-									mutateDisplayValue={(v) => (v === undefined ? DashboardPanelUnit.EM : v)}
+									mutateDisplayValue={(v) => (v === undefined ? DashboardPanelUnit.REM : v)}
 								/>
 							</label>
 						</div>
@@ -1489,7 +1489,7 @@ export default withTranslation()(
 									type="dropdown"
 									collection={RundownLayouts}
 									className="input text-input"
-									mutateDisplayValue={(v) => (v === undefined ? DashboardPanelUnit.EM : v)}
+									mutateDisplayValue={(v) => (v === undefined ? DashboardPanelUnit.REM : v)}
 								/>
 							</label>
 						</div>
@@ -1514,7 +1514,7 @@ export default withTranslation()(
 									type="dropdown"
 									collection={RundownLayouts}
 									className="input text-input"
-									mutateDisplayValue={(v) => (v === undefined ? DashboardPanelUnit.EM : v)}
+									mutateDisplayValue={(v) => (v === undefined ? DashboardPanelUnit.REM : v)}
 								/>
 							</label>
 						</div>
@@ -1539,7 +1539,7 @@ export default withTranslation()(
 									type="dropdown"
 									collection={RundownLayouts}
 									className="input text-input"
-									mutateDisplayValue={(v) => (v === undefined ? DashboardPanelUnit.EM : v)}
+									mutateDisplayValue={(v) => (v === undefined ? DashboardPanelUnit.REM : v)}
 								/>
 							</label>
 						</div>

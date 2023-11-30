@@ -25,7 +25,7 @@ import { MeteorCall } from '../../../../lib/api/methods'
 import { doUserAction, UserAction } from '../../../lib/userAction'
 import { MappingsManifest } from '@sofie-automation/corelib/dist/deviceConfig'
 import { DeviceMappingSettings } from './Mappings'
-import { EditAttributeBase } from '../../../lib/editAttribute/edit-attribute-base'
+import { EditAttributeBase } from '../../../lib/editAttribute/EditAttributeBase'
 
 interface IStudioRoutingsProps {
 	studio: Studio

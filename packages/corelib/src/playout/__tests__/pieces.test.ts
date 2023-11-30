@@ -92,7 +92,8 @@ describe('Pieces', () => {
 			priority: 123,
 			classes: undefined,
 		})
-		const partGroup = { id: 'randomId9003' } as any as TimelineObjRundown
+		const parentGroup = { id: 'randomId9003' } as any as TimelineObjRundown
+		const partGroup = { id: 'randomId9004' } as any as TimelineObjRundown
 
 		test('Basic piece', () => {
 			const res = createPieceGroupAndCap(playlistId, simplePieceInstance)
@@ -102,31 +103,31 @@ describe('Pieces', () => {
 			expect(res.controlObj).toStrictEqual(simplePieceControl)
 		})
 		test('Basic piece with a partGroup', () => {
-			const res = createPieceGroupAndCap(playlistId, simplePieceInstance, [], partGroup)
+			const res = createPieceGroupAndCap(playlistId, simplePieceInstance, [], partGroup, parentGroup)
 
 			expect(res.capObjs).toHaveLength(0)
 			expect(res.childGroup).toStrictEqual({
 				...simplePieceGroup,
-				inGroup: partGroup.id,
+				inGroup: parentGroup.id,
 			})
 			expect(res.controlObj).toStrictEqual({
 				...simplePieceControl,
-				inGroup: partGroup.id,
+				inGroup: parentGroup.id,
 				classes: [],
 			})
 		})
 		test('override enable', () => {
 			const enable: TimelineEnable = { start: 'abc + 3', end: 999 }
-			const res = createPieceGroupAndCap(playlistId, simplePieceInstance, [], partGroup, enable)
+			const res = createPieceGroupAndCap(playlistId, simplePieceInstance, [], partGroup, parentGroup, enable)
 
 			expect(res.capObjs).toHaveLength(0)
 			expect(res.childGroup).toStrictEqual({
 				...simplePieceGroup,
-				inGroup: partGroup.id,
+				inGroup: parentGroup.id,
 			})
 			expect(res.controlObj).toStrictEqual({
 				...simplePieceControl,
-				inGroup: partGroup.id,
+				inGroup: parentGroup.id,
 				classes: [],
 				enable,
 			})
@@ -140,16 +141,16 @@ describe('Pieces', () => {
 					...simplePieceInstance,
 					resolvedEndCap: 800,
 				}
-				const res = createPieceGroupAndCap(playlistId, pieceInstance, [], partGroup, enable)
+				const res = createPieceGroupAndCap(playlistId, pieceInstance, [], partGroup, parentGroup, enable)
 
 				expect(res.capObjs).toHaveLength(0)
 				expect(res.childGroup).toStrictEqual({
 					...simplePieceGroup,
-					inGroup: partGroup.id,
+					inGroup: parentGroup.id,
 				})
 				expect(res.controlObj).toStrictEqual({
 					...simplePieceControl,
-					inGroup: partGroup.id,
+					inGroup: parentGroup.id,
 					classes: [],
 					enable: {
 						...enable,
@@ -164,16 +165,16 @@ describe('Pieces', () => {
 					...simplePieceInstance,
 					resolvedEndCap: 8000,
 				}
-				const res = createPieceGroupAndCap(playlistId, pieceInstance, [], partGroup, enable)
+				const res = createPieceGroupAndCap(playlistId, pieceInstance, [], partGroup, parentGroup, enable)
 
 				expect(res.capObjs).toHaveLength(0)
 				expect(res.childGroup).toStrictEqual({
 					...simplePieceGroup,
-					inGroup: partGroup.id,
+					inGroup: parentGroup.id,
 				})
 				expect(res.controlObj).toStrictEqual({
 					...simplePieceControl,
-					inGroup: partGroup.id,
+					inGroup: parentGroup.id,
 					classes: [],
 					enable,
 				})
@@ -187,16 +188,16 @@ describe('Pieces', () => {
 					...simplePieceInstance,
 					resolvedEndCap: 800,
 				}
-				const res = createPieceGroupAndCap(playlistId, pieceInstance, [], partGroup, enable)
+				const res = createPieceGroupAndCap(playlistId, pieceInstance, [], partGroup, parentGroup, enable)
 
 				expect(res.capObjs).toHaveLength(0)
 				expect(res.childGroup).toStrictEqual({
 					...simplePieceGroup,
-					inGroup: partGroup.id,
+					inGroup: parentGroup.id,
 				})
 				expect(res.controlObj).toStrictEqual({
 					...simplePieceControl,
-					inGroup: partGroup.id,
+					inGroup: parentGroup.id,
 					classes: [],
 					enable: {
 						start: enable.start,
@@ -212,7 +213,7 @@ describe('Pieces', () => {
 					...simplePieceInstance,
 					resolvedEndCap: 800,
 				}
-				const res = createPieceGroupAndCap(playlistId, pieceInstance, [], partGroup, enable)
+				const res = createPieceGroupAndCap(playlistId, pieceInstance, [], partGroup, parentGroup, enable)
 
 				expect(res.capObjs).toStrictEqual([
 					{
@@ -232,7 +233,7 @@ describe('Pieces', () => {
 				])
 				expect(res.childGroup).toStrictEqual({
 					...simplePieceGroup,
-					inGroup: partGroup.id,
+					inGroup: parentGroup.id,
 				})
 				expect(res.controlObj).toStrictEqual({
 					...simplePieceControl,
@@ -249,20 +250,20 @@ describe('Pieces', () => {
 				...simplePieceInstance,
 				resolvedEndCap: 800,
 			}
-			const res = createPieceGroupAndCap(playlistId, pieceInstance, [], partGroup, enable)
+			const res = createPieceGroupAndCap(playlistId, pieceInstance, [], partGroup, parentGroup, enable)
 
 			expect(res.capObjs).toHaveLength(0)
 			expect(res.childGroup).toStrictEqual({
 				...simplePieceGroup,
-				inGroup: partGroup.id,
+				inGroup: parentGroup.id,
 			})
 			expect(res.controlObj).toStrictEqual({
 				...simplePieceControl,
-				inGroup: partGroup.id,
+				inGroup: parentGroup.id,
 				classes: [],
 				enable: {
 					...enable,
-					end: 800,
+					end: `#${partGroup.id}.start + 800`,
 				},
 			})
 		})
@@ -274,7 +275,7 @@ describe('Pieces', () => {
 				...simplePieceInstance,
 				resolvedEndCap: 'now',
 			}
-			const res = createPieceGroupAndCap(playlistId, pieceInstance, [], partGroup, enable)
+			const res = createPieceGroupAndCap(playlistId, pieceInstance, [], partGroup, parentGroup, enable)
 
 			expect(res.capObjs).toStrictEqual([
 				{
@@ -293,7 +294,7 @@ describe('Pieces', () => {
 					content: { deviceType: 0, type: 'group' },
 					enable: { end: '#piece_group_control_randomId9000_cap_now.start', start: 0 },
 					id: 'piece_group_control_randomId9000_cap',
-					inGroup: partGroup.id,
+					inGroup: parentGroup.id,
 					isGroup: true,
 					layer: '',
 					objectType: 'rundown',
@@ -305,7 +306,7 @@ describe('Pieces', () => {
 			])
 			expect(res.childGroup).toStrictEqual({
 				...simplePieceGroup,
-				inGroup: partGroup.id,
+				inGroup: parentGroup.id,
 			})
 			expect(res.controlObj).toStrictEqual({
 				...simplePieceControl,
@@ -322,7 +323,7 @@ describe('Pieces', () => {
 				...simplePieceInstance,
 				resolvedEndCap: 'now',
 			}
-			const res = createPieceGroupAndCap(playlistId, pieceInstance, [], partGroup, enable)
+			const res = createPieceGroupAndCap(playlistId, pieceInstance, [], partGroup, parentGroup, enable)
 
 			expect(res.capObjs).toStrictEqual([
 				{
@@ -339,11 +340,11 @@ describe('Pieces', () => {
 			])
 			expect(res.childGroup).toStrictEqual({
 				...simplePieceGroup,
-				inGroup: partGroup.id,
+				inGroup: parentGroup.id,
 			})
 			expect(res.controlObj).toStrictEqual({
 				...simplePieceControl,
-				inGroup: partGroup.id,
+				inGroup: parentGroup.id,
 				classes: [],
 				enable: {
 					...enable,
@@ -359,7 +360,7 @@ describe('Pieces', () => {
 				...simplePieceInstance,
 				resolvedEndCap: 'now',
 			}
-			const res = createPieceGroupAndCap(playlistId, pieceInstance, [], partGroup, enable)
+			const res = createPieceGroupAndCap(playlistId, pieceInstance, [], partGroup, parentGroup, enable)
 
 			expect(res.capObjs).toStrictEqual([
 				{
@@ -378,7 +379,7 @@ describe('Pieces', () => {
 					content: { deviceType: 0, type: 'group' },
 					enable: { end: '#piece_group_control_randomId9000_cap_now.start', start: 0 },
 					id: 'piece_group_control_randomId9000_cap',
-					inGroup: partGroup.id,
+					inGroup: parentGroup.id,
 					isGroup: true,
 					layer: '',
 					objectType: 'rundown',
@@ -390,7 +391,7 @@ describe('Pieces', () => {
 			])
 			expect(res.childGroup).toStrictEqual({
 				...simplePieceGroup,
-				inGroup: partGroup.id,
+				inGroup: parentGroup.id,
 			})
 			expect(res.controlObj).toStrictEqual({
 				...simplePieceControl,
@@ -407,7 +408,7 @@ describe('Pieces', () => {
 				...simplePieceInstance,
 				resolvedEndCap: 'aaa + 99',
 			}
-			const res = createPieceGroupAndCap(playlistId, pieceInstance, [], partGroup, enable)
+			const res = createPieceGroupAndCap(playlistId, pieceInstance, [], partGroup, parentGroup, enable)
 
 			expect(res.capObjs).toStrictEqual([
 				{
@@ -415,7 +416,7 @@ describe('Pieces', () => {
 					content: { deviceType: 0, type: 'group' },
 					enable: { end: pieceInstance.resolvedEndCap, start: 0 },
 					id: 'piece_group_control_randomId9000_cap',
-					inGroup: partGroup.id,
+					inGroup: parentGroup.id,
 					isGroup: true,
 					layer: '',
 					objectType: 'rundown',
@@ -427,7 +428,7 @@ describe('Pieces', () => {
 			])
 			expect(res.childGroup).toStrictEqual({
 				...simplePieceGroup,
-				inGroup: partGroup.id,
+				inGroup: parentGroup.id,
 			})
 			expect(res.controlObj).toStrictEqual({
 				...simplePieceControl,
@@ -444,16 +445,16 @@ describe('Pieces', () => {
 				...simplePieceInstance,
 				resolvedEndCap: 'aaa + 99',
 			}
-			const res = createPieceGroupAndCap(playlistId, pieceInstance, [], partGroup, enable)
+			const res = createPieceGroupAndCap(playlistId, pieceInstance, [], partGroup, parentGroup, enable)
 
 			expect(res.capObjs).toHaveLength(0)
 			expect(res.childGroup).toStrictEqual({
 				...simplePieceGroup,
-				inGroup: partGroup.id,
+				inGroup: parentGroup.id,
 			})
 			expect(res.controlObj).toStrictEqual({
 				...simplePieceControl,
-				inGroup: partGroup.id,
+				inGroup: parentGroup.id,
 				classes: [],
 				enable: {
 					...enable,
@@ -471,36 +472,36 @@ describe('Pieces', () => {
 			}
 
 			// No offset
-			const res = createPieceGroupAndCap(playlistId, pieceInstance, [], partGroup, enable)
+			const res = createPieceGroupAndCap(playlistId, pieceInstance, [], partGroup, parentGroup, enable)
 			expect(res.capObjs).toHaveLength(0)
 			expect(res.childGroup).toStrictEqual({
 				...simplePieceGroup,
-				inGroup: partGroup.id,
+				inGroup: parentGroup.id,
 			})
 			expect(res.controlObj).toStrictEqual({
 				...simplePieceControl,
-				inGroup: partGroup.id,
+				inGroup: parentGroup.id,
 				classes: [],
 				enable: {
 					...enable,
-					end: 500,
+					end: `#${partGroup.id}.start + 500`,
 				},
 			})
 
 			// Factor in offset
-			const res2 = createPieceGroupAndCap(playlistId, pieceInstance, [], partGroup, enable, 100)
+			const res2 = createPieceGroupAndCap(playlistId, pieceInstance, [], partGroup, parentGroup, enable, 100)
 			expect(res2.capObjs).toHaveLength(0)
 			expect(res2.childGroup).toStrictEqual({
 				...simplePieceGroup,
-				inGroup: partGroup.id,
+				inGroup: parentGroup.id,
 			})
 			expect(res2.controlObj).toStrictEqual({
 				...simplePieceControl,
-				inGroup: partGroup.id,
+				inGroup: parentGroup.id,
 				classes: [],
 				enable: {
 					...enable,
-					end: 400,
+					end: `#${partGroup.id}.start + 400`,
 				},
 			})
 		})

@@ -12,7 +12,7 @@ import * as _ from 'underscore'
 import { EditAttribute } from '../../lib/EditAttribute'
 import { MeteorCall } from '../../../lib/api/methods'
 import { checkForOldDataAndCleanUp } from './SystemManagement'
-import { EditAttributeBase } from '../../lib/editAttribute/edit-attribute-base'
+import { EditAttributeBase } from '../../lib/editAttribute/EditAttributeBase'
 
 interface IProps {}
 interface IState {

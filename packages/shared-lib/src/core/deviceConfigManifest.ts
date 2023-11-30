@@ -52,6 +52,11 @@ export enum ConfigManifestEntryType {
 	ENUM = 'enum',
 }
 
+/**
+ * An enum-like type
+ */
+export type EnumLike = Record<string, string | number>
+
 export type ConfigManifestEntry =
 	// | ConfigManifestEntryBase
 	| ConfigManifestEnumEntry
@@ -71,7 +76,7 @@ export interface ConfigManifestEntryBase {
 	name: string
 	type: ConfigManifestEntryType
 	/** Used in enums */
-	values?: any
+	values?: EnumLike
 	/** Short label to display when value is undefined (default value) */
 	placeholder?: string
 	/** Longer description */
@@ -80,8 +85,8 @@ export interface ConfigManifestEntryBase {
 }
 export interface ConfigManifestEnumEntry extends ConfigManifestEntryBase {
 	type: ConfigManifestEntryType.ENUM
-	values: any // for enum
-	defaultVal?: any
+	values: EnumLike
+	defaultVal?: string | number
 }
 
 export interface ConfigManifestBooleanEntry extends ConfigManifestEntryBase {
@@ -113,7 +118,7 @@ export interface ConfigManifestFloatEntry extends ConfigManifestEntryBase {
 }
 export interface ConfigManifestEnumEntry extends ConfigManifestEntryBase {
 	type: ConfigManifestEntryType.ENUM
-	values: any // for enum
+	values: EnumLike
 }
 
 export interface TableConfigManifestEntry extends ConfigManifestEntryBase {

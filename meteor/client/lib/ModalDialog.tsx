@@ -11,7 +11,7 @@ import { Translated } from './ReactMeteorData/ReactMeteorData'
 import { EditAttribute, EditAttributeType } from './EditAttribute'
 import { SorensenContext } from './SorensenContext'
 import { Settings } from '../../lib/Settings'
-import { EditAttributeBase } from './editAttribute/edit-attribute-base'
+import { EditAttributeBase } from './editAttribute/EditAttributeBase'
 
 interface IModalDialogAttributes {
 	show?: boolean

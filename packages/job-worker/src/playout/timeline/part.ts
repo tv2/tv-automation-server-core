@@ -80,6 +80,7 @@ export function transformPartIntoTimeline(
 			...transformPieceGroupAndObjects(
 				playlistId,
 				parentGroup,
+				parentGroup,
 				nowInParentGroup,
 				pieceInstance,
 				pieceEnable,

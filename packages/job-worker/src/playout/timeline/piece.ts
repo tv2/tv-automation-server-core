@@ -18,7 +18,8 @@ import { hasPieceInstanceDefinitelyEnded } from './lib'
 
 export function transformPieceGroupAndObjects(
 	playlistId: RundownPlaylistId,
-	partGroup: TimelineObjGroupPart & OnGenerateTimelineObjExt,
+	partGroup: TimelineObjGroupPart,
+	parentGroup: TimelineObjGroupPart & OnGenerateTimelineObjExt,
 	nowInPart: number,
 	pieceInstance: ReadonlyDeep<PieceInstanceWithTimings>,
 	pieceEnable: TSR.Timeline.TimelineEnable,
@@ -37,6 +38,7 @@ export function transformPieceGroupAndObjects(
 		pieceInstance,
 		controlObjClasses,
 		partGroup,
+		parentGroup,
 		pieceEnable,
 		pieceStartOffset
 	)
@@ -74,7 +76,7 @@ export function transformPieceGroupAndObjects(
 				objectType: TimelineObjType.RUNDOWN,
 				pieceInstanceId: unprotectString(pieceInstance._id),
 				infinitePieceInstanceId: pieceInstance.infinite?.infiniteInstanceId,
-				partInstanceId: partGroup.partInstanceId,
+				partInstanceId: parentGroup.partInstanceId,
 			})
 		}
 

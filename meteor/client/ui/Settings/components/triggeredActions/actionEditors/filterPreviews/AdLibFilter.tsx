@@ -216,7 +216,7 @@ function fieldValueMutate(link: IAdLibFilterLink, newValue: any) {
 		case 'sourceLayerId':
 			return Array.isArray(newValue)
 				? newValue.map((layerId) => {
-						if ('value' in layerId) {
+						if (typeof layerId !== 'string' && 'value' in layerId) {
 							return String(layerId.value)
 						}
 						return String(layerId)

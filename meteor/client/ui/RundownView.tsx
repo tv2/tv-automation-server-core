@@ -821,7 +821,11 @@ const RundownHeader = withTranslation()(
 					yes: 'OK',
 				})
 			} else {
-				doReset()
+				doModalDialog({
+					title: t('Reset rundown?'),
+					message: t('Are you sure you want to reset the rundown?'),
+					onAccept: doReset,
+				})
 			}
 		}
 
