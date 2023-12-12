@@ -27,7 +27,7 @@
 		"meteor:run": "cd meteor && meteor yarn start",
 		"lint": "yarn lint:meteor && yarn lint:packages",
 		"lint-fix": "yarn lint-fix:meteor && yarn lint-fix:packages",
-		"test": "yarn unit",
+		"test": "yarn yarn test:meteor && test:packages",
 		"unit": "yarn unit:meteor && yarn unit:packages",
 		"validate": "yarn validate:release",
 		"validate:release": "yarn install && yarn build:packages && yarn validate:release:packages && yarn validate:release:meteor",
