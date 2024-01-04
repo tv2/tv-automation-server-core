@@ -23,7 +23,7 @@
 		"check-types:meteor": "cd meteor && yarn check-types",
 		"test:meteor": "cd meteor && yarn test",
 		"lint:meteor": "cd meteor && meteor yarn lint",
-		"lint-fix:meteor": "cd meteor && yarn lint --fix",
+		"lint-fix:meteor": "cd meteor && yarn lint-fix",
 		"unit:meteor": "cd meteor && meteor yarn unit",
 		"meteor:run": "cd meteor && meteor yarn start",
 		"lint": "yarn lint:meteor && yarn lint:packages",
