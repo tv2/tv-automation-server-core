@@ -7,7 +7,8 @@
 		"node": "^14.19 || ^16.14"
 	},
 	"scripts": {
-		"postinstall": "yarn install:packages && yarn install:meteor",
+		"postinstall": "cd packages && yarn postinstall && cd ../meteor && yarn postinstall",
+		"install": "yarn install:packages && yarn install:meteor",
 		"install:meteor": "cd meteor && meteor --version && meteor npm install -g yarn && node ../scripts/fix-windows-yarn.js && meteor yarn install",
 		"install:packages": "cd packages && yarn install",
 		"start": "yarn install && yarn dev",
@@ -42,7 +43,7 @@
 	"devDependencies": {
 		"concurrently": "^7.4.0",
 		"rimraf": "^3.0.2",
-		"semver": "^7.3.7",
+		"semver": "7.5.2",
 		"snyk-nodejs-lockfile-parser": "^1.43.1",
 		"yargs": "^17.7.1"
 	}
