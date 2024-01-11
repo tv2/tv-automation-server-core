@@ -10,7 +10,7 @@ async function rimrafLog(command) {
 
 ;(async () => {
 	log(`resetting...`);
-	await Promise.allSettled(
+	await Promise.all(
 		[
 			'./meteor/.meteor/local',
 			'./meteor/node_modules',
@@ -20,7 +20,7 @@ async function rimrafLog(command) {
 			'./packages/*/node_modules',
 			'./packages/*/dist',
 		].map(rimrafLog)
-	).catch(log)
+	)
 	log(`...done!`)
 	log(`To install everything again, run "yarn start"`)
 })().catch(log)
