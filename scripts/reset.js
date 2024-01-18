@@ -9,14 +9,18 @@ async function rimrafLog(command) {
 }
 
 ;(async () => {
-	await rimrafLog('./meteor/.meteor/local')
-	await rimrafLog('./meteor/node_modules')
-	await rimrafLog('./meteor/coverage')
+	log(`resetting...`);
+	await Promise.all(
+		[
+			'./meteor/.meteor/local',
+			'./meteor/node_modules',
+			'./meteor/coverage',
 
-	await rimrafLog('./packages/node_modules')
-	await rimrafLog('./packages/*/node_modules')
-	await rimrafLog('./packages/*/dist')
-
+			'./packages/node_modules',
+			'./packages/*/node_modules',
+			'./packages/*/dist',
+		].map(rimrafLog)
+	)
 	log(`...done!`)
 	log(`To install everything again, run "yarn start"`)
 })().catch(log)
