@@ -40,6 +40,8 @@ import {
 	UserRemoveRundownProps,
 	UserUnsyncRundownProps,
 } from '@sofie-automation/corelib/dist/worker/ingest'
+import { AdLibAction } from '@sofie-automation/corelib/dist/dataModel/AdlibAction'
+import { AdLibPiece } from '@sofie-automation/corelib/dist/dataModel/AdLibPiece'
 
 export async function handleRemovedRundown(context: JobContext, data: IngestRemoveRundownProps): Promise<void> {
 	return runIngestJob(
@@ -412,6 +414,9 @@ export async function handleUpdatedSegmentRanks(
 					},
 				})
 
+				updateAdLibActionRanks(externalId, rank, cache)
+				updateAdLibPieceRanks(externalId, rank, cache)
+
 				if (changed.length === 0) {
 					logger.warn(`Failed to update rank of segment "${externalId}" (${data.rundownExternalId})`)
 				} else {
@@ -430,6 +435,36 @@ export async function handleUpdatedSegmentRanks(
 			}
 		}
 	)
+}
+
+function updateAdLibActionRanks(segmentExternalId: string, newRank: number, cache: CacheForIngest): void {
+	const adLibActionsForSegment: AdLibAction[] = cache.AdLibActions.findFetch((adLibAction: AdLibAction) =>
+		adLibAction.externalId.startsWith(segmentExternalId)
+	)
+
+	for (const adLibAction of adLibActionsForSegment) {
+		const oldRankFraction: number = (adLibAction.display._rank ?? 1) % 1
+		cache.AdLibActions.update(adLibAction._id, {
+			$set: {
+				'display._rank': newRank + oldRankFraction,
+			},
+		})
+	}
+}
+
+function updateAdLibPieceRanks(segmentExternalId: string, newRank: number, cache: CacheForIngest): void {
+	const adLibPiecesForSegment: AdLibPiece[] = cache.AdLibPieces.findFetch((adLibPiece: AdLibPiece) =>
+		adLibPiece.externalId.startsWith(segmentExternalId)
+	)
+
+	for (const adLibPiece of adLibPiecesForSegment) {
+		const oldRankFraction: number = (adLibPiece._rank ?? 1) % 1
+		cache.AdLibPieces.update(adLibPiece._id, {
+			$set: {
+				_rank: newRank + oldRankFraction,
+			},
+		})
+	}
 }
 
 export async function handleRemoveOrphanedSegemnts(
