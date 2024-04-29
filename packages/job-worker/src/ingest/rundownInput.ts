@@ -452,16 +452,16 @@ function updateAdLibActionRanks(segmentExternalId: string, newRank: number, cach
 	}
 }
 
-function updateAdLibPieceRanks(segmentExternalId: string, newRank: number, cache: CacheForIngest): void {
+function updateAdLibPieceRanks(segmentExternalId: string, newSegmentRank: number, cache: CacheForIngest): void {
 	const adLibPiecesForSegment: AdLibPiece[] = cache.AdLibPieces.findFetch((adLibPiece: AdLibPiece) =>
 		adLibPiece.externalId.startsWith(segmentExternalId)
 	)
 
 	for (const adLibPiece of adLibPiecesForSegment) {
-		const oldRankFraction: number = (adLibPiece._rank ?? 1) % 1
+		const oldRankFraction: number = (adLibPiece._rank ?? 0) % 1
 		cache.AdLibPieces.update(adLibPiece._id, {
 			$set: {
-				_rank: newRank + oldRankFraction,
+				_rank: newSegmentRank + oldRankFraction,
 			},
 		})
 	}
