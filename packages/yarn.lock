@@ -3095,7 +3095,7 @@
   version "46.3.0"
   dependencies:
     "@sofie-automation/shared-lib" "link:shared-lib"
-    timeline-state-resolver-types "npm:@tv2media/timeline-state-resolver-types@3.5.1"
+    timeline-state-resolver-types "npm:@tv2media/timeline-state-resolver-types@3.7.0"
     tslib "^2.4.0"
     type-fest "^2.19.0"
 
@@ -14013,13 +14013,6 @@ timecode@0.0.4:
   version "0.0.4"
   resolved "https://registry.yarnpkg.com/timecode/-/timecode-0.0.4.tgz#cdea9d2352009700e50da657cb7fb7c1720f5704"
   integrity sha512-xFVZlWnqls5eVphtUJo0UuXeJa0grBmxESSn5QPQB7CMsaVgTnLdP9PTZqb4KyFmLdrE+PUu3eEt42zHsMxCtw==
-
-"timeline-state-resolver-types@npm:@tv2media/timeline-state-resolver-types@3.5.1":
-  version "3.5.1"
-  resolved "https://registry.yarnpkg.com/@tv2media/timeline-state-resolver-types/-/timeline-state-resolver-types-3.5.1.tgz#9362ec90183babb8183914a7e36664218e2eb5e1"
-  integrity sha512-yBAI2d7cnWPuDtFsYkbFB/GBkN4p0Q7Ne4TqKCDl4haqFU4PNtIzI1shH9AOEMOcsmNh0ZxHTzgAG85zrGGXpQ==
-  dependencies:
-    tslib "^2.3.1"
 
 "timeline-state-resolver-types@npm:@tv2media/timeline-state-resolver-types@3.7.0":
   version "3.7.0"
