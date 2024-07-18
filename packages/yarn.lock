@@ -14021,10 +14021,10 @@ timecode@0.0.4:
   dependencies:
     tslib "^2.3.1"
 
-"timeline-state-resolver@npm:@tv2media/timeline-state-resolver@3.7.0":
-  version "3.7.0"
-  resolved "https://registry.yarnpkg.com/@tv2media/timeline-state-resolver/-/timeline-state-resolver-3.7.0.tgz#fdf114abe41e441bf7902b111c11f0d7deb56689"
-  integrity sha512-trQPYwP3WTUyjjn0UBjXxerduHfB51WGyA0y7Cj3uMtjdHzGJsJzeUbEIJSqHDdGKKR7gwlP3au63Rca+JjO9A==
+"timeline-state-resolver@npm:@tv2media/timeline-state-resolver@3.7.1":
+  version "3.7.1"
+  resolved "https://registry.yarnpkg.com/@tv2media/timeline-state-resolver/-/timeline-state-resolver-3.7.1.tgz#014773ea8e8d51880a48791972fcf7b16c23b717"
+  integrity sha512-7C+EZZgiDQnlUBrbUkAfNffGo3VQM7h1mUD1gA0hYet1zOLSg0oxSp2DXc7s9U2eCP2fmVRLHcpY/oSiLJTu8w==
   dependencies:
     "@tv2media/v-connection" "^7.2.1"
     atem-connection "2.4.0"
