@@ -64,7 +64,7 @@
 		"fast-clone": "^1.5.13",
 		"influx": "^5.9.3",
 		"object-hash": "^3.0.0",
-		"timeline-state-resolver": "npm:@tv2media/timeline-state-resolver@3.7.0",
+		"timeline-state-resolver": "npm:@tv2media/timeline-state-resolver@3.7.9",
 		"tslib": "^2.4.0",
 		"underscore": "^1.13.4"
 	},
