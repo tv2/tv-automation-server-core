@@ -6,6 +6,7 @@ import { InfluxConfig } from './influxdb'
 import { PeripheralDeviceId } from '@sofie-automation/shared-lib/dist/core/model/Ids'
 import * as Koa from 'koa'
 import * as KoaRouter from 'koa-router'
+import * as process from 'node:process'
 
 export interface Config {
 	process: ProcessConfig
@@ -101,11 +102,14 @@ export class Connector {
 		this.setupDevicesMakeReadyEndpoint(koaRouter)
 		this.setupDevicesStandDownEndpoint(koaRouter)
 
-		const port: number = 3009
 		const koaApp: Koa = new Koa()
-
 		koaApp.use(koaRouter.routes()).use(koaRouter.allowedMethods())
-		koaApp.listen(port, () => {})
+		koaApp.listen(this.getRestPort(), () => {})
+	}
+
+	private getRestPort(): number {
+		const envPort: number = parseInt(process.env.REST_PORT ?? '')
+		return isNaN(envPort) ? 3009 : envPort
 	}
 
 	/* eslint-disable @typescript-eslint/prefer-as-const */
