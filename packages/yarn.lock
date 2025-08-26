@@ -1477,7 +1477,7 @@
     "@docusaurus/theme-common" "2.0.0-beta.20"
     "@docusaurus/theme-search-algolia" "2.0.0-beta.20"
 
-"@docusaurus/react-loadable@5.5.2", "react-loadable@npm:@docusaurus/react-loadable@5.5.2":
+"@docusaurus/react-loadable@5.5.2":
   version "5.5.2"
   resolved "https://registry.yarnpkg.com/@docusaurus/react-loadable/-/react-loadable-5.5.2.tgz#81aae0db81ecafbdaee3651f12804580868fa6ce"
   integrity sha512-A3dYjdBGuy0IGT+wyLIGIKLRE+sAk1iNk0f1HjNDysO7u8lhL4N3VEm+FAubmJbAztn94F7MxBTPmnixbiyFdQ==
@@ -3095,7 +3095,7 @@
   version "46.3.0"
   dependencies:
     "@sofie-automation/shared-lib" "link:shared-lib"
-    timeline-state-resolver-types "npm:@tv2media/timeline-state-resolver-types@3.7.9"
+    timeline-state-resolver-types "npm:@tv2media/timeline-state-resolver-types@3.7.10"
     tslib "^2.4.0"
     type-fest "^2.19.0"
 
@@ -12395,6 +12395,14 @@ react-loadable-ssr-addon-v5-slorber@^1.0.1:
   dependencies:
     "@babel/runtime" "^7.10.3"
 
+"react-loadable@npm:@docusaurus/react-loadable@5.5.2":
+  version "5.5.2"
+  resolved "https://registry.yarnpkg.com/@docusaurus/react-loadable/-/react-loadable-5.5.2.tgz#81aae0db81ecafbdaee3651f12804580868fa6ce"
+  integrity sha512-A3dYjdBGuy0IGT+wyLIGIKLRE+sAk1iNk0f1HjNDysO7u8lhL4N3VEm+FAubmJbAztn94F7MxBTPmnixbiyFdQ==
+  dependencies:
+    "@types/react" "*"
+    prop-types "^15.6.2"
+
 react-router-config@^5.1.1:
   version "5.1.1"
   resolved "https://registry.yarnpkg.com/react-router-config/-/react-router-config-5.1.1.tgz#0f4263d1a80c6b2dc7b9c1902c9526478194a988"
@@ -14201,17 +14209,17 @@ timecode@0.0.4:
   resolved "https://registry.yarnpkg.com/timecode/-/timecode-0.0.4.tgz#cdea9d2352009700e50da657cb7fb7c1720f5704"
   integrity sha512-xFVZlWnqls5eVphtUJo0UuXeJa0grBmxESSn5QPQB7CMsaVgTnLdP9PTZqb4KyFmLdrE+PUu3eEt42zHsMxCtw==
 
-"timeline-state-resolver-types@npm:@tv2media/timeline-state-resolver-types@3.7.9":
-  version "3.7.9"
-  resolved "https://registry.yarnpkg.com/@tv2media/timeline-state-resolver-types/-/timeline-state-resolver-types-3.7.9.tgz#4660a49505df184e2108c4bbda8d04ed121233ad"
-  integrity sha512-Nveg/8m7zWTxLT9oIkwn2V4VkYo9KnoP20yk8s5rLBOxRvQwoA2rcaZ37iK2n6tnLufqTg/Vg9C3wA/jrjSAfw==
+"timeline-state-resolver-types@npm:@tv2media/timeline-state-resolver-types@3.7.10":
+  version "3.7.10"
+  resolved "https://registry.yarnpkg.com/@tv2media/timeline-state-resolver-types/-/timeline-state-resolver-types-3.7.10.tgz#4daab453246e5404c27c2a4f44b18004be1ce4dd"
+  integrity sha512-4UchEF/qlsJZkq7TNssvg9Ds/Fys22Kcb82xkfWYnPAJP8cd9FKL7aTyeCshdj7PL0EkVoClsyLhEDFxPP+Glg==
   dependencies:
     tslib "^2.3.1"
 
-"timeline-state-resolver@npm:@tv2media/timeline-state-resolver@3.7.9":
-  version "3.7.9"
-  resolved "https://registry.yarnpkg.com/@tv2media/timeline-state-resolver/-/timeline-state-resolver-3.7.9.tgz#602ea54fdbe8196eb2dd7e34ecbdb2d8f93e8875"
-  integrity sha512-BYteFG12SOBB4gz+bq8N4+U9lySKr1fX5dNDWoxoLSZwpuYeibSbkdbDheSVypV0Jhxh/d8cLEjXjUm04Nn6Hg==
+"timeline-state-resolver@npm:@tv2media/timeline-state-resolver@3.7.10":
+  version "3.7.10"
+  resolved "https://registry.yarnpkg.com/@tv2media/timeline-state-resolver/-/timeline-state-resolver-3.7.10.tgz#2b332cd6617984e1aeb5d86ac5dd6d14d84ee513"
+  integrity sha512-mc4T+U3M8pJqpSXC4I5URpZB+Zc2obemCWIQ/X5x/vUgEy0sL0BbiLy52kWFugCByc3fdCiz98UCPxjl6VRUUQ==
   dependencies:
     "@tv2media/v-connection" "^7.2.1"
     atem-connection "2.4.0"
@@ -14233,7 +14241,7 @@ timecode@0.0.4:
     sprintf-js "^1.1.2"
     superfly-timeline "^8.3.1"
     threadedclass "^1.1.1"
-    timeline-state-resolver-types "npm:@tv2media/timeline-state-resolver-types@3.7.9"
+    timeline-state-resolver-types "npm:@tv2media/timeline-state-resolver-types@3.7.10"
     tslib "^2.3.1"
     tv-automation-quantel-gateway-client "^2.0.5"
     underscore "^1.13.4"
