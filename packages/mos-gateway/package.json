@@ -1,6 +1,6 @@
 {
 	"name": "mos-gateway",
-	"version": "46.3.6",
+	"version": "46.3.7",
 	"private": true,
 	"description": "MOS-Gateway for the Sofie project",
 	"license": "MIT",
