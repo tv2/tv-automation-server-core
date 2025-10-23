@@ -3092,7 +3092,7 @@
     webpack-sources "^3.2.2"
 
 "@sofie-automation/blueprints-integration@link:blueprints-integration":
-  version "46.3.0"
+  version "46.3.6"
   dependencies:
     "@sofie-automation/shared-lib" "link:shared-lib"
     timeline-state-resolver-types "npm:@tv2media/timeline-state-resolver-types@3.7.10"
@@ -3120,7 +3120,7 @@
     shelljs "^0.8.5"
 
 "@sofie-automation/corelib@link:corelib":
-  version "46.3.0"
+  version "46.3.6"
   dependencies:
     "@sofie-automation/blueprints-integration" "link:blueprints-integration"
     "@sofie-automation/shared-lib" "link:shared-lib"
@@ -3136,7 +3136,7 @@
     underscore "^1.13.4"
 
 "@sofie-automation/server-core-integration@link:server-core-integration":
-  version "46.3.0"
+  version "46.3.6"
   dependencies:
     "@sofie-automation/shared-lib" "link:shared-lib"
     ejson "^2.2.3"
@@ -3147,7 +3147,7 @@
     underscore "^1.13.4"
 
 "@sofie-automation/shared-lib@link:shared-lib":
-  version "46.3.0"
+  version "46.3.6"
   dependencies:
     tslib "^2.4.0"
     type-fest "^2.19.0"
@@ -5201,19 +5201,19 @@ casparcg-connection@6.2.0:
     tslib "^2.5.0"
     xml2js "^0.6.2"
 
-casparcg-connection@^6.0.0:
-  version "6.2.1"
-  resolved "https://registry.yarnpkg.com/casparcg-connection/-/casparcg-connection-6.2.1.tgz#6b9c7ef49df1cb24cf64da6740e3d7b901eb2f74"
-  integrity sha512-2m+TWBile4qFvQtVmp/M20MegV4giwPs4jHfVBgj7LX2nWsbc0TX0Cz5pLAKeKnM/ErVKI8nR37Ye17zNXSIEA==
+casparcg-connection@^6.3.0:
+  version "6.3.0"
+  resolved "https://registry.yarnpkg.com/casparcg-connection/-/casparcg-connection-6.3.0.tgz#57152190c1c6cfb3a5247bef41923cf1117c0b47"
+  integrity sha512-5Pz2K50m1hI5j11LPqrLxBxy1QnaGywh8KuLYglBeKaOKsDh9nBbcnCV7eNWW9de6skYDhUfIWg4vI6lqMXgzQ==
   dependencies:
     eventemitter3 "^5.0.1"
     tslib "^2.5.0"
     xml2js "^0.6.2"
 
-casparcg-state@^3.0.1:
-  version "3.0.3"
-  resolved "https://registry.yarnpkg.com/casparcg-state/-/casparcg-state-3.0.3.tgz#bafd411d374c042f85cbeba2ba6553ee53097f47"
-  integrity sha512-dhE0VQymoZrbmIyNGf7aovijya0b/98tFsdM3/EG9vqXgdG0XXT09+r6di8pUX6nR49J+ypQP0wGK9UE0eRnfg==
+casparcg-state@^3.0.4:
+  version "3.0.4"
+  resolved "https://registry.yarnpkg.com/casparcg-state/-/casparcg-state-3.0.4.tgz#3bdc07fae86fe8389aeb63fd1a990bcc3a896d0c"
+  integrity sha512-RSOQM1f1LZODn2u2NWQL0qiRTSGw7OVcEHZefrnY8jwsMIrh2xQQKNtlAgrdzZzh/VdB1L8gbkrn/gWi7Ft8+g==
   dependencies:
     casparcg-connection "6.2.0"
     fast-clone "^1.5.13"
@@ -14216,16 +14216,16 @@ timecode@0.0.4:
   dependencies:
     tslib "^2.3.1"
 
-"timeline-state-resolver@npm:@tv2media/timeline-state-resolver@3.7.10":
-  version "3.7.10"
-  resolved "https://registry.yarnpkg.com/@tv2media/timeline-state-resolver/-/timeline-state-resolver-3.7.10.tgz#2b332cd6617984e1aeb5d86ac5dd6d14d84ee513"
-  integrity sha512-mc4T+U3M8pJqpSXC4I5URpZB+Zc2obemCWIQ/X5x/vUgEy0sL0BbiLy52kWFugCByc3fdCiz98UCPxjl6VRUUQ==
+"timeline-state-resolver@npm:@tv2media/timeline-state-resolver@3.7.11":
+  version "3.7.11"
+  resolved "https://registry.yarnpkg.com/@tv2media/timeline-state-resolver/-/timeline-state-resolver-3.7.11.tgz#a60fc85bc633676295feb0c6d7354533a9350ecf"
+  integrity sha512-1Sb0QjXWEDQD+TzmsTc9hLAVI0cIA6NuSSP2rAyD/x0YB/9gSLLFSUnqvA7JpfhFBArmLhX96TgdSirpGTBv6g==
   dependencies:
     "@tv2media/v-connection" "^7.2.1"
     atem-connection "2.4.0"
     atem-state "^0.13.0"
-    casparcg-connection "^6.0.0"
-    casparcg-state "^3.0.1"
+    casparcg-connection "^6.3.0"
+    casparcg-state "^3.0.4"
     debug "^4.3.1"
     deepmerge "^4.2.2"
     emberplus-connection "^0.1.2"
