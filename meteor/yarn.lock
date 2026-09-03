@@ -1181,8 +1181,12 @@
     axios "^0.21.4"
 
 "@sofie-automation/blueprints-integration@link:../packages/blueprints-integration":
-  version "0.0.0"
-  uid ""
+  version "46.3.0"
+  dependencies:
+    "@sofie-automation/shared-lib" "link:../packages/shared-lib"
+    timeline-state-resolver-types "npm:@tv2media/timeline-state-resolver-types@3.5.1"
+    tslib "^2.4.0"
+    type-fest "^2.19.0"
 
 "@sofie-automation/code-standard-preset@~2.0.2":
   version "2.0.2"
@@ -1205,16 +1209,48 @@
     shelljs "^0.8.5"
 
 "@sofie-automation/corelib@link:../packages/corelib":
-  version "0.0.0"
-  uid ""
+  version "46.3.0"
+  dependencies:
+    "@sofie-automation/blueprints-integration" "link:../packages/blueprints-integration"
+    "@sofie-automation/shared-lib" "link:../packages/shared-lib"
+    fast-clone "^1.5.13"
+    i18next "^21.9.1"
+    influx "^5.9.3"
+    mos-connection "^2.0.1"
+    nanoid "^3.3.4"
+    object-path "^0.11.8"
+    timecode "0.0.4"
+    tslib "^2.4.0"
+    type-fest "^2.19.0"
+    underscore "^1.13.4"
 
 "@sofie-automation/job-worker@link:../packages/job-worker":
-  version "0.0.0"
-  uid ""
+  version "46.3.0"
+  dependencies:
+    "@slack/webhook" "^6.1.0"
+    "@sofie-automation/blueprints-integration" "link:../packages/blueprints-integration"
+    "@sofie-automation/corelib" "link:../packages/corelib"
+    "@sofie-automation/shared-lib" "link:../packages/shared-lib"
+    amqplib "^0.10.3"
+    debounce-fn "^4.0.0"
+    deepmerge "^4.2.2"
+    elastic-apm-node "^3.38.0"
+    eventemitter3 "^4.0.7"
+    mongodb "^4.9.1"
+    p-lazy "^3.1.0"
+    p-timeout "^4.1.0"
+    superfly-timeline "^8.3.1"
+    threadedclass "^1.2.0"
+    tslib "^2.4.0"
+    type-fest "^2.19.0"
+    underscore "^1.13.4"
+    vm2 "^3.9.11"
 
 "@sofie-automation/shared-lib@link:../packages/shared-lib":
-  version "0.0.0"
-  uid ""
+  version "46.3.0"
+  dependencies:
+    tslib "^2.4.0"
+    type-fest "^2.19.0"
 
 "@sofie-automation/sorensen@^1.4.2":
   version "1.4.2"
@@ -1634,10 +1670,10 @@
   dependencies:
     lodash "^4"
 
-"@xmldom/xmldom@^0.8.0":
-  version "0.8.2"
-  resolved "https://registry.yarnpkg.com/@xmldom/xmldom/-/xmldom-0.8.2.tgz#b695ff674e8216efa632a3d36ad51ae9843380c0"
-  integrity sha512-+R0juSseERyoPvnBQ/cZih6bpF7IpCXlWbHRoCRzYzqpz6gWHOgf8o4MOEf6KBVuOyqU+gCNLkCWVIJAro8XyQ==
+"@xmldom/xmldom@^0.8.15":
+  version "0.8.15"
+  resolved "https://registry.yarnpkg.com/@xmldom/xmldom/-/xmldom-0.8.15.tgz#71ebf80729e4e95221d519ac9b1e1eaea7784907"
+  integrity sha512-/5NV/vDALVFDXgLmfsy9TRCBlKwO2LNBFzpzvb9iIj+jR+eSc6DLYYvVOdivT/jm7MtU6TebYuRmzEOI7w40UA==
 
 JSONStream@^1.0.4:
   version "1.3.5"
