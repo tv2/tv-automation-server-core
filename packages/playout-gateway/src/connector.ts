@@ -104,7 +104,12 @@ export class Connector {
 
 		const koaApp: Koa = new Koa()
 		koaApp.use(koaRouter.routes()).use(koaRouter.allowedMethods())
-		koaApp.listen(this.getRestPort(), () => {})
+		const host = process.env.REST_HOST
+		if (host) {
+			koaApp.listen(this.getRestPort(), host, () => {})
+		} else {
+			koaApp.listen(this.getRestPort(), () => {})
+		}
 	}
 
 	private getRestPort(): number {

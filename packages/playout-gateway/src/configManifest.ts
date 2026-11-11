@@ -20,6 +20,9 @@ import {
 	MappingVMixType,
 	MappingOBSType,
 	MappingTriCasterType,
+	MappingM2LXType,
+	M2LXMixerBus,
+	M2LXKeyerType,
 } from 'timeline-state-resolver'
 
 const PLAYOUT_SUBDEVICE_COMMON: ConfigManifestEntry[] = [
@@ -447,6 +450,66 @@ const PLAYOUT_SUBDEVICE_CONFIG: ImplementedSubDeviceConfig = {
 	],
 	[TSRDeviceType.TELEMETRICS]: [...PLAYOUT_SUBDEVICE_COMMON, ...PLAYOUT_SUBDEVICE_HOST],
 	[TSRDeviceType.TRICASTER]: [...PLAYOUT_SUBDEVICE_COMMON, ...PLAYOUT_SUBDEVICE_HOST_PORT],
+	[TSRDeviceType.M2LX]: [
+		...PLAYOUT_SUBDEVICE_COMMON,
+		{
+			id: 'options.baseUrl',
+			name: 'Mixer address (required)',
+			type: ConfigManifestEntryType.STRING,
+			hint: "Enter the mixer's HTTPS address.",
+		},
+		{
+			id: 'options.password',
+			name: 'Administrator password (required)',
+			type: ConfigManifestEntryType.STRING,
+			hint: 'Mixer administrator password. Visible while editing.',
+		},
+		{
+			id: 'options.eventId',
+			name: 'Event ID',
+			type: ConfigManifestEntryType.STRING,
+			hint: 'Use the event ID, not its name. Starting it may stop another event.',
+		},
+		{
+			id: 'options.eventTimeout',
+			name: 'Event start/stop timeout (ms)',
+			type: ConfigManifestEntryType.INT,
+			defaultVal: 180000,
+			hint: 'Maximum wait for an event to stop or start. Must be greater than zero.',
+		},
+		{
+			id: 'options.rejectUnauthorized',
+			name: 'Verify secure connection',
+			type: ConfigManifestEntryType.BOOLEAN,
+			defaultVal: true,
+			hint: 'Keep enabled unless using a trusted mixer with a self-signed certificate.',
+		},
+		{
+			id: 'options.authenticationTimeout',
+			name: 'Sign-in timeout (ms)',
+			type: ConfigManifestEntryType.INT,
+		},
+		{
+			id: 'options.webSocketConnectTimeout',
+			name: 'Connection timeout (ms)',
+			type: ConfigManifestEntryType.INT,
+		},
+		{
+			id: 'options.commandTimeout',
+			name: 'Operation timeout (ms)',
+			type: ConfigManifestEntryType.INT,
+		},
+		{
+			id: 'options.reconnectBackoff.minDelay',
+			name: 'Minimum reconnect delay (ms)',
+			type: ConfigManifestEntryType.INT,
+		},
+		{
+			id: 'options.reconnectBackoff.maxDelay',
+			name: 'Maximum reconnect delay (ms)',
+			type: ConfigManifestEntryType.INT,
+		},
+	],
 }
 
 // TODO: should come from types
@@ -661,6 +724,65 @@ const MAPPING_MANIFEST: ImplementedMappingsManifest = {
 		},
 	],
 	[TSRDeviceType.TELEMETRICS]: [],
+	[TSRDeviceType.M2LX]: [
+		{
+			id: 'mappingType',
+			name: 'Control type',
+			type: ConfigManifestEntryType.ENUM,
+			values: MappingM2LXType,
+			includeInSummary: true,
+			hint: 'For Mixer, ignore the remaining fields.',
+		},
+		{
+			id: 'bus',
+			name: 'Destination (keyer only)',
+			type: ConfigManifestEntryType.ENUM,
+			values: M2LXMixerBus,
+			optional: true,
+		},
+		{
+			id: 'keyer.type',
+			name: 'Keyer type (keyer only)',
+			type: ConfigManifestEntryType.ENUM,
+			values: M2LXKeyerType,
+			optional: true,
+		},
+		{
+			id: 'keyer.index',
+			name: 'Keyer number (keyer only)',
+			type: ConfigManifestEntryType.INT,
+			optional: true,
+			hint: 'Split Screen: 0–3; still image: 4–7; DSK: 0–1. Do not select reserved Split Screen boxes.',
+		},
+		{
+			id: 'node',
+			name: 'Audio or router name (optional)',
+			type: ConfigManifestEntryType.STRING,
+			optional: true,
+			hint: 'Only needed when using a non-default name.',
+		},
+		{
+			id: 'input',
+			name: 'Audio input (audio only)',
+			type: ConfigManifestEntryType.STRING,
+			optional: true,
+			hint: 'Exact audio input name, including its channel.',
+		},
+		{
+			id: 'player',
+			name: 'Media player (player only)',
+			type: ConfigManifestEntryType.STRING,
+			optional: true,
+			hint: 'Exact media player name on the mixer.',
+		},
+		{
+			id: 'output',
+			name: 'Router output (router only)',
+			type: ConfigManifestEntryType.STRING,
+			optional: true,
+			hint: 'Exact output name on the mixer.',
+		},
+	],
 	[TSRDeviceType.TRICASTER]: [
 		{
 			id: 'mappingType',

@@ -3092,10 +3092,10 @@
     webpack-sources "^3.2.2"
 
 "@sofie-automation/blueprints-integration@link:blueprints-integration":
-  version "46.3.6"
+  version "46.3.7"
   dependencies:
     "@sofie-automation/shared-lib" "link:shared-lib"
-    timeline-state-resolver-types "npm:@tv2media/timeline-state-resolver-types@3.7.10"
+    timeline-state-resolver-types "npm:@tv2media/timeline-state-resolver-types@3.8.0-m2lx.2"
     tslib "^2.4.0"
     type-fest "^2.19.0"
 
@@ -3120,7 +3120,7 @@
     shelljs "^0.8.5"
 
 "@sofie-automation/corelib@link:corelib":
-  version "46.3.6"
+  version "46.3.7"
   dependencies:
     "@sofie-automation/blueprints-integration" "link:blueprints-integration"
     "@sofie-automation/shared-lib" "link:shared-lib"
@@ -3136,7 +3136,7 @@
     underscore "^1.13.4"
 
 "@sofie-automation/server-core-integration@link:server-core-integration":
-  version "46.3.6"
+  version "46.3.7"
   dependencies:
     "@sofie-automation/shared-lib" "link:shared-lib"
     ejson "^2.2.3"
@@ -3147,7 +3147,7 @@
     underscore "^1.13.4"
 
 "@sofie-automation/shared-lib@link:shared-lib":
-  version "46.3.6"
+  version "46.3.7"
   dependencies:
     tslib "^2.4.0"
     type-fest "^2.19.0"
@@ -14209,17 +14209,17 @@ timecode@0.0.4:
   resolved "https://registry.yarnpkg.com/timecode/-/timecode-0.0.4.tgz#cdea9d2352009700e50da657cb7fb7c1720f5704"
   integrity sha512-xFVZlWnqls5eVphtUJo0UuXeJa0grBmxESSn5QPQB7CMsaVgTnLdP9PTZqb4KyFmLdrE+PUu3eEt42zHsMxCtw==
 
-"timeline-state-resolver-types@npm:@tv2media/timeline-state-resolver-types@3.7.10":
-  version "3.7.10"
-  resolved "https://registry.yarnpkg.com/@tv2media/timeline-state-resolver-types/-/timeline-state-resolver-types-3.7.10.tgz#4daab453246e5404c27c2a4f44b18004be1ce4dd"
-  integrity sha512-4UchEF/qlsJZkq7TNssvg9Ds/Fys22Kcb82xkfWYnPAJP8cd9FKL7aTyeCshdj7PL0EkVoClsyLhEDFxPP+Glg==
+"timeline-state-resolver-types@npm:@tv2media/timeline-state-resolver-types@3.8.0-m2lx.2":
+  version "3.8.0-m2lx.2"
+  resolved "https://registry.npmjs.org/@tv2media/timeline-state-resolver-types/-/timeline-state-resolver-types-3.8.0-m2lx.2.tgz#fbcd0e0d6f75ac144344be2198fac96400e5b6a5"
+  integrity sha512-G/aTHsGyh6df1L2BWZjKPp86YYBFeOYDLeN7yei5LmHERHpBzJOR79H0poiagrtvPsGrwfn+eHveRbeo2PM2nQ==
   dependencies:
     tslib "^2.3.1"
 
-"timeline-state-resolver@npm:@tv2media/timeline-state-resolver@3.7.11":
-  version "3.7.11"
-  resolved "https://registry.yarnpkg.com/@tv2media/timeline-state-resolver/-/timeline-state-resolver-3.7.11.tgz#a60fc85bc633676295feb0c6d7354533a9350ecf"
-  integrity sha512-1Sb0QjXWEDQD+TzmsTc9hLAVI0cIA6NuSSP2rAyD/x0YB/9gSLLFSUnqvA7JpfhFBArmLhX96TgdSirpGTBv6g==
+"timeline-state-resolver@npm:@tv2media/timeline-state-resolver@3.8.0-m2lx.2":
+  version "3.8.0-m2lx.2"
+  resolved "https://registry.npmjs.org/@tv2media/timeline-state-resolver/-/timeline-state-resolver-3.8.0-m2lx.2.tgz#9f464e841124745ce448478b7fdf05643fdfdb8f"
+  integrity sha512-1v+CXSCm4vkHVN6M3Ueg2g3G9v8UHhYjYWMjMXzPZVjvdEirjkgNAkCr7vBjiqS4VBULH3RH4sND3DF3+H/hWw==
   dependencies:
     "@tv2media/v-connection" "^7.2.1"
     atem-connection "2.4.0"
@@ -14241,7 +14241,7 @@ timecode@0.0.4:
     sprintf-js "^1.1.2"
     superfly-timeline "^8.3.1"
     threadedclass "^1.1.1"
-    timeline-state-resolver-types "npm:@tv2media/timeline-state-resolver-types@3.7.10"
+    timeline-state-resolver-types "npm:@tv2media/timeline-state-resolver-types@3.8.0-m2lx.2"
     tslib "^2.3.1"
     tv-automation-quantel-gateway-client "^2.0.5"
     underscore "^1.13.4"
