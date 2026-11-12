@@ -259,12 +259,9 @@ export class CoreConnection extends EventEmitter<CoreConnectionEvents> {
 				return
 			}
 			const timeout = setTimeout(() => {
-				// Timeout
-				console.error(`Timeout "${methodName}"`)
-				console.error(JSON.stringify(fullAttrs))
-				reject(
-					`Timeout when calling method "${methodName}", arguments: ${JSON.stringify(fullAttrs).slice(0, 200)}`
-				)
+				const message = `Timeout when calling method "${methodName}" after 10000 ms`
+				console.error(message)
+				reject(message)
 			}, 10 * 1000) // 10 seconds
 			this.ddp.ddpClient.call(methodName, fullAttrs, (err: DDPError | undefined, result: any) => {
 				clearTimeout(timeout)

@@ -51,7 +51,7 @@ const debug = Debug('playout-gateway')
 export interface TSRConfig {}
 export interface TSRSettings {
 	// Runtime settings from Core
-	devices: {
+	devices?: {
 		[deviceId: string]: DeviceOptionsAny
 	}
 	mappings: Mappings
@@ -186,7 +186,6 @@ export class TSRHandler {
 		const peripheralDevice = await coreHandler.core.getPeripheralDevice()
 		const settings: TSRSettings = peripheralDevice.settings || {}
 
-		this.logger.data(settings.devices).debug('Device settings:')
 		const c: ConductorOptions = {
 			getCurrentTime: (): number => {
 				return this._coreHandler.core.getCurrentTime()
@@ -553,7 +552,7 @@ export class TSRHandler {
 		if (peripheralDevice) {
 			const settings: TSRSettings = peripheralDevice.settings || {}
 
-			for (const [deviceId, device] of Object.entries(settings.devices)) {
+			for (const [deviceId, device] of Object.entries(settings.devices ?? {})) {
 				if (!device.disable) {
 					deviceOptions.set(deviceId, device)
 				}
@@ -583,7 +582,7 @@ export class TSRHandler {
 
 				if (!oldDevice) {
 					if (deviceOptions.options) {
-						this.logger.data(deviceOptions).info(`Initializing device '${deviceId}' with options:`)
+						this.logger.info(`Initializing device '${deviceId}' (type ${deviceOptions.type})`)
 						this.enqueueDeviceAddIfNotLast(deviceId, deviceOptions)
 					}
 				} else if (
@@ -592,12 +591,7 @@ export class TSRHandler {
 				) {
 					deviceOptions.debug = this.getDeviceDebug(orgDeviceOptions)
 
-					this.logger
-						.data({
-							oldDeviceOptions: oldDevice.deviceOptions,
-							newDeviceOptions: deviceOptions,
-						})
-						.info(`Re-initializing device: ${deviceId}`)
+					this.logger.info(`Re-initializing device '${deviceId}' (type ${deviceOptions.type})`)
 					this.enqueueDeviceAddIfNotLast(deviceId, deviceOptions)
 				} else if (deviceOptions && this.getDeviceDebug(deviceOptions) !== oldDevice.debugLogging) {
 					this.logger.info(`Setting logDebug of device '${deviceId}' to ${debug}.`)
@@ -824,7 +818,7 @@ export class TSRHandler {
 		this.logger.data(files.map(({ path }) => path)).info(`Trying to load ${files.length} to atem:`)
 		const options = device.deviceOptions.options as { host: string }
 		if (!options || !options.host) {
-			this.logger.data(options).debug('ATEM host options is missing from:')
+			this.logger.debug('ATEM host option is not set.')
 			throw new Error('ATEM host option is not set.')
 		}
 		this.logger.info(`Trying to upload files to ${options.host}`)

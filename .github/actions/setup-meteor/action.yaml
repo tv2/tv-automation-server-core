@@ -3,6 +3,13 @@ description: "Setup Meteor"
 runs:
   using: "composite"
   steps:
+    - uses: actions/setup-python@v5
+      with:
+        python-version: "3.10"
+    - run: |
+        echo "PYTHON=$(command -v python)" >> "$GITHUB_ENV"
+        echo "npm_config_python=$(command -v python)" >> "$GITHUB_ENV"
+      shell: bash
     - run: curl "https://install.meteor.com/?release=2.7.3" | sh
       shell: bash
     - run: meteor npm install -g yarn
